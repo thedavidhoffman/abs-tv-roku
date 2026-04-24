@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="TextInput" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/controls/TextInput.brs" />
+  <interface>
+    <field id="text" type="string" onChange="onTextChanged" />
+    <field id="placeholder" type="string" onChange="onTextChanged" />
+    <field id="hasFocusVisual" type="boolean" onChange="onFocusVisualChanged" />
+    <field id="fieldWidth" type="float" onChange="onDimensionsChanged" />
+    <field id="fieldHeight" type="float" onChange="onDimensionsChanged" />
+  </interface>
+  <children>
+    <Rectangle id="focusFramePlaceholder" translation="[-10,-10]" width="644" height="76" color="16263BFF" />
+    <Rectangle id="focusFrame" translation="[-10,-10]" width="644" height="76" color="FFFFFFFF" />
+    <Rectangle id="bg" width="624" height="56" color="16263BFF" />
+    <Label id="textLabel" translation="[18,12]" width="580" color="FFFFFFFF" />
+  </children>
+</component>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="MainScene" extends="Scene">
+  <script type="text/brightscript" uri="pkg:/source/AuthStore.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/MainScene.brs" />
+  <children>
+    <Rectangle id="bg" width="1920" height="1080" color="0B1220FF" />
+
+    <GettingStartedPage id="gettingStartedPage" visible="true" />
+
+    <Group id="authenticatedContent" visible="false">
+      <Group id="headerPanel">
+        <Rectangle id="headerBg" width="1920" height="118" color="0E1928EE" />
+        <Label id="brandLabel" translation="[64,42]" text="Roku4ABS" color="F6F7FBFF" />
+
+        <Group id="tabGroup" translation="[705,26]">
+          <Button id="booksTab" translation="[0,0]" minWidth="180" text="Books" />
+          <Button id="seriesTab" translation="[210,0]" minWidth="180" text="Series" />
+        </Group>
+
+        <Button id="userMenuButton" translation="[1620,26]" minWidth="220" text="Account" />
+
+        <Group id="menuPanel" visible="false" translation="[1600,102]">
+          <Rectangle width="260" height="150" color="132235FF" />
+          <Button id="logoutButton" translation="[20,18]" minWidth="220" text="Logout" />
+          <Button id="changeServerButton" translation="[20,78]" minWidth="220" text="Change Server" />
+        </Group>
+      </Group>
+
+      <HomePage id="homePage" />
+    </Group>
+
+    <AppTask id="apiTask" />
+  </children>
+</component>

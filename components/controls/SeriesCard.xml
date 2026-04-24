@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="SeriesCard" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/components/controls/SeriesCard.brs" />
+  <interface>
+    <field id="itemContent" type="node" onChange="showContent" />
+    <field id="itemHasFocus" type="boolean" onChange="showFocus" />
+  </interface>
+  <children>
+    <Rectangle id="shadow" width="292" height="360" color="05080E55" translation="[8,10]" />
+    <Rectangle id="panel" width="292" height="360" color="142336FF" />
+    <Poster id="cover" translation="[18,18]" width="256" height="256" loadDisplayMode="best-fit" />
+    <Label id="title" translation="[18,286]" width="250" maxLines="2" wrap="true" color="F3F7FBFF" />
+    <Label id="subtitle" translation="[18,326]" width="250" maxLines="1" color="8DA0B5FF" />
+    <Rectangle id="focusRing" width="292" height="360" color="E09B42FF" />
+  </children>
+</component>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="GettingStartedPage" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/GettingStartedPage.brs" />
+  <interface>
+    <field id="serverValue" type="string" onChange="onServerValueChanged" />
+    <field id="usernameValue" type="string" onChange="onUsernameValueChanged" />
+    <field id="passwordValue" type="string" onChange="onPasswordValueChanged" />
+    <field id="statusMessage" type="string" onChange="onStatusMessageChanged" />
+    <field id="activationToken" type="integer" onChange="onActivationTokenChanged" />
+    <field id="loginRequested" type="assocarray" />
+  </interface>
+  <children>
+
+    <!-- welcome -->
+    <Label id="gettingStartedTitle" translation="[150,255]" width="590" wrap="true" font="font:LargeBoldSystemFont" text="Welcome to ABS-TV" color="F3F7FBFF" />
+
+    <!-- description -->
+    <Label
+      id="gettingStartedBody"
+      translation="[150,430]"
+      width="610"
+      numLines="4"
+      wrap="true"
+      text="Connect your Audiobookshelf server and bring your audiobook library to the couch, bedroom, or anywhere you have a TV."
+      color="A8B7C8FF"
+    />
+
+    <!-- hr -->
+    <Rectangle
+      translation="[150, 660]"
+      width="600"
+      height="2"
+      color="FFFFFFFF" />
+
+    <!-- privacy -->
+    <Label
+      id="gettingStartedPrivacy"
+      translation="[150,700]"
+      width="590" wrap="true"
+      font="font:SmallestSystemFont"
+      text="This is a free open-source app that respects your privacy and does not track any data."
+      color="F3F7FBFF" />
+
+    <!-- login form -->
+    <Rectangle id="loginCard" translation="[972,0]" width="960" height="1080" color="00000040" />
+
+    <Group id="loginForm" translation="[1100,214]">
+      <Label translation="[0,0]" text="Sign In" color="F3F7FBFF" font="font:LargeBoldSystemFont" />
+      <Label translation="[0,64]" width="650" numLines="2" wrap="true" text="To get started please enter your server url, username, and password." color="D5E0EAFF" />
+
+      <!-- server -->
+      <TextInput id="serverInput" translation="[10,186]" fieldWidth="680" fieldHeight="84" placeholder="Press OK to enter server" />
+
+      <!-- username -->
+      <TextInput id="usernameInput" translation="[10,334]" fieldWidth="680" fieldHeight="84" placeholder="Press OK to enter username" />
+
+      <!-- password -->
+      <TextInput id="passwordInput" translation="[10,482]" fieldWidth="680" fieldHeight="84" placeholder="Press OK to enter password" />
+
+      <!-- signin -->
+      <PrimaryButton id="loginButton" translation="[0,594]" buttonWidth="300" buttonHeight="56" text="Sign In" />
+
+      <Label id="loginStatus" translation="[0,664]" width="680" numLines="4" wrap="true" color="F2C879FF" />
+    </Group>
+  </children>
+</component>
