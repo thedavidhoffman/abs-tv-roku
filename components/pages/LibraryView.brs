@@ -345,12 +345,29 @@ function getPlaybackDetails(item as dynamic) as object
     metadata = getItemMetadata(item)
     return {
         authors: getItemAuthor(metadata)
+        authorCount: getNameCount(metadata.authors, getItemAuthor(metadata))
         narrators: getItemNarrators(metadata)
+        narratorCount: getNameCount(metadata.narrators, getItemNarrators(metadata))
         description: getItemDescription(metadata)
         publisher: FirstNonEmpty([metadata.publisher], "Unknown")
         publishDate: getItemPublishDate(metadata)
         duration: getItemDuration(item)
     }
+end function
+
+'-------------------------------------------------------------------------------
+' getNameCount
+'-------------------------------------------------------------------------------
+function getNameCount(values as dynamic, fallbackText as string) as integer
+    if values <> invalid then
+        if Type(values) = "roArray" then return values.Count()
+        if Type(values) = "roAssociativeArray" then return values.Count()
+    end if
+
+    text = TrimString(fallbackText)
+    if text = "" or text = "Unknown" then return 0
+    if Instr(1, text, ",") > 0 or Instr(1, text, " and ") > 0 or Instr(1, text, " & ") > 0 then return 2
+    return 1
 end function
 
 '-------------------------------------------------------------------------------

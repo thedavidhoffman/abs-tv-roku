@@ -65,13 +65,21 @@ end sub
 sub updateDetails(details as dynamic)
     if details = invalid then details = {}
 
-    setLabelText(m.authorLabel, "Author(s): " + FirstNonEmpty([details.authors], "Unknown"))
-    setLabelText(m.narratorLabel, "Narrator(s): " + FirstNonEmpty([details.narrators], "Unknown"))
+    setLabelText(m.authorLabel, getSingularPluralText("Author", details.authorCount) + ": " + FirstNonEmpty([details.authors], "Unknown"))
+    setLabelText(m.narratorLabel, getSingularPluralText("Narrator", details.narratorCount) + ": " + FirstNonEmpty([details.narrators], "Unknown"))
     setLabelText(m.descriptionLabel, FirstNonEmpty([details.description], "No description available."))
     setLabelText(m.publisherLabel, "Publisher: " + FirstNonEmpty([details.publisher], "Unknown"))
     setLabelText(m.publishDateLabel, "Published: " + FirstNonEmpty([details.publishDate], "Unknown"))
     setLabelText(m.durationLabel, "Duration: " + FirstNonEmpty([details.duration], "Unknown"))
 end sub
+
+'-------------------------------------------------------------------------------
+' getSingularPluralText
+'-------------------------------------------------------------------------------
+function getSingularPluralText(singularLabel as string, count as dynamic) as string
+    if count <> invalid and int(val(count.ToStr())) > 1 then return singularLabel + "s"
+    return singularLabel
+end function
 
 '-------------------------------------------------------------------------------
 ' setLabelText
