@@ -7,6 +7,7 @@ sub init()
     m.authorLabel = m.top.findNode("authorLabel")
     m.narratorLabel = m.top.findNode("narratorLabel")
     m.descriptionLabel = m.top.findNode("descriptionLabel")
+    m.descriptionFocusRing = m.top.findNode("descriptionFocusRing")
     m.publisherLabel = m.top.findNode("publisherLabel")
     m.publishDateLabel = m.top.findNode("publishDateLabel")
     m.durationLabel = m.top.findNode("durationLabel")
@@ -16,6 +17,11 @@ sub init()
     m.currentTimeLabel = m.top.findNode("currentTimeLabel")
     m.totalTimeLabel = m.top.findNode("totalTimeLabel")
     m.progressTimer = m.top.findNode("progressTimer")
+    m.descriptionModal = m.top.findNode("descriptionModal")
+    m.descriptionModalBackdrop = m.top.findNode("descriptionModalBackdrop")
+    m.descriptionModalPanel = m.top.findNode("descriptionModalPanel")
+    m.modalDescriptionLabel = m.top.findNode("modalDescriptionLabel")
+    m.modalCloseButton = m.top.findNode("modalCloseButton")
     m.audioPlayer = m.top.findNode("audioPlayer")
     m.playbackApiTask = m.top.findNode("playbackApiTask")
     m.closeRequestedCounter = 0
@@ -23,11 +29,19 @@ sub init()
     m.currentTrackIndex = 0
     m.totalDurationSeconds = 0
     m.progressBarWidth = 1040
+    m.fullDescription = ""
+    m.descriptionIsExpandable = false
+    m.descriptionHasFocus = false
+    m.descriptionScrollOffset = 0
+    m.descriptionPageSize = 900
+    m.descriptionScrollStep = 450
 
     m.playbackApiTask.observeField("response", "onPlaybackApiResponse")
     if m.progressTimer <> invalid then m.progressTimer.observeField("fire", "onProgressTimerFired")
     if m.audioPlayer <> invalid then m.audioPlayer.observeField("state", "onAudioStateChanged")
     styleProgressBar()
+    styleDescriptionModal()
+    updateDescriptionFocus(false)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -75,9 +89,14 @@ end sub
 sub updateDetails(details as dynamic)
     if details = invalid then details = {}
 
+    m.fullDescription = FirstNonEmpty([details.description], "No description available.")
+    m.descriptionIsExpandable = descriptionNeedsModal(m.fullDescription)
+    m.descriptionScrollOffset = 0
+    updateDescriptionFocus(false)
+
     setLabelText(m.authorLabel, getSingularPluralText("Author", details.authorCount) + ": " + FirstNonEmpty([details.authors], "Unknown"))
     setLabelText(m.narratorLabel, getSingularPluralText("Narrator", details.narratorCount) + ": " + FirstNonEmpty([details.narrators], "Unknown"))
-    setLabelText(m.descriptionLabel, FirstNonEmpty([details.description], "No description available."))
+    setLabelText(m.descriptionLabel, m.fullDescription)
     setLabelText(m.publisherLabel, "Publisher: " + FirstNonEmpty([details.publisher], "Unknown"))
     setLabelText(m.publishDateLabel, "Published: " + FirstNonEmpty([details.publishDate], "Unknown"))
     setLabelText(m.durationLabel, "Duration: " + FirstNonEmpty([details.duration], "Unknown"))
@@ -90,6 +109,15 @@ sub updateDetails(details as dynamic)
         setLabelText(m.totalTimeLabel, "0:00")
     end if
 end sub
+
+'-------------------------------------------------------------------------------
+' descriptionNeedsModal
+'-------------------------------------------------------------------------------
+function descriptionNeedsModal(description as string) as boolean
+    if Len(description) > 420 then return true
+    if Instr(1, description, Chr(10)) > 0 then return true
+    return false
+end function
 
 '-------------------------------------------------------------------------------
 ' getSingularPluralText
@@ -217,8 +245,36 @@ end sub
 function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
+    if m.descriptionModal <> invalid and m.descriptionModal.visible then
+        if key = "back" or key = "OK" or key = "select" then
+            closeDescriptionModal()
+            return true
+        else if key = "down" or key = "right" then
+            scrollDescriptionModal(m.descriptionScrollStep)
+            return true
+        else if key = "up" or key = "left" then
+            scrollDescriptionModal(-m.descriptionScrollStep)
+            return true
+        end if
+    end if
+
     if key = "back" then
         closePlayer()
+        return true
+    end if
+
+    if m.descriptionHasFocus then
+        if key = "OK" or key = "select" then
+            openDescriptionModal()
+            return true
+        else if key = "up" then
+            updateDescriptionFocus(false)
+            return true
+        end if
+    end if
+
+    if m.descriptionIsExpandable and key = "down" then
+        updateDescriptionFocus(true)
         return true
     end if
 
@@ -240,6 +296,89 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
     return false
 end function
+
+'-------------------------------------------------------------------------------
+' updateDescriptionFocus
+'-------------------------------------------------------------------------------
+sub updateDescriptionFocus(hasFocus as boolean)
+    m.descriptionHasFocus = hasFocus and m.descriptionIsExpandable
+    if m.descriptionFocusRing = invalid then return
+
+    if m.descriptionHasFocus then
+        m.descriptionFocusRing.color = &hE09B4233
+    else
+        m.descriptionFocusRing.color = &hE09B4200
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' openDescriptionModal
+'-------------------------------------------------------------------------------
+sub openDescriptionModal()
+    if m.descriptionIsExpandable <> true then return
+    if m.descriptionModal = invalid then return
+
+    styleDescriptionModal()
+    m.descriptionScrollOffset = 0
+    updateModalDescriptionText()
+    m.descriptionModal.visible = true
+    if m.modalCloseButton <> invalid then
+        m.modalCloseButton.hasFocusVisual = true
+        m.modalCloseButton.setFocus(true)
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' styleDescriptionModal
+'-------------------------------------------------------------------------------
+sub styleDescriptionModal()
+    if m.descriptionModalBackdrop <> invalid then m.descriptionModalBackdrop.color = &h000000FF
+    if m.descriptionModalPanel <> invalid then m.descriptionModalPanel.color = &h101B2BFF
+end sub
+
+'-------------------------------------------------------------------------------
+' closeDescriptionModal
+'-------------------------------------------------------------------------------
+sub closeDescriptionModal()
+    if m.descriptionModal <> invalid then m.descriptionModal.visible = false
+    if m.modalCloseButton <> invalid then m.modalCloseButton.hasFocusVisual = false
+    if m.descriptionLabel <> invalid then m.descriptionLabel.setFocus(true)
+end sub
+
+'-------------------------------------------------------------------------------
+' scrollDescriptionModal
+'-------------------------------------------------------------------------------
+sub scrollDescriptionModal(offset as integer)
+    if m.fullDescription = invalid then return
+
+    maxOffset = Len(m.fullDescription) - 1
+    if maxOffset < 0 then maxOffset = 0
+
+    nextOffset = m.descriptionScrollOffset + offset
+    if nextOffset < 0 then nextOffset = 0
+    if nextOffset > maxOffset then nextOffset = maxOffset
+
+    m.descriptionScrollOffset = nextOffset
+    updateModalDescriptionText()
+end sub
+
+'-------------------------------------------------------------------------------
+' updateModalDescriptionText
+'-------------------------------------------------------------------------------
+sub updateModalDescriptionText()
+    if m.modalDescriptionLabel = invalid then return
+
+    startIndex = m.descriptionScrollOffset + 1
+    remainingLength = Len(m.fullDescription) - m.descriptionScrollOffset
+    textLength = m.descriptionPageSize
+    if remainingLength < textLength then textLength = remainingLength
+    if textLength < 0 then textLength = 0
+
+    modalText = Mid(m.fullDescription, startIndex, textLength)
+    if m.descriptionScrollOffset > 0 then modalText = "... " + modalText
+    if m.descriptionScrollOffset + textLength < Len(m.fullDescription) then modalText = modalText + " ..."
+    m.modalDescriptionLabel.text = modalText
+end sub
 
 '-------------------------------------------------------------------------------
 ' onProgressTimerFired

@@ -20,6 +20,7 @@
     <Label id="titleLabel" translation="[620,210]" width="1040" numLines="3" wrap="true" color="F3F7FBFF" font="font:LargeBoldSystemFont" />
     <Label id="authorLabel" translation="[620,350]" width="1040" numLines="1" color="B7C5D4FF" />
     <Label id="narratorLabel" translation="[620,390]" width="1040" numLines="1" color="B7C5D4FF" />
+    <Rectangle id="descriptionFocusRing" translation="[614,438]" width="1052" height="188" color="E09B4200" />
     <Label id="descriptionLabel" translation="[620,445]" width="1040" numLines="5" wrap="true" color="F3F7FBFF" font="font:SmallestSystemFont" />
     <Label id="publisherLabel" translation="[620,660]" width="340" numLines="1" color="B7C5D4FF" />
     <Label id="publishDateLabel" translation="[980,660]" width="300" numLines="1" color="B7C5D4FF" />
@@ -35,5 +36,13 @@
     <Label id="hintLabel" translation="[620,910]" width="1040" text="Press Back to return to the library." color="91A3B6FF" />
     <Audio id="audioPlayer" />
     <AppTask id="playbackApiTask" />
+
+    <Group id="descriptionModal" visible="false">
+      <Rectangle id="descriptionModalBackdrop" width="1920" height="1080" color="000000FF" />
+      <Rectangle id="descriptionModalPanel" translation="[300,150]" width="1320" height="780" color="101B2BFF" />
+      <Label id="modalTitleLabel" translation="[360,205]" width="1200" text="Description" color="F3F7FBFF" font="font:LargeBoldSystemFont" />
+      <Label id="modalDescriptionLabel" translation="[360,285]" width="1200" numLines="12" wrap="true" color="F3F7FBFF" />
+      <PrimaryButton id="modalCloseButton" translation="[1300,830]" buttonWidth="260" buttonHeight="56" text="Close" />
+    </Group>
   </children>
 </component>
