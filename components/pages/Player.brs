@@ -11,14 +11,23 @@ sub init()
     m.publishDateLabel = m.top.findNode("publishDateLabel")
     m.durationLabel = m.top.findNode("durationLabel")
     m.statusLabel = m.top.findNode("statusLabel")
+    m.progressFill = m.top.findNode("progressFill")
+    m.progressTrack = m.top.findNode("progressTrack")
+    m.currentTimeLabel = m.top.findNode("currentTimeLabel")
+    m.totalTimeLabel = m.top.findNode("totalTimeLabel")
+    m.progressTimer = m.top.findNode("progressTimer")
     m.audioPlayer = m.top.findNode("audioPlayer")
     m.playbackApiTask = m.top.findNode("playbackApiTask")
     m.closeRequestedCounter = 0
     m.tracks = []
     m.currentTrackIndex = 0
+    m.totalDurationSeconds = 0
+    m.progressBarWidth = 1040
 
     m.playbackApiTask.observeField("response", "onPlaybackApiResponse")
+    if m.progressTimer <> invalid then m.progressTimer.observeField("fire", "onProgressTimerFired")
     if m.audioPlayer <> invalid then m.audioPlayer.observeField("state", "onAudioStateChanged")
+    styleProgressBar()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -31,6 +40,7 @@ sub onPlayRequestChanged()
     if m.cover <> invalid then m.cover.uri = SafeString(request.coverUrl, "pkg:/images/placeholder_cover.png")
     if m.titleLabel <> invalid then m.titleLabel.text = SafeString(request.title, "Audiobook")
     updateDetails(request.details)
+    resetProgress()
     setStatus("Starting playback...")
 
     m.playbackApiTask.request = {
@@ -71,6 +81,14 @@ sub updateDetails(details as dynamic)
     setLabelText(m.publisherLabel, "Publisher: " + FirstNonEmpty([details.publisher], "Unknown"))
     setLabelText(m.publishDateLabel, "Published: " + FirstNonEmpty([details.publishDate], "Unknown"))
     setLabelText(m.durationLabel, "Duration: " + FirstNonEmpty([details.duration], "Unknown"))
+
+    m.totalDurationSeconds = 0
+    if details.durationSeconds <> invalid then m.totalDurationSeconds = int(val(details.durationSeconds.ToStr()))
+    if m.totalDurationSeconds > 0 then
+        setLabelText(m.totalTimeLabel, formatPlaybackTime(m.totalDurationSeconds))
+    else
+        setLabelText(m.totalTimeLabel, "0:00")
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -146,14 +164,19 @@ sub onAudioStateChanged()
     state = SafeString(m.audioPlayer.state, "")
     if state = "playing" then
         setStatus("Playing")
+        startProgressTimer()
     else if state = "buffering" then
         setStatus("Buffering...")
+        startProgressTimer()
     else if state = "finished" then
         if playNextTrack() then
             return
         end if
+        stopProgressTimer()
+        updateProgress(m.totalDurationSeconds)
         setStatus("Finished")
     else if state = "error" then
+        stopProgressTimer()
         setStatus("Playback error.")
     end if
 end sub
@@ -183,6 +206,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub closePlayer()
     if m.audioPlayer <> invalid then m.audioPlayer.control = "stop"
+    stopProgressTimer()
     m.closeRequestedCounter = m.closeRequestedCounter + 1
     m.top.closeRequested = m.closeRequestedCounter
 end sub
@@ -202,9 +226,12 @@ function onKeyEvent(key as string, press as boolean) as boolean
         if m.audioPlayer <> invalid then
             if m.audioPlayer.state = "playing" then
                 m.audioPlayer.control = "pause"
+                stopProgressTimer()
+                updateProgress(getCurrentPlaybackPosition())
                 setStatus("Paused")
             else
                 m.audioPlayer.control = "resume"
+                startProgressTimer()
                 setStatus("Playing")
             end if
         end if
@@ -212,4 +239,93 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     return false
+end function
+
+'-------------------------------------------------------------------------------
+' onProgressTimerFired
+'-------------------------------------------------------------------------------
+sub onProgressTimerFired()
+    updateProgress(getCurrentPlaybackPosition())
+end sub
+
+'-------------------------------------------------------------------------------
+' getCurrentPlaybackPosition
+'-------------------------------------------------------------------------------
+function getCurrentPlaybackPosition() as integer
+    if m.audioPlayer = invalid or m.audioPlayer.position = invalid then return 0
+    return int(val(m.audioPlayer.position.ToStr()))
+end function
+
+'-------------------------------------------------------------------------------
+' updateProgress
+'-------------------------------------------------------------------------------
+sub updateProgress(positionSeconds as integer)
+    if positionSeconds < 0 then positionSeconds = 0
+    if m.totalDurationSeconds > 0 and positionSeconds > m.totalDurationSeconds then positionSeconds = m.totalDurationSeconds
+
+    setLabelText(m.currentTimeLabel, formatPlaybackTime(positionSeconds))
+
+    fillWidth = 0
+    if m.totalDurationSeconds > 0 then
+        fillWidth = int((positionSeconds / m.totalDurationSeconds) * m.progressBarWidth)
+    end if
+
+    if fillWidth < 0 then fillWidth = 0
+    if fillWidth > m.progressBarWidth then fillWidth = m.progressBarWidth
+    if m.progressFill <> invalid then
+        m.progressFill.visible = (fillWidth > 0)
+        if fillWidth <= 0 then fillWidth = 1
+        m.progressFill.width = fillWidth
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' styleProgressBar
+'-------------------------------------------------------------------------------
+sub styleProgressBar()
+    if m.progressTrack <> invalid then m.progressTrack.color = &h555555FF
+    if m.progressFill <> invalid then m.progressFill.color = &hE09B42FF
+end sub
+
+'-------------------------------------------------------------------------------
+' resetProgress
+'-------------------------------------------------------------------------------
+sub resetProgress()
+    updateProgress(0)
+end sub
+
+'-------------------------------------------------------------------------------
+' startProgressTimer
+'-------------------------------------------------------------------------------
+sub startProgressTimer()
+    if m.progressTimer <> invalid then m.progressTimer.control = "start"
+    updateProgress(getCurrentPlaybackPosition())
+end sub
+
+'-------------------------------------------------------------------------------
+' stopProgressTimer
+'-------------------------------------------------------------------------------
+sub stopProgressTimer()
+    if m.progressTimer <> invalid then m.progressTimer.control = "stop"
+end sub
+
+'-------------------------------------------------------------------------------
+' formatPlaybackTime
+'-------------------------------------------------------------------------------
+function formatPlaybackTime(totalSeconds as integer) as string
+    if totalSeconds < 0 then totalSeconds = 0
+
+    hours = int(totalSeconds / 3600)
+    minutes = int((totalSeconds mod 3600) / 60)
+    seconds = totalSeconds mod 60
+    secondsText = seconds.ToStr()
+    if seconds < 10 then secondsText = "0" + secondsText
+
+    if hours > 0 then
+        minutesText = minutes.ToStr()
+        if minutes < 10 then minutesText = "0" + minutesText
+        return hours.ToStr() + ":" + minutesText + ":" + secondsText
+    end if
+
+    return minutes.ToStr() + ":" + secondsText
 end function

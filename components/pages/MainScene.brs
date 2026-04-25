@@ -516,7 +516,7 @@ end sub
 ' onChangeServerPressed
 '-------------------------------------------------------------------------------
 sub onChangeServerPressed()
-    ClearAuthState(true)
+
     m.session = LoadAuthState()
     m.login.serverValue = ""
     m.login.usernameValue = ""

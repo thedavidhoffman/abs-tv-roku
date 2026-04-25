@@ -273,12 +273,7 @@ end function
 ' getItemDuration
 '-------------------------------------------------------------------------------
 function getItemDuration(item as dynamic) as string
-    duration = invalid
-    if item <> invalid and item.media <> invalid then duration = item.media.duration
-    if duration = invalid and item <> invalid then duration = item.duration
-    if duration = invalid then return "Unknown"
-
-    totalSeconds = int(val(duration.ToStr()))
+    totalSeconds = getItemDurationSeconds(item)
     if totalSeconds <= 0 then return "Unknown"
 
     hours = int(totalSeconds / 3600)
@@ -288,6 +283,18 @@ function getItemDuration(item as dynamic) as string
     if hours > 0 then return hours.ToStr() + "h"
     if minutes > 0 then return minutes.ToStr() + "m"
     return "Less than 1m"
+end function
+
+'-------------------------------------------------------------------------------
+' getItemDurationSeconds
+'-------------------------------------------------------------------------------
+function getItemDurationSeconds(item as dynamic) as integer
+    duration = invalid
+    if item <> invalid and item.media <> invalid then duration = item.media.duration
+    if duration = invalid and item <> invalid then duration = item.duration
+    if duration = invalid then return 0
+
+    return int(val(duration.ToStr()))
 end function
 
 '-------------------------------------------------------------------------------
@@ -352,6 +359,7 @@ function getPlaybackDetails(item as dynamic) as object
         publisher: FirstNonEmpty([metadata.publisher], "Unknown")
         publishDate: getItemPublishDate(metadata)
         duration: getItemDuration(item)
+        durationSeconds: getItemDurationSeconds(item)
     }
 end function
 

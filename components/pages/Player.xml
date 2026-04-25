@@ -25,7 +25,14 @@
     <Label id="publishDateLabel" translation="[980,660]" width="300" numLines="1" color="B7C5D4FF" />
     <Label id="durationLabel" translation="[1300,660]" width="320" numLines="1" color="B7C5D4FF" />
     <Label id="statusLabel" translation="[620,740]" width="1040" numLines="2" wrap="true" color="F2C879FF" />
-    <Label id="hintLabel" translation="[620,820]" width="1040" text="Press Back to return to the library." color="91A3B6FF" />
+    <Group id="progressGroup" translation="[620,830]">
+      <Rectangle id="progressTrack" width="1040" height="12" color="555555FF" />
+      <Rectangle id="progressFill" width="1" height="12" color="E09B42FF" visible="false" />
+      <Label id="currentTimeLabel" translation="[0,26]" width="220" text="0:00" color="B7C5D4FF" />
+      <Label id="totalTimeLabel" translation="[820,26]" width="220" horizAlign="right" text="0:00" color="B7C5D4FF" />
+    </Group>
+    <Timer id="progressTimer" duration="1" repeat="true" />
+    <Label id="hintLabel" translation="[620,910]" width="1040" text="Press Back to return to the library." color="91A3B6FF" />
     <Audio id="audioPlayer" />
     <AppTask id="playbackApiTask" />
   </children>
