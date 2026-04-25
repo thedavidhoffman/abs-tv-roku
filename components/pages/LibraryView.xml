@@ -5,6 +5,7 @@
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
+    <field id="playSelected" type="assocarray" />
     <field id="errorResponse" type="assocarray" />
   </interface>
   <children>
@@ -13,9 +14,70 @@
     <LabelList
       id="libraryList"
       translation="[64,280]"
-      itemSize="[1000,56]"
+      itemSize="[760,56]"
       numRows="12"
+      drawFocusFeedback="true"
       vertFocusAnimationStyle="fixedFocus"
+    />
+    <Poster
+      id="selectedPoster"
+      translation="[980,280]"
+      width="420"
+      height="420"
+      uri="pkg:/images/placeholder_cover.png"
+      loadDisplayMode="best-fit"
+    />
+    <PrimaryButton
+      id="playButton"
+      translation="[980,720]"
+      buttonWidth="420"
+      buttonHeight="56"
+      text="Play"
+    />
+    <Label
+      id="detailTitle"
+      translation="[980,792]"
+      width="760"
+      numLines="2"
+      wrap="true"
+      color="F3F7FBFF"
+      font="font:LargeBoldSystemFont"
+    />
+    <Label
+      id="detailAuthor"
+      translation="[980,852]"
+      width="760"
+      numLines="1"
+      color="B7C5D4FF"
+    />
+    <Label
+      id="detailDescription"
+      translation="[980,890]"
+      width="760"
+      numLines="3"
+      wrap="true"
+      color="91A3B6FF"
+    />
+    <Label
+      id="detailPublisher"
+      translation="[980,1018]"
+      width="245"
+      numLines="1"
+      color="B7C5D4FF"
+    />
+    <Label
+      id="detailPublishDate"
+      translation="[1235,1018]"
+      width="245"
+      numLines="1"
+      color="B7C5D4FF"
+    />
+    <Label
+      id="detailDuration"
+      translation="[1490,1018]"
+      width="250"
+      numLines="1"
+      color="B7C5D4FF"
     />
     <AppTask id="libraryApiTask" />
   </children>

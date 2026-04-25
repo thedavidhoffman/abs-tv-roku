@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<component name="GettingStartedPage" extends="Group">
+<component name="Login" extends="Group">
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
-  <script type="text/brightscript" uri="pkg:/components/pages/GettingStartedPage.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Login.brs" />
   <interface>
     <field id="serverValue" type="string" onChange="onServerValueChanged" />
     <field id="usernameValue" type="string" onChange="onUsernameValueChanged" />
     <field id="passwordValue" type="string" onChange="onPasswordValueChanged" />
     <field id="statusMessage" type="string" onChange="onStatusMessageChanged" />
     <field id="activationToken" type="integer" onChange="onActivationTokenChanged" />
-    <field id="loginRequested" type="assocarray" />
+    <field id="loginSucceeded" type="assocarray" />
   </interface>
   <children>
 
     <!-- welcome -->
-    <Label id="gettingStartedTitle" translation="[150,255]" width="590" wrap="true" font="font:LargeBoldSystemFont" text="Welcome to ABS-TV" color="F3F7FBFF" />
+    <Label id="loginTitle" translation="[150,255]" width="590" wrap="true" font="font:LargeBoldSystemFont" text="Welcome to ABS-TV" color="F3F7FBFF" />
 
     <!-- description -->
     <Label
-      id="gettingStartedBody"
+      id="loginBody"
       translation="[150,430]"
       width="610"
       numLines="4"
@@ -35,7 +35,7 @@
 
     <!-- privacy -->
     <Label
-      id="gettingStartedPrivacy"
+      id="loginPrivacy"
       translation="[150,700]"
       width="590" wrap="true"
       font="font:SmallestSystemFont"
@@ -63,5 +63,6 @@
 
       <Label id="loginStatus" translation="[0,664]" width="680" numLines="4" wrap="true" color="F2C879FF" />
     </Group>
+    <AppTask id="loginApiTask" />
   </children>
 </component>

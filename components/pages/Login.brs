@@ -1,9 +1,13 @@
+'-------------------------------------------------------------------------------
+' init
+'-------------------------------------------------------------------------------
 sub init()
     m.serverInput = m.top.findNode("serverInput")
     m.usernameInput = m.top.findNode("usernameInput")
     m.passwordInput = m.top.findNode("passwordInput")
     m.loginButton = m.top.findNode("loginButton")
     m.loginStatus = m.top.findNode("loginStatus")
+    m.loginApiTask = m.top.findNode("loginApiTask")
 
     m.loginFocusNodes = [
         m.serverInput
@@ -12,6 +16,8 @@ sub init()
         m.loginButton
     ]
 
+    m.loginApiTask.observeField("response", "onLoginApiResponse")
+
     if m.top.serverValue = invalid or TrimString(m.top.serverValue) = "" then m.top.serverValue = "192.168.0.178:8098"
     if m.top.usernameValue = invalid or TrimString(m.top.usernameValue) = "" then m.top.usernameValue = "David"
     if m.top.passwordValue = invalid or TrimString(m.top.passwordValue) = "" then m.top.passwordValue = "Reading15Fundamental"
@@ -19,27 +25,45 @@ sub init()
     syncFieldsFromState()
 end sub
 
+'-------------------------------------------------------------------------------
+' onServerValueChanged
+'-------------------------------------------------------------------------------
 sub onServerValueChanged()
     syncFieldsFromState()
 end sub
 
+'-------------------------------------------------------------------------------
+' onUsernameValueChanged
+'-------------------------------------------------------------------------------
 sub onUsernameValueChanged()
     syncFieldsFromState()
 end sub
 
+'-------------------------------------------------------------------------------
+' onPasswordValueChanged
+'-------------------------------------------------------------------------------
 sub onPasswordValueChanged()
     syncFieldsFromState()
 end sub
 
+'-------------------------------------------------------------------------------
+' onStatusMessageChanged
+'-------------------------------------------------------------------------------
 sub onStatusMessageChanged()
     if m.loginStatus <> invalid then m.loginStatus.text = m.top.statusMessage
 end sub
 
+'-------------------------------------------------------------------------------
+' onActivationTokenChanged
+'-------------------------------------------------------------------------------
 sub onActivationTokenChanged()
     syncFieldsFromState()
     focusLoginField(0)
 end sub
 
+'-------------------------------------------------------------------------------
+' onLoginPressed
+'-------------------------------------------------------------------------------
 sub onLoginPressed()
     server = NormalizeServerUrl(m.top.serverValue)
     username = TrimString(m.top.usernameValue)
@@ -51,13 +75,34 @@ sub onLoginPressed()
     end if
 
     m.top.statusMessage = "Signing in..."
-    m.top.loginRequested = {
+    m.loginApiTask.request = {
+        action: "login"
         server: server
         username: username
         password: password
     }
+    m.loginApiTask.control = "run"
 end sub
 
+'-------------------------------------------------------------------------------
+' onLoginApiResponse
+'-------------------------------------------------------------------------------
+sub onLoginApiResponse()
+    response = m.loginApiTask.response
+    if response = invalid then return
+
+    if response.ok <> true then
+        m.top.statusMessage = "Login failed: " + SafeString(response.errorMessage, "Unknown error.")
+        return
+    end if
+
+    m.top.statusMessage = ""
+    m.top.loginSucceeded = response
+end sub
+
+'-------------------------------------------------------------------------------
+' syncFieldsFromState
+'-------------------------------------------------------------------------------
 sub syncFieldsFromState()
     if m.serverInput <> invalid then m.serverInput.text = m.top.serverValue
     if m.usernameInput <> invalid then m.usernameInput.text = m.top.usernameValue
@@ -71,6 +116,9 @@ sub syncFieldsFromState()
     if m.loginStatus <> invalid then m.loginStatus.text = m.top.statusMessage
 end sub
 
+'-------------------------------------------------------------------------------
+' RepeatString
+'-------------------------------------------------------------------------------
 function RepeatString(length as integer, char as string) as string
     result = ""
     for i = 1 to length
@@ -79,6 +127,9 @@ function RepeatString(length as integer, char as string) as string
     return result
 end function
 
+'-------------------------------------------------------------------------------
+' openKeyboardDialog
+'-------------------------------------------------------------------------------
 sub openKeyboardDialog(fieldName as string)
     keyboardDialog = CreateObject("roSGNode", "KeyboardDialog")
     keyboardDialog.buttons = ["Save", "Cancel"]
@@ -104,6 +155,9 @@ sub openKeyboardDialog(fieldName as string)
     end if
 end sub
 
+'-------------------------------------------------------------------------------
+' onKeyboardDialogButtonSelected
+'-------------------------------------------------------------------------------
 sub onKeyboardDialogButtonSelected()
     scene = m.top.getScene()
     if scene = invalid then return
@@ -134,6 +188,9 @@ sub onKeyboardDialogButtonSelected()
     m.activeKeyboardField = invalid
 end sub
 
+'-------------------------------------------------------------------------------
+' focusLoginField
+'-------------------------------------------------------------------------------
 sub focusLoginField(index as integer)
     if m.loginFocusNodes = invalid then return
     if index < 0 or index >= m.loginFocusNodes.Count() then return
@@ -148,6 +205,9 @@ sub focusLoginField(index as integer)
     end if
 end sub
 
+'-------------------------------------------------------------------------------
+' getFocusedLoginFieldIndex
+'-------------------------------------------------------------------------------
 function getFocusedLoginFieldIndex() as integer
     if m.loginFocusNodes = invalid then return -1
 
@@ -161,6 +221,9 @@ function getFocusedLoginFieldIndex() as integer
     return -1
 end function
 
+'-------------------------------------------------------------------------------
+' handleLoginNavigation
+'-------------------------------------------------------------------------------
 function handleLoginNavigation(key as string) as boolean
     focusedIndex = getFocusedLoginFieldIndex()
     if focusedIndex = -1 then
@@ -201,6 +264,9 @@ function handleLoginNavigation(key as string) as boolean
     return false
 end function
 
+'-------------------------------------------------------------------------------
+' onKeyEvent
+'-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
     return handleLoginNavigation(key)

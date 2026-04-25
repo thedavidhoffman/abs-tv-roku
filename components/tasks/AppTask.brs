@@ -24,6 +24,8 @@ sub executeRequest()
         m.top.response = doLogout(request)
     else if action = "loadLibrary" then
         m.top.response = loadLibrary(request)
+    else if action = "startPlayback" then
+        m.top.response = startPlayback(request)
     else if action = "loadBooks" then
         m.top.response = loadBooks(request)
     else if action = "loadSeries" then
@@ -48,11 +50,14 @@ function doLogin(request as Object) as Object
     if payload = invalid or payload.user = invalid or payload.user.token = invalid then
         return { ok: false, errorMessage: "The server response did not include a token." }
     end if
+    librariesResult = loadLibraries(server, payload.user.token)
+    if librariesResult.ok <> true then return librariesResult
     return {
         ok: true
         action: "login"
         server: server
         payload: payload
+        libraries: librariesResult.libraries
     }
 end function
 
@@ -63,11 +68,14 @@ function doAuthorize(request as Object) as Object
     server = NormalizeServerUrl(request.server)
     result = doRequest(server + "/api/authorize", "POST", request.token, "")
     if result.ok <> true then return result
+    librariesResult = loadLibraries(server, request.token)
+    if librariesResult.ok <> true then return librariesResult
     return {
         ok: true
         action: "authorize"
         server: server
         payload: result.data
+        libraries: librariesResult.libraries
     }
 end function
 
@@ -81,6 +89,46 @@ function doLogout(request as Object) as Object
         return result
     end if
     return { ok: true, action: "logout" }
+end function
+
+'-------------------------------------------------------------------------------
+' loadLibraries
+'-------------------------------------------------------------------------------
+function loadLibraries(server as String, token as Dynamic) as Object
+    result = doRequest(server + "/api/libraries", "GET", token, invalid)
+    if result.ok <> true then return result
+
+    return {
+        ok: true
+        libraries: mapLibraries(result.data)
+    }
+end function
+
+'-------------------------------------------------------------------------------
+' mapLibraries
+'-------------------------------------------------------------------------------
+function mapLibraries(payload as Dynamic) as Object
+    mappedLibraries = []
+    libraries = invalid
+
+    if payload <> invalid then
+        if payload.libraries <> invalid then
+            libraries = payload.libraries
+        else if Type(payload) = "roArray" then
+            libraries = payload
+        end if
+    end if
+
+    if libraries <> invalid then
+        for each library in libraries
+            mappedLibraries.Push({
+                id: library.id
+                name: library.name
+            })
+        end for
+    end if
+
+    return mappedLibraries
 end function
 
 '-------------------------------------------------------------------------------
@@ -132,6 +180,125 @@ function loadLibrary(request as Object) as Object
         bookLibraryId: bookLibraryId
         libraryItems: allItems
     }
+end function
+
+'-------------------------------------------------------------------------------
+' startPlayback
+'-------------------------------------------------------------------------------
+function startPlayback(request as Object) as Object
+    server = NormalizeServerUrl(request.server)
+    token = request.token
+    itemId = request.itemId
+
+    if itemId = invalid or itemId = "" then
+        return { ok: false, errorMessage: "No audiobook was selected." }
+    end if
+
+    body = FormatJson({
+        deviceInfo: {
+            clientName: "Roku4ABS"
+            clientVersion: "0.1.0"
+            manufacturer: "Roku"
+            model: "Roku"
+        }
+        forceDirectPlay: false
+        forceTranscode: false
+        supportedMimeTypes: [
+            "audio/mpeg"
+        ]
+        mediaPlayer: "roku"
+    })
+
+    result = doRequest(server + "/api/items/" + itemId + "/play", "POST", token, body)
+    if result.ok <> true then return result
+
+    tracks = mapPlaybackTracks(server, token, result.data)
+    if tracks.Count() = 0 then
+        return { ok: false, errorMessage: "No playable audio tracks were returned." }
+    end if
+
+    return {
+        ok: true
+        action: "startPlayback"
+        itemId: itemId
+        title: request.title
+        playbackSession: result.data
+        tracks: tracks
+    }
+end function
+
+'-------------------------------------------------------------------------------
+' mapPlaybackTracks
+'-------------------------------------------------------------------------------
+function mapPlaybackTracks(server as String, token as Dynamic, payload as Dynamic) as Object
+    mappedTracks = []
+    tracks = invalid
+    sessionId = invalid
+
+    if payload <> invalid then
+        if payload.id <> invalid then sessionId = payload.id
+        if payload.audioTracks <> invalid then
+            tracks = payload.audioTracks
+        else if payload.libraryItem <> invalid and payload.libraryItem.media <> invalid then
+            if payload.libraryItem.media.audioTracks <> invalid then tracks = payload.libraryItem.media.audioTracks
+        end if
+    end if
+
+    if tracks <> invalid then
+        for each track in tracks
+            contentUrl = invalid
+            if track.contentUrl <> invalid then contentUrl = track.contentUrl
+            if contentUrl <> invalid and contentUrl <> "" then
+                mappedTracks.Push({
+                    url: buildPlaybackUrl(server, token, sessionId, track)
+                    title: SafeString(track.title, "Audiobook")
+                    mimeType: SafeString(track.mimeType, "audio/mpeg")
+                })
+            end if
+        end for
+    end if
+
+    return mappedTracks
+end function
+
+'-------------------------------------------------------------------------------
+' buildPlaybackUrl
+'-------------------------------------------------------------------------------
+function buildPlaybackUrl(server as String, token as Dynamic, sessionId as Dynamic, track as Dynamic) as String
+    contentUrl = SafeString(track.contentUrl, "")
+
+    if sessionId <> invalid and sessionId <> "" and Instr(1, LCase(contentUrl), "/hls") <> 1 then
+        return server + "/public/session/" + sessionId + "/track/" + track.index.ToStr()
+    end if
+
+    url = contentUrl
+    if Instr(1, LCase(url), "http://") <> 1 and Instr(1, LCase(url), "https://") <> 1 then
+        if Left(url, 1) <> "/" then url = "/" + url
+        url = server + url
+    end if
+
+    url = ReplaceString(url, " ", "%20")
+    separator = "?"
+    if Instr(1, url, "?") > 0 then separator = "&"
+    if token <> invalid and token <> "" then url = url + separator + "token=" + token
+    return url
+end function
+
+'-------------------------------------------------------------------------------
+' ReplaceString
+'-------------------------------------------------------------------------------
+function ReplaceString(value as String, oldValue as String, newValue as String) as String
+    result = ""
+    remaining = value
+    index = Instr(1, remaining, oldValue)
+
+    while index > 0
+        result = result + Left(remaining, index - 1) + newValue
+        remaining = Mid(remaining, index + Len(oldValue))
+        index = Instr(1, remaining, oldValue)
+    end while
+
+    return result + remaining
 end function
 
 '-------------------------------------------------------------------------------

@@ -1,27 +1,28 @@
+'-------------------------------------------------------------------------------
+' init
+'-------------------------------------------------------------------------------
 sub init()
-    m.gettingStartedPage = m.top.findNode("gettingStartedPage")
+    m.login = m.top.findNode("login")
     m.authenticatedContent = m.top.findNode("authenticatedContent")
-    m.headerPanel = m.top.findNode("headerPanel")
+    m.header = m.top.findNode("header")
     m.homePage = m.top.findNode("homePage")
     m.libraryView = m.top.findNode("libraryView")
-    m.booksTab = m.top.findNode("booksTab")
-    m.seriesTab = m.top.findNode("seriesTab")
-    m.userMenuButton = m.top.findNode("userMenuButton")
-    m.menuPanel = m.top.findNode("menuPanel")
-    m.logoutButton = m.top.findNode("logoutButton")
-    m.changeServerButton = m.top.findNode("changeServerButton")
+    m.player = m.top.findNode("player")
     m.continueGrid = m.top.findNode("continueGrid")
     m.recentGrid = m.top.findNode("recentGrid")
     m.seriesGrid = m.top.findNode("seriesGrid")
     m.apiTask = m.top.findNode("apiTask")
 
-    m.gettingStartedPage.observeField("loginRequested", "onLoginRequested")
-    m.booksTab.observeField("buttonSelected", "onBooksTabPressed")
-    m.seriesTab.observeField("buttonSelected", "onSeriesTabPressed")
-    m.userMenuButton.observeField("buttonSelected", "onUserMenuPressed")
-    m.logoutButton.observeField("buttonSelected", "onLogoutPressed")
-    m.changeServerButton.observeField("buttonSelected", "onChangeServerPressed")
+    m.login.observeField("loginSucceeded", "onLoginSucceeded")
+    m.header.observeField("booksSelected", "onBooksTabPressed")
+    m.header.observeField("seriesSelected", "onSeriesTabPressed")
+    m.header.observeField("librarySelected", "onLibrarySelected")
+    m.header.observeField("logoutSelected", "onLogoutPressed")
+    m.header.observeField("changeServerSelected", "onChangeServerPressed")
     m.libraryView.observeField("errorResponse", "onLibraryViewError")
+    m.libraryView.observeField("playSelected", "onLibraryPlaySelected")
+    m.player.observeField("closeRequested", "onPlayerCloseRequested")
+    m.player.observeField("errorResponse", "onPlayerError")
     m.apiTask.observeField("response", "onApiResponse")
 
     m.currentTab = "books"
@@ -35,18 +36,24 @@ sub init()
     tryResumeSession()
 end sub
 
+'-------------------------------------------------------------------------------
+' preloadSavedFields
+'-------------------------------------------------------------------------------
 sub preloadSavedFields()
     if m.session.server <> invalid and TrimString(m.session.server) <> "" then
-        m.gettingStartedPage.serverValue = m.session.server
+        m.login.serverValue = m.session.server
     end if
     if m.session.username <> invalid and TrimString(m.session.username) <> "" then
-        m.gettingStartedPage.usernameValue = m.session.username
+        m.login.usernameValue = m.session.username
     end if
 end sub
 
+'-------------------------------------------------------------------------------
+' tryResumeSession
+'-------------------------------------------------------------------------------
 sub tryResumeSession()
     if m.session.token <> invalid and m.session.token <> "" and m.session.server <> invalid and m.session.server <> "" then
-        m.gettingStartedPage.statusMessage = "Restoring your listening session..."
+        m.login.statusMessage = "Restoring your listening session..."
         m.apiTask.request = {
             action: "authorize"
             server: m.session.server
@@ -58,19 +65,20 @@ sub tryResumeSession()
     end if
 end sub
 
-sub onLoginRequested()
-    request = m.gettingStartedPage.loginRequested
-    if request = invalid then return
+'-------------------------------------------------------------------------------
+' onLoginSucceeded
+'-------------------------------------------------------------------------------
+sub onLoginSucceeded()
+    response = m.login.loginSucceeded
+    if response = invalid then return
 
-    m.apiTask.request = {
-        action: "login"
-        server: request.server
-        username: request.username
-        password: request.password
-    }
-    m.apiTask.control = "run"
+    storeAuthenticatedSession(response)
+    showApp()
 end sub
 
+'-------------------------------------------------------------------------------
+' onApiResponse
+'-------------------------------------------------------------------------------
 sub onApiResponse()
     response = m.apiTask.response
     if response = invalid then return
@@ -81,8 +89,8 @@ sub onApiResponse()
             return
         end if
 
-        if m.gettingStartedPage.visible then
-            m.gettingStartedPage.statusMessage = "Login failed: " + SafeString(response.errorMessage, "Unknown error.")
+        if m.login.visible then
+            m.login.statusMessage = "Login failed: " + SafeString(response.errorMessage, "Unknown error.")
         else
             m.homePage.statusMessage = response.errorMessage
         end if
@@ -90,22 +98,8 @@ sub onApiResponse()
     end if
 
     action = response.action
-    if action = "login" or action = "authorize" then
-        payload = response.payload
-        sessionToken = payload.user.token
-        server = response.server
-        username = payload.user.username
-        userId = payload.user.id
-
-        m.session = {
-            server: server
-            username: username
-            token: sessionToken
-            userId: userId
-            bookLibraryId: ResolveBookLibraryId(payload)
-        }
-
-        SaveAuthState(server, username, sessionToken, userId)
+    if action = "authorize" then
+        storeAuthenticatedSession(response)
         showApp()
         return
     end if
@@ -134,15 +128,59 @@ sub onApiResponse()
     end if
 end sub
 
+'-------------------------------------------------------------------------------
+' showLogin
+'-------------------------------------------------------------------------------
 sub showLogin(message as string)
-    m.gettingStartedPage.visible = true
+    m.login.visible = true
     m.authenticatedContent.visible = false
-    m.menuPanel.visible = false
-    m.gettingStartedPage.statusMessage = message
+    closeHeaderMenu()
+    m.login.statusMessage = message
     m.loginActivationCounter = m.loginActivationCounter + 1
-    m.gettingStartedPage.activationToken = m.loginActivationCounter
+    m.login.activationToken = m.loginActivationCounter
 end sub
 
+'-------------------------------------------------------------------------------
+' storeAuthenticatedSession
+'-------------------------------------------------------------------------------
+sub storeAuthenticatedSession(response as object)
+    payload = response.payload
+    sessionToken = payload.user.token
+
+    ' doesn't exist?
+    server = response.server
+    username = payload.user.username
+    userId = payload.user.id
+
+    m.session = {
+        server: server
+        username: username
+        token: sessionToken
+        userId: userId
+        bookLibraryId: getInitialLibraryId(response)
+        libraries: response.libraries
+    }
+
+    SaveAuthState(server, username, sessionToken, userId)
+end sub
+
+'-------------------------------------------------------------------------------
+' getInitialLibraryId
+'-------------------------------------------------------------------------------
+function getInitialLibraryId(response as object) as dynamic
+    libraryId = ResolveBookLibraryId(response.payload)
+    if libraryId <> invalid and libraryId <> "" then return libraryId
+
+    if response.libraries <> invalid and response.libraries.Count() > 0 then
+        return response.libraries[0].id
+    end if
+
+    return invalid
+end function
+
+'-------------------------------------------------------------------------------
+' onLibraryViewError
+'-------------------------------------------------------------------------------
 sub onLibraryViewError()
     response = m.libraryView.errorResponse
     if response = invalid then return
@@ -152,10 +190,18 @@ sub onLibraryViewError()
     end if
 end sub
 
+'-------------------------------------------------------------------------------
+' showApp
+'-------------------------------------------------------------------------------
 sub showApp()
-    m.gettingStartedPage.visible = false
+    m.login.visible = false
     m.authenticatedContent.visible = true
-    m.menuPanel.visible = false
+    closeHeaderMenu()
+    if m.header <> invalid then
+        m.header.visible = true
+        m.header.libraries = m.session.libraries
+        if m.session.bookLibraryId <> invalid then m.header.currentLibraryId = m.session.bookLibraryId
+    end if
     if m.libraryView <> invalid then
         m.libraryView.visible = true
         m.libraryView.loadRequest = {
@@ -171,6 +217,79 @@ sub showApp()
     styleTabs()
 end sub
 
+'-------------------------------------------------------------------------------
+' onLibrarySelected
+'-------------------------------------------------------------------------------
+sub onLibrarySelected()
+    selectedLibrary = m.header.librarySelected
+    if selectedLibrary = invalid or selectedLibrary.id = invalid then return
+    if m.session = invalid then return
+
+    m.session.bookLibraryId = selectedLibrary.id
+
+    if m.libraryView <> invalid and m.libraryView.visible then
+        m.libraryView.loadRequest = {
+            server: m.session.server
+            token: m.session.token
+            bookLibraryId: m.session.bookLibraryId
+        }
+    end if
+
+    if m.homePage <> invalid and m.homePage.visible then
+        if m.currentTab = "series" then
+            loadSeries()
+        else
+            loadBooks()
+        end if
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' onLibraryPlaySelected
+'-------------------------------------------------------------------------------
+sub onLibraryPlaySelected()
+    selectedItem = m.libraryView.playSelected
+    if selectedItem = invalid or selectedItem.id = invalid then return
+    if m.session = invalid then return
+
+    coverUrl = buildCoverUrl(selectedItem.id)
+    m.authenticatedContent.visible = false
+    m.player.visible = true
+    m.player.setFocus(true)
+    m.player.playRequest = {
+        server: m.session.server
+        token: m.session.token
+        itemId: selectedItem.id
+        title: selectedItem.title
+        coverUrl: coverUrl
+    }
+end sub
+
+'-------------------------------------------------------------------------------
+' onPlayerCloseRequested
+'-------------------------------------------------------------------------------
+sub onPlayerCloseRequested()
+    m.player.visible = false
+    m.authenticatedContent.visible = true
+    if m.libraryView <> invalid and m.libraryView.visible then m.libraryView.setFocus(true)
+end sub
+
+'-------------------------------------------------------------------------------
+' onPlayerError
+'-------------------------------------------------------------------------------
+sub onPlayerError()
+    response = m.player.errorResponse
+    if response = invalid then return
+
+    if response.authExpired = true then
+        onPlayerCloseRequested()
+        handleExpiredSession(response.errorMessage)
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' loadBooks
+'-------------------------------------------------------------------------------
 sub loadBooks()
     if m.session = invalid then return
     m.isLoadingBooks = true
@@ -189,6 +308,9 @@ sub loadBooks()
     m.apiTask.control = "run"
 end sub
 
+'-------------------------------------------------------------------------------
+' loadSeries
+'-------------------------------------------------------------------------------
 sub loadSeries()
     if m.session = invalid then return
     m.isLoadingSeries = true
@@ -207,6 +329,9 @@ sub loadSeries()
     m.apiTask.control = "run"
 end sub
 
+'-------------------------------------------------------------------------------
+' populateContinueGrid
+'-------------------------------------------------------------------------------
 sub populateContinueGrid(payload as dynamic)
     root = CreateObject("roSGNode", "ContentNode")
     items = invalid
@@ -247,6 +372,9 @@ sub populateContinueGrid(payload as dynamic)
     m.continueGrid.content = root
 end sub
 
+'-------------------------------------------------------------------------------
+' populateRecentGrid
+'-------------------------------------------------------------------------------
 sub populateRecentGrid(payload as dynamic)
     root = CreateObject("roSGNode", "ContentNode")
     results = invalid
@@ -278,6 +406,9 @@ sub populateRecentGrid(payload as dynamic)
     m.recentGrid.content = root
 end sub
 
+'-------------------------------------------------------------------------------
+' populateSeriesGrid
+'-------------------------------------------------------------------------------
 sub populateSeriesGrid(payload as dynamic)
     root = CreateObject("roSGNode", "ContentNode")
     results = invalid
@@ -304,6 +435,9 @@ sub populateSeriesGrid(payload as dynamic)
     m.seriesGrid.content = root
 end sub
 
+'-------------------------------------------------------------------------------
+' makePlaceholderNode
+'-------------------------------------------------------------------------------
 function makePlaceholderNode(title as string, subtitle as string) as object
     node = CreateObject("roSGNode", "ContentNode")
     node.title = title
@@ -313,6 +447,9 @@ function makePlaceholderNode(title as string, subtitle as string) as object
     return node
 end function
 
+'-------------------------------------------------------------------------------
+' buildCoverUrl
+'-------------------------------------------------------------------------------
 function buildCoverUrl(itemId as dynamic) as string
     if m.session = invalid or m.session.server = invalid or m.session.token = invalid or itemId = invalid then
         return "pkg:/images/placeholder_cover.png"
@@ -320,13 +457,19 @@ function buildCoverUrl(itemId as dynamic) as string
     return m.session.server + "/api/items/" + itemId.ToStr() + "/cover?width=400&token=" + m.session.token
 end function
 
+'-------------------------------------------------------------------------------
+' handleExpiredSession
+'-------------------------------------------------------------------------------
 sub handleExpiredSession(message as string)
     ClearAuthState(false)
     if m.session <> invalid then m.session.token = ""
-    m.gettingStartedPage.passwordValue = ""
+    m.login.passwordValue = ""
     showLogin(message)
 end sub
 
+'-------------------------------------------------------------------------------
+' onBooksTabPressed
+'-------------------------------------------------------------------------------
 sub onBooksTabPressed()
     if m.currentTab <> "books" or m.isLoadingBooks then
         loadBooks()
@@ -335,6 +478,9 @@ sub onBooksTabPressed()
     end if
 end sub
 
+'-------------------------------------------------------------------------------
+' onSeriesTabPressed
+'-------------------------------------------------------------------------------
 sub onSeriesTabPressed()
     if m.currentTab <> "series" or m.isLoadingSeries then
         loadSeries()
@@ -343,13 +489,9 @@ sub onSeriesTabPressed()
     end if
 end sub
 
-sub onUserMenuPressed()
-    m.menuPanel.visible = not m.menuPanel.visible
-    if m.menuPanel.visible then
-        m.logoutButton.setFocus(true)
-    end if
-end sub
-
+'-------------------------------------------------------------------------------
+' onLogoutPressed
+'-------------------------------------------------------------------------------
 sub onLogoutPressed()
     if m.session <> invalid and m.session.server <> invalid and m.session.token <> invalid and m.session.token <> "" then
         m.apiTask.request = {
@@ -362,41 +504,58 @@ sub onLogoutPressed()
 
     ClearAuthState(false)
     if m.session <> invalid then m.session.token = ""
-    m.gettingStartedPage.passwordValue = ""
-    m.menuPanel.visible = false
+    m.login.passwordValue = ""
+    closeHeaderMenu()
     showLogin("Signed out.")
 end sub
 
+'-------------------------------------------------------------------------------
+' onChangeServerPressed
+'-------------------------------------------------------------------------------
 sub onChangeServerPressed()
     ClearAuthState(true)
     m.session = LoadAuthState()
-    m.gettingStartedPage.serverValue = ""
-    m.gettingStartedPage.usernameValue = ""
-    m.gettingStartedPage.passwordValue = ""
-    m.menuPanel.visible = false
+    m.login.serverValue = ""
+    m.login.usernameValue = ""
+    m.login.passwordValue = ""
+    closeHeaderMenu()
     showLogin("Enter a new server address to continue.")
 end sub
 
+'-------------------------------------------------------------------------------
+' styleTabs
+'-------------------------------------------------------------------------------
 sub styleTabs()
-    if m.currentTab = "series" then
-        m.booksTab.text = "Books"
-        m.seriesTab.text = "Series *"
-    else
-        m.booksTab.text = "Books *"
-        m.seriesTab.text = "Series"
-    end if
+    if m.header <> invalid then m.header.currentTab = m.currentTab
 end sub
 
+'-------------------------------------------------------------------------------
+' closeHeaderMenu
+'-------------------------------------------------------------------------------
+sub closeHeaderMenu()
+    if m.header = invalid then return
+
+    if m.closeHeaderMenuToken = invalid then m.closeHeaderMenuToken = 0
+    m.closeHeaderMenuToken = m.closeHeaderMenuToken + 1
+    m.header.closeMenuToken = m.closeHeaderMenuToken
+end sub
+
+'-------------------------------------------------------------------------------
+' onKeyEvent
+'-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
-    if m.menuPanel.visible and key = "back" then
-        m.menuPanel.visible = false
-        m.userMenuButton.setFocus(true)
+    if m.player <> invalid and m.player.visible then
+        return false
+    end if
+
+    if m.header <> invalid and m.header.menuOpen and key = "back" then
+        closeHeaderMenu()
         return true
     end if
 
-    if not m.gettingStartedPage.visible and key = "back" then
+    if not m.login.visible and key = "back" then
         if m.currentTab = "series" then
             loadBooks()
             return true

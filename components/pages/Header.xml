@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="Header" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Header.brs" />
+  <interface>
+    <field id="currentTab" type="string" onChange="onCurrentTabChanged" />
+    <field id="libraries" type="array" onChange="onLibrariesChanged" />
+    <field id="currentLibraryId" type="string" onChange="onCurrentLibraryIdChanged" />
+    <field id="menuOpen" type="boolean" />
+    <field id="closeMenuToken" type="integer" onChange="onCloseMenuTokenChanged" />
+    <field id="librarySelected" type="assocarray" />
+    <field id="booksSelected" type="integer" />
+    <field id="seriesSelected" type="integer" />
+    <field id="logoutSelected" type="integer" />
+    <field id="changeServerSelected" type="integer" />
+  </interface>
+  <children>
+    <Rectangle id="headerBg" width="1920" height="118" color="0E1928EE" />
+    <Label id="brandLabel" translation="[64,42]" text="Roku4ABS" color="F6F7FBFF" />
+
+    <Group id="tabGroup" translation="[705,26]">
+      <Button id="booksTab" translation="[0,0]" minWidth="180" text="Books" />
+      <Button id="seriesTab" translation="[210,0]" minWidth="180" text="Series" />
+    </Group>
+
+    <Button id="libraryButton" translation="[1240,26]" minWidth="320" text="Library" />
+
+    <LabelList
+      id="libraryList"
+      visible="false"
+      translation="[1240,102]"
+      itemSize="[360,54]"
+      numRows="6"
+      drawFocusFeedback="true"
+    />
+
+    <Button id="userMenuButton" translation="[1620,26]" minWidth="220" text="Account" />
+
+    <Group id="menuPanel" visible="false" translation="[1600,102]">
+      <Rectangle width="260" height="150" color="132235FF" />
+      <Button id="logoutButton" translation="[20,18]" minWidth="220" text="Logout" />
+      <Button id="changeServerButton" translation="[20,78]" minWidth="220" text="Change Server" />
+    </Group>
+  </children>
+</component>
