@@ -4,6 +4,12 @@
 sub init()
     m.cover = m.top.findNode("cover")
     m.titleLabel = m.top.findNode("titleLabel")
+    m.authorLabel = m.top.findNode("authorLabel")
+    m.narratorLabel = m.top.findNode("narratorLabel")
+    m.descriptionLabel = m.top.findNode("descriptionLabel")
+    m.publisherLabel = m.top.findNode("publisherLabel")
+    m.publishDateLabel = m.top.findNode("publishDateLabel")
+    m.durationLabel = m.top.findNode("durationLabel")
     m.statusLabel = m.top.findNode("statusLabel")
     m.audioPlayer = m.top.findNode("audioPlayer")
     m.playbackApiTask = m.top.findNode("playbackApiTask")
@@ -24,6 +30,7 @@ sub onPlayRequestChanged()
 
     if m.cover <> invalid then m.cover.uri = SafeString(request.coverUrl, "pkg:/images/placeholder_cover.png")
     if m.titleLabel <> invalid then m.titleLabel.text = SafeString(request.title, "Audiobook")
+    updateDetails(request.details)
     setStatus("Starting playback...")
 
     m.playbackApiTask.request = {
@@ -50,6 +57,27 @@ sub onPlaybackApiResponse()
     end if
 
     playTracks(response.tracks)
+end sub
+
+'-------------------------------------------------------------------------------
+' updateDetails
+'-------------------------------------------------------------------------------
+sub updateDetails(details as dynamic)
+    if details = invalid then details = {}
+
+    setLabelText(m.authorLabel, "Author(s): " + FirstNonEmpty([details.authors], "Unknown"))
+    setLabelText(m.narratorLabel, "Narrator(s): " + FirstNonEmpty([details.narrators], "Unknown"))
+    setLabelText(m.descriptionLabel, FirstNonEmpty([details.description], "No description available."))
+    setLabelText(m.publisherLabel, "Publisher: " + FirstNonEmpty([details.publisher], "Unknown"))
+    setLabelText(m.publishDateLabel, "Published: " + FirstNonEmpty([details.publishDate], "Unknown"))
+    setLabelText(m.durationLabel, "Duration: " + FirstNonEmpty([details.duration], "Unknown"))
+end sub
+
+'-------------------------------------------------------------------------------
+' setLabelText
+'-------------------------------------------------------------------------------
+sub setLabelText(label as dynamic, text as string)
+    if label <> invalid then label.text = text
 end sub
 
 '-------------------------------------------------------------------------------

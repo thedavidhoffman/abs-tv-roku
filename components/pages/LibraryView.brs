@@ -176,10 +176,90 @@ function getItemAuthor(metadata as dynamic) as string
 end function
 
 '-------------------------------------------------------------------------------
+' getItemNarrators
+'-------------------------------------------------------------------------------
+function getItemNarrators(metadata as dynamic) as string
+    return FirstNonEmpty([metadata.narratorName, metadata.narrator], "Unknown")
+end function
+
+'-------------------------------------------------------------------------------
 ' getItemDescription
 '-------------------------------------------------------------------------------
 function getItemDescription(metadata as dynamic) as string
-    return FirstNonEmpty([metadata.description, metadata.subtitle], "No description available.")
+    return StripHtmlMarkup(FirstNonEmpty([metadata.description, metadata.subtitle], "No description available."))
+end function
+
+'-------------------------------------------------------------------------------
+' StripHtmlMarkup
+'-------------------------------------------------------------------------------
+function StripHtmlMarkup(value as dynamic) as string
+    text = SafeString(value, "")
+    text = ReplaceText(text, "</p> <p>", Chr(10))
+    text = ReplaceText(text, "</p><p>", Chr(10))
+    result = ""
+    insideTag = false
+
+    for i = 1 to Len(text)
+        char = Mid(text, i, 1)
+        if char = "<" then
+            insideTag = true
+        else if char = ">" then
+            insideTag = false
+            result = result + " "
+        else if insideTag = false then
+            result = result + char
+        end if
+    end for
+
+    result = ReplaceText(result, "&nbsp;", " ")
+    result = ReplaceText(result, "&amp;", "&")
+    result = ReplaceText(result, "&quot;", Chr(34))
+    result = ReplaceText(result, "&#39;", "'")
+    result = ReplaceText(result, "&apos;", "'")
+    result = ReplaceText(result, "&lt;", "<")
+    result = ReplaceText(result, "&gt;", ">")
+
+    return CollapseWhitespace(result)
+end function
+
+'-------------------------------------------------------------------------------
+' CollapseWhitespace
+'-------------------------------------------------------------------------------
+function CollapseWhitespace(value as string) as string
+    result = ""
+    previousWasSpace = false
+
+    for i = 1 to Len(value)
+        char = Mid(value, i, 1)
+        isSpace = (char = " " or char = Chr(10) or char = Chr(13) or char = Chr(9))
+
+        if isSpace then
+            if previousWasSpace = false then result = result + " "
+            previousWasSpace = true
+        else
+            result = result + char
+            previousWasSpace = false
+        end if
+    end for
+
+    return TrimString(result)
+end function
+
+'-------------------------------------------------------------------------------
+' ReplaceText
+'-------------------------------------------------------------------------------
+function ReplaceText(value as string, oldValue as string, newValue as string) as string
+    result = ""
+    remaining = value
+    index = Instr(1, remaining, oldValue)
+
+    while index > 0
+        result = result + Left(remaining, index - 1) + newValue
+        remaining = Mid(remaining, index + Len(oldValue))
+        index = Instr(1, remaining, oldValue)
+    end while
+
+    return result + remaining
 end function
 
 '-------------------------------------------------------------------------------
@@ -253,9 +333,25 @@ sub onPlayPressed()
     m.top.playSelected = {
         id: m.selectedItem.id
         title: getLibraryItemTitle(m.selectedItem)
+        details: getPlaybackDetails(m.selectedItem)
         counter: m.playSelectedCounter
     }
 end sub
+
+'-------------------------------------------------------------------------------
+' getPlaybackDetails
+'-------------------------------------------------------------------------------
+function getPlaybackDetails(item as dynamic) as object
+    metadata = getItemMetadata(item)
+    return {
+        authors: getItemAuthor(metadata)
+        narrators: getItemNarrators(metadata)
+        description: getItemDescription(metadata)
+        publisher: FirstNonEmpty([metadata.publisher], "Unknown")
+        publishDate: getItemPublishDate(metadata)
+        duration: getItemDuration(item)
+    }
+end function
 
 '-------------------------------------------------------------------------------
 ' onKeyEvent

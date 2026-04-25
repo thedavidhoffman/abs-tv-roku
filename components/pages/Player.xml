@@ -18,8 +18,14 @@
       loadDisplayMode="best-fit"
     />
     <Label id="titleLabel" translation="[620,210]" width="1040" numLines="3" wrap="true" color="F3F7FBFF" font="font:LargeBoldSystemFont" />
-    <Label id="statusLabel" translation="[620,350]" width="1040" numLines="2" wrap="true" color="F2C879FF" />
-    <Label id="hintLabel" translation="[620,430]" width="1040" text="Press Back to return to the library." color="91A3B6FF" />
+    <Label id="authorLabel" translation="[620,350]" width="1040" numLines="1" color="B7C5D4FF" />
+    <Label id="narratorLabel" translation="[620,390]" width="1040" numLines="1" color="B7C5D4FF" />
+    <Label id="descriptionLabel" translation="[620,445]" width="1040" numLines="5" wrap="true" color="F3F7FBFF" font="font:SmallestSystemFont" />
+    <Label id="publisherLabel" translation="[620,660]" width="340" numLines="1" color="B7C5D4FF" />
+    <Label id="publishDateLabel" translation="[980,660]" width="300" numLines="1" color="B7C5D4FF" />
+    <Label id="durationLabel" translation="[1300,660]" width="320" numLines="1" color="B7C5D4FF" />
+    <Label id="statusLabel" translation="[620,740]" width="1040" numLines="2" wrap="true" color="F2C879FF" />
+    <Label id="hintLabel" translation="[620,820]" width="1040" text="Press Back to return to the library." color="91A3B6FF" />
     <Audio id="audioPlayer" />
     <AppTask id="playbackApiTask" />
   </children>

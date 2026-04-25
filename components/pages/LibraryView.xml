@@ -7,6 +7,7 @@
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
     <field id="playSelected" type="assocarray" />
     <field id="errorResponse" type="assocarray" />
+    <function name="focusLibraryList" />
   </interface>
   <children>
     <Label id="libraryLabel" translation="[64,158]" width="500" text="Library" color="F3F7FBFF" />

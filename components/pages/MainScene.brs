@@ -262,6 +262,7 @@ sub onLibraryPlaySelected()
         itemId: selectedItem.id
         title: selectedItem.title
         coverUrl: coverUrl
+        details: selectedItem.details
     }
 end sub
 
@@ -271,7 +272,9 @@ end sub
 sub onPlayerCloseRequested()
     m.player.visible = false
     m.authenticatedContent.visible = true
-    if m.libraryView <> invalid and m.libraryView.visible then m.libraryView.setFocus(true)
+    if m.libraryView <> invalid and m.libraryView.visible then
+        m.libraryView.callFunc("focusLibraryList")
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
