@@ -22,6 +22,8 @@ sub executeRequest()
         m.top.response = doAuthorize(request)
     else if action = "logout" then
         m.top.response = doLogout(request)
+    else if action = "loadLibrary" then
+        m.top.response = loadLibrary(request)
     else if action = "loadBooks" then
         m.top.response = loadBooks(request)
     else if action = "loadSeries" then
@@ -79,6 +81,57 @@ function doLogout(request as Object) as Object
         return result
     end if
     return { ok: true, action: "logout" }
+end function
+
+'-------------------------------------------------------------------------------
+' loadLibrary
+'-------------------------------------------------------------------------------
+function loadLibrary(request as Object) as Object
+    server = NormalizeServerUrl(request.server)
+    token = request.token
+    bookLibraryId = request.bookLibraryId
+
+    if bookLibraryId = invalid or bookLibraryId = "" then
+        authResult = doRequest(server + "/api/authorize", "POST", token, "")
+        if authResult.ok <> true then return authResult
+        bookLibraryId = ResolveBookLibraryId(authResult.data)
+    end if
+
+    if bookLibraryId = invalid or bookLibraryId = "" then
+        return { ok: false, errorMessage: "No book library was found for this account." }
+    end if
+
+    allItems = []
+    page = 0
+    limit = 100
+    keepLoading = true
+
+    while keepLoading
+        libraryUrl = server + "/api/libraries/" + bookLibraryId + "/items?limit=" + limit.ToStr() + "&page=" + page.ToStr() + "&sort=media.metadata.title&desc=0&minified=0&collapseseries=0"
+        libraryResult = doRequest(libraryUrl, "GET", token, invalid)
+        if libraryResult.ok <> true then return libraryResult
+
+        results = invalid
+        if libraryResult.data <> invalid and libraryResult.data.results <> invalid then results = libraryResult.data.results
+
+        if results = invalid or results.Count() = 0 then
+            keepLoading = false
+        else
+            for each item in results
+                allItems.Push(item)
+            end for
+
+            page = page + 1
+            keepLoading = (results.Count() = limit)
+        end if
+    end while
+
+    return {
+        ok: true
+        action: "loadLibrary"
+        bookLibraryId: bookLibraryId
+        libraryItems: allItems
+    }
 end function
 
 '-------------------------------------------------------------------------------

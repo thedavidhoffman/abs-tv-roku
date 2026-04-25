@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="LibraryView" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/LibraryView.brs" />
+  <interface>
+    <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
+    <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
+    <field id="errorResponse" type="assocarray" />
+  </interface>
+  <children>
+    <Label id="libraryLabel" translation="[64,158]" width="500" text="Library" color="F3F7FBFF" />
+    <Label id="libraryStatus" translation="[64,212]" width="1200" numLines="2" wrap="true" color="F2C879FF" />
+    <LabelList
+      id="libraryList"
+      translation="[64,280]"
+      itemSize="[1000,56]"
+      numRows="12"
+      vertFocusAnimationStyle="fixedFocus"
+    />
+    <AppTask id="libraryApiTask" />
+  </children>
+</component>

@@ -3,6 +3,7 @@ sub init()
     m.authenticatedContent = m.top.findNode("authenticatedContent")
     m.headerPanel = m.top.findNode("headerPanel")
     m.homePage = m.top.findNode("homePage")
+    m.libraryView = m.top.findNode("libraryView")
     m.booksTab = m.top.findNode("booksTab")
     m.seriesTab = m.top.findNode("seriesTab")
     m.userMenuButton = m.top.findNode("userMenuButton")
@@ -20,6 +21,7 @@ sub init()
     m.userMenuButton.observeField("buttonSelected", "onUserMenuPressed")
     m.logoutButton.observeField("buttonSelected", "onLogoutPressed")
     m.changeServerButton.observeField("buttonSelected", "onChangeServerPressed")
+    m.libraryView.observeField("errorResponse", "onLibraryViewError")
     m.apiTask.observeField("response", "onApiResponse")
 
     m.currentTab = "books"
@@ -105,7 +107,6 @@ sub onApiResponse()
 
         SaveAuthState(server, username, sessionToken, userId)
         showApp()
-        loadBooks()
         return
     end if
 
@@ -142,10 +143,28 @@ sub showLogin(message as string)
     m.gettingStartedPage.activationToken = m.loginActivationCounter
 end sub
 
+sub onLibraryViewError()
+    response = m.libraryView.errorResponse
+    if response = invalid then return
+
+    if response.authExpired = true then
+        handleExpiredSession(response.errorMessage)
+    end if
+end sub
+
 sub showApp()
     m.gettingStartedPage.visible = false
     m.authenticatedContent.visible = true
     m.menuPanel.visible = false
+    if m.libraryView <> invalid then
+        m.libraryView.visible = true
+        m.libraryView.loadRequest = {
+            server: m.session.server
+            token: m.session.token
+            bookLibraryId: m.session.bookLibraryId
+        }
+    end if
+    if m.homePage <> invalid then m.homePage.visible = false
     m.homePage.pageTitle = "Books"
     m.homePage.pageSubtitle = "Pick up right where you left off and see what arrived most recently."
     m.homePage.currentTab = "books"

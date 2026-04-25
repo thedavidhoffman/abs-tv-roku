@@ -1,6 +1,8 @@
-# Roku Reference Notes
+# Roku Notes
 
-Notes regarding Roku development. 
+## Links
+
+- https://developer.roku.com/docs/references
 
 ## font sizes
 - font:SmallestSystemFont
