@@ -371,6 +371,12 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
     if m.libraryList <> invalid and m.libraryList.isInFocusChain() then
         if key = "right" then
+            moveLibraryListFocus(10)
+            return true
+        else if key = "left" then
+            moveLibraryListFocus(-10)
+            return true
+        else if key = "OK" or key = "select" then
             focusPlayButton()
             return true
         end if
@@ -378,6 +384,25 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
     return false
 end function
+
+'-------------------------------------------------------------------------------
+' moveLibraryListFocus
+'-------------------------------------------------------------------------------
+sub moveLibraryListFocus(offset as integer)
+    if m.libraryList = invalid then return
+    if m.libraryItemsByRow = invalid or m.libraryItemsByRow.Count() = 0 then return
+
+    currentIndex = m.libraryList.itemFocused
+    if currentIndex = invalid or currentIndex < 0 then currentIndex = 0
+
+    nextIndex = currentIndex + offset
+    if nextIndex < 0 then nextIndex = 0
+    lastIndex = m.libraryItemsByRow.Count() - 1
+    if nextIndex > lastIndex then nextIndex = lastIndex
+
+    m.libraryList.jumpToItem = nextIndex
+    showSelectedItem(getSelectedLibraryItem(nextIndex))
+end sub
 
 '-------------------------------------------------------------------------------
 ' setStatus
