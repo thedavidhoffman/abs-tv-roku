@@ -38,6 +38,7 @@ sub init()
     m.transportFocusIndex = -1
     m.seekHoldDirection = 0
     m.seekHoldTally = 0
+    m.seekHoldSeconds = 0
     m.seekHoldStartPosition = 0
     m.transportButtons = [
         m.rewindButton
@@ -406,6 +407,7 @@ sub beginTransportSeekHold(direction as integer)
 
     m.seekHoldDirection = direction
     m.seekHoldTally = 1
+    m.seekHoldSeconds = 0
     m.seekHoldStartPosition = getCurrentPlaybackPosition()
 
     stopProgressTimer()
@@ -422,7 +424,12 @@ sub onSeekHoldTimerFired()
         return
     end if
 
-    m.seekHoldTally = m.seekHoldTally + 1
+    m.seekHoldSeconds = m.seekHoldSeconds + 1
+    if m.seekHoldSeconds > 5 then
+        m.seekHoldTally = m.seekHoldTally + 2
+    else
+        m.seekHoldTally = m.seekHoldTally + 1
+    end if
     updateSeekHoldPreview()
 end sub
 
@@ -471,6 +478,7 @@ sub resetSeekHold()
     if m.seekHoldTimer <> invalid then m.seekHoldTimer.control = "stop"
     m.seekHoldDirection = 0
     m.seekHoldTally = 0
+    m.seekHoldSeconds = 0
     m.seekHoldStartPosition = 0
 end sub
 
