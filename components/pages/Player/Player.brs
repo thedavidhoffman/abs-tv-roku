@@ -19,6 +19,7 @@ sub init()
     m.rewindButton = m.top.findNode("rewindButton")
     m.playPauseButton = m.top.findNode("playPauseButton")
     m.forwardButton = m.top.findNode("forwardButton")
+    m.chaptersButton = m.top.findNode("chaptersButton")
     m.descriptionModal = m.top.findNode("descriptionModal")
     m.descriptionModalBackdrop = m.top.findNode("descriptionModalBackdrop")
     m.descriptionModalPanel = m.top.findNode("descriptionModalPanel")
@@ -26,11 +27,13 @@ sub init()
     m.modalScrollbarTrack = m.top.findNode("modalScrollbarTrack")
     m.modalScrollbarThumb = m.top.findNode("modalScrollbarThumb")
     m.modalCloseButton = m.top.findNode("modalCloseButton")
+    m.chapterList = m.top.findNode("chapterList")
     m.audioPlayer = m.top.findNode("audioPlayer")
     m.playbackApiTask = m.top.findNode("playbackApiTask")
     m.closeRequestedCounter = 0
     m.tracks = []
     m.currentTrackIndex = 0
+    m.currentTrackStartPosition = 0
     m.isPaused = false
     m.totalDurationSeconds = 0
     m.progressBarWidth = 1040
@@ -39,10 +42,12 @@ sub init()
     m.seekHoldTally = 0
     m.seekHoldSeconds = 0
     m.seekHoldStartPosition = 0
+    m.ignoreNextFinished = false
     m.transportButtons = [
         m.rewindButton
         m.playPauseButton
         m.forwardButton
+        m.chaptersButton
     ]
     m.fullDescription = ""
     m.descriptionIsExpandable = false
@@ -59,9 +64,14 @@ sub init()
     if m.progressTimer <> invalid then m.progressTimer.observeField("fire", "onProgressTimerFired")
     if m.seekHoldTimer <> invalid then m.seekHoldTimer.observeField("fire", "onSeekHoldTimerFired")
     if m.audioPlayer <> invalid then m.audioPlayer.observeField("state", "onAudioStateChanged")
+    if m.chapterList <> invalid then
+        m.chapterList.observeField("selectedChapter", "onChapterSelected")
+        m.chapterList.observeField("closedCounter", "onChapterListClosed")
+    end if
     styleProgressBar()
     styleDescriptionModal()
     updateDescriptionFocus(false)
+    updateChaptersButtonVisibility()
     updateTransportFocus(-1)
     updatePlayPauseButton()
 end sub
@@ -78,6 +88,10 @@ sub onPlayRequestChanged()
     updateDetails(request.details)
     resetProgress()
     resetSeekHold()
+    closeDescriptionModal()
+    closeChapterList()
+    m.tracks = []
+    updateChaptersButtonVisibility()
     focusTransportButton(1)
     setStatus("Starting playback...")
 
@@ -199,6 +213,8 @@ sub playTracks(tracks as dynamic)
 
     m.tracks = tracks
     m.currentTrackIndex = 0
+    updateChaptersButtonVisibility()
+    updateChapterList()
     playCurrentTrack()
 end sub
 
@@ -219,6 +235,7 @@ sub playCurrentTrack()
     ? "player track"; " index="; m.currentTrackIndex; " format="; node.streamFormat; " url="; node.url
 
     m.totalDurationSeconds = getTrackDurationSeconds(track)
+    m.currentTrackStartPosition = getTrackStartPosition(track)
     setLabelText(m.trackTitleLabel, SafeString(track.title, "Track " + (m.currentTrackIndex + 1).ToStr()))
     if m.totalDurationSeconds > 0 then
         setLabelText(m.totalTimeLabel, formatPlaybackTime(m.totalDurationSeconds))
@@ -226,10 +243,14 @@ sub playCurrentTrack()
         setLabelText(m.totalTimeLabel, "0:00")
     end if
     resetProgress()
+    updateChapterList()
 
     m.audioPlayer.content = node
     m.isPaused = false
     m.audioPlayer.control = "play"
+    if m.currentTrackStartPosition > 0 then
+        m.audioPlayer.seek = m.currentTrackStartPosition
+    end if
     setStatus("Playing")
     updatePlayPauseButton()
 end sub
@@ -241,6 +262,15 @@ function getTrackDurationSeconds(track as Dynamic) as Integer
     if track = invalid then return 0
     if track.durationSeconds = invalid then return 0
     return int(val(track.durationSeconds.ToStr()))
+end function
+
+'-------------------------------------------------------------------------------
+' getTrackStartPosition
+'-------------------------------------------------------------------------------
+function getTrackStartPosition(track as Dynamic) as Integer
+    if track = invalid then return 0
+    if track.startPositionSeconds = invalid then return 0
+    return int(val(track.startPositionSeconds.ToStr()))
 end function
 
 '-------------------------------------------------------------------------------
@@ -264,6 +294,7 @@ sub onAudioStateChanged()
 
     state = SafeString(m.audioPlayer.state, "")
     if state = "playing" then
+        m.ignoreNextFinished = false
         m.isPaused = false
         setStatus("Playing")
         startProgressTimer()
@@ -272,6 +303,12 @@ sub onAudioStateChanged()
         setStatus("Buffering...")
         startProgressTimer()
     else if state = "finished" then
+        if m.ignoreNextFinished = true then
+            m.ignoreNextFinished = false
+            stopProgressTimer()
+            return
+        end if
+
         if playNextTrack() then
             return
         end if
@@ -369,6 +406,8 @@ function onKeyEvent(key as string, press as boolean) as boolean
                 beginTransportSeekHold(-1)
             else if m.transportFocusIndex = 2 then
                 beginTransportSeekHold(1)
+            else if m.transportFocusIndex = 3 then
+                openChapterList()
             else
                 activateTransportButton()
             end if
@@ -413,7 +452,8 @@ end function
 '-------------------------------------------------------------------------------
 sub focusTransportButton(index as integer)
     if index < 0 then index = 0
-    if index >= m.transportButtons.Count() then index = m.transportButtons.Count() - 1
+    transportButtonCount = getTransportButtonCount()
+    if index >= transportButtonCount then index = transportButtonCount - 1
     updateDescriptionFocus(false)
     updateTransportFocus(index)
 
@@ -426,11 +466,22 @@ end sub
 '-------------------------------------------------------------------------------
 sub updateTransportFocus(index as integer)
     m.transportFocusIndex = index
+    transportButtonCount = getTransportButtonCount()
+    if index >= transportButtonCount then m.transportFocusIndex = transportButtonCount - 1
+
     for i = 0 to m.transportButtons.Count() - 1
         button = m.transportButtons[i]
-        if button <> invalid then button.hasFocusVisual = (i = index)
+        if button <> invalid then button.hasFocusVisual = (i = m.transportFocusIndex and i < transportButtonCount)
     end for
 end sub
+
+'-------------------------------------------------------------------------------
+' getTransportButtonCount
+'-------------------------------------------------------------------------------
+function getTransportButtonCount() as integer
+    if m.chaptersButton <> invalid and m.chaptersButton.visible = true then return 4
+    return 3
+end function
 
 '-------------------------------------------------------------------------------
 ' activateTransportButton
@@ -442,7 +493,143 @@ sub activateTransportButton()
         togglePlayPause()
     else if m.transportFocusIndex = 2 then
         beginTransportSeekHold(1)
+    else if m.transportFocusIndex = 3 then
+        openChapterList()
     end if
+end sub
+
+'-------------------------------------------------------------------------------
+' updateChaptersButtonVisibility
+'-------------------------------------------------------------------------------
+sub updateChaptersButtonVisibility()
+    hasMultipleTracks = (m.tracks <> invalid and m.tracks.Count() > 1)
+    if m.chaptersButton <> invalid then
+        m.chaptersButton.visible = hasMultipleTracks
+        if hasMultipleTracks = false then m.chaptersButton.hasFocusVisual = false
+    end if
+
+    if hasMultipleTracks = false and m.transportFocusIndex > 2 then updateTransportFocus(2)
+end sub
+
+'-------------------------------------------------------------------------------
+' openChapterList
+'-------------------------------------------------------------------------------
+sub openChapterList()
+    if m.chapterList = invalid then return
+    if m.tracks = invalid or m.tracks.Count() <= 1 then return
+
+    updateChapterList()
+    m.chapterList.callFunc("open")
+end sub
+
+'-------------------------------------------------------------------------------
+' closeChapterList
+'-------------------------------------------------------------------------------
+sub closeChapterList()
+    if m.chapterList <> invalid then m.chapterList.callFunc("close")
+end sub
+
+'-------------------------------------------------------------------------------
+' updateChapterList
+'-------------------------------------------------------------------------------
+sub updateChapterList()
+    if m.chapterList = invalid then return
+
+    m.chapterList.tracks = m.tracks
+    m.chapterList.currentTrackIndex = m.currentTrackIndex
+end sub
+
+'-------------------------------------------------------------------------------
+' onChapterListClosed
+'-------------------------------------------------------------------------------
+sub onChapterListClosed()
+    focusChaptersButton()
+end sub
+
+'-------------------------------------------------------------------------------
+' focusChaptersButton
+'-------------------------------------------------------------------------------
+sub focusChaptersButton()
+    if m.chaptersButton <> invalid and m.chaptersButton.visible = true then
+        m.chaptersButton.setFocus(true)
+        updateTransportFocus(3)
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' onChapterSelected
+'-------------------------------------------------------------------------------
+sub onChapterSelected()
+    if m.chapterList = invalid then return
+
+    selection = m.chapterList.selectedChapter
+    if selection = invalid or selection.index = invalid then return
+
+    index = selection.index
+    if m.tracks = invalid then return
+    if index < 0 or index >= m.tracks.Count() then return
+
+    focusChaptersButton()
+    if index = m.currentTrackIndex then return
+
+    resetSeekHold()
+    stopProgressTimer()
+    if selectedChapterUsesCurrentStream(index) then
+        playChapterInCurrentStream(index)
+    else
+        m.ignoreNextFinished = true
+        m.currentTrackIndex = index
+        playCurrentTrack()
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' selectedChapterUsesCurrentStream
+'-------------------------------------------------------------------------------
+function selectedChapterUsesCurrentStream(index as integer) as boolean
+    if m.tracks = invalid then return false
+    if m.currentTrackIndex < 0 or m.currentTrackIndex >= m.tracks.Count() then return false
+    if index < 0 or index >= m.tracks.Count() then return false
+
+    currentTrack = m.tracks[m.currentTrackIndex]
+    selectedTrack = m.tracks[index]
+    if currentTrack = invalid or selectedTrack = invalid then return false
+
+    return SafeString(currentTrack.url, "") = SafeString(selectedTrack.url, "")
+end function
+
+'-------------------------------------------------------------------------------
+' playChapterInCurrentStream
+'-------------------------------------------------------------------------------
+sub playChapterInCurrentStream(index as integer)
+    m.currentTrackIndex = index
+    track = m.tracks[index]
+
+    m.totalDurationSeconds = getTrackDurationSeconds(track)
+    m.currentTrackStartPosition = getTrackStartPosition(track)
+    setLabelText(m.trackTitleLabel, SafeString(track.title, "Track " + (index + 1).ToStr()))
+    if m.totalDurationSeconds > 0 then
+        setLabelText(m.totalTimeLabel, formatPlaybackTime(m.totalDurationSeconds))
+    else
+        setLabelText(m.totalTimeLabel, "0:00")
+    end if
+    resetProgress()
+    updateChapterList()
+
+    if m.audioPlayer <> invalid then
+        ? "chapter seek"; " index="; index; " start="; m.currentTrackStartPosition; " state="; SafeString(m.audioPlayer.state, "")
+        m.audioPlayer.seek = m.currentTrackStartPosition
+        if m.audioPlayer.state = "paused" then
+            m.audioPlayer.control = "resume"
+        else if m.audioPlayer.state <> "playing" then
+            m.audioPlayer.control = "play"
+        end if
+    end if
+
+    m.isPaused = false
+    startProgressTimer()
+    setStatus("Playing")
+    updatePlayPauseButton()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -455,7 +642,7 @@ sub beginTransportSeekHold(direction as integer)
     m.seekHoldDirection = direction
     m.seekHoldTally = 1
     m.seekHoldSeconds = 0
-    m.seekHoldStartPosition = getCurrentPlaybackPosition()
+    m.seekHoldStartPosition = getCurrentTrackPlaybackPosition()
 
     stopProgressTimer()
     if m.seekHoldTimer <> invalid then m.seekHoldTimer.control = "start"
@@ -505,8 +692,7 @@ sub finishTransportSeekHold()
     resetSeekHold()
 
     if m.audioPlayer <> invalid then
-        m.audioPlayer.seek = targetPosition
-        m.audioPlayer.control = "seek"
+        m.audioPlayer.seek = m.currentTrackStartPosition + targetPosition
     end if
 
     updateProgress(targetPosition)
@@ -549,7 +735,7 @@ sub togglePlayPause()
         m.audioPlayer.control = "pause"
         m.isPaused = true
         stopProgressTimer()
-        updateProgress(getCurrentPlaybackPosition())
+        updateProgress(getCurrentTrackPlaybackPosition())
         setStatus("Paused")
     else
         m.isPaused = false
@@ -586,12 +772,11 @@ end sub
 sub seekRelative(offsetSeconds as integer)
     if m.audioPlayer = invalid then return
 
-    nextPosition = getCurrentPlaybackPosition() + offsetSeconds
+    nextPosition = getCurrentTrackPlaybackPosition() + offsetSeconds
     if nextPosition < 0 then nextPosition = 0
     if m.totalDurationSeconds > 0 and nextPosition > m.totalDurationSeconds then nextPosition = m.totalDurationSeconds
 
-    m.audioPlayer.seek = nextPosition
-    m.audioPlayer.control = "seek"
+    m.audioPlayer.seek = m.currentTrackStartPosition + nextPosition
     updateProgress(nextPosition)
 end sub
 
@@ -756,7 +941,11 @@ end sub
 '-------------------------------------------------------------------------------
 sub onProgressTimerFired()
     if m.seekHoldDirection <> 0 then return
-    updateProgress(getCurrentPlaybackPosition())
+    position = getCurrentPlaybackPosition() - m.currentTrackStartPosition
+    updateProgress(position)
+    if shouldAdvanceSharedStreamChapter(position) then
+        playNextTrack()
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -765,6 +954,49 @@ end sub
 function getCurrentPlaybackPosition() as integer
     if m.audioPlayer = invalid or m.audioPlayer.position = invalid then return 0
     return int(val(m.audioPlayer.position.ToStr()))
+end function
+
+'-------------------------------------------------------------------------------
+' getCurrentTrackPlaybackPosition
+'-------------------------------------------------------------------------------
+function getCurrentTrackPlaybackPosition() as integer
+    position = getCurrentPlaybackPosition() - m.currentTrackStartPosition
+    if position < 0 then position = 0
+    return position
+end function
+
+'-------------------------------------------------------------------------------
+' shouldAdvanceSharedStreamChapter
+'-------------------------------------------------------------------------------
+function shouldAdvanceSharedStreamChapter(positionSeconds as integer) as boolean
+    if m.totalDurationSeconds <= 0 then return false
+    if positionSeconds < m.totalDurationSeconds then return false
+    if m.tracks = invalid then return false
+    if m.currentTrackIndex < 0 or m.currentTrackIndex >= m.tracks.Count() then return false
+
+    track = m.tracks[m.currentTrackIndex]
+    return getTrackStartPosition(track) > 0 or hasSharedTrackUrl(m.currentTrackIndex)
+end function
+
+'-------------------------------------------------------------------------------
+' hasSharedTrackUrl
+'-------------------------------------------------------------------------------
+function hasSharedTrackUrl(index as integer) as boolean
+    if m.tracks = invalid then return false
+    if index < 0 or index >= m.tracks.Count() then return false
+
+    track = m.tracks[index]
+    if track = invalid then return false
+
+    trackUrl = SafeString(track.url, "")
+    for i = 0 to m.tracks.Count() - 1
+        if i <> index then
+            otherTrack = m.tracks[i]
+            if otherTrack <> invalid and SafeString(otherTrack.url, "") = trackUrl then return true
+        end if
+    end for
+
+    return false
 end function
 
 '-------------------------------------------------------------------------------
@@ -811,7 +1043,7 @@ end sub
 sub startProgressTimer()
     if m.seekHoldDirection <> 0 then return
     if m.progressTimer <> invalid then m.progressTimer.control = "start"
-    updateProgress(getCurrentPlaybackPosition())
+    updateProgress(getCurrentTrackPlaybackPosition())
 end sub
 
 '-------------------------------------------------------------------------------

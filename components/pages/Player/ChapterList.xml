@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="ChapterList" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Player/ChapterList.brs" />
+  <interface>
+    <field id="tracks" type="array" onChange="onTracksChanged" />
+    <field id="currentTrackIndex" type="integer" onChange="onCurrentTrackIndexChanged" />
+    <field id="selectedChapter" type="assocarray" />
+    <field id="closedCounter" type="integer" />
+    <function name="open" />
+    <function name="close" />
+  </interface>
+  <children>
+    <Rectangle id="backdrop" width="1920" height="1080" color="000000FF" />
+    <Rectangle id="panel" translation="[300,150]" width="1320" height="780" color="101B2BFF" />
+    <Label id="titleLabel" translation="[360,205]" width="1200" text="Chapters" color="F3F7FBFF" font="font:LargeBoldSystemFont" />
+    <LabelList
+      id="chapterList"
+      translation="[360,285]"
+      itemSize="[1120,56]"
+      numRows="9"
+      drawFocusFeedback="true"
+      vertFocusAnimationStyle="fixedFocus"
+    />
+    <PrimaryButton id="closeButton" translation="[1300,830]" buttonWidth="260" buttonHeight="56" text="Close" />
+  </children>
+</component>

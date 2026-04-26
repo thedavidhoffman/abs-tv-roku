@@ -242,7 +242,38 @@ function mapPlaybackTracks(server as String, token as Dynamic, payload as Dynami
 
     if payload <> invalid and payload.id <> invalid then sessionId = payload.id
 
-    if tracks <> invalid then
+    ? "playback mapping"; " audioTracks="; getArrayCount(tracks); " files="; getArrayCount(files)
+
+    if files <> invalid and files.Count() > 0 and tracks <> invalid and tracks.Count() = 1 then
+        track = tracks[0]
+        startPositionSeconds = 0
+        for i = 0 to files.Count() - 1
+            file = files[i]
+            durationSeconds = getPlaybackTrackDurationSeconds(file, track)
+            mappedTracks.Push({
+                url: buildPlaybackUrl(server, token, sessionId, track)
+                title: getPlaybackTrackTitle(file, track, i)
+                durationSeconds: durationSeconds
+                startPositionSeconds: startPositionSeconds
+                mimeType: getPlaybackTrackMimeType(file, track)
+            })
+            startPositionSeconds = startPositionSeconds + durationSeconds
+        end for
+    else if files <> invalid and files.Count() > 0 and (tracks = invalid or files.Count() > tracks.Count()) then
+        for i = 0 to files.Count() - 1
+            file = files[i]
+            track = getPlaybackTrackForFileIndex(tracks, file, i)
+            url = buildPlaybackFileUrl(server, token, sessionId, file, track, i)
+            if url <> "" then
+                mappedTracks.Push({
+                    url: url
+                    title: getPlaybackTrackTitle(file, track, i)
+                    durationSeconds: getPlaybackTrackDurationSeconds(file, track)
+                    mimeType: getPlaybackTrackMimeType(file, track)
+                })
+            end if
+        end for
+    else if tracks <> invalid then
         for i = 0 to tracks.Count() - 1
             track = tracks[i]
             file = getPlaybackFileForTrack(files, track, i)
@@ -260,6 +291,61 @@ function mapPlaybackTracks(server as String, token as Dynamic, payload as Dynami
     end if
 
     return mappedTracks
+end function
+
+'-------------------------------------------------------------------------------
+' getArrayCount
+'-------------------------------------------------------------------------------
+function getArrayCount(values as Dynamic) as Integer
+    if values = invalid then return 0
+    return values.Count()
+end function
+
+'-------------------------------------------------------------------------------
+' getPlaybackTrackForFileIndex
+'-------------------------------------------------------------------------------
+function getPlaybackTrackForFileIndex(tracks as Dynamic, file as Dynamic, fallbackIndex as Integer) as Dynamic
+    if tracks = invalid or tracks.Count() = 0 then return invalid
+
+    fileIndex = getPlaybackFileIndex(file, fallbackIndex)
+    for each track in tracks
+        if track.index <> invalid and int(val(track.index.ToStr())) = fileIndex then return track
+        if track.trackNum <> invalid and int(val(track.trackNum.ToStr())) = fileIndex then return track
+    end for
+
+    if fallbackIndex >= 0 and fallbackIndex < tracks.Count() then return tracks[fallbackIndex]
+    return invalid
+end function
+
+'-------------------------------------------------------------------------------
+' getPlaybackFileIndex
+'-------------------------------------------------------------------------------
+function getPlaybackFileIndex(file as Dynamic, fallbackIndex as Integer) as Integer
+    if file <> invalid then
+        if file.index <> invalid then return int(val(file.index.ToStr()))
+        if file.trackNum <> invalid then return int(val(file.trackNum.ToStr()))
+    end if
+
+    return fallbackIndex
+end function
+
+'-------------------------------------------------------------------------------
+' buildPlaybackFileUrl
+'-------------------------------------------------------------------------------
+function buildPlaybackFileUrl(server as String, token as Dynamic, sessionId as Dynamic, file as Dynamic, track as Dynamic, fallbackIndex as Integer) as String
+    if track <> invalid and track.contentUrl <> invalid and track.contentUrl <> "" then
+        return buildPlaybackUrl(server, token, sessionId, track)
+    end if
+
+    if file <> invalid and file.contentUrl <> invalid and file.contentUrl <> "" then
+        return buildPlaybackUrl(server, token, sessionId, file)
+    end if
+
+    if sessionId <> invalid and sessionId <> "" then
+        return server + "/public/session/" + sessionId + "/track/" + getPlaybackFileIndex(file, fallbackIndex).ToStr()
+    end if
+
+    return ""
 end function
 
 '-------------------------------------------------------------------------------

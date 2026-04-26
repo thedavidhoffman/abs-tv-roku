@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="Player" extends="Group">
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
-  <script type="text/brightscript" uri="pkg:/components/pages/Player.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Player/Player.brs" />
   <interface>
     <field id="playRequest" type="assocarray" onChange="onPlayRequestChanged" />
     <field id="closeRequested" type="integer" />
@@ -17,7 +17,7 @@
       uri="pkg:/images/placeholder_cover.png"
       loadDisplayMode="best-fit"
     />
-    <Label id="titleLabel" translation="[620,210]" width="1040" numLines="3" wrap="true" color="F3F7FBFF" font="font:LargeBoldSystemFont" />
+    <Label id="titleLabel" translation="[620,210]" width="1040" numLines="3" color="F3F7FBFF" font="font:LargeBoldSystemFont" />
     <Label id="authorLabel" translation="[620,260]" width="1040" numLines="1" color="B7C5D4FF" />
     <Label id="metadataLabel" translation="[620,310]" width="1040" numLines="1" color="B7C5D4FF" font="font:SmallestSystemFont" />
     <Rectangle id="descriptionFocusRing" translation="[614,438]" width="1052" height="188" color="E09B4200" />
@@ -34,6 +34,7 @@
       <PrimaryButton id="rewindButton" translation="[0,0]" buttonWidth="160" buttonHeight="56" text="-30s" />
       <PrimaryButton id="playPauseButton" translation="[190,0]" buttonWidth="220" buttonHeight="56" text="Pause" />
       <PrimaryButton id="forwardButton" translation="[440,0]" buttonWidth="160" buttonHeight="56" text="+30s" />
+      <PrimaryButton id="chaptersButton" translation="[820,0]" buttonWidth="220" buttonHeight="56" text="Chapters" visible="false" />
     </Group>
     <Timer id="progressTimer" duration="1" repeat="true" />
     <Timer id="seekHoldTimer" duration="1" repeat="true" />
@@ -52,5 +53,7 @@
       <Rectangle id="modalScrollbarThumb" translation="[1552,285]" width="8" height="80" color="E09B42FF" />
       <PrimaryButton id="modalCloseButton" translation="[1300,830]" buttonWidth="260" buttonHeight="56" text="Close" />
     </Group>
+
+    <ChapterList id="chapterList" visible="false" />
   </children>
 </component>

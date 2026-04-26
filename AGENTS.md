@@ -1,5 +1,11 @@
 # AGENTS.md
 
+## audiobookshelf reference
+
+- Before changing Audiobookshelf API calls, playback-session handling, media metadata mapping, or playlist/chapter behavior, review the linked Audiobookshelf docs for the relevant endpoint/response shape.
+- audiobookshelf API git repo: https://github.com/audiobookshelf/audiobookshelf-api-docs
+- audiobookshelf server git repo: https://github.com/advplyr/audiobookshelf
+
 ## Commenting Style
 
 - Add a three-line comment header immediately above each function definition in `src/config.js`.

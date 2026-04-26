@@ -25,4 +25,4 @@ font="font:LargeBoldSystemFont"
 1A1A1AFF might be Roku purple
 
 # newline
- Chr(10)
+Chr(10)
