@@ -22,6 +22,7 @@
     <Label id="metadataLabel" translation="[620,310]" width="1040" numLines="1" color="B7C5D4FF" font="font:SmallestSystemFont" />
     <Rectangle id="descriptionFocusRing" translation="[614,438]" width="1052" height="188" color="E09B4200" />
     <Label id="descriptionLabel" translation="[620,445]" width="1040" numLines="5" wrap="true" color="F3F7FBFF" font="font:SmallestSystemFont" />
+    <Label id="trackTitleLabel" translation="[620,720]" width="1040" numLines="1" color="B7C5D4FF" />
     <Label id="statusLabel" translation="[620,780]" width="1040" numLines="1" color="F2C879FF" />
     <Group id="progressGroup" translation="[620,830]">
       <Rectangle id="progressTrack" width="1040" height="12" color="555555FF" />

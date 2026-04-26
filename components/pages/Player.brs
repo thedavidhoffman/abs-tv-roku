@@ -8,6 +8,7 @@ sub init()
     m.metadataLabel = m.top.findNode("metadataLabel")
     m.descriptionLabel = m.top.findNode("descriptionLabel")
     m.descriptionFocusRing = m.top.findNode("descriptionFocusRing")
+    m.trackTitleLabel = m.top.findNode("trackTitleLabel")
     m.statusLabel = m.top.findNode("statusLabel")
     m.progressFill = m.top.findNode("progressFill")
     m.progressTrack = m.top.findNode("progressTrack")
@@ -120,14 +121,10 @@ sub updateDetails(details as dynamic)
     setLabelText(m.authorLabel, "by " + FirstNonEmpty([details.authors], "Unknown"))
     setLabelText(m.metadataLabel, getMetadataText(details))
     setLabelText(m.descriptionLabel, m.fullDescription)
+    setLabelText(m.trackTitleLabel, "")
 
     m.totalDurationSeconds = 0
-    if details.durationSeconds <> invalid then m.totalDurationSeconds = int(val(details.durationSeconds.ToStr()))
-    if m.totalDurationSeconds > 0 then
-        setLabelText(m.totalTimeLabel, formatPlaybackTime(m.totalDurationSeconds))
-    else
-        setLabelText(m.totalTimeLabel, "0:00")
-    end if
+    setLabelText(m.totalTimeLabel, "0:00")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -221,12 +218,30 @@ sub playCurrentTrack()
 
     ? "player track"; " index="; m.currentTrackIndex; " format="; node.streamFormat; " url="; node.url
 
+    m.totalDurationSeconds = getTrackDurationSeconds(track)
+    setLabelText(m.trackTitleLabel, SafeString(track.title, "Track " + (m.currentTrackIndex + 1).ToStr()))
+    if m.totalDurationSeconds > 0 then
+        setLabelText(m.totalTimeLabel, formatPlaybackTime(m.totalDurationSeconds))
+    else
+        setLabelText(m.totalTimeLabel, "0:00")
+    end if
+    resetProgress()
+
     m.audioPlayer.content = node
     m.isPaused = false
     m.audioPlayer.control = "play"
     setStatus("Playing")
     updatePlayPauseButton()
 end sub
+
+'-------------------------------------------------------------------------------
+' getTrackDurationSeconds
+'-------------------------------------------------------------------------------
+function getTrackDurationSeconds(track as Dynamic) as Integer
+    if track = invalid then return 0
+    if track.durationSeconds = invalid then return 0
+    return int(val(track.durationSeconds.ToStr()))
+end function
 
 '-------------------------------------------------------------------------------
 ' getStreamFormat
