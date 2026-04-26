@@ -20,17 +20,17 @@
     <Label id="titleLabel" translation="[620,210]" width="1040" numLines="3" color="F3F7FBFF" font="font:LargeBoldSystemFont" />
     <Label id="authorLabel" translation="[620,260]" width="1040" numLines="1" color="B7C5D4FF" />
     <Label id="metadataLabel" translation="[620,310]" width="1040" numLines="1" color="B7C5D4FF" font="font:SmallestSystemFont" />
-    <Rectangle id="descriptionFocusRing" translation="[614,438]" width="1052" height="188" color="E09B4200" />
-    <Label id="descriptionLabel" translation="[620,445]" width="1040" numLines="5" wrap="true" color="F3F7FBFF" font="font:SmallestSystemFont" />
-    <Label id="trackTitleLabel" translation="[620,720]" width="1040" numLines="1" color="B7C5D4FF" />
-    <Label id="statusLabel" translation="[620,780]" width="1040" numLines="1" color="F2C879FF" />
-    <Group id="progressGroup" translation="[620,830]">
+    <Rectangle id="descriptionFocusRing" translation="[614,382]" width="1052" height="188" color="E09B4200" />
+    <Label id="descriptionLabel" translation="[620,389]" width="1040" numLines="5" wrap="true" color="F3F7FBFF" font="font:SmallestSystemFont" />
+    <Label id="trackTitleLabel" translation="[620,664]" width="1040" numLines="1" color="B7C5D4FF" />
+    <Label id="statusLabel" translation="[620,724]" width="1040" numLines="1" color="F2C879FF" />
+    <Group id="progressGroup" translation="[620,774]">
       <Rectangle id="progressTrack" width="1040" height="12" color="555555FF" />
       <Rectangle id="progressFill" width="1" height="12" color="E09B42FF" visible="false" />
       <Label id="currentTimeLabel" translation="[0,26]" width="220" text="0:00" color="B7C5D4FF" />
       <Label id="totalTimeLabel" translation="[820,26]" width="220" horizAlign="right" text="0:00" color="B7C5D4FF" />
     </Group>
-    <Group id="transportControls" translation="[620,905]">
+    <Group id="transportControls" translation="[620,849]">
       <PrimaryButton id="rewindButton" translation="[0,0]" buttonWidth="160" buttonHeight="56" text="-30s" />
       <PrimaryButton id="playPauseButton" translation="[190,0]" buttonWidth="220" buttonHeight="56" text="Pause" />
       <PrimaryButton id="forwardButton" translation="[440,0]" buttonWidth="160" buttonHeight="56" text="+30s" />
@@ -38,7 +38,7 @@
     </Group>
     <Timer id="progressTimer" duration="1" repeat="true" />
     <Timer id="seekHoldTimer" duration="1" repeat="true" />
-    <Label id="hintLabel" translation="[620,980]" width="1040" text="Press Back to return to the library." color="91A3B6FF" />
+    <Label id="hintLabel" translation="[620,924]" width="1040" text="Press Back to return to the library." color="91A3B6FF" />
     <Audio id="audioPlayer" />
     <AppTask id="playbackApiTask" />
 
