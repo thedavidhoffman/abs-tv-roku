@@ -9,7 +9,7 @@
     <field id="hasFocusVisual" type="boolean" onChange="onFocusVisualChanged" />
   </interface>
   <children>
-    <Rectangle id="bg" width="300" height="56" color="E09B42FF" />
+    <Poster id="bg" width="300" height="56" uri="pkg:/images/buttons/primary_focused.9.png" loadDisplayMode="scaleToFill" />
     <Poster id="icon" visible="false" width="24" height="24" loadDisplayMode="scaleToFit" />
     <Label id="textLabel" translation="[0,12]" width="300" horizAlign="center" color="0F1A2AFF" />
   </children>

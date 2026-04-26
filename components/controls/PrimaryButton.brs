@@ -62,10 +62,10 @@ sub onFocusVisualChanged()
     if m.bg = invalid then return
 
     if m.top.hasFocusVisual = true then
-        m.bg.color = &hE09B42FF
+        m.bg.uri = "pkg:/images/buttons/primary_focused.9.png"
         if m.textLabel <> invalid then m.textLabel.color = &h0F1A2AFF
     else
-        m.bg.color = &hE09B4280
+        m.bg.uri = "pkg:/images/buttons/primary_unfocused.9.png"
         if m.textLabel <> invalid then m.textLabel.color = &h0F1A2AFF
     end if
 end sub

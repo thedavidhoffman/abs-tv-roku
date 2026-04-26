@@ -73,6 +73,7 @@ sub onPlayRequestChanged()
     if m.titleLabel <> invalid then m.titleLabel.text = SafeString(request.title, "Audiobook")
     updateDetails(request.details)
     resetProgress()
+    focusTransportButton(1)
     setStatus("Starting playback...")
 
     m.playbackApiTask.request = {
