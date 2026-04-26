@@ -4,6 +4,10 @@
 
 - https://developer.roku.com/docs/references
 
+## remote key events
+
+- https://developer.roku.com/docs/developer-program/core-concepts/handling-application-events.md#handling-remote-control-key-presses
+
 ## font sizes
 - font:SmallestSystemFont
 - font:SmallSystemFont

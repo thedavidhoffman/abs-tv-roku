@@ -415,10 +415,59 @@ function getNameCount(values as dynamic, fallbackText as string) as integer
 end function
 
 '-------------------------------------------------------------------------------
+' focusSelectedLibraryItem
+'-------------------------------------------------------------------------------
+function focusSelectedLibraryItem() as boolean
+    if m.libraryList = invalid then return false
+    if m.libraryItemsByRow = invalid or m.libraryItemsByRow.Count() = 0 then return false
+
+    currentIndex = m.libraryList.itemFocused
+    if currentIndex = invalid or currentIndex < 0 then currentIndex = m.libraryList.itemSelected
+    if currentIndex = invalid or currentIndex < 0 then currentIndex = 0
+
+    lastIndex = m.libraryItemsByRow.Count() - 1
+    if currentIndex > lastIndex then currentIndex = lastIndex
+
+    updatePlayButtonFocus(false)
+    m.libraryList.jumpToItem = currentIndex
+    showSelectedItem(getSelectedLibraryItem(currentIndex))
+    m.libraryList.setFocus(true)
+
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' focusFirstLibraryItem
+'-------------------------------------------------------------------------------
+function focusFirstLibraryItem() as boolean
+    if m.libraryList = invalid then return false
+    if m.libraryItemsByRow = invalid or m.libraryItemsByRow.Count() = 0 then return false
+
+    currentIndex = m.libraryList.itemFocused
+    if currentIndex = invalid or currentIndex < 0 then currentIndex = m.libraryList.itemSelected
+    if currentIndex = invalid or currentIndex <= 0 then return false
+
+    updatePlayButtonFocus(false)
+    m.libraryList.jumpToItem = 0
+    showSelectedItem(getSelectedLibraryItem(0))
+    m.libraryList.setFocus(true)
+
+    return true
+end function
+
+'-------------------------------------------------------------------------------
 ' onKeyEvent
 '-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
+
+    if key = "back" then
+        if m.playButton <> invalid and m.playButton.isInFocusChain() then
+            return focusSelectedLibraryItem()
+        end if
+
+        if focusFirstLibraryItem() then return true
+    end if
 
     if m.playButton <> invalid and m.playButton.isInFocusChain() then
         if key = "left" then
