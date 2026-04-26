@@ -44,3 +44,8 @@
 
 # general
 - loading spinner
+
+# NEXT UP...
+- header
+    - remove audiobooks (aka library list)
+    - add search before books/series, change all to buttons

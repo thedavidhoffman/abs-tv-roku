@@ -10,7 +10,6 @@
     <function name="focusLibraryList" />
   </interface>
   <children>
-    <Label id="libraryLabel" translation="[64,158]" width="500" text="Library" color="F3F7FBFF" />
     <Label id="libraryStatus" translation="[64,212]" width="1200" numLines="2" wrap="true" color="F2C879FF" />
     <LabelList
       id="libraryList"

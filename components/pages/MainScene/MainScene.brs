@@ -529,6 +529,10 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     if not m.login.visible and key = "back" then
+        if m.header <> invalid and m.header.visible and not m.header.isInFocusChain() then
+            if m.header.callFunc("focusHeader") then return true
+        end if
+
         if m.currentTab = "series" then
             loadBooks()
             return true

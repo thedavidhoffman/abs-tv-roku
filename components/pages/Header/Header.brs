@@ -32,6 +32,12 @@ sub initReferences()
     m.menuPanel = m.top.findNode("menuPanel")
     m.logoutButton = m.top.findNode("logoutButton")
     m.changeServerButton = m.top.findNode("changeServerButton")
+    m.headerButtons = [
+        m.booksTab
+        m.seriesTab
+        m.libraryButton
+        m.userMenuButton
+    ]
 end sub
 
 '-------------------------------------------------------------------------------
@@ -54,6 +60,96 @@ sub initStyle()
     palette = Color()
     if m.headerBg <> invalid then m.headerBg.color = palette.background.primary
 end sub
+
+'-------------------------------------------------------------------------------
+' focusHeader
+'-------------------------------------------------------------------------------
+function focusHeader() as boolean
+    closeMenu()
+
+    preferredButton = getCurrentTabButton()
+    if preferredButton <> invalid then
+        preferredButton.setFocus(true)
+        return true
+    end if
+
+    for each button in m.headerButtons
+        if button <> invalid then
+            button.setFocus(true)
+            return true
+        end if
+    end for
+
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' getCurrentTabButton
+'-------------------------------------------------------------------------------
+function getCurrentTabButton() as dynamic
+    if m.top.currentTab = "series" then return m.seriesTab
+    if m.top.currentTab = "books" then return m.booksTab
+    return invalid
+end function
+
+'-------------------------------------------------------------------------------
+' onKeyEvent
+'-------------------------------------------------------------------------------
+function onKeyEvent(key as string, press as boolean) as boolean
+    if press = false then return false
+
+    if key = "left" then
+        return focusHeaderButtonByOffset(-1)
+    else if key = "right" then
+        return focusHeaderButtonByOffset(1)
+    end if
+
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' focusHeaderButtonByOffset
+'-------------------------------------------------------------------------------
+function focusHeaderButtonByOffset(offset as integer) as boolean
+    if m.headerButtons = invalid or m.headerButtons.Count() = 0 then return false
+
+    currentIndex = getFocusedHeaderButtonIndex()
+    if currentIndex < 0 then
+        return focusHeader()
+    end if
+
+    nextIndex = currentIndex + offset
+    lastIndex = m.headerButtons.Count() - 1
+
+    if nextIndex < 0 then
+        nextIndex = lastIndex
+    else if nextIndex > lastIndex then
+        nextIndex = 0
+    end if
+
+    closeMenu()
+
+    nextButton = m.headerButtons[nextIndex]
+    if nextButton = invalid then return false
+
+    nextButton.setFocus(true)
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' getFocusedHeaderButtonIndex
+'-------------------------------------------------------------------------------
+function getFocusedHeaderButtonIndex() as integer
+    if m.booksTab <> invalid and m.booksTab.isInFocusChain() then return 0
+    if m.seriesTab <> invalid and m.seriesTab.isInFocusChain() then return 1
+    if m.libraryButton <> invalid and m.libraryButton.isInFocusChain() then return 2
+    if m.libraryList <> invalid and m.libraryList.isInFocusChain() then return 2
+    if m.userMenuButton <> invalid and m.userMenuButton.isInFocusChain() then return 3
+    if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return 3
+    if m.changeServerButton <> invalid and m.changeServerButton.isInFocusChain() then return 3
+
+    return -1
+end function
 
 '-------------------------------------------------------------------------------
 ' onCurrentTabChanged

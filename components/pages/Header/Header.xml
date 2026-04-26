@@ -14,6 +14,7 @@
     <field id="seriesSelected" type="integer" />
     <field id="logoutSelected" type="integer" />
     <field id="changeServerSelected" type="integer" />
+    <function name="focusHeader" />
   </interface>
   <children>
     <Rectangle id="headerBg" width="1920" height="118" color="00000000" />
