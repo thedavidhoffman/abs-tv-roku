@@ -408,8 +408,10 @@ sub updatePlayPauseButton()
 
     if m.isPaused = true or (m.audioPlayer <> invalid and m.audioPlayer.state <> "playing") then
         m.playPauseButton.text = "Play"
+        m.playPauseButton.iconUri = "pkg:/images/icons/dark/play_dark.png"
     else
         m.playPauseButton.text = "Pause"
+        m.playPauseButton.iconUri = "pkg:/images/icons/dark/pause_dark.png"
     end if
 end sub
 

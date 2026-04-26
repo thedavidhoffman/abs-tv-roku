@@ -34,6 +34,7 @@
       buttonWidth="420"
       buttonHeight="56"
       text="Play"
+      iconUri="pkg:/images/icons/dark/play_dark.png"
     />
     <Label
       id="detailTitle"
