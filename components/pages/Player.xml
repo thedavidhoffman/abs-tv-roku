@@ -24,8 +24,7 @@
     <Label id="descriptionLabel" translation="[620,445]" width="1040" numLines="5" wrap="true" color="F3F7FBFF" font="font:SmallestSystemFont" />
     <Label id="publisherLabel" translation="[620,660]" width="340" numLines="1" color="B7C5D4FF" />
     <Label id="publishDateLabel" translation="[980,660]" width="300" numLines="1" color="B7C5D4FF" />
-    <Label id="durationLabel" translation="[1300,660]" width="320" numLines="1" color="B7C5D4FF" />
-    <Label id="statusLabel" translation="[620,740]" width="1040" numLines="2" wrap="true" color="F2C879FF" />
+    <Label id="statusLabel" translation="[620,780]" width="1040" numLines="1" color="F2C879FF" />
     <Group id="progressGroup" translation="[620,830]">
       <Rectangle id="progressTrack" width="1040" height="12" color="555555FF" />
       <Rectangle id="progressFill" width="1" height="12" color="E09B42FF" visible="false" />
