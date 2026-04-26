@@ -270,6 +270,41 @@ function getItemPublishDate(metadata as dynamic) as string
 end function
 
 '-------------------------------------------------------------------------------
+' getItemCategory
+'-------------------------------------------------------------------------------
+function getItemCategory(metadata as dynamic) as string
+    category = getJoinedText(metadata.genres)
+    if category <> "" then return category
+
+    category = getJoinedText(metadata.categories)
+    if category <> "" then return category
+
+    return FirstNonEmpty([metadata.genre, metadata.category], "")
+end function
+
+'-------------------------------------------------------------------------------
+' getJoinedText
+'-------------------------------------------------------------------------------
+function getJoinedText(values as dynamic) as string
+    if values = invalid then return ""
+
+    if Type(values) <> "roArray" and Type(values) <> "roAssociativeArray" then
+        return TrimString(values.ToStr())
+    end if
+
+    result = ""
+    for each value in values
+        text = TrimString(value.ToStr())
+        if text <> "" then
+            if result <> "" then result = result + ", "
+            result = result + text
+        end if
+    end for
+
+    return result
+end function
+
+'-------------------------------------------------------------------------------
 ' getItemDuration
 '-------------------------------------------------------------------------------
 function getItemDuration(item as dynamic) as string
@@ -358,6 +393,7 @@ function getPlaybackDetails(item as dynamic) as object
         description: getItemDescription(metadata)
         publisher: FirstNonEmpty([metadata.publisher], "Unknown")
         publishDate: getItemPublishDate(metadata)
+        category: getItemCategory(metadata)
         duration: getItemDuration(item)
         durationSeconds: getItemDurationSeconds(item)
     }

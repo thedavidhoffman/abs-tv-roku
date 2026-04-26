@@ -5,11 +5,9 @@ sub init()
     m.cover = m.top.findNode("cover")
     m.titleLabel = m.top.findNode("titleLabel")
     m.authorLabel = m.top.findNode("authorLabel")
-    m.narratorLabel = m.top.findNode("narratorLabel")
+    m.metadataLabel = m.top.findNode("metadataLabel")
     m.descriptionLabel = m.top.findNode("descriptionLabel")
     m.descriptionFocusRing = m.top.findNode("descriptionFocusRing")
-    m.publisherLabel = m.top.findNode("publisherLabel")
-    m.publishDateLabel = m.top.findNode("publishDateLabel")
     m.statusLabel = m.top.findNode("statusLabel")
     m.progressFill = m.top.findNode("progressFill")
     m.progressTrack = m.top.findNode("progressTrack")
@@ -119,11 +117,9 @@ sub updateDetails(details as dynamic)
     m.descriptionScrollY = 0
     updateDescriptionFocus(false)
 
-    setLabelText(m.authorLabel, getSingularPluralText("Author", details.authorCount) + ": " + FirstNonEmpty([details.authors], "Unknown"))
-    setLabelText(m.narratorLabel, getSingularPluralText("Narrator", details.narratorCount) + ": " + FirstNonEmpty([details.narrators], "Unknown"))
+    setLabelText(m.authorLabel, "by " + FirstNonEmpty([details.authors], "Unknown"))
+    setLabelText(m.metadataLabel, getMetadataText(details))
     setLabelText(m.descriptionLabel, m.fullDescription)
-    setLabelText(m.publisherLabel, "Publisher: " + FirstNonEmpty([details.publisher], "Unknown"))
-    setLabelText(m.publishDateLabel, "Published: " + FirstNonEmpty([details.publishDate], "Unknown"))
 
     m.totalDurationSeconds = 0
     if details.durationSeconds <> invalid then m.totalDurationSeconds = int(val(details.durationSeconds.ToStr()))
@@ -149,6 +145,42 @@ end function
 function getSingularPluralText(singularLabel as string, count as dynamic) as string
     if count <> invalid and int(val(count.ToStr())) > 1 then return singularLabel + "s"
     return singularLabel
+end function
+
+'-------------------------------------------------------------------------------
+' getMetadataText
+'-------------------------------------------------------------------------------
+function getMetadataText(details as dynamic) as string
+    year = getPublishedYear(details.publishDate)
+    category = FirstNonEmpty([details.category], "")
+
+    if year <> "" and category <> "" then return year + "  " + category
+    if year <> "" then return year
+    return category
+end function
+
+'-------------------------------------------------------------------------------
+' getPublishedYear
+'-------------------------------------------------------------------------------
+function getPublishedYear(publishDate as dynamic) as string
+    text = SafeString(publishDate, "")
+    if Len(text) < 4 then return ""
+    for i = 1 to Len(text) - 3
+        value = Mid(text, i, 4)
+        if isYearText(value) then return value
+    end for
+
+    return ""
+end function
+
+'-------------------------------------------------------------------------------
+' isYearText
+'-------------------------------------------------------------------------------
+function isYearText(value as string) as boolean
+    if Len(value) <> 4 then return false
+    year = int(val(value))
+    if year < 1000 or year > 9999 then return false
+    return value = year.ToStr()
 end function
 
 '-------------------------------------------------------------------------------
