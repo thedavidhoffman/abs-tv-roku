@@ -16,6 +16,7 @@ sub init()
     m.currentTimeLabel = m.top.findNode("currentTimeLabel")
     m.totalTimeLabel = m.top.findNode("totalTimeLabel")
     m.progressTimer = m.top.findNode("progressTimer")
+    m.seekHoldTimer = m.top.findNode("seekHoldTimer")
     m.rewindButton = m.top.findNode("rewindButton")
     m.playPauseButton = m.top.findNode("playPauseButton")
     m.forwardButton = m.top.findNode("forwardButton")
@@ -35,6 +36,9 @@ sub init()
     m.totalDurationSeconds = 0
     m.progressBarWidth = 1040
     m.transportFocusIndex = -1
+    m.seekHoldDirection = 0
+    m.seekHoldTally = 0
+    m.seekHoldStartPosition = 0
     m.transportButtons = [
         m.rewindButton
         m.playPauseButton
@@ -53,6 +57,7 @@ sub init()
 
     m.playbackApiTask.observeField("response", "onPlaybackApiResponse")
     if m.progressTimer <> invalid then m.progressTimer.observeField("fire", "onProgressTimerFired")
+    if m.seekHoldTimer <> invalid then m.seekHoldTimer.observeField("fire", "onSeekHoldTimerFired")
     if m.audioPlayer <> invalid then m.audioPlayer.observeField("state", "onAudioStateChanged")
     styleProgressBar()
     styleDescriptionModal()
@@ -72,6 +77,7 @@ sub onPlayRequestChanged()
     if m.titleLabel <> invalid then m.titleLabel.text = SafeString(request.title, "Audiobook")
     updateDetails(request.details)
     resetProgress()
+    resetSeekHold()
     focusTransportButton(1)
     setStatus("Starting playback...")
 
@@ -259,6 +265,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub closePlayer()
     if m.audioPlayer <> invalid then m.audioPlayer.control = "stop"
+    resetSeekHold()
     stopProgressTimer()
     m.closeRequestedCounter = m.closeRequestedCounter + 1
     m.top.closeRequested = m.closeRequestedCounter
@@ -268,7 +275,16 @@ end sub
 ' onKeyEvent
 '-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean
-    if press = false then return false
+    if press = false then
+        if key = "OK" or key = "select" then
+            if m.seekHoldDirection <> 0 then
+                finishTransportSeekHold()
+                return true
+            end if
+        end if
+
+        return false
+    end if
 
     if m.descriptionModal <> invalid and m.descriptionModal.visible then
         if key = "back" or key = "OK" or key = "select" then
@@ -299,7 +315,15 @@ function onKeyEvent(key as string, press as boolean) as boolean
             updateTransportFocus(-1)
             return true
         else if key = "OK" or key = "select" then
-            activateTransportButton()
+            if m.seekHoldDirection <> 0 then return true
+
+            if m.transportFocusIndex = 0 then
+                beginTransportSeekHold(-1)
+            else if m.transportFocusIndex = 2 then
+                beginTransportSeekHold(1)
+            else
+                activateTransportButton()
+            end if
             return true
         end if
     end if
@@ -365,13 +389,100 @@ end sub
 '-------------------------------------------------------------------------------
 sub activateTransportButton()
     if m.transportFocusIndex = 0 then
-        seekRelative(-30)
+        beginTransportSeekHold(-1)
     else if m.transportFocusIndex = 1 then
         togglePlayPause()
     else if m.transportFocusIndex = 2 then
-        seekRelative(30)
+        beginTransportSeekHold(1)
     end if
 end sub
+
+'-------------------------------------------------------------------------------
+' beginTransportSeekHold
+'-------------------------------------------------------------------------------
+sub beginTransportSeekHold(direction as integer)
+    if m.audioPlayer = invalid then return
+    if direction = 0 then return
+
+    m.seekHoldDirection = direction
+    m.seekHoldTally = 1
+    m.seekHoldStartPosition = getCurrentPlaybackPosition()
+
+    stopProgressTimer()
+    if m.seekHoldTimer <> invalid then m.seekHoldTimer.control = "start"
+    updateSeekHoldPreview()
+end sub
+
+'-------------------------------------------------------------------------------
+' onSeekHoldTimerFired
+'-------------------------------------------------------------------------------
+sub onSeekHoldTimerFired()
+    if m.seekHoldDirection = 0 then
+        if m.seekHoldTimer <> invalid then m.seekHoldTimer.control = "stop"
+        return
+    end if
+
+    m.seekHoldTally = m.seekHoldTally + 1
+    updateSeekHoldPreview()
+end sub
+
+'-------------------------------------------------------------------------------
+' updateSeekHoldPreview
+'-------------------------------------------------------------------------------
+sub updateSeekHoldPreview()
+    targetPosition = getSeekHoldTargetPosition()
+    updateProgress(targetPosition)
+
+    offsetSeconds = m.seekHoldDirection * m.seekHoldTally * 30
+    if offsetSeconds > 0 then
+        setStatus("Seek +" + formatPlaybackTime(offsetSeconds))
+    else
+        setStatus("Seek -" + formatPlaybackTime(Abs(offsetSeconds)))
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' finishTransportSeekHold
+'-------------------------------------------------------------------------------
+sub finishTransportSeekHold()
+    if m.seekHoldDirection = 0 then return
+
+    targetPosition = getSeekHoldTargetPosition()
+    resetSeekHold()
+
+    if m.audioPlayer <> invalid then
+        m.audioPlayer.seek = targetPosition
+        m.audioPlayer.control = "seek"
+    end if
+
+    updateProgress(targetPosition)
+    if m.isPaused = true then
+        setStatus("Paused")
+    else
+        setStatus("Playing")
+        startProgressTimer()
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' resetSeekHold
+'-------------------------------------------------------------------------------
+sub resetSeekHold()
+    if m.seekHoldTimer <> invalid then m.seekHoldTimer.control = "stop"
+    m.seekHoldDirection = 0
+    m.seekHoldTally = 0
+    m.seekHoldStartPosition = 0
+end sub
+
+'-------------------------------------------------------------------------------
+' getSeekHoldTargetPosition
+'-------------------------------------------------------------------------------
+function getSeekHoldTargetPosition() as integer
+    targetPosition = m.seekHoldStartPosition + (m.seekHoldDirection * m.seekHoldTally * 30)
+    if targetPosition < 0 then targetPosition = 0
+    if m.totalDurationSeconds > 0 and targetPosition > m.totalDurationSeconds then targetPosition = m.totalDurationSeconds
+    return targetPosition
+end function
 
 '-------------------------------------------------------------------------------
 ' togglePlayPause
@@ -589,6 +700,7 @@ end sub
 ' onProgressTimerFired
 '-------------------------------------------------------------------------------
 sub onProgressTimerFired()
+    if m.seekHoldDirection <> 0 then return
     updateProgress(getCurrentPlaybackPosition())
 end sub
 
@@ -642,6 +754,7 @@ end sub
 ' startProgressTimer
 '-------------------------------------------------------------------------------
 sub startProgressTimer()
+    if m.seekHoldDirection <> 0 then return
     if m.progressTimer <> invalid then m.progressTimer.control = "start"
     updateProgress(getCurrentPlaybackPosition())
 end sub

@@ -37,6 +37,7 @@
       <PrimaryButton id="forwardButton" translation="[440,0]" buttonWidth="160" buttonHeight="56" text="+30s" />
     </Group>
     <Timer id="progressTimer" duration="1" repeat="true" />
+    <Timer id="seekHoldTimer" duration="1" repeat="true" />
     <Label id="hintLabel" translation="[620,980]" width="1040" text="Press Back to return to the library." color="91A3B6FF" />
     <Audio id="audioPlayer" />
     <AppTask id="playbackApiTask" />
