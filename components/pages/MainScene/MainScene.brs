@@ -144,39 +144,9 @@ end sub
 ' storeAuthenticatedSession
 '-------------------------------------------------------------------------------
 sub storeAuthenticatedSession(response as object)
-    payload = response.payload
-    sessionToken = payload.user.token
-
-    ' doesn't exist?
-    server = response.server
-    username = payload.user.username
-    userId = payload.user.id
-
-    m.session = {
-        server: server
-        username: username
-        token: sessionToken
-        userId: userId
-        bookLibraryId: getInitialLibraryId(response)
-        libraries: response.libraries
-    }
-
-    SaveAuthState(server, username, sessionToken, userId)
+    m.session = Session_BuildAuthenticatedSession(response)
+    Session_SaveAuthenticatedSession(m.session)
 end sub
-
-'-------------------------------------------------------------------------------
-' getInitialLibraryId
-'-------------------------------------------------------------------------------
-function getInitialLibraryId(response as object) as dynamic
-    libraryId = ResolveBookLibraryId(response.payload)
-    if libraryId <> invalid and libraryId <> "" then return libraryId
-
-    if response.libraries <> invalid and response.libraries.Count() > 0 then
-        return response.libraries[0].id
-    end if
-
-    return invalid
-end function
 
 '-------------------------------------------------------------------------------
 ' onLibraryViewError

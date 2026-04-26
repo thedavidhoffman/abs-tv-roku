@@ -1,6 +1,7 @@
 # login page
 - branding
 - if already haz auth token, refresh
+- if error, display modal with error info
 
 # home page
 - Continue Listening
@@ -19,8 +20,15 @@
 # library view - list view
 - clean up layout
 - how to handle collapsed series view
+- if back button is clicked move to top of list
+- if at top of list and back button is clicked move focus to header
 
 # player
+- description modal
+    - update header with title
+    - extend scroll by one line
+- Resume
+- Restart
 - move description and transport up
 - navigation from default play button focus UP to description
 - highlighted description cover last line better, extend margins for better highligh
@@ -33,3 +41,6 @@
 # cover art
 - curved frame for cover
 - placeholder image for no cover
+
+# general
+- loading spinner

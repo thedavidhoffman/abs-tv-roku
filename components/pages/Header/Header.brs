@@ -2,6 +2,28 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+    initReferences()
+    initHandlers()
+
+    m.booksSelectedCounter = 0
+    m.seriesSelectedCounter = 0
+    m.logoutSelectedCounter = 0
+    m.changeServerSelectedCounter = 0
+
+    if m.top.currentTab = invalid or m.top.currentTab = "" then m.top.currentTab = "books"
+    initStyle()
+    setMenuOpen(false)
+    setLibraryMenuOpen(false)
+    updateLibraryList()
+    updateLibraryButton()
+    styleTabs()
+end sub
+
+'-------------------------------------------------------------------------------
+' initReferences
+'-------------------------------------------------------------------------------
+sub initReferences()
+    m.headerBg = m.top.findNode("headerBg")
     m.booksTab = m.top.findNode("booksTab")
     m.seriesTab = m.top.findNode("seriesTab")
     m.libraryButton = m.top.findNode("libraryButton")
@@ -10,7 +32,12 @@ sub init()
     m.menuPanel = m.top.findNode("menuPanel")
     m.logoutButton = m.top.findNode("logoutButton")
     m.changeServerButton = m.top.findNode("changeServerButton")
+end sub
 
+'-------------------------------------------------------------------------------
+' initHandlers
+'-------------------------------------------------------------------------------
+sub initHandlers()
     m.booksTab.observeField("buttonSelected", "onBooksTabPressed")
     m.seriesTab.observeField("buttonSelected", "onSeriesTabPressed")
     m.libraryButton.observeField("buttonSelected", "onLibraryButtonPressed")
@@ -18,18 +45,14 @@ sub init()
     m.userMenuButton.observeField("buttonSelected", "onUserMenuPressed")
     m.logoutButton.observeField("buttonSelected", "onLogoutPressed")
     m.changeServerButton.observeField("buttonSelected", "onChangeServerPressed")
+end sub
 
-    m.booksSelectedCounter = 0
-    m.seriesSelectedCounter = 0
-    m.logoutSelectedCounter = 0
-    m.changeServerSelectedCounter = 0
-
-    if m.top.currentTab = invalid or m.top.currentTab = "" then m.top.currentTab = "books"
-    setMenuOpen(false)
-    setLibraryMenuOpen(false)
-    updateLibraryList()
-    updateLibraryButton()
-    styleTabs()
+'-------------------------------------------------------------------------------
+' initStyle
+'-------------------------------------------------------------------------------
+sub initStyle()
+    palette = Color()
+    if m.headerBg <> invalid then m.headerBg.color = palette.background.primary
 end sub
 
 '-------------------------------------------------------------------------------

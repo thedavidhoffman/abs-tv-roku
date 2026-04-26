@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="Header" extends="Group">
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
-  <script type="text/brightscript" uri="pkg:/components/pages/Header.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Header/Header.brs" />
   <interface>
     <field id="currentTab" type="string" onChange="onCurrentTabChanged" />
     <field id="libraries" type="array" onChange="onLibrariesChanged" />
@@ -15,7 +16,7 @@
     <field id="changeServerSelected" type="integer" />
   </interface>
   <children>
-    <Rectangle id="headerBg" width="1920" height="118" color="0E1928EE" />
+    <Rectangle id="headerBg" width="1920" height="118" color="00000000" />
     <Label id="brandLabel" translation="[64,42]" text="ABSTV" color="F6F7FBFF" />
 
     <Group id="tabGroup" translation="[705,26]">
