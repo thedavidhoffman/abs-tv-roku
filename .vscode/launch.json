@@ -4,7 +4,7 @@
         {
             "type": "brightscript",
             "request": "launch",
-            "name": "Roku4ABS Debug",
+            "name": "ABSTV",
             "rootDir": "${workspaceFolder}",
             "stopOnEntry": false,
             // To enable RALE:

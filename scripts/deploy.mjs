@@ -5,7 +5,7 @@ import rokuDeploy from 'roku-deploy';
 const rootDir = process.cwd();
 const configPath = path.join(rootDir, 'rokudeploy.json');
 const outDir = path.join(rootDir, 'out');
-const outFile = 'Roku4ABS';
+const outFile = 'ABSTV';
 const stagingDir = path.join(rootDir, 'build', 'staging');
 
 const files = [

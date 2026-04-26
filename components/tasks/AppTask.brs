@@ -196,7 +196,7 @@ function startPlayback(request as Object) as Object
 
     body = FormatJson({
         deviceInfo: {
-            clientName: "Roku4ABS"
+            clientName: "ABSTV"
             clientVersion: "0.1.0"
             manufacturer: "Roku"
             model: "Roku"

@@ -2,7 +2,7 @@
 ' GetAuthStore
 '-------------------------------------------------------------------------------
 function GetAuthStore() as object
-    return CreateObject("roRegistrySection", "Roku4ABS")
+    return CreateObject("roRegistrySection", "ABSTV")
 end function
 
 '-------------------------------------------------------------------------------

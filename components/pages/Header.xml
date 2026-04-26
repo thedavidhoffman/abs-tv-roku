@@ -16,7 +16,7 @@
   </interface>
   <children>
     <Rectangle id="headerBg" width="1920" height="118" color="0E1928EE" />
-    <Label id="brandLabel" translation="[64,42]" text="Roku4ABS" color="F6F7FBFF" />
+    <Label id="brandLabel" translation="[64,42]" text="ABSTV" color="F6F7FBFF" />
 
     <Group id="tabGroup" translation="[705,26]">
       <Button id="booksTab" translation="[0,0]" minWidth="180" text="Books" />
