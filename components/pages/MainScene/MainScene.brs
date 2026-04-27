@@ -11,7 +11,6 @@ sub init()
     m.apiTask = m.top.findNode("apiTask")
 
     m.login.observeField("loginSucceeded", "onLoginSucceeded")
-    m.header.observeField("librarySelected", "onLibrarySelected")
     m.header.observeField("logoutSelected", "onLogoutPressed")
     m.header.observeField("changeServerSelected", "onChangeServerPressed")
     m.library.observeField("errorResponse", "onLibraryError")
@@ -154,30 +153,10 @@ sub showApp()
     closeHeaderMenu()
     if m.header <> invalid then
         m.header.visible = true
-        m.header.libraries = m.session.libraries
-        if m.session.bookLibraryId <> invalid then m.header.currentLibraryId = m.session.bookLibraryId
+        m.header.username = m.session.username
     end if
     if m.library <> invalid then
         m.library.visible = true
-        m.library.loadRequest = {
-            server: m.session.server
-            token: m.session.token
-            bookLibraryId: m.session.bookLibraryId
-        }
-    end if
-end sub
-
-'-------------------------------------------------------------------------------
-' onLibrarySelected
-'-------------------------------------------------------------------------------
-sub onLibrarySelected()
-    selectedLibrary = m.header.librarySelected
-    if selectedLibrary = invalid or selectedLibrary.id = invalid then return
-    if m.session = invalid then return
-
-    m.session.bookLibraryId = selectedLibrary.id
-
-    if m.library <> invalid and m.library.visible then
         m.library.loadRequest = {
             server: m.session.server
             token: m.session.token

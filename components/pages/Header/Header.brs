@@ -9,10 +9,8 @@ sub init()
     m.changeServerSelectedCounter = 0
 
     initStyle()
+    updateUserMenuButton()
     setMenuOpen(false)
-    setLibraryMenuOpen(false)
-    updateLibraryList()
-    updateLibraryButton()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -20,14 +18,11 @@ end sub
 '-------------------------------------------------------------------------------
 sub initReferences()
     m.headerBg = m.top.findNode("headerBg")
-    m.libraryButton = m.top.findNode("libraryButton")
-    m.libraryList = m.top.findNode("libraryList")
     m.userMenuButton = m.top.findNode("userMenuButton")
     m.menuPanel = m.top.findNode("menuPanel")
     m.logoutButton = m.top.findNode("logoutButton")
     m.changeServerButton = m.top.findNode("changeServerButton")
     m.headerButtons = [
-        m.libraryButton
         m.userMenuButton
     ]
 end sub
@@ -36,8 +31,6 @@ end sub
 ' initHandlers
 '-------------------------------------------------------------------------------
 sub initHandlers()
-    m.libraryButton.observeField("buttonSelected", "onLibraryButtonPressed")
-    m.libraryList.observeField("itemSelected", "onLibraryItemSelected")
     m.userMenuButton.observeField("buttonSelected", "onUserMenuPressed")
     m.logoutButton.observeField("buttonSelected", "onLogoutPressed")
     m.changeServerButton.observeField("buttonSelected", "onChangeServerPressed")
@@ -51,7 +44,6 @@ sub initStyle()
     headerBgColor = palette.background.header
     if m.headerBg <> invalid then m.headerBg.color = headerBgColor
 
-    if m.libraryButton <> invalid then m.libraryButton.headerBgColor = headerBgColor
     if m.userMenuButton <> invalid then m.userMenuButton.headerBgColor = headerBgColor
     if m.logoutButton <> invalid then m.logoutButton.headerBgColor = headerBgColor
     if m.changeServerButton <> invalid then m.changeServerButton.headerBgColor = headerBgColor
@@ -121,11 +113,9 @@ end function
 ' getFocusedHeaderButtonIndex
 '-------------------------------------------------------------------------------
 function getFocusedHeaderButtonIndex() as integer
-    if m.libraryButton <> invalid and m.libraryButton.isInFocusChain() then return 0
-    if m.libraryList <> invalid and m.libraryList.isInFocusChain() then return 0
-    if m.userMenuButton <> invalid and m.userMenuButton.isInFocusChain() then return 1
-    if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return 1
-    if m.changeServerButton <> invalid and m.changeServerButton.isInFocusChain() then return 1
+    if m.userMenuButton <> invalid and m.userMenuButton.isInFocusChain() then return 0
+    if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return 0
+    if m.changeServerButton <> invalid and m.changeServerButton.isInFocusChain() then return 0
 
     return -1
 end function
@@ -138,60 +128,16 @@ sub onCloseMenuTokenChanged()
 end sub
 
 '-------------------------------------------------------------------------------
-' onLibrariesChanged
+' onUsernameChanged
 '-------------------------------------------------------------------------------
-sub onLibrariesChanged()
-    updateLibraryList()
-    updateLibraryButton()
-end sub
-
-'-------------------------------------------------------------------------------
-' onCurrentLibraryIdChanged
-'-------------------------------------------------------------------------------
-sub onCurrentLibraryIdChanged()
-    updateLibraryButton()
-end sub
-
-'-------------------------------------------------------------------------------
-' onLibraryButtonPressed
-'-------------------------------------------------------------------------------
-sub onLibraryButtonPressed()
-    libraries = m.top.libraries
-    if libraries = invalid or libraries.Count() = 0 then return
-
-    nextOpen = not m.libraryMenuOpen
-    setMenuOpen(false)
-    setLibraryMenuOpen(nextOpen)
-    if nextOpen then m.libraryList.setFocus(true)
-end sub
-
-'-------------------------------------------------------------------------------
-' onLibraryItemSelected
-'-------------------------------------------------------------------------------
-sub onLibraryItemSelected()
-    libraries = m.top.libraries
-    selectedIndex = m.libraryList.itemSelected
-    if libraries = invalid or selectedIndex = invalid then return
-    if selectedIndex < 0 or selectedIndex >= libraries.Count() then return
-
-    library = libraries[selectedIndex]
-    if library = invalid then return
-
-    m.top.currentLibraryId = library.id
-    setLibraryMenuOpen(false)
-    updateLibraryButton()
-    m.libraryButton.setFocus(true)
-    m.top.librarySelected = {
-        id: library.id
-        name: library.name
-    }
+sub onUsernameChanged()
+    updateUserMenuButton()
 end sub
 
 '-------------------------------------------------------------------------------
 ' onUserMenuPressed
 '-------------------------------------------------------------------------------
 sub onUserMenuPressed()
-    setLibraryMenuOpen(false)
     setMenuOpen(not m.top.menuOpen)
     if m.top.menuOpen then m.logoutButton.setFocus(true)
 end sub
@@ -219,13 +165,9 @@ end sub
 '-------------------------------------------------------------------------------
 sub closeMenu()
     wasOpen = m.top.menuOpen
-    wasLibraryOpen = m.libraryMenuOpen
     setMenuOpen(false)
-    setLibraryMenuOpen(false)
     if wasOpen then
         m.userMenuButton.setFocus(true)
-    else if wasLibraryOpen then
-        m.libraryButton.setFocus(true)
     end if
 end sub
 
@@ -238,49 +180,11 @@ sub setMenuOpen(isOpen as boolean)
 end sub
 
 '-------------------------------------------------------------------------------
-' setLibraryMenuOpen
+' updateUserMenuButton
 '-------------------------------------------------------------------------------
-sub setLibraryMenuOpen(isOpen as boolean)
-    m.libraryMenuOpen = isOpen
-    if m.libraryList <> invalid then m.libraryList.visible = isOpen
-    m.top.menuOpen = (isOpen or (m.menuPanel <> invalid and m.menuPanel.visible))
-end sub
+sub updateUserMenuButton()
+    if m.userMenuButton = invalid then return
 
-'-------------------------------------------------------------------------------
-' updateLibraryList
-'-------------------------------------------------------------------------------
-sub updateLibraryList()
-    if m.libraryList = invalid then return
-
-    root = CreateObject("roSGNode", "ContentNode")
-    libraries = m.top.libraries
-    if libraries <> invalid then
-        for each library in libraries
-            node = CreateObject("roSGNode", "ContentNode")
-            node.title = SafeString(library.name, "Library")
-            root.appendChild(node)
-        end for
-    end if
-
-    m.libraryList.content = root
-end sub
-
-'-------------------------------------------------------------------------------
-' updateLibraryButton
-'-------------------------------------------------------------------------------
-sub updateLibraryButton()
-    if m.libraryButton = invalid then return
-
-    buttonText = "Library"
-    libraries = m.top.libraries
-    if libraries <> invalid then
-        for each library in libraries
-            if library.id = m.top.currentLibraryId then
-                buttonText = SafeString(library.name, buttonText)
-                exit for
-            end if
-        end for
-    end if
-
-    m.libraryButton.text = buttonText
+    buttonText = FirstNonEmpty([m.top.username], "Account")
+    m.userMenuButton.text = buttonText
 end sub

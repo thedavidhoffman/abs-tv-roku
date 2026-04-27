@@ -4,11 +4,9 @@
   <script type="text/brightscript" uri="pkg:/source/Color.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Header/Header.brs" />
   <interface>
-    <field id="libraries" type="array" onChange="onLibrariesChanged" />
-    <field id="currentLibraryId" type="string" onChange="onCurrentLibraryIdChanged" />
     <field id="menuOpen" type="boolean" />
     <field id="closeMenuToken" type="integer" onChange="onCloseMenuTokenChanged" />
-    <field id="librarySelected" type="assocarray" />
+    <field id="username" type="string" onChange="onUsernameChanged" />
     <field id="logoutSelected" type="integer" />
     <field id="changeServerSelected" type="integer" />
     <function name="focusHeader" />
@@ -16,17 +14,6 @@
   <children>
     <Rectangle id="headerBg" width="1920" height="118" color="12112BFF" />
     <Label id="brandLabel" translation="[64,42]" text="ABSTV" color="F6F7FBFF" />
-
-    <HeaderButton id="libraryButton" translation="[1240,26]" buttonWidth="320" buttonHeight="56" text="Library" />
-
-    <LabelList
-      id="libraryList"
-      visible="false"
-      translation="[1240,102]"
-      itemSize="[360,54]"
-      numRows="6"
-      drawFocusFeedback="true"
-    />
 
     <HeaderButton id="userMenuButton" translation="[1620,26]" buttonWidth="220" buttonHeight="56" text="Account" />
 
