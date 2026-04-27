@@ -23,6 +23,7 @@ sub init()
     m.descriptionModal = m.top.findNode("descriptionModal")
     m.descriptionModalBackdrop = m.top.findNode("descriptionModalBackdrop")
     m.descriptionModalPanel = m.top.findNode("descriptionModalPanel")
+    m.modalTitleLabel = m.top.findNode("modalTitleLabel")
     m.modalDescriptionLabel = m.top.findNode("modalDescriptionLabel")
     m.modalScrollbarTrack = m.top.findNode("modalScrollbarTrack")
     m.modalScrollbarThumb = m.top.findNode("modalScrollbarThumb")
@@ -31,6 +32,7 @@ sub init()
     m.audioPlayer = m.top.findNode("audioPlayer")
     m.playbackApiTask = m.top.findNode("playbackApiTask")
     m.closeRequestedCounter = 0
+    m.audiobookTitle = "Audiobook"
     m.tracks = []
     m.currentTrackIndex = 0
     m.currentTrackStartPosition = 0
@@ -83,8 +85,12 @@ sub onPlayRequestChanged()
     request = m.top.playRequest
     if request = invalid then return
 
+    m.audiobookTitle = SafeString(request.title, "Audiobook")
+
     if m.cover <> invalid then m.cover.uri = SafeString(request.coverUrl, "pkg:/images/placeholder_cover.png")
-    if m.titleLabel <> invalid then m.titleLabel.text = SafeString(request.title, "Audiobook")
+    if m.titleLabel <> invalid then m.titleLabel.text = m.audiobookTitle
+    setLabelText(m.modalTitleLabel, m.audiobookTitle)
+    if m.chapterList <> invalid then m.chapterList.audiobookTitle = m.audiobookTitle
     updateDetails(request.details)
     resetProgress()
     resetSeekHold()
@@ -537,6 +543,7 @@ sub updateChapterList()
 
     m.chapterList.tracks = m.tracks
     m.chapterList.currentTrackIndex = m.currentTrackIndex
+    m.chapterList.audiobookTitle = m.audiobookTitle
 end sub
 
 '-------------------------------------------------------------------------------

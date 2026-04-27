@@ -5,6 +5,7 @@
   <interface>
     <field id="tracks" type="array" onChange="onTracksChanged" />
     <field id="currentTrackIndex" type="integer" onChange="onCurrentTrackIndexChanged" />
+    <field id="audiobookTitle" type="string" onChange="onAudiobookTitleChanged" />
     <field id="selectedChapter" type="assocarray" />
     <field id="closedCounter" type="integer" />
     <function name="open" />

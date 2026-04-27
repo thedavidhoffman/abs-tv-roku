@@ -46,6 +46,43 @@
 - loading spinner
 
 # NEXT UP...
+
+duration display helper
+
+LibraryView
+- move list out of Library into LibraryListView
+- create LibraryGridView
+- add toggle for different views
+
 - header
     - remove audiobooks (aka library list)
     - add search before books/series, change all to buttons
+- build out DTOs? https://deepwiki.com/audiobookshelf/audiobookshelf-api-docs/3.1-data-model-and-schemas
+
+
+Scrollable text?? Instead of custom scroll on description and chapters dialog???
+https://developer.roku.com/docs/references/scenegraph/typographic-nodes/scrollabletext.md
+
+Scrolling label
+https://developer.roku.com/docs/references/scenegraph/typographic-nodes/scrollinglabel.md
+
+BusySpinner
+https://developer.roku.com/docs/references/scenegraph/widget-nodes/busyspinner.md
+
+
+# names
+
+ShelfTV
+
+AudioShelf TV
+
+CouchShelf
+
+BookBeam
+
+ShelfStream
+
+ShelfPlayer
+
+PurplePlayer?
+

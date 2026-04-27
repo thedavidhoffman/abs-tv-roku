@@ -4,6 +4,7 @@
 sub init()
     m.backdrop = m.top.findNode("backdrop")
     m.panel = m.top.findNode("panel")
+    m.titleLabel = m.top.findNode("titleLabel")
     m.chapterList = m.top.findNode("chapterList")
     m.closeButton = m.top.findNode("closeButton")
     m.closeHasFocus = false
@@ -12,6 +13,7 @@ sub init()
 
     if m.chapterList <> invalid then m.chapterList.observeField("itemSelected", "onChapterListItemSelected")
     styleChapterList()
+    updateTitle()
     updateCloseFocus(false)
     updateChapterListContent()
 end sub
@@ -52,6 +54,21 @@ end sub
 '-------------------------------------------------------------------------------
 sub onCurrentTrackIndexChanged()
     updateChapterListContent()
+end sub
+
+'-------------------------------------------------------------------------------
+' onAudiobookTitleChanged
+'-------------------------------------------------------------------------------
+sub onAudiobookTitleChanged()
+    updateTitle()
+end sub
+
+'-------------------------------------------------------------------------------
+' updateTitle
+'-------------------------------------------------------------------------------
+sub updateTitle()
+    if m.titleLabel = invalid then return
+    m.titleLabel.text = SafeString(m.top.audiobookTitle, "Chapters")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -175,8 +192,41 @@ end sub
 '-------------------------------------------------------------------------------
 function getChapterListTitle(track as dynamic, index as integer) as string
     title = SafeString(track.title, "Track " + (index + 1).ToStr())
+    durationSeconds = getTrackDurationSeconds(track)
+    if durationSeconds > 0 then title = title + "   (" + formatChapterDuration(durationSeconds) + ")"
+
     if index = getCurrentTrackIndex() then return "Now playing: " + title
     return title
+end function
+
+'-------------------------------------------------------------------------------
+' getTrackDurationSeconds
+'-------------------------------------------------------------------------------
+function getTrackDurationSeconds(track as dynamic) as integer
+    if track = invalid then return 0
+    if track.durationSeconds = invalid then return 0
+    return int(val(track.durationSeconds.ToStr()))
+end function
+
+'-------------------------------------------------------------------------------
+' formatChapterDuration
+'-------------------------------------------------------------------------------
+function formatChapterDuration(totalSeconds as integer) as string
+    if totalSeconds < 0 then totalSeconds = 0
+
+    hours = int(totalSeconds / 3600)
+    minutes = int((totalSeconds mod 3600) / 60)
+    seconds = totalSeconds mod 60
+    secondsText = seconds.ToStr()
+    if seconds < 10 then secondsText = "0" + secondsText
+
+    if hours > 0 then
+        minutesText = minutes.ToStr()
+        if minutes < 10 then minutesText = "0" + minutesText
+        return hours.ToStr() + ":" + minutesText + ":" + secondsText
+    end if
+
+    return minutes.ToStr() + ":" + secondsText
 end function
 
 '-------------------------------------------------------------------------------
