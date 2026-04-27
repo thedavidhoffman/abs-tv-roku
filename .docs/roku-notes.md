@@ -4,11 +4,26 @@
 
 - https://developer.roku.com/docs/references
 
-## remote key events
+## Controls
+
+### BusySpinner
+https://developer.roku.com/docs/references/scenegraph/widget-nodes/busyspinner.md
+
+### MarkupList
+https://developer.roku.com/docs/references/scenegraph/list-and-grid-nodes/markuplist.md
+
+### Scrolling label
+https://developer.roku.com/docs/references/scenegraph/typographic-nodes/scrollinglabel.md
+
+### Scrollable text
+https://developer.roku.com/docs/references/scenegraph/typographic-nodes/scrollabletext.md
+
+
+## Remote key events
 
 - https://developer.roku.com/docs/developer-program/core-concepts/handling-application-events.md#handling-remote-control-key-presses
 
-## font sizes
+## Font sizes
 - font:SmallestSystemFont
 - font:SmallSystemFont
 - font:MediumSystemFont
@@ -22,11 +37,14 @@ Example
 font="font:LargeBoldSystemFont"
 ```
 
-## type inspection
+## Type inspection debug statement
 ```? "bg type="; type(m.bg); " subtype="; m.bg.subtype()```
 
 ## colors
-1A1A1AFF might be Roku purple
+When assigning color in BrightScript do not assign string values, assign integer values.
+```
+m.backdrop.color = &h000000FF
+```
 
-# newline
+# Newline
 Chr(10)

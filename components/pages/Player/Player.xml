@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="Player" extends="Group">
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Player/Player.brs" />
   <interface>
     <field id="playRequest" type="assocarray" onChange="onPlayRequestChanged" />
@@ -8,7 +9,7 @@
     <field id="errorResponse" type="assocarray" />
   </interface>
   <children>
-    <Rectangle id="playerBg" width="1920" height="1080" color="08111DFF" />
+    <Rectangle id="playerBg" width="1920" height="1080" color="00000000" />
     <Poster
       id="cover"
       translation="[120,180]"
@@ -17,13 +18,13 @@
       uri="pkg:/images/placeholder_cover.png"
       loadDisplayMode="best-fit"
     />
-    <Label id="titleLabel" translation="[700,210]" width="1040" numLines="3" color="F3F7FBFF" font="font:LargeBoldSystemFont" />
-    <Label id="authorLabel" translation="[700,260]" width="1040" numLines="1" color="B7C5D4FF" />
-    <Label id="metadataLabel" translation="[700,310]" width="1040" numLines="1" color="B7C5D4FF" font="font:SmallestSystemFont" />
+    <ScrollingLabel id="titleLabel" translation="[700,210]" maxWidth="1040" numLines="3" color="F3F7FBFF" font="font:LargeBoldSystemFont" repeatCount="1" />
+    <Label id="authorLabel" translation="[700,260]" width="1040" color="B7C5D4FF" />
+    <Label id="metadataLabel" translation="[700,310]" width="1040" color="B7C5D4FF" font="font:SmallestSystemFont" />
     <Rectangle id="descriptionFocusRing" translation="[694,382]" width="1052" height="188" color="E09B4200" />
     <Label id="descriptionLabel" translation="[700,389]" width="1040" numLines="5" wrap="true" color="F3F7FBFF" font="font:SmallestSystemFont" />
-    <Label id="trackTitleLabel" translation="[700,664]" width="1040" numLines="1" color="B7C5D4FF" />
-    <Label id="statusLabel" translation="[700,724]" width="1040" numLines="1" color="F2C879FF" />
+    <Label id="trackTitleLabel" translation="[700,664]" width="1040" color="B7C5D4FF" />
+    <Label id="statusLabel" translation="[700,724]" width="1040" color="F2C879FF" />
     <Group id="progressGroup" translation="[700,774]">
       <Rectangle id="progressTrack" width="1040" height="12" color="555555FF" />
       <Rectangle id="progressFill" width="1" height="12" color="E09B42FF" visible="false" />
@@ -38,7 +39,7 @@
     </Group>
     <Timer id="progressTimer" duration="1" repeat="true" />
     <Timer id="seekHoldTimer" duration="1" repeat="true" />
-    <Label id="hintLabel" translation="[700,924]" width="1040" text="Press Back to return to the library." color="91A3B6FF" />
+    <Label id="hintLabel" translation="[700,924]" width="1040" text="Press Back to return to the library." color="B7C5D4FF" />
     <Audio id="audioPlayer" />
     <AppTask id="playbackApiTask" />
 

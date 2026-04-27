@@ -10,8 +10,12 @@ sub init()
     m.closeHasFocus = false
     m.closedCounter = 0
     m.selectionCounter = 0
+    m.focusedChapterIndex = 0
 
-    if m.chapterList <> invalid then m.chapterList.observeField("itemSelected", "onChapterListItemSelected")
+    if m.chapterList <> invalid then
+        m.chapterList.observeField("itemSelected", "onChapterListItemSelected")
+        m.chapterList.observeField("itemFocused", "onChapterListItemFocused")
+    end if
     styleChapterList()
     updateTitle()
     updateCloseFocus(false)
@@ -27,6 +31,7 @@ sub open()
     updateCloseFocus(false)
 
     if m.chapterList <> invalid then
+        updateFocusedChapterIndex(getCurrentTrackIndex())
         m.chapterList.jumpToItem = getCurrentTrackIndex()
         m.chapterList.setFocus(true)
     end if
@@ -155,6 +160,7 @@ sub moveChapterListFocus(offset as integer)
     end if
 
     updateCloseFocus(false)
+    updateFocusedChapterIndex(nextIndex)
     m.chapterList.jumpToItem = nextIndex
     m.chapterList.setFocus(true)
 end sub
@@ -180,6 +186,10 @@ sub updateChapterListContent()
             track = tracks[i]
             node = CreateObject("roSGNode", "ContentNode")
             node.title = getChapterListTitle(track, i)
+            node.description = getChapterListDuration(track)
+            node.addFields({
+                focused: i = m.focusedChapterIndex
+            })
             root.appendChild(node)
         end for
     end if
@@ -188,15 +198,49 @@ sub updateChapterListContent()
 end sub
 
 '-------------------------------------------------------------------------------
+' onChapterListItemFocused
+'-------------------------------------------------------------------------------
+sub onChapterListItemFocused()
+    if m.chapterList = invalid then return
+    updateFocusedChapterIndex(m.chapterList.itemFocused)
+end sub
+
+'-------------------------------------------------------------------------------
+' updateFocusedChapterIndex
+'-------------------------------------------------------------------------------
+sub updateFocusedChapterIndex(index as dynamic)
+    if index = invalid or index < 0 then return
+    if m.chapterList = invalid or m.chapterList.content = invalid then return
+
+    content = m.chapterList.content
+    if index >= content.getChildCount() then return
+
+    if m.focusedChapterIndex <> invalid and m.focusedChapterIndex >= 0 and m.focusedChapterIndex < content.getChildCount() then
+        previousNode = content.getChild(m.focusedChapterIndex)
+        if previousNode <> invalid and previousNode.focused <> invalid then previousNode.focused = false
+    end if
+
+    currentNode = content.getChild(index)
+    if currentNode <> invalid and currentNode.focused <> invalid then currentNode.focused = true
+    m.focusedChapterIndex = index
+end sub
+
+'-------------------------------------------------------------------------------
 ' getChapterListTitle
 '-------------------------------------------------------------------------------
 function getChapterListTitle(track as dynamic, index as integer) as string
     title = SafeString(track.title, "Track " + (index + 1).ToStr())
-    durationSeconds = getTrackDurationSeconds(track)
-    if durationSeconds > 0 then title = title + "   (" + formatChapterDuration(durationSeconds) + ")"
-
     if index = getCurrentTrackIndex() then return "Now playing: " + title
     return title
+end function
+
+'-------------------------------------------------------------------------------
+' getChapterListDuration
+'-------------------------------------------------------------------------------
+function getChapterListDuration(track as dynamic) as string
+    durationSeconds = getTrackDurationSeconds(track)
+    if durationSeconds <= 0 then return ""
+    return formatChapterDuration(durationSeconds)
 end function
 
 '-------------------------------------------------------------------------------

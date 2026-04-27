@@ -2,6 +2,23 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+    initReferences()
+    initValues()
+    initHandlers()
+    initStyle()
+    styleProgressBar()
+    styleDescriptionModal()
+    updateDescriptionFocus(false)
+    updateChaptersButtonVisibility()
+    updateTransportFocus(-1)
+    updatePlayPauseButton()
+end sub
+
+'-------------------------------------------------------------------------------
+' initReferences
+'-------------------------------------------------------------------------------
+sub initReferences()
+    m.playerBg = m.top.findNode("playerBg")
     m.cover = m.top.findNode("cover")
     m.titleLabel = m.top.findNode("titleLabel")
     m.authorLabel = m.top.findNode("authorLabel")
@@ -31,6 +48,12 @@ sub init()
     m.chapterList = m.top.findNode("chapterList")
     m.audioPlayer = m.top.findNode("audioPlayer")
     m.playbackApiTask = m.top.findNode("playbackApiTask")
+end sub
+
+'-------------------------------------------------------------------------------
+' initValues
+'-------------------------------------------------------------------------------
+sub initValues()
     m.closeRequestedCounter = 0
     m.audiobookTitle = "Audiobook"
     m.tracks = []
@@ -61,8 +84,13 @@ sub init()
     m.descriptionContentHeight = 450
     m.modalScrollbarTrackHeight = 450
     m.modalScrollbarBaseY = 285
+end sub
 
-    m.playbackApiTask.observeField("response", "onPlaybackApiResponse")
+'-------------------------------------------------------------------------------
+' initHandlers
+'-------------------------------------------------------------------------------
+sub initHandlers()
+    if m.playbackApiTask <> invalid then m.playbackApiTask.observeField("response", "onPlaybackApiResponse")
     if m.progressTimer <> invalid then m.progressTimer.observeField("fire", "onProgressTimerFired")
     if m.seekHoldTimer <> invalid then m.seekHoldTimer.observeField("fire", "onSeekHoldTimerFired")
     if m.audioPlayer <> invalid then m.audioPlayer.observeField("state", "onAudioStateChanged")
@@ -70,12 +98,14 @@ sub init()
         m.chapterList.observeField("selectedChapter", "onChapterSelected")
         m.chapterList.observeField("closedCounter", "onChapterListClosed")
     end if
-    styleProgressBar()
-    styleDescriptionModal()
-    updateDescriptionFocus(false)
-    updateChaptersButtonVisibility()
-    updateTransportFocus(-1)
-    updatePlayPauseButton()
+end sub
+
+'-------------------------------------------------------------------------------
+' initStyle
+'-------------------------------------------------------------------------------
+sub initStyle()
+    palette = Color()
+    if m.playerBg <> invalid then m.playerBg.color = palette.background.secondary
 end sub
 
 '-------------------------------------------------------------------------------

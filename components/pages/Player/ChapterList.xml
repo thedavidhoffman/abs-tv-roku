@@ -14,11 +14,12 @@
   <children>
     <Rectangle id="backdrop" width="1920" height="1080" color="000000FF" />
     <Rectangle id="panel" translation="[300,150]" width="1320" height="780" color="101B2BFF" />
-    <Label id="titleLabel" translation="[360,205]" width="1200" text="Chapters" color="F3F7FBFF" font="font:LargeBoldSystemFont" />
-    <LabelList
+    <ScrollingLabel id="titleLabel" translation="[360,205]" maxWidth="1200" text="Chapters" color="F3F7FBFF" font="font:LargeBoldSystemFont" repeatCount="1" />
+    <MarkupList
       id="chapterList"
       translation="[360,285]"
-      itemSize="[1120,56]"
+      itemComponentName="ChapterListItem"
+      itemSize="[1200,56]"
       numRows="9"
       drawFocusFeedback="true"
       vertFocusAnimationStyle="fixedFocus"

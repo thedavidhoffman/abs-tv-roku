@@ -14,6 +14,13 @@
     - library view display { list, grid }
     - library view series { collapse, expand }
 
+# settings
+
+## Library
+- grid/list view
+- expand/collapse series
+
+
 # library view
 - grid view, list view
 
@@ -59,15 +66,6 @@ LibraryView
     - add search before books/series, change all to buttons
 - build out DTOs? https://deepwiki.com/audiobookshelf/audiobookshelf-api-docs/3.1-data-model-and-schemas
 
-
-Scrollable text?? Instead of custom scroll on description and chapters dialog???
-https://developer.roku.com/docs/references/scenegraph/typographic-nodes/scrollabletext.md
-
-Scrolling label
-https://developer.roku.com/docs/references/scenegraph/typographic-nodes/scrollinglabel.md
-
-BusySpinner
-https://developer.roku.com/docs/references/scenegraph/widget-nodes/busyspinner.md
 
 
 # names

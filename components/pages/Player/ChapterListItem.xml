@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="ChapterListItem" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Player/ChapterListItem.brs" />
+  <interface>
+    <field id="itemContent" type="node" onChange="showContent" />
+    <field id="focusPercent" type="float" onChange="focusPercentChanged"/> 
+  </interface>
+  <children>
+    <Label id="title" translation="[24,11]" width="960" maxLines="1" color="F3F7FBFF" />
+    <Label id="duration" translation="[1016,11]" width="160" maxLines="1" horizAlign="right" color="8DA0B5FF" />
+  </children>
+</component>
