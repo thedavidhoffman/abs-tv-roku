@@ -13,7 +13,7 @@
 
       <Header id="header" visible="false" />
       <HomePage id="homePage" visible="false" />
-      <LibraryView id="libraryView" />
+      <Library id="library" />
 
     </Group>
 

@@ -14,10 +14,9 @@
 
     <Group id="booksView" translation="[0,0]">
       <Label translation="[64,300]" text="Continue Listening" color="F3F7FBFF" />
-      <MarkupGrid
+      <PosterGrid
         id="continueGrid"
         translation="[64,346]"
-        itemComponentName="MediaCard"
         itemSize="[256,360]"
         itemSpacing="[26,0]"
         numRows="1"
@@ -25,10 +24,9 @@
       />
 
       <Label translation="[64,736]" text="Recently Added" color="F3F7FBFF" />
-      <MarkupGrid
+      <PosterGrid
         id="recentGrid"
         translation="[64,782]"
-        itemComponentName="MediaCard"
         itemSize="[256,360]"
         itemSpacing="[26,0]"
         numRows="1"
@@ -38,10 +36,9 @@
 
     <Group id="seriesView" visible="false">
       <Label translation="[64,300]" text="Series Spotlight" color="F3F7FBFF" />
-      <MarkupGrid
+      <PosterGrid
         id="seriesGrid"
         translation="[64,346]"
-        itemComponentName="SeriesCard"
         itemSize="[292,360]"
         itemSpacing="[28,0]"
         numRows="1"

@@ -6,7 +6,7 @@ sub init()
     m.authenticatedContent = m.top.findNode("authenticatedContent")
     m.header = m.top.findNode("header")
     m.homePage = m.top.findNode("homePage")
-    m.libraryView = m.top.findNode("libraryView")
+    m.library = m.top.findNode("library")
     m.player = m.top.findNode("player")
     m.continueGrid = m.top.findNode("continueGrid")
     m.recentGrid = m.top.findNode("recentGrid")
@@ -19,8 +19,8 @@ sub init()
     m.header.observeField("librarySelected", "onLibrarySelected")
     m.header.observeField("logoutSelected", "onLogoutPressed")
     m.header.observeField("changeServerSelected", "onChangeServerPressed")
-    m.libraryView.observeField("errorResponse", "onLibraryViewError")
-    m.libraryView.observeField("playSelected", "onLibraryPlaySelected")
+    m.library.observeField("errorResponse", "onLibraryError")
+    m.library.observeField("playSelected", "onLibraryPlaySelected")
     m.player.observeField("closeRequested", "onPlayerCloseRequested")
     m.player.observeField("errorResponse", "onPlayerError")
     m.apiTask.observeField("response", "onApiResponse")
@@ -149,10 +149,10 @@ sub storeAuthenticatedSession(response as object)
 end sub
 
 '-------------------------------------------------------------------------------
-' onLibraryViewError
+' onLibraryError
 '-------------------------------------------------------------------------------
-sub onLibraryViewError()
-    response = m.libraryView.errorResponse
+sub onLibraryError()
+    response = m.library.errorResponse
     if response = invalid then return
 
     if response.authExpired = true then
@@ -172,9 +172,9 @@ sub showApp()
         m.header.libraries = m.session.libraries
         if m.session.bookLibraryId <> invalid then m.header.currentLibraryId = m.session.bookLibraryId
     end if
-    if m.libraryView <> invalid then
-        m.libraryView.visible = true
-        m.libraryView.loadRequest = {
+    if m.library <> invalid then
+        m.library.visible = true
+        m.library.loadRequest = {
             server: m.session.server
             token: m.session.token
             bookLibraryId: m.session.bookLibraryId
@@ -197,8 +197,8 @@ sub onLibrarySelected()
 
     m.session.bookLibraryId = selectedLibrary.id
 
-    if m.libraryView <> invalid and m.libraryView.visible then
-        m.libraryView.loadRequest = {
+    if m.library <> invalid and m.library.visible then
+        m.library.loadRequest = {
             server: m.session.server
             token: m.session.token
             bookLibraryId: m.session.bookLibraryId
@@ -218,7 +218,7 @@ end sub
 ' onLibraryPlaySelected
 '-------------------------------------------------------------------------------
 sub onLibraryPlaySelected()
-    selectedItem = m.libraryView.playSelected
+    selectedItem = m.library.playSelected
     if selectedItem = invalid or selectedItem.id = invalid then return
     if m.session = invalid then return
 
@@ -242,8 +242,8 @@ end sub
 sub onPlayerCloseRequested()
     m.player.visible = false
     m.authenticatedContent.visible = true
-    if m.libraryView <> invalid and m.libraryView.visible then
-        m.libraryView.callFunc("focusLibraryList")
+    if m.library <> invalid and m.library.visible then
+        m.library.callFunc("focusLibraryList")
     end if
 end sub
 

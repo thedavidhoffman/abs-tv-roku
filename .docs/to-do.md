@@ -32,13 +32,10 @@
 
 # player
 - description modal
-    - update header with title
-    - extend scroll by one line
+    - see if ScrollableText would be a better choice than our custom scroll
+    - extend scroll by one line (see ark in space)
 - Resume
 - Restart
-- move description and transport up
-- navigation from default play button focus UP to description
-- highlighted description cover last line better, extend margins for better highligh
 - Meditations won't play - WHY?
 - chapter nav broken - FIX
 
