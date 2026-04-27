@@ -1,19 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="MainScene" extends="Scene">
   <script type="text/brightscript" uri="pkg:/source/AuthStore.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
   <script type="text/brightscript" uri="pkg:/source/SessionHelpers.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/MainScene/MainScene.brs" />
   <children>
-    <Rectangle id="bg" width="1920" height="1080" color="0B1220FF" />
+    <Rectangle id="bg" width="1920" height="1080" />
 
     <Login id="login" visible="false" />
 
     <Group id="authenticatedContent" visible="false">
 
-      <Header id="header" visible="false" />
+      
       <HomePage id="homePage" visible="false" />
       <Library id="library" />
+      <Header id="header" visible="false" />
 
     </Group>
 

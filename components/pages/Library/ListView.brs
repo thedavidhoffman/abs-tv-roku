@@ -2,6 +2,25 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+    initReferences()
+
+    m.libraryItemsByRow = []
+    m.selectedItem = invalid
+    m.playSelectedCounter = 0
+    m.server = invalid
+    m.token = invalid
+
+    initHandlers()
+    initStyle()
+    updatePlayButtonFocus(false)
+    onLibraryItemsChanged()
+end sub
+
+'-------------------------------------------------------------------------------
+' initReferences
+'-------------------------------------------------------------------------------
+sub initReferences()
+    m.overviewBg = m.top.findNode("overviewBg")
     m.libraryStatus = m.top.findNode("libraryStatus")
     m.libraryList = m.top.findNode("libraryList")
     m.selectedPoster = m.top.findNode("selectedPoster")
@@ -16,17 +35,25 @@ sub init()
     m.detailTags = m.top.findNode("detailTags")
     m.detailDuration = m.top.findNode("detailDuration")
     m.libraryApiTask = m.top.findNode("libraryApiTask")
-    m.libraryItemsByRow = []
-    m.selectedItem = invalid
-    m.playSelectedCounter = 0
-    m.server = invalid
-    m.token = invalid
+end sub
 
-    m.libraryList.observeField("itemFocused", "onLibraryItemFocused")
-    m.libraryList.observeField("itemSelected", "onLibraryItemSelected")
-    m.libraryApiTask.observeField("response", "onLibraryApiResponse")
-    updatePlayButtonFocus(false)
-    onLibraryItemsChanged()
+'-------------------------------------------------------------------------------
+' initHandlers
+'-------------------------------------------------------------------------------
+sub initHandlers()
+    if m.libraryList <> invalid then
+        m.libraryList.observeField("itemFocused", "onLibraryItemFocused")
+        m.libraryList.observeField("itemSelected", "onLibraryItemSelected")
+    end if
+    if m.libraryApiTask <> invalid then m.libraryApiTask.observeField("response", "onLibraryApiResponse")
+end sub
+
+'-------------------------------------------------------------------------------
+' initStyle
+'-------------------------------------------------------------------------------
+sub initStyle()
+    palette = Color()
+    if m.overviewBg <> invalid then m.overviewBg.color = palette.background.primary
 end sub
 
 '-------------------------------------------------------------------------------
@@ -199,6 +226,7 @@ end function
 ' StripHtmlMarkup
 '-------------------------------------------------------------------------------
 function StripHtmlMarkup(value as dynamic) as string
+
     text = SafeString(value, "")
     text = ReplaceText(text, "</p> <p>", Chr(10))
     text = ReplaceText(text, "</p><p>", Chr(10))

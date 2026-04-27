@@ -44,7 +44,6 @@ sub initReferences()
     m.modalDescriptionLabel = m.top.findNode("modalDescriptionLabel")
     m.modalScrollbarTrack = m.top.findNode("modalScrollbarTrack")
     m.modalScrollbarThumb = m.top.findNode("modalScrollbarThumb")
-    m.modalCloseButton = m.top.findNode("modalCloseButton")
     m.chapterList = m.top.findNode("chapterList")
     m.audioPlayer = m.top.findNode("audioPlayer")
     m.playbackApiTask = m.top.findNode("playbackApiTask")
@@ -79,10 +78,10 @@ sub initValues()
     m.descriptionHasFocus = false
     m.descriptionScrollY = 0
     m.descriptionScrollStep = 80
-    m.descriptionViewportHeight = 450
+    m.descriptionViewportHeight = 600
     m.descriptionLineHeight = 34
-    m.descriptionContentHeight = 450
-    m.modalScrollbarTrackHeight = 450
+    m.descriptionContentHeight = 600
+    m.modalScrollbarTrackHeight = 600
     m.modalScrollbarBaseY = 285
 end sub
 
@@ -888,10 +887,7 @@ sub openDescriptionModal()
     m.descriptionScrollY = 0
     updateModalDescriptionText()
     m.descriptionModal.visible = true
-    if m.modalCloseButton <> invalid then
-        m.modalCloseButton.hasFocusVisual = true
-        m.modalCloseButton.setFocus(true)
-    end if
+    if m.descriptionModal <> invalid then m.descriptionModal.setFocus(true)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -909,7 +905,6 @@ end sub
 '-------------------------------------------------------------------------------
 sub closeDescriptionModal()
     if m.descriptionModal <> invalid then m.descriptionModal.visible = false
-    if m.modalCloseButton <> invalid then m.modalCloseButton.hasFocusVisual = false
     if m.descriptionLabel <> invalid then m.descriptionLabel.setFocus(true)
 end sub
 

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="ListView" extends="Group">
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Library/ListView.brs" />
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
@@ -10,6 +11,7 @@
     <function name="focusLibraryList" />
   </interface>
   <children>
+    <Rectangle id="overviewBg" translation="[920,118]" width="1000" height="962" />
     <Label id="libraryStatus" translation="[64,212]" width="1200" numLines="2" wrap="true" color="F2C879FF" visible="false" />
     <LabelList
       id="libraryList"
@@ -168,6 +170,3 @@
     <AppTask id="libraryApiTask" />
   </children>
 </component>
-
-
-

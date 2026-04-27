@@ -58,7 +58,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub initStyle()
     palette = Color()
-    if m.headerBg <> invalid then m.headerBg.color = palette.background.primary
+    ' if m.headerBg <> invalid then m.headerBg.color = palette.background.primary
 end sub
 
 '-------------------------------------------------------------------------------

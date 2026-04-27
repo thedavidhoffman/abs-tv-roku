@@ -47,12 +47,11 @@
       <Rectangle id="descriptionModalBackdrop" width="1920" height="1080" color="000000FF" />
       <Rectangle id="descriptionModalPanel" translation="[300,150]" width="1320" height="780" color="101B2BFF" />
       <ScrollingLabel id="modalTitleLabel" translation="[360,205]" maxWidth="1200" text="Description" color="F3F7FBFF" font="font:LargeBoldSystemFont" repeatCount="1" />
-      <Group id="modalDescriptionViewport" translation="[360,285]" clippingRect="[0,0,1120,450]">
+      <Group id="modalDescriptionViewport" translation="[360,285]" clippingRect="[0,0,1120,600]">
         <Label id="modalDescriptionLabel" translation="[0,0]" width="1120" wrap="true" color="F3F7FBFF" />
       </Group>
-      <Rectangle id="modalScrollbarTrack" translation="[1552,285]" width="8" height="450" color="555555FF" />
+      <Rectangle id="modalScrollbarTrack" translation="[1552,285]" width="8" height="600" color="555555FF" />
       <Rectangle id="modalScrollbarThumb" translation="[1552,285]" width="8" height="80" color="E09B42FF" />
-      <PrimaryButton id="modalCloseButton" translation="[1300,830]" buttonWidth="260" buttonHeight="56" text="Close" />
     </Group>
 
     <ChapterList id="chapterList" visible="false" />

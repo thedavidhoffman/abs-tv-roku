@@ -17,7 +17,7 @@
     <function name="focusHeader" />
   </interface>
   <children>
-    <Rectangle id="headerBg" width="1920" height="118" color="00000000" />
+    <Rectangle id="headerBg" width="1920" height="118" color="12112BFF" />
     <Label id="brandLabel" translation="[64,42]" text="ABSTV" color="F6F7FBFF" />
 
     <Group id="tabGroup" translation="[705,26]">

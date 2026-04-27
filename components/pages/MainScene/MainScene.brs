@@ -2,6 +2,7 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+    m.bg = m.top.findNode("bg")
     m.login = m.top.findNode("login")
     m.authenticatedContent = m.top.findNode("authenticatedContent")
     m.header = m.top.findNode("header")
@@ -33,8 +34,17 @@ sub init()
     m.loginActivationCounter = 0
 
     preloadSavedFields()
+    initStyle()
     styleTabs()
     tryResumeSession()
+end sub
+
+'-------------------------------------------------------------------------------
+' initStyle
+'-------------------------------------------------------------------------------
+sub initStyle()
+    palette = Color()
+    if m.bg <> invalid then m.bg.color = palette.background.secondary
 end sub
 
 '-------------------------------------------------------------------------------

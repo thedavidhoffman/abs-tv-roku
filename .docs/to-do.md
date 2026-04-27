@@ -49,9 +49,24 @@
 # general
 - loading spinner
 
+# localization
+- https://developer.roku.com/en-au/docs/developer-program/core-concepts/localization.md
+
+# device info (for debugging modal?)
+- https://developer.roku.com/en-au/docs/references/brightscript/interfaces/ifdeviceinfo.md
+
+
+
 # NEXT UP...
 
+two panel layout?
+html string function move to helper class
+
+extract listview "overview" into new component
+
 duration display helper
+
+
 
 LibraryView
 - move list out of Library into LibraryListView

@@ -4,8 +4,8 @@
 function Color() as object
     return {
         background: {
-            primary: "00000040"
-            secondary: "0B1220FF"
+            primary: &h292836FF
+            secondary: &h313040FF
         }
     }
 end function
