@@ -65,10 +65,9 @@ LibraryView
 
 
 Today...
-player, no chapters don't display chapter title
+description modal
 listview
 listview librarystatus
-login refresh token if we have one
 error modal
 
 

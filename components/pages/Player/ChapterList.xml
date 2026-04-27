@@ -20,10 +20,9 @@
       translation="[360,285]"
       itemComponentName="ChapterListItem"
       itemSize="[1200,56]"
-      numRows="9"
+      numRows="11"
       drawFocusFeedback="true"
       vertFocusAnimationStyle="fixedFocus"
     />
-    <PrimaryButton id="closeButton" translation="[1300,830]" buttonWidth="260" buttonHeight="56" text="Close" />
   </children>
 </component>

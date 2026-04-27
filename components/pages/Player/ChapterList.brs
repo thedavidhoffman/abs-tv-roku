@@ -6,8 +6,6 @@ sub init()
     m.panel = m.top.findNode("panel")
     m.titleLabel = m.top.findNode("titleLabel")
     m.chapterList = m.top.findNode("chapterList")
-    m.closeButton = m.top.findNode("closeButton")
-    m.closeHasFocus = false
     m.closedCounter = 0
     m.selectionCounter = 0
     m.focusedChapterIndex = 0
@@ -18,7 +16,6 @@ sub init()
     end if
     styleChapterList()
     updateTitle()
-    updateCloseFocus(false)
     updateChapterListContent()
 end sub
 
@@ -28,7 +25,6 @@ end sub
 sub open()
     m.top.visible = true
     updateChapterListContent()
-    updateCloseFocus(false)
 
     if m.chapterList <> invalid then
         updateFocusedChapterIndex(getCurrentTrackIndex())
@@ -42,7 +38,6 @@ end sub
 '-------------------------------------------------------------------------------
 sub close()
     m.top.visible = false
-    updateCloseFocus(false)
     m.closedCounter = m.closedCounter + 1
     m.top.closedCounter = m.closedCounter
 end sub
@@ -95,28 +90,15 @@ function onKeyEvent(key as string, press as boolean) as boolean
         return true
     end if
 
-    if m.closeHasFocus then
-        if key = "OK" or key = "select" then
-            close()
-            return true
-        else if key = "left" or key = "up" then
-            focusChapterList()
-            return true
-        end if
-    else
-        if key = "OK" or key = "select" then
-            selectFocusedChapter()
-            return true
-        else if key = "down" then
-            moveChapterListFocus(1)
-            return true
-        else if key = "up" then
-            moveChapterListFocus(-1)
-            return true
-        else if key = "right" then
-            focusCloseButton()
-            return true
-        end if
+    if key = "OK" or key = "select" then
+        selectFocusedChapter()
+        return true
+    else if key = "down" then
+        moveChapterListFocus(1)
+        return true
+    else if key = "up" then
+        moveChapterListFocus(-1)
+        return true
     end if
 
     return false
@@ -126,16 +108,7 @@ end function
 ' focusChapterList
 '-------------------------------------------------------------------------------
 sub focusChapterList()
-    updateCloseFocus(false)
     if m.chapterList <> invalid then m.chapterList.setFocus(true)
-end sub
-
-'-------------------------------------------------------------------------------
-' focusCloseButton
-'-------------------------------------------------------------------------------
-sub focusCloseButton()
-    updateCloseFocus(true)
-    if m.closeButton <> invalid then m.closeButton.setFocus(true)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -154,23 +127,11 @@ sub moveChapterListFocus(offset as integer)
     if nextIndex < 0 then nextIndex = 0
 
     lastIndex = tracks.Count() - 1
-    if nextIndex > lastIndex then
-        focusCloseButton()
-        return
-    end if
+    if nextIndex > lastIndex then nextIndex = lastIndex
 
-    updateCloseFocus(false)
     updateFocusedChapterIndex(nextIndex)
     m.chapterList.jumpToItem = nextIndex
     m.chapterList.setFocus(true)
-end sub
-
-'-------------------------------------------------------------------------------
-' updateCloseFocus
-'-------------------------------------------------------------------------------
-sub updateCloseFocus(hasFocus as boolean)
-    m.closeHasFocus = hasFocus
-    if m.closeButton <> invalid then m.closeButton.hasFocusVisual = hasFocus
 end sub
 
 '-------------------------------------------------------------------------------

@@ -1,7 +1,6 @@
 # Roku Notes
 
 ## Links
-
 - https://developer.roku.com/docs/references
 
 ## Controls
@@ -18,13 +17,10 @@ https://developer.roku.com/docs/references/scenegraph/typographic-nodes/scrollin
 ### Scrollable text
 https://developer.roku.com/docs/references/scenegraph/typographic-nodes/scrollabletext.md
 
-
 ## Remote key events
-
-- https://developer.roku.com/docs/developer-program/core-concepts/handling-application-events.md#handling-remote-control-key-presses
+https://developer.roku.com/docs/developer-program/core-concepts/handling-application-events.md#handling-remote-control-key-presses
 
 ## Font sizes
-
 https://developer.roku.com/docs/references/scenegraph/typographic-nodes/font.md
 
 - TinySystemFont
