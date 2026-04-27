@@ -433,7 +433,14 @@ function onKeyEvent(key as string, press as boolean) as boolean
             focusTransportButton(m.transportFocusIndex + 1)
             return true
         else if key = "up" then
-            updateTransportFocus(-1)
+            if m.descriptionIsExpandable then
+                updateTransportFocus(-1)
+                updateDescriptionFocus(true)
+            else
+                updateTransportFocus(-1)
+            end if
+            return true
+        else if key = "down" then
             return true
         else if key = "OK" or key = "select" then
             if m.seekHoldDirection <> 0 then return true
