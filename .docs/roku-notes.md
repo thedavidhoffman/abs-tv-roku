@@ -24,13 +24,25 @@ https://developer.roku.com/docs/references/scenegraph/typographic-nodes/scrollab
 - https://developer.roku.com/docs/developer-program/core-concepts/handling-application-events.md#handling-remote-control-key-presses
 
 ## Font sizes
-- font:SmallestSystemFont
-- font:SmallSystemFont
-- font:MediumSystemFont
-- font:LargeSystemFont
-- font:SmallBoldSystemFont
-- font:MediumBoldSystemFont
-- font:LargeBoldSystemFont
+
+https://developer.roku.com/docs/references/scenegraph/typographic-nodes/font.md
+
+- TinySystemFont
+- TinyBoldSystemFont
+- SmallerSystemFont
+- SmallerBoldSystemFont
+- SmallestSystemFont
+- SmallestBoldSystemFont
+- SmallSystemFont
+- SmallBoldSystemFont
+- MediumSystemFont
+- MediumBoldSystemFont
+- LargeSystemFont
+- LargeBoldSystemFont
+- LargestSystemFont
+- ExtraLargeSystemFont
+- ExtraLargeBoldSystemFont
+- BadgeSystemFont
 
 Example
 ```

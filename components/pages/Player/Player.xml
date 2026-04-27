@@ -18,7 +18,7 @@
       uri="pkg:/images/placeholder_cover.png"
       loadDisplayMode="best-fit"
     />
-    <ScrollingLabel id="titleLabel" translation="[700,210]" maxWidth="1040" numLines="3" color="F3F7FBFF" font="font:LargeBoldSystemFont" repeatCount="1" />
+    <ScrollingLabel id="titleLabel" translation="[700,210]" maxWidth="1040" color="F3F7FBFF" font="font:LargeBoldSystemFont" repeatCount="1" />
     <Label id="authorLabel" translation="[700,260]" width="1040" color="B7C5D4FF" />
     <Label id="metadataLabel" translation="[700,310]" width="1040" color="B7C5D4FF" font="font:SmallestSystemFont" />
     <Rectangle id="descriptionFocusRing" translation="[674,362]" width="1092" height="244" color="E09B4200" />

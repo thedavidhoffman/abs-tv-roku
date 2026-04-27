@@ -283,6 +283,7 @@ sub playCurrentTrack()
 
     m.audioPlayer.content = node
     m.isPaused = false
+    disableScreenSaver()
     m.audioPlayer.control = "play"
     if m.currentTrackStartPosition > 0 then
         m.audioPlayer.seek = m.currentTrackStartPosition
@@ -332,10 +333,12 @@ sub onAudioStateChanged()
     if state = "playing" then
         m.ignoreNextFinished = false
         m.isPaused = false
+        disableScreenSaver()
         setStatus("Playing")
         startProgressTimer()
         updatePlayPauseButton()
     else if state = "buffering" then
+        disableScreenSaver()
         setStatus("Buffering...")
         startProgressTimer()
     else if state = "finished" then
@@ -349,12 +352,14 @@ sub onAudioStateChanged()
             return
         end if
         stopProgressTimer()
+        enableScreenSaver()
         updateProgress(m.totalDurationSeconds)
         setStatus("Finished")
         m.isPaused = false
         updatePlayPauseButton()
     else if state = "error" then
         stopProgressTimer()
+        enableScreenSaver()
         setStatus("Playback error.")
         m.isPaused = false
         updatePlayPauseButton()
@@ -382,12 +387,35 @@ sub setStatus(message as string)
 end sub
 
 '-------------------------------------------------------------------------------
+' disableScreenSaver
+'-------------------------------------------------------------------------------
+sub disableScreenSaver()
+    setScreenSaverMode("screenSaverOff")
+end sub
+
+'-------------------------------------------------------------------------------
+' enableScreenSaver
+'-------------------------------------------------------------------------------
+sub enableScreenSaver()
+    setScreenSaverMode("screenSaverOn")
+end sub
+
+'-------------------------------------------------------------------------------
+' setScreenSaverMode
+'-------------------------------------------------------------------------------
+sub setScreenSaverMode(mode as string)
+    scene = m.top.getScene()
+    if scene <> invalid then scene.screenSaverMode = mode
+end sub
+
+'-------------------------------------------------------------------------------
 ' closePlayer
 '-------------------------------------------------------------------------------
 sub closePlayer()
     if m.audioPlayer <> invalid then m.audioPlayer.control = "stop"
     resetSeekHold()
     stopProgressTimer()
+    enableScreenSaver()
     m.closeRequestedCounter = m.closeRequestedCounter + 1
     m.top.closeRequested = m.closeRequestedCounter
 end sub
@@ -779,10 +807,12 @@ sub togglePlayPause()
         m.audioPlayer.control = "pause"
         m.isPaused = true
         stopProgressTimer()
+        enableScreenSaver()
         updateProgress(getCurrentTrackPlaybackPosition())
         setStatus("Paused")
     else
         m.isPaused = false
+        disableScreenSaver()
         if m.audioPlayer.state = "paused" then
             m.audioPlayer.control = "resume"
         else

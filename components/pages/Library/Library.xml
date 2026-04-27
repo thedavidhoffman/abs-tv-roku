@@ -1,85 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="Library" extends="Group">
-  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Library/Library.brs" />
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
-    <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
+    <field id="libraryItems" type="array" />
     <field id="playSelected" type="assocarray" />
     <field id="errorResponse" type="assocarray" />
     <function name="focusLibraryList" />
   </interface>
   <children>
-    <Label id="libraryStatus" translation="[64,212]" width="1200" numLines="2" wrap="true" color="F2C879FF" />
-    <LabelList
-      id="libraryList"
-      translation="[64,280]"
-      itemSize="[760,56]"
-      numRows="12"
-      drawFocusFeedback="true"
-      vertFocusAnimationStyle="fixedFocus"
-    />
-    <Poster
-      id="selectedPoster"
-      translation="[980,280]"
-      width="420"
-      height="420"
-      uri="pkg:/images/placeholder_cover.png"
-      loadDisplayMode="best-fit"
-    />
-    <PrimaryButton
-      id="playButton"
-      translation="[980,720]"
-      buttonWidth="420"
-      buttonHeight="56"
-      text="Play"
-      iconUri="pkg:/images/icons/dark/play_dark.png"
-    />
-    <Label
-      id="detailTitle"
-      translation="[980,792]"
-      width="760"
-      numLines="2"
-      wrap="true"
-      color="F3F7FBFF"
-      font="font:LargeBoldSystemFont"
-    />
-    <Label
-      id="detailAuthor"
-      translation="[980,852]"
-      width="760"
-      numLines="1"
-      color="B7C5D4FF"
-    />
-    <Label
-      id="detailDescription"
-      translation="[980,890]"
-      width="760"
-      numLines="3"
-      wrap="true"
-      color="91A3B6FF"
-    />
-    <Label
-      id="detailPublisher"
-      translation="[980,1018]"
-      width="245"
-      numLines="1"
-      color="B7C5D4FF"
-    />
-    <Label
-      id="detailPublishDate"
-      translation="[1235,1018]"
-      width="245"
-      numLines="1"
-      color="B7C5D4FF"
-    />
-    <Label
-      id="detailDuration"
-      translation="[1490,1018]"
-      width="250"
-      numLines="1"
-      color="B7C5D4FF"
-    />
-    <AppTask id="libraryApiTask" />
+    <ListView id="listView" />
   </children>
 </component>

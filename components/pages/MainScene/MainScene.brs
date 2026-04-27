@@ -29,6 +29,7 @@ sub init()
     m.session = LoadAuthState()
     m.isLoadingBooks = false
     m.isLoadingSeries = false
+    m.isResumingSession = false
     m.loginActivationCounter = 0
 
     preloadSavedFields()
@@ -53,7 +54,9 @@ end sub
 '-------------------------------------------------------------------------------
 sub tryResumeSession()
     if m.session.token <> invalid and m.session.token <> "" and m.session.server <> invalid and m.session.server <> "" then
-        m.login.statusMessage = "Restoring your listening session..."
+        m.isResumingSession = true
+        m.login.visible = false
+        m.authenticatedContent.visible = false
         m.apiTask.request = {
             action: "authorize"
             server: m.session.server
@@ -84,6 +87,13 @@ sub onApiResponse()
     if response = invalid then return
 
     if response.ok <> true then
+        if m.isResumingSession then
+            m.isResumingSession = false
+            ClearAuthState(false)
+            showLogin("Your saved session expired. Please sign in again.")
+            return
+        end if
+
         if response.authExpired = true then
             handleExpiredSession(response.errorMessage)
             return
@@ -99,6 +109,7 @@ sub onApiResponse()
 
     action = response.action
     if action = "authorize" then
+        m.isResumingSession = false
         storeAuthenticatedSession(response)
         showApp()
         return

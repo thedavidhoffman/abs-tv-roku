@@ -64,6 +64,13 @@ LibraryView
 - build out DTOs? https://deepwiki.com/audiobookshelf/audiobookshelf-api-docs/3.1-data-model-and-schemas
 
 
+Today...
+player, no chapters don't display chapter title
+listview
+listview librarystatus
+login refresh token if we have one
+error modal
+
 
 # names
 
@@ -81,3 +88,11 @@ ShelfPlayer
 
 PurplePlayer?
 
+RELEASE NOTES
+I'm excited to release version 1.0 of ABSTV, an AudioBookshelf (ABS) client for Roku. This is my first time developing a Roku app, and to be honest, it would not have been successful without the help of AI. To be clear, I didn't just "vibe code" this app. I'm an experienced senior software developer and I used AI as a tool to help craft this app. I took the AI output and constantly refined, reorganized, encapsulated, and abstracted it. That being said. This is version 1.0 of this app, and there's still plenty of room for improvement, and I'm still learning about the interesting world that is Roku app development.
+
+This app is not availabe in the official Roku channel store. It must be side-loaded onto a Roku device. I'm assuming that most people that run the ABS docker image have a little technical ability, so they should be able to side-load this app. Once this app gets to a point that it has several releases under it's belt and it has reached some point of maturity, I may look to get it in the official Roku channel store.
+
+If you're a user of Audiobookshelf and looking to use it on your TV, I hope you find this application useful.
+
+I'm open to any and all suggestions for enhancements and improvements.

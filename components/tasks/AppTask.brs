@@ -74,6 +74,7 @@ function doAuthorize(request as Object) as Object
         ok: true
         action: "authorize"
         server: server
+        token: request.token
         payload: result.data
         libraries: librariesResult.libraries
     }

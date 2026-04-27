@@ -21,7 +21,6 @@ end sub
 ' LoadAuthState
 '-------------------------------------------------------------------------------
 function LoadAuthState() as object
-    ClearAuthState(false)
     authStore = GetAuthStore()
     return {
         server: authStore.Read("server")

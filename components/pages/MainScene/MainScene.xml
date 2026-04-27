@@ -7,7 +7,7 @@
   <children>
     <Rectangle id="bg" width="1920" height="1080" color="0B1220FF" />
 
-    <Login id="login" visible="true" />
+    <Login id="login" visible="false" />
 
     <Group id="authenticatedContent" visible="false">
 

@@ -1,8 +1,173 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <component name="ListView" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Library/ListView.brs" />
   <interface>
+    <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
+    <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
+    <field id="playSelected" type="assocarray" />
+    <field id="errorResponse" type="assocarray" />
+    <function name="focusLibraryList" />
   </interface>
   <children>
+    <Label id="libraryStatus" translation="[64,212]" width="1200" numLines="2" wrap="true" color="F2C879FF" visible="false" />
+    <LabelList
+      id="libraryList"
+      translation="[64,180]"
+      itemSize="[760,56]"
+      numRows="15"
+      drawFocusFeedback="true"
+      vertFocusAnimationStyle="fixedFocus"
+    />
+    <Poster
+      id="selectedPoster"
+      translation="[980,250]"
+      width="420"
+      height="420"
+      uri="pkg:/images/placeholder_cover.png"
+      loadDisplayMode="best-fit"
+    />
+    <PrimaryButton
+      id="playButton"
+      translation="[980,704]"
+      buttonWidth="420"
+      buttonHeight="56"
+      text="Play"
+      iconUri="pkg:/images/icons/dark/play_dark.png"
+    />
+    <ScrollingLabel
+      id="detailTitle"
+      translation="[980,180]"
+      maxWidth="860"
+      numLines="2"
+      color="F3F7FBFF"
+      font="font:LargeBoldSystemFont"
+      repeatCount="1"
+    />
+    <Label
+      translation="[1430,250]"
+      width="430"
+      numLines="1"
+      text="AUTHOR"
+      color="F3F7FBFF"
+      font="font:TinySystemFont"
+    />
+    <Label
+      id="detailAuthor"
+      translation="[1430,280]"
+      width="430"
+      numLines="1"
+      color="F3F7FBFF"
+      font="font:TinySystemFont"
+    />
+    <Label
+      translation="[1430,326]"
+      width="430"
+      numLines="1"
+      text="NARRATORS"
+      color="F3F7FBFF"
+      font="font:TinySystemFont"
+    />
+    <Label
+      id="detailNarrators"
+      translation="[1430,356]"
+      width="430"
+      numLines="1"
+      color="F3F7FBFF"
+      font="font:TinySystemFont"
+    />
+    <Label
+      translation="[1430,402]"
+      width="430"
+      numLines="1"
+      text="PUBLISH YEAR"
+      color="F3F7FBFF"
+      font="font:TinySystemFont"
+    />
+    <Label
+      id="detailPublishDate"
+      translation="[1430,432]"
+      width="430"
+      numLines="1"
+      color="F3F7FBFF"
+      font="font:TinySystemFont"
+    />
+    <Label
+      translation="[1430,478]"
+      width="430"
+      numLines="1"
+      text="PUBLISHER"
+      color="F3F7FBFF"
+      font="font:TinySystemFont"
+    />
+    <Label
+      id="detailPublisher"
+      translation="[1430,508]"
+      width="430"
+      numLines="1"
+      color="F3F7FBFF"
+      font="font:TinySystemFont"
+    />
+    <Label
+      translation="[1430,554]"
+      width="430"
+      numLines="1"
+      text="GENRES"
+      color="F3F7FBFF"
+      font="font:TinySystemFont"
+    />
+    <Label
+      id="detailGenres"
+      translation="[1430,584]"
+      width="430"
+      numLines="1"
+      color="F3F7FBFF"
+      font="font:TinySystemFont"
+    />
+    <Label
+      translation="[1430,630]"
+      width="430"
+      numLines="1"
+      text="TAGS"
+      color="F3F7FBFF"
+      font="font:TinySystemFont"
+    />
+    <Label
+      id="detailTags"
+      translation="[1430,660]"
+      width="430"
+      numLines="1"
+      color="F3F7FBFF"
+      font="font:TinySystemFont"
+    />
+    <Label
+      translation="[1430,706]"
+      width="430"
+      numLines="1"
+      text="DURATION"
+      color="F3F7FBFF"
+      font="font:TinySystemFont"
+    />
+    <Label
+      id="detailDuration"
+      translation="[1430,736]"
+      width="430"
+      numLines="1"
+      color="F3F7FBFF"
+      font="font:TinySystemFont"
+    />
+    <Label
+      id="detailDescription"
+      translation="[980,800]"
+      width="860"
+      numLines="5"
+      wrap="true"
+      color="B7C5D4FF"
+      font="font:SmallestSystemFont"
+    />
+    <AppTask id="libraryApiTask" />
   </children>
 </component>
+
+
+
