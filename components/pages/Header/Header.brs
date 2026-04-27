@@ -16,7 +16,6 @@ sub init()
     setLibraryMenuOpen(false)
     updateLibraryList()
     updateLibraryButton()
-    styleTabs()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -58,7 +57,15 @@ end sub
 '-------------------------------------------------------------------------------
 sub initStyle()
     palette = Color()
-    ' if m.headerBg <> invalid then m.headerBg.color = palette.background.primary
+    headerBgColor = palette.background.header
+    if m.headerBg <> invalid then m.headerBg.color = headerBgColor
+
+    if m.booksTab <> invalid then m.booksTab.headerBgColor = headerBgColor
+    if m.seriesTab <> invalid then m.seriesTab.headerBgColor = headerBgColor
+    if m.libraryButton <> invalid then m.libraryButton.headerBgColor = headerBgColor
+    if m.userMenuButton <> invalid then m.userMenuButton.headerBgColor = headerBgColor
+    if m.logoutButton <> invalid then m.logoutButton.headerBgColor = headerBgColor
+    if m.changeServerButton <> invalid then m.changeServerButton.headerBgColor = headerBgColor
 end sub
 
 '-------------------------------------------------------------------------------
@@ -150,13 +157,6 @@ function getFocusedHeaderButtonIndex() as integer
 
     return -1
 end function
-
-'-------------------------------------------------------------------------------
-' onCurrentTabChanged
-'-------------------------------------------------------------------------------
-sub onCurrentTabChanged()
-    styleTabs()
-end sub
 
 '-------------------------------------------------------------------------------
 ' onCloseMenuTokenChanged
@@ -327,17 +327,4 @@ sub updateLibraryButton()
     end if
 
     m.libraryButton.text = buttonText
-end sub
-
-'-------------------------------------------------------------------------------
-' styleTabs
-'-------------------------------------------------------------------------------
-sub styleTabs()
-    if m.top.currentTab = "series" then
-        m.booksTab.text = "Books"
-        m.seriesTab.text = "Series *"
-    else
-        m.booksTab.text = "Books *"
-        m.seriesTab.text = "Series"
-    end if
 end sub

@@ -56,6 +56,10 @@
 - https://developer.roku.com/en-au/docs/references/brightscript/interfaces/ifdeviceinfo.md
 
 
+# Architecture/Code Quality
+- localization
+- all colors should come from Color()
+
 
 # NEXT UP...
 

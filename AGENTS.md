@@ -6,6 +6,11 @@
 - audiobookshelf API git repo: https://github.com/audiobookshelf/audiobookshelf-api-docs
 - audiobookshelf server git repo: https://github.com/advplyr/audiobookshelf
 
+## Roku reference
+
+- https://github.com/rokudev/samples
+- https://developer.roku.com/en-au/docs/references/references-overview.md
+
 ## Commenting Style
 
 - Add a three-line comment header immediately above each function definition in `src/config.js`.

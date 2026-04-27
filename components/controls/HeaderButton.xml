@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="HeaderButton" extends="Group" focusable="true">
+  <script type="text/brightscript" uri="pkg:/components/controls/HeaderButton.brs" />
+  <interface>
+    <field id="text" type="string" onChange="onTextChanged" />
+    <field id="buttonWidth" type="float" onChange="onDimensionsChanged" />
+    <field id="buttonHeight" type="float" onChange="onDimensionsChanged" />
+    <field id="hasFocusVisual" type="boolean" onChange="onFocusVisualChanged" />
+    <field id="headerBgColor" type="integer" onChange="onFocusVisualChanged" />
+    <field id="buttonSelected" type="integer" />
+  </interface>
+  <children>
+    <Rectangle id="bg" width="300" height="56" color="FFFFFF00" />
+    <Label id="textLabel" translation="[0,12]" width="300" horizAlign="center" color="FFFFFFFF" />
+  </children>
+</component>

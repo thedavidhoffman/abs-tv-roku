@@ -4,7 +4,7 @@
   <script type="text/brightscript" uri="pkg:/source/Color.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Header/Header.brs" />
   <interface>
-    <field id="currentTab" type="string" onChange="onCurrentTabChanged" />
+    <field id="currentTab" type="string" />
     <field id="libraries" type="array" onChange="onLibrariesChanged" />
     <field id="currentLibraryId" type="string" onChange="onCurrentLibraryIdChanged" />
     <field id="menuOpen" type="boolean" />
@@ -21,11 +21,11 @@
     <Label id="brandLabel" translation="[64,42]" text="ABSTV" color="F6F7FBFF" />
 
     <Group id="tabGroup" translation="[705,26]">
-      <Button id="booksTab" translation="[0,0]" minWidth="180" text="Books" />
-      <Button id="seriesTab" translation="[210,0]" minWidth="180" text="Series" />
+      <HeaderButton id="booksTab" translation="[0,0]" buttonWidth="180" buttonHeight="56" text="Books" />
+      <HeaderButton id="seriesTab" translation="[210,0]" buttonWidth="180" buttonHeight="56" text="Series" />
     </Group>
 
-    <Button id="libraryButton" translation="[1240,26]" minWidth="320" text="Library" />
+    <HeaderButton id="libraryButton" translation="[1240,26]" buttonWidth="320" buttonHeight="56" text="Library" />
 
     <LabelList
       id="libraryList"
@@ -36,12 +36,12 @@
       drawFocusFeedback="true"
     />
 
-    <Button id="userMenuButton" translation="[1620,26]" minWidth="220" text="Account" />
+    <HeaderButton id="userMenuButton" translation="[1620,26]" buttonWidth="220" buttonHeight="56" text="Account" />
 
     <Group id="menuPanel" visible="false" translation="[1600,102]">
       <Rectangle width="260" height="150" color="132235FF" />
-      <Button id="logoutButton" translation="[20,18]" minWidth="220" text="Logout" />
-      <Button id="changeServerButton" translation="[20,78]" minWidth="220" text="Change Server" />
+      <HeaderButton id="logoutButton" translation="[20,18]" buttonWidth="220" buttonHeight="56" text="Logout" />
+      <HeaderButton id="changeServerButton" translation="[20,78]" buttonWidth="220" buttonHeight="56" text="Change Server" />
     </Group>
   </children>
 </component>
