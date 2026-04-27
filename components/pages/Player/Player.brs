@@ -238,6 +238,15 @@ sub setLabelText(label as dynamic, text as string)
 end sub
 
 '-------------------------------------------------------------------------------
+' getDisplayTrackTitle
+'-------------------------------------------------------------------------------
+function getDisplayTrackTitle(track as dynamic, index as integer) as string
+    title = SafeString(track.title, "Track " + (index + 1).ToStr())
+    if LCase(TrimString(title)) = LCase(TrimString(m.audiobookTitle)) then return ""
+    return title
+end function
+
+'-------------------------------------------------------------------------------
 ' playTracks
 '-------------------------------------------------------------------------------
 sub playTracks(tracks as dynamic)
@@ -272,7 +281,7 @@ sub playCurrentTrack()
 
     m.totalDurationSeconds = getTrackDurationSeconds(track)
     m.currentTrackStartPosition = getTrackStartPosition(track)
-    setLabelText(m.trackTitleLabel, SafeString(track.title, "Track " + (m.currentTrackIndex + 1).ToStr()))
+    setLabelText(m.trackTitleLabel, getDisplayTrackTitle(track, m.currentTrackIndex))
     if m.totalDurationSeconds > 0 then
         setLabelText(m.totalTimeLabel, formatPlaybackTime(m.totalDurationSeconds))
     else
@@ -679,7 +688,7 @@ sub playChapterInCurrentStream(index as integer)
 
     m.totalDurationSeconds = getTrackDurationSeconds(track)
     m.currentTrackStartPosition = getTrackStartPosition(track)
-    setLabelText(m.trackTitleLabel, SafeString(track.title, "Track " + (index + 1).ToStr()))
+    setLabelText(m.trackTitleLabel, getDisplayTrackTitle(track, index))
     if m.totalDurationSeconds > 0 then
         setLabelText(m.totalTimeLabel, formatPlaybackTime(m.totalDurationSeconds))
     else
