@@ -5,12 +5,9 @@ sub init()
     initReferences()
     initHandlers()
 
-    m.booksSelectedCounter = 0
-    m.seriesSelectedCounter = 0
     m.logoutSelectedCounter = 0
     m.changeServerSelectedCounter = 0
 
-    if m.top.currentTab = invalid or m.top.currentTab = "" then m.top.currentTab = "books"
     initStyle()
     setMenuOpen(false)
     setLibraryMenuOpen(false)
@@ -23,8 +20,6 @@ end sub
 '-------------------------------------------------------------------------------
 sub initReferences()
     m.headerBg = m.top.findNode("headerBg")
-    m.booksTab = m.top.findNode("booksTab")
-    m.seriesTab = m.top.findNode("seriesTab")
     m.libraryButton = m.top.findNode("libraryButton")
     m.libraryList = m.top.findNode("libraryList")
     m.userMenuButton = m.top.findNode("userMenuButton")
@@ -32,8 +27,6 @@ sub initReferences()
     m.logoutButton = m.top.findNode("logoutButton")
     m.changeServerButton = m.top.findNode("changeServerButton")
     m.headerButtons = [
-        m.booksTab
-        m.seriesTab
         m.libraryButton
         m.userMenuButton
     ]
@@ -43,8 +36,6 @@ end sub
 ' initHandlers
 '-------------------------------------------------------------------------------
 sub initHandlers()
-    m.booksTab.observeField("buttonSelected", "onBooksTabPressed")
-    m.seriesTab.observeField("buttonSelected", "onSeriesTabPressed")
     m.libraryButton.observeField("buttonSelected", "onLibraryButtonPressed")
     m.libraryList.observeField("itemSelected", "onLibraryItemSelected")
     m.userMenuButton.observeField("buttonSelected", "onUserMenuPressed")
@@ -60,8 +51,6 @@ sub initStyle()
     headerBgColor = palette.background.header
     if m.headerBg <> invalid then m.headerBg.color = headerBgColor
 
-    if m.booksTab <> invalid then m.booksTab.headerBgColor = headerBgColor
-    if m.seriesTab <> invalid then m.seriesTab.headerBgColor = headerBgColor
     if m.libraryButton <> invalid then m.libraryButton.headerBgColor = headerBgColor
     if m.userMenuButton <> invalid then m.userMenuButton.headerBgColor = headerBgColor
     if m.logoutButton <> invalid then m.logoutButton.headerBgColor = headerBgColor
@@ -74,12 +63,6 @@ end sub
 function focusHeader() as boolean
     closeMenu()
 
-    preferredButton = getCurrentTabButton()
-    if preferredButton <> invalid then
-        preferredButton.setFocus(true)
-        return true
-    end if
-
     for each button in m.headerButtons
         if button <> invalid then
             button.setFocus(true)
@@ -88,15 +71,6 @@ function focusHeader() as boolean
     end for
 
     return false
-end function
-
-'-------------------------------------------------------------------------------
-' getCurrentTabButton
-'-------------------------------------------------------------------------------
-function getCurrentTabButton() as dynamic
-    if m.top.currentTab = "series" then return m.seriesTab
-    if m.top.currentTab = "books" then return m.booksTab
-    return invalid
 end function
 
 '-------------------------------------------------------------------------------
@@ -147,13 +121,11 @@ end function
 ' getFocusedHeaderButtonIndex
 '-------------------------------------------------------------------------------
 function getFocusedHeaderButtonIndex() as integer
-    if m.booksTab <> invalid and m.booksTab.isInFocusChain() then return 0
-    if m.seriesTab <> invalid and m.seriesTab.isInFocusChain() then return 1
-    if m.libraryButton <> invalid and m.libraryButton.isInFocusChain() then return 2
-    if m.libraryList <> invalid and m.libraryList.isInFocusChain() then return 2
-    if m.userMenuButton <> invalid and m.userMenuButton.isInFocusChain() then return 3
-    if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return 3
-    if m.changeServerButton <> invalid and m.changeServerButton.isInFocusChain() then return 3
+    if m.libraryButton <> invalid and m.libraryButton.isInFocusChain() then return 0
+    if m.libraryList <> invalid and m.libraryList.isInFocusChain() then return 0
+    if m.userMenuButton <> invalid and m.userMenuButton.isInFocusChain() then return 1
+    if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return 1
+    if m.changeServerButton <> invalid and m.changeServerButton.isInFocusChain() then return 1
 
     return -1
 end function
@@ -178,22 +150,6 @@ end sub
 '-------------------------------------------------------------------------------
 sub onCurrentLibraryIdChanged()
     updateLibraryButton()
-end sub
-
-'-------------------------------------------------------------------------------
-' onBooksTabPressed
-'-------------------------------------------------------------------------------
-sub onBooksTabPressed()
-    m.booksSelectedCounter = m.booksSelectedCounter + 1
-    m.top.booksSelected = m.booksSelectedCounter
-end sub
-
-'-------------------------------------------------------------------------------
-' onSeriesTabPressed
-'-------------------------------------------------------------------------------
-sub onSeriesTabPressed()
-    m.seriesSelectedCounter = m.seriesSelectedCounter + 1
-    m.top.seriesSelected = m.seriesSelectedCounter
 end sub
 
 '-------------------------------------------------------------------------------

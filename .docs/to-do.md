@@ -90,6 +90,10 @@ listview librarystatus
 error modal
 
 
+json formatter for response output to log...
+https://www.npmjs.com/package/brighterscript-formatter
+https://github.com/nikolay-mamaev/BrightScript-Json-Beautifier
+
 # names
 
 ShelfTV

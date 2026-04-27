@@ -12,8 +12,6 @@
 
     <Group id="authenticatedContent" visible="false">
 
-      
-      <HomePage id="homePage" visible="false" />
       <Library id="library" />
       <Header id="header" visible="false" />
 

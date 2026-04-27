@@ -15,28 +15,6 @@ function NormalizeServerUrl(server as string) as string
 end function
 
 '-------------------------------------------------------------------------------
-' FormatRemainingTime
-'-------------------------------------------------------------------------------
-function FormatRemainingTime(seconds as dynamic) as string
-    if seconds = invalid then return ""
-    total = int(val(seconds))
-    if total <= 0 then return "Less than 1m remaining"
-
-    hours = int(total / 3600)
-    minutes = int((total mod 3600) / 60)
-
-    if hours > 0 then
-        if minutes > 0 then
-            return hours.ToStr() + "h " + minutes.ToStr() + "m remaining"
-        end if
-        return hours.ToStr() + "h remaining"
-    end if
-
-    if minutes <= 0 then minutes = 1
-    return minutes.ToStr() + "m remaining"
-end function
-
-'-------------------------------------------------------------------------------
 ' SafeString
 '-------------------------------------------------------------------------------
 function SafeString(value as dynamic, fallback as string) as string
