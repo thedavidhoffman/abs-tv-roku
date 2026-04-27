@@ -21,7 +21,7 @@
     <ScrollingLabel id="titleLabel" translation="[700,210]" maxWidth="1040" numLines="3" color="F3F7FBFF" font="font:LargeBoldSystemFont" repeatCount="1" />
     <Label id="authorLabel" translation="[700,260]" width="1040" color="B7C5D4FF" />
     <Label id="metadataLabel" translation="[700,310]" width="1040" color="B7C5D4FF" font="font:SmallestSystemFont" />
-    <Rectangle id="descriptionFocusRing" translation="[694,382]" width="1052" height="204" color="E09B4200" />
+    <Rectangle id="descriptionFocusRing" translation="[674,362]" width="1092" height="244" color="E09B4200" />
     <Label id="descriptionLabel" translation="[700,389]" width="1040" numLines="5" wrap="true" color="F3F7FBFF" font="font:SmallestSystemFont" />
     <Label id="trackTitleLabel" translation="[700,664]" width="1040" color="B7C5D4FF" />
     <Label id="statusLabel" translation="[700,724]" width="1040" color="F2C879FF" />
@@ -46,7 +46,7 @@
     <Group id="descriptionModal" visible="false">
       <Rectangle id="descriptionModalBackdrop" width="1920" height="1080" color="000000FF" />
       <Rectangle id="descriptionModalPanel" translation="[300,150]" width="1320" height="780" color="101B2BFF" />
-      <Label id="modalTitleLabel" translation="[360,205]" width="1200" text="Description" color="F3F7FBFF" font="font:LargeBoldSystemFont" />
+      <ScrollingLabel id="modalTitleLabel" translation="[360,205]" maxWidth="1200" text="Description" color="F3F7FBFF" font="font:LargeBoldSystemFont" repeatCount="1" />
       <Group id="modalDescriptionViewport" translation="[360,285]" clippingRect="[0,0,1120,450]">
         <Label id="modalDescriptionLabel" translation="[0,0]" width="1120" wrap="true" color="F3F7FBFF" />
       </Group>

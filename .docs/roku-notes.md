@@ -37,14 +37,22 @@ Example
 font="font:LargeBoldSystemFont"
 ```
 
-## Type inspection debug statement
-```? "bg type="; type(m.bg); " subtype="; m.bg.subtype()```
+## Colors
 
-## colors
+Roku uses an 8-character hex color code that allows for specifying both the RGB color values and an alpha channel for transparency, with the last two characters representing the transparency level. This is similar to the rgba() function in CSS, where the alpha channel determines the opacity of the color.
+
+Transparency Levels
+The alpha channel values range from 00 to FF:
+- 00: Fully transparent
+- FF: Fully opaque
+
 When assigning color in BrightScript do not assign string values, assign integer values.
 ```
 m.backdrop.color = &h000000FF
 ```
 
-# Newline
+## Newline
 Chr(10)
+
+## Type inspection debug statement
+```? "bg type="; type(m.bg); " subtype="; m.bg.subtype()```
