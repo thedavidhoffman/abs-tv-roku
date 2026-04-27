@@ -25,7 +25,7 @@ sub executeRequest()
     else if action = "loadLibrary" then
         m.top.response = loadLibrary(request)
     else if action = "startPlayback" then
-        m.top.response = startPlayback(request)
+        m.top.response = Playback_Start(request)
     else
         m.top.response = { ok: false, errorMessage: "Unknown request action." }
     end if
