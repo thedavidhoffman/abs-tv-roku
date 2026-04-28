@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="AppTask" extends="Task">
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />
   <script type="text/brightscript" uri="pkg:/source/api/HttpClient.brs" />
+  <script type="text/brightscript" uri="pkg:/source/api/Libraries.brs" />
+  <script type="text/brightscript" uri="pkg:/source/api/LibraryItems.brs" />
   <script type="text/brightscript" uri="pkg:/source/api/Authentication.brs" />
   <script type="text/brightscript" uri="pkg:/source/api/Playback.brs" />
   <script type="text/brightscript" uri="pkg:/components/tasks/AppTask.brs" />

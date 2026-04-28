@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="GridView_SeriesExpanded" extends="Group" focusable="true">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Library/GridView_SeriesExpanded.brs" />
+  <interface>
+    <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
+    <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
+    <field id="playSelected" type="assocarray" />
+    <field id="errorResponse" type="assocarray" />
+    <function name="focusLibraryList" />
+  </interface>
+  <children>
+    <Label
+      id="gridStatus"
+      translation="[64,144]"
+      width="1200"
+      numLines="2"
+      wrap="true"
+      color="F2C879FF"
+      visible="false" />
+    <PosterGrid
+      id="posterGrid"
+      translation="[64,144]"
+      itemSize="[280,280]"
+      itemSpacing="[28,36]"
+      numColumns="6"
+      numRows="3"
+      drawFocusFeedback="true"
+      vertFocusAnimationStyle="fixedFocus" />
+  </children>
+</component>

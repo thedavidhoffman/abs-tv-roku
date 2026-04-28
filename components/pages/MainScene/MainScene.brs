@@ -23,6 +23,7 @@ sub init()
     m.player.observeField("closeRequested", "onPlayerCloseRequested")
     m.player.observeField("errorResponse", "onPlayerError")
     m.settings.observeField("closeRequested", "onSettingsCloseRequested")
+    m.settings.observeField("settingsSaved", "onSettingsSaved")
     m.diagnostics.observeField("closeRequested", "onDiagnosticsCloseRequested")
     m.apiTask.observeField("response", "onApiResponse")
 
@@ -114,6 +115,9 @@ sub onApiResponse()
         m.isResumingSession = false
         storeAuthenticatedSession(response)
         showApp()
+        return
+    else if action = "loadLibrary" then
+        storeLibraryItems(response)
         return
     end if
 
@@ -216,6 +220,45 @@ end sub
 '-------------------------------------------------------------------------------
 sub onSettingsCloseRequested()
     if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+end sub
+
+'-------------------------------------------------------------------------------
+' onSettingsSaved
+'-------------------------------------------------------------------------------
+sub onSettingsSaved()
+    if m.library <> invalid and m.settings <> invalid then
+        m.library.displaySettings = m.settings.savedSettings
+    end if
+    reloadLibraryItems()
+end sub
+
+'-------------------------------------------------------------------------------
+' reloadLibraryItems
+'-------------------------------------------------------------------------------
+sub reloadLibraryItems()
+    if m.session = invalid then return
+    if m.session.server = invalid or m.session.server = "" then return
+    if m.session.token = invalid or m.session.token = "" then return
+    if m.apiTask = invalid then return
+
+    m.apiTask.request = {
+        action: "loadLibrary"
+        server: m.session.server
+        token: m.session.token
+        bookLibraryId: m.session.bookLibraryId
+    }
+    m.apiTask.control = "run"
+end sub
+
+'-------------------------------------------------------------------------------
+' storeLibraryItems
+'-------------------------------------------------------------------------------
+sub storeLibraryItems(response as object)
+    if response.bookLibraryId <> invalid and response.bookLibraryId <> "" then
+        m.session.bookLibraryId = response.bookLibraryId
+    end if
+
+    if m.library <> invalid then m.library.libraryItems = response.libraryItems
 end sub
 
 '-------------------------------------------------------------------------------

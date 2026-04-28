@@ -1,7 +1,15 @@
 # Roku Notes
 
+## Roku Developement
+
+Roku development is a strange beast. But once you get familiar with it, the Roku conventions and patterns generally make sense, and a somewhat cohesive system design unfolds with all the built in component/node types needed to make a Roku app for your TV.
+
 ## Links
-- https://developer.roku.com/docs/references
+
+Getting familiar with the [Roku Developer](https://developer.roku.com/docs/developer-program/getting-started/roku-dev-prog.md) and [Roku Reference](https://developer.roku.com/docs/references/references-overview.md) docs are essential to successfully taming the Roku beast.
+
+## Activating Developer Mode
+- https://developer.roku.com/en-au/docs/developer-program/getting-started/developer-setup.md
 
 ## Controls
 

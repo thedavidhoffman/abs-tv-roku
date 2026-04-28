@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="DiagnosticsDialog" extends="Group" focusable="true">
+  <script type="text/brightscript" uri="pkg:/components/pages/Diagnostics/DiagnosticsDialog.brs" />
+  <interface>
+    <field id="closeRequested" type="integer" />
+    <function name="openDiagnostics" />
+  </interface>
+  <children>
+    <Dialog
+      id="diagnosticsDialog"
+      title="Diagnostics"
+      dialogWidth="1200"
+      dialogHeight="900"
+      contentComponentName="DiagnosticsContent" />
+  </children>
+</component>

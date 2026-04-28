@@ -9,11 +9,17 @@ sub init()
     m.titleLabel = m.top.findNode("titleLabel")
     m.titleRule = m.top.findNode("titleRule")
     m.content = m.top.findNode("content")
+    m.footer = m.top.findNode("footer")
+    m.saveButton = m.top.findNode("saveButton")
+    m.cancelButton = m.top.findNode("cancelButton")
+    m.saveSelectedCounter = 0
+    m.cancelSelectedCounter = 0
 
     initStyle()
     updateDialogSize()
     updateTitle()
     updateContentComponent()
+    updateButtonVisibility()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -24,6 +30,7 @@ sub openDialog()
 
     m.dialog.visible = true
     m.top.setFocus(true)
+    focusContent()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -37,6 +44,49 @@ sub closeDialog()
 end sub
 
 '-------------------------------------------------------------------------------
+' getContentComponent
+'-------------------------------------------------------------------------------
+function getContentComponent() as object
+    return m.contentComponent
+end function
+
+'-------------------------------------------------------------------------------
+' focusContent
+'-------------------------------------------------------------------------------
+function focusContent() as boolean
+    updateButtonFocus("")
+    if m.contentComponent <> invalid and m.contentComponent.focusable = true then
+        m.contentComponent.setFocus(true)
+        return true
+    end if
+
+    m.top.setFocus(true)
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' focusSaveButton
+'-------------------------------------------------------------------------------
+function focusSaveButton() as boolean
+    if hasButtons() = false or m.saveButton = invalid then return false
+
+    updateButtonFocus("save")
+    m.saveButton.setFocus(true)
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' focusCancelButton
+'-------------------------------------------------------------------------------
+function focusCancelButton() as boolean
+    if hasButtons() = false or m.cancelButton = invalid then return false
+
+    updateButtonFocus("cancel")
+    m.cancelButton.setFocus(true)
+    return true
+end function
+
+'-------------------------------------------------------------------------------
 ' initStyle
 '-------------------------------------------------------------------------------
 sub initStyle()
@@ -44,6 +94,7 @@ sub initStyle()
 
     if m.backdrop <> invalid then m.backdrop.color = colors.dialog.backdrop
     if m.panel <> invalid then m.panel.color = colors.dialog.background
+    if m.footer <> invalid then m.footer.color = &h00000040
     if m.titleLabel <> invalid then m.titleLabel.color = &hF3F7FBFF
     if m.titleRule <> invalid then m.titleRule.color = &hF3F7FB33
 end sub
@@ -70,6 +121,14 @@ sub onContentComponentNameChanged()
 end sub
 
 '-------------------------------------------------------------------------------
+' onShowButtonsChanged
+'-------------------------------------------------------------------------------
+sub onShowButtonsChanged()
+    updateButtonVisibility()
+    updateDialogSize()
+end sub
+
+'-------------------------------------------------------------------------------
 ' updateContentComponent
 '-------------------------------------------------------------------------------
 sub updateContentComponent()
@@ -85,6 +144,32 @@ sub updateContentComponent()
 
     m.contentComponent = CreateObject("roSGNode", componentName)
     if m.contentComponent <> invalid then m.content.appendChild(m.contentComponent)
+end sub
+
+'-------------------------------------------------------------------------------
+' hasButtons
+'-------------------------------------------------------------------------------
+function hasButtons() as boolean
+    return m.top.showButtons = true
+end function
+
+'-------------------------------------------------------------------------------
+' updateButtonVisibility
+'-------------------------------------------------------------------------------
+sub updateButtonVisibility()
+    isVisible = hasButtons()
+    if m.footer <> invalid then m.footer.visible = isVisible
+    if m.saveButton <> invalid then m.saveButton.visible = isVisible
+    if m.cancelButton <> invalid then m.cancelButton.visible = isVisible
+    if isVisible = false then updateButtonFocus("")
+end sub
+
+'-------------------------------------------------------------------------------
+' updateButtonFocus
+'-------------------------------------------------------------------------------
+sub updateButtonFocus(focusedButton as string)
+    if m.saveButton <> invalid then m.saveButton.hasFocusVisual = (focusedButton = "save")
+    if m.cancelButton <> invalid then m.cancelButton.hasFocusVisual = (focusedButton = "cancel")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -118,6 +203,20 @@ sub updateDialogSize()
     if m.content <> invalid then
         m.content.translation = [panelX + contentMargin, panelY + 170]
     end if
+
+    if m.footer <> invalid then
+        m.footer.translation = [panelX, panelY + dialogHeight - 120]
+        m.footer.width = dialogWidth
+        m.footer.height = 120
+    end if
+
+    if m.saveButton <> invalid then
+        m.saveButton.translation = [panelX + contentMargin, panelY + dialogHeight - 90]
+    end if
+
+    if m.cancelButton <> invalid then
+        m.cancelButton.translation = [panelX + contentMargin + 140, panelY + dialogHeight - 90]
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -148,10 +247,69 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
     if m.dialog = invalid or m.dialog.visible = false then return false
 
-    if key = "back" or key = "OK" or key = "select" then
+    if key = "back" then
+        closeDialog()
+        return true
+    end if
+
+    if hasButtons() then
+        if m.contentComponent <> invalid and m.contentComponent.isInFocusChain() then
+            if key = "down" and contentCanMoveToButtons() then return focusSaveButton()
+            return false
+        end if
+
+        if m.saveButton <> invalid and m.saveButton.isInFocusChain() then
+            if key = "up" then return focusContentLastField()
+            if key = "right" then return focusCancelButton()
+            if key = "OK" or key = "select" then
+                m.saveSelectedCounter = m.saveSelectedCounter + 1
+                m.top.saveSelected = m.saveSelectedCounter
+                return true
+            end if
+        end if
+
+        if m.cancelButton <> invalid and m.cancelButton.isInFocusChain() then
+            if key = "up" then return focusContentLastField()
+            if key = "left" then return focusSaveButton()
+            if key = "OK" or key = "select" then
+                m.cancelSelectedCounter = m.cancelSelectedCounter + 1
+                m.top.cancelSelected = m.cancelSelectedCounter
+                closeDialog()
+                return true
+            end if
+        end if
+
+        return false
+    end if
+
+    if key = "OK" or key = "select" then
         closeDialog()
         return true
     end if
 
     return true
+end function
+
+'-------------------------------------------------------------------------------
+' contentCanMoveToButtons
+'-------------------------------------------------------------------------------
+function contentCanMoveToButtons() as boolean
+    if m.contentComponent = invalid then return true
+
+    canMove = m.contentComponent.callFunc("canMoveFocusToButtons")
+    if canMove = invalid then return true
+    return canMove
+end function
+
+'-------------------------------------------------------------------------------
+' focusContentLastField
+'-------------------------------------------------------------------------------
+function focusContentLastField() as boolean
+    updateButtonFocus("")
+    if m.contentComponent <> invalid then
+        m.contentComponent.callFunc("focusLastField")
+        return true
+    end if
+
+    return focusContent()
 end function

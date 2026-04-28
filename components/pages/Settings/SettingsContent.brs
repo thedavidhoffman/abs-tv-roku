@@ -158,6 +158,13 @@ function getSettingsValues() as object
 end function
 
 '-------------------------------------------------------------------------------
+' canMoveFocusToButtons
+'-------------------------------------------------------------------------------
+function canMoveFocusToButtons() as boolean
+    return isFocusedAtLastItem(m.displayOptions)
+end function
+
+'-------------------------------------------------------------------------------
 ' isOptionsFocused
 '-------------------------------------------------------------------------------
 function isOptionsFocused(list as dynamic) as boolean

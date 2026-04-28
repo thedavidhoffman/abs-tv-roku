@@ -14,6 +14,7 @@
 ## BrightScript naming
 
 - Use module-style function prefixes, such as `AuthStore_Load` or `Playback_Start`, for shared helpers under `/source`.
+- For helpers under `/source` that are internal to a single file, use a leading `_` prefix instead of the public module prefix, such as `_GetCollapseSeriesQueryValue`.
 - Do not use module-style prefixes for component-local functions in `components/`; name those functions by their local behavior, such as `initStyle`, `onKeyEvent`, or `colorString`.
 
 ## Commenting Style

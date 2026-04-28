@@ -17,13 +17,13 @@ sub executeRequest()
 
     action = request.action
     if action = "login" then
-        m.top.response = Authentication_Login(request)
+        m.top.response = login(request)
     else if action = "authorize" then
-        m.top.response = Authentication_AuthorizeToken(request)
+        m.top.response = authorize(request)
     else if action = "logout" then
         m.top.response = Authentication_Logout(request)
     else if action = "loadLibrary" then
-        m.top.response = loadLibrary(request)
+        m.top.response = LibraryItems_Load(request)
     else if action = "startPlayback" then
         m.top.response = Playback_Start(request)
     else
@@ -32,53 +32,29 @@ sub executeRequest()
 end sub
 
 '-------------------------------------------------------------------------------
-' loadLibrary
+' login
 '-------------------------------------------------------------------------------
-function loadLibrary(request as Object) as Object
-    server = NormalizeServerUrl(request.server)
-    token = request.token
-    bookLibraryId = request.bookLibraryId
+function login(request as Object) as Object
+    authResult = Authentication_Login(request)
+    if authResult.ok <> true then return authResult
 
-    if bookLibraryId = invalid or bookLibraryId = "" then
-        authResult = HttpClient_Request(server + "/api/authorize", "POST", token, "")
-        if authResult.ok <> true then return authResult
-        bookLibraryId = ResolveBookLibraryId(authResult.data)
-    end if
+    librariesResult = Libraries_Load(authResult.server, authResult.payload.user.token)
+    if librariesResult.ok <> true then return librariesResult
 
-    if bookLibraryId = invalid or bookLibraryId = "" then
-        return { ok: false, errorMessage: "No book library was found for this account." }
-    end if
-
-    allItems = []
-    page = 0
-    limit = 100
-    keepLoading = true
-
-    while keepLoading
-        libraryUrl = server + "/api/libraries/" + bookLibraryId + "/items?limit=" + limit.ToStr() + "&page=" + page.ToStr() + "&sort=media.metadata.title&desc=0&minified=0&collapseseries=0"
-        libraryResult = HttpClient_Request(libraryUrl, "GET", token, invalid)
-        if libraryResult.ok <> true then return libraryResult
-
-        results = invalid
-        if libraryResult.data <> invalid and libraryResult.data.results <> invalid then results = libraryResult.data.results
-
-        if results = invalid or results.Count() = 0 then
-            keepLoading = false
-        else
-            for each item in results
-                allItems.Push(item)
-            end for
-
-            page = page + 1
-            keepLoading = (results.Count() = limit)
-        end if
-    end while
-
-    return {
-        ok: true
-        action: "loadLibrary"
-        bookLibraryId: bookLibraryId
-        libraryItems: allItems
-    }
+    authResult.libraries = librariesResult.libraries
+    return authResult
 end function
 
+'-------------------------------------------------------------------------------
+' authorize
+'-------------------------------------------------------------------------------
+function authorize(request as Object) as Object
+    authResult = Authentication_AuthorizeToken(request)
+    if authResult.ok <> true then return authResult
+
+    librariesResult = Libraries_Load(authResult.server, request.token)
+    if librariesResult.ok <> true then return librariesResult
+
+    authResult.libraries = librariesResult.libraries
+    return authResult
+end function

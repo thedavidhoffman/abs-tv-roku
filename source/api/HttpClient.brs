@@ -23,7 +23,7 @@ function HttpClient_Request(url as String, method as String, token as Dynamic, b
     status = 0
     if method = "POST" then
         transfer.AddHeader("Content-Type", "application/json")
-        requestStarted = transfer.AsyncPostFromString(InvalidToEmpty(body))
+        requestStarted = transfer.AsyncPostFromString(__InvalidToEmpty(body))
     else
         requestStarted = transfer.AsyncGetToString()
     end if
@@ -79,7 +79,7 @@ end function
 '-------------------------------------------------------------------------------
 ' InvalidToEmpty
 '-------------------------------------------------------------------------------
-function InvalidToEmpty(value as Dynamic) as String
+function __InvalidToEmpty(value as Dynamic) as String
     if value = invalid then return ""
     return value
 end function

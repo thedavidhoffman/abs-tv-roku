@@ -13,14 +13,11 @@ function Authentication_Login(request as Object) as Object
     if payload = invalid or payload.user = invalid or payload.user.token = invalid then
         return { ok: false, errorMessage: "The server response did not include a token." }
     end if
-    librariesResult = LoadLibraries(server, payload.user.token)
-    if librariesResult.ok <> true then return librariesResult
     return {
         ok: true
         action: "login"
         server: server
         payload: payload
-        libraries: librariesResult.libraries
     }
 end function
 
@@ -31,15 +28,12 @@ function Authentication_AuthorizeToken(request as Object) as Object
     server = NormalizeServerUrl(request.server)
     result = HttpClient_Request(server + "/api/authorize", "POST", request.token, "")
     if result.ok <> true then return result
-    librariesResult = LoadLibraries(server, request.token)
-    if librariesResult.ok <> true then return librariesResult
     return {
         ok: true
         action: "authorize"
         server: server
         token: request.token
         payload: result.data
-        libraries: librariesResult.libraries
     }
 end function
 
@@ -53,44 +47,4 @@ function Authentication_Logout(request as Object) as Object
         return result
     end if
     return { ok: true, action: "logout" }
-end function
-
-'-------------------------------------------------------------------------------
-' LoadLibraries
-'-------------------------------------------------------------------------------
-function LoadLibraries(server as String, token as Dynamic) as Object
-    result = HttpClient_Request(server + "/api/libraries", "GET", token, invalid)
-    if result.ok <> true then return result
-
-    return {
-        ok: true
-        libraries: MapLibraries(result.data)
-    }
-end function
-
-'-------------------------------------------------------------------------------
-' MapLibraries
-'-------------------------------------------------------------------------------
-function MapLibraries(payload as Dynamic) as Object
-    mappedLibraries = []
-    libraries = invalid
-
-    if payload <> invalid then
-        if payload.libraries <> invalid then
-            libraries = payload.libraries
-        else if Type(payload) = "roArray" then
-            libraries = payload
-        end if
-    end if
-
-    if libraries <> invalid then
-        for each library in libraries
-            mappedLibraries.Push({
-                id: library.id
-                name: library.name
-            })
-        end for
-    end if
-
-    return mappedLibraries
 end function

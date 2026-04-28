@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="Library" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Library/Library.brs" />
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
-    <field id="libraryItems" type="array" />
+    <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
+    <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
     <field id="playSelected" type="assocarray" />
     <field id="errorResponse" type="assocarray" />
     <function name="focusLibraryList" />
   </interface>
   <children>
-    <ListView id="listView" />
+    <ListView_SeriesExpanded id="listView" />
+    <GridView_SeriesExpanded id="gridView" visible="false" />
+    <GridView_SeriesCollapsed id="collapsedGridView" visible="false" />
   </children>
 </component>

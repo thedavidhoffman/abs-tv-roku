@@ -7,9 +7,16 @@
     <field id="dialogWidth" type="integer" onChange="onDialogSizeChanged" />
     <field id="dialogHeight" type="integer" onChange="onDialogSizeChanged" />
     <field id="contentComponentName" type="string" onChange="onContentComponentNameChanged" />
+    <field id="showButtons" type="boolean" onChange="onShowButtonsChanged" />
+    <field id="saveSelected" type="integer" />
+    <field id="cancelSelected" type="integer" />
     <field id="closeRequested" type="integer" />
     <function name="openDialog" />
     <function name="closeDialog" />
+    <function name="getContentComponent" />
+    <function name="focusContent" />
+    <function name="focusSaveButton" />
+    <function name="focusCancelButton" />
   </interface>
   <children>
     <Group id="dialog" visible="false">
@@ -36,6 +43,21 @@
       <Group
         id="content"
         translation="[180,260]" />
+      <Rectangle
+        id="footer"
+        visible="false" />
+      <PrimaryButton
+        id="saveButton"
+        visible="false"
+        buttonWidth="120"
+        buttonHeight="56"
+        text="Save" />
+      <PrimaryButton
+        id="cancelButton"
+        visible="false"
+        buttonWidth="160"
+        buttonHeight="56"
+        text="Cancel" />
     </Group>
   </children>
 </component>

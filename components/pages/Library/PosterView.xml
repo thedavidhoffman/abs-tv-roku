@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8" ?>
-<component name="PosterView" extends="Group">
-  <script type="text/brightscript" uri="pkg:/components/pages/Library/PosterView.brs" />
-  <interface>
-  </interface>
-  <children>
-  </children>
-</component>

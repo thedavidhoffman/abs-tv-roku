@@ -32,7 +32,7 @@ function Playback_Start(request as Object) as Object
     itemPayload = invalid
     if itemResult.ok = true then itemPayload = itemResult.data
 
-    tracks = Playback_Internal_MapTracks(server, token, result.data, itemPayload)
+    tracks = __Playback_MapTracks(server, token, result.data, itemPayload)
     if tracks.Count() = 0 then
         return { ok: false, errorMessage: "No playable audio tracks were returned." }
     end if
@@ -48,59 +48,59 @@ function Playback_Start(request as Object) as Object
 end function
 
 '-------------------------------------------------------------------------------
-' Playback_Internal_MapTracks
+' __Playback_MapTracks
 '-------------------------------------------------------------------------------
-function Playback_Internal_MapTracks(server as String, token as Dynamic, payload as Dynamic, itemPayload as Dynamic) as Object
+function __Playback_MapTracks(server as String, token as Dynamic, payload as Dynamic, itemPayload as Dynamic) as Object
     mappedTracks = []
-    tracks = Playback_Internal_GetSessionTracks(payload)
-    files = Playback_Internal_GetSessionFiles(payload, itemPayload)
+    tracks = __Playback_GetSessionTracks(payload)
+    files = __Playback_GetSessionFiles(payload, itemPayload)
     sessionId = invalid
 
     if payload <> invalid and payload.id <> invalid then sessionId = payload.id
 
-    ? "playback mapping"; " audioTracks="; Playback_Internal_GetArrayCount(tracks); " files="; Playback_Internal_GetArrayCount(files)
+    ? "playback mapping"; " audioTracks="; __Playback_GetArrayCount(tracks); " files="; __Playback_GetArrayCount(files)
 
     if files <> invalid and files.Count() > 0 and tracks <> invalid and tracks.Count() = 1 then
         track = tracks[0]
         startPositionSeconds = 0
         for i = 0 to files.Count() - 1
             file = files[i]
-            durationSeconds = Playback_Internal_GetTrackDurationSeconds(file, track)
+            durationSeconds = __Playback_GetTrackDurationSeconds(file, track)
             mappedTracks.Push({
-                url: Playback_Internal_BuildUrl(server, token, sessionId, track)
-                title: Playback_Internal_GetTrackTitle(file, track, i)
+                url: __Playback_BuildUrl(server, token, sessionId, track)
+                title: __Playback_GetTrackTitle(file, track, i)
                 durationSeconds: durationSeconds
                 startPositionSeconds: startPositionSeconds
-                mimeType: Playback_Internal_GetTrackMimeType(file, track)
+                mimeType: __Playback_GetTrackMimeType(file, track)
             })
             startPositionSeconds = startPositionSeconds + durationSeconds
         end for
     else if files <> invalid and files.Count() > 0 and (tracks = invalid or files.Count() > tracks.Count()) then
         for i = 0 to files.Count() - 1
             file = files[i]
-            track = Playback_Internal_GetTrackForFileIndex(tracks, file, i)
-            url = Playback_Internal_BuildFileUrl(server, token, sessionId, file, track, i)
+            track = __Playback_GetTrackForFileIndex(tracks, file, i)
+            url = __Playback_BuildFileUrl(server, token, sessionId, file, track, i)
             if url <> "" then
                 mappedTracks.Push({
                     url: url
-                    title: Playback_Internal_GetTrackTitle(file, track, i)
-                    durationSeconds: Playback_Internal_GetTrackDurationSeconds(file, track)
-                    mimeType: Playback_Internal_GetTrackMimeType(file, track)
+                    title: __Playback_GetTrackTitle(file, track, i)
+                    durationSeconds: __Playback_GetTrackDurationSeconds(file, track)
+                    mimeType: __Playback_GetTrackMimeType(file, track)
                 })
             end if
         end for
     else if tracks <> invalid then
         for i = 0 to tracks.Count() - 1
             track = tracks[i]
-            file = Playback_Internal_GetFileForTrack(files, track, i)
+            file = __Playback_GetFileForTrack(files, track, i)
             contentUrl = invalid
             if track.contentUrl <> invalid then contentUrl = track.contentUrl
             if contentUrl <> invalid and contentUrl <> "" then
                 mappedTracks.Push({
-                    url: Playback_Internal_BuildUrl(server, token, sessionId, track)
-                    title: Playback_Internal_GetTrackTitle(file, track, i)
-                    durationSeconds: Playback_Internal_GetTrackDurationSeconds(file, track)
-                    mimeType: Playback_Internal_GetTrackMimeType(file, track)
+                    url: __Playback_BuildUrl(server, token, sessionId, track)
+                    title: __Playback_GetTrackTitle(file, track, i)
+                    durationSeconds: __Playback_GetTrackDurationSeconds(file, track)
+                    mimeType: __Playback_GetTrackMimeType(file, track)
                 })
             end if
         end for
@@ -110,20 +110,20 @@ function Playback_Internal_MapTracks(server as String, token as Dynamic, payload
 end function
 
 '-------------------------------------------------------------------------------
-' Playback_Internal_GetArrayCount
+' __Playback_GetArrayCount
 '-------------------------------------------------------------------------------
-function Playback_Internal_GetArrayCount(values as Dynamic) as Integer
+function __Playback_GetArrayCount(values as Dynamic) as Integer
     if values = invalid then return 0
     return values.Count()
 end function
 
 '-------------------------------------------------------------------------------
-' Playback_Internal_GetTrackForFileIndex
+' __Playback_GetTrackForFileIndex
 '-------------------------------------------------------------------------------
-function Playback_Internal_GetTrackForFileIndex(tracks as Dynamic, file as Dynamic, fallbackIndex as Integer) as Dynamic
+function __Playback_GetTrackForFileIndex(tracks as Dynamic, file as Dynamic, fallbackIndex as Integer) as Dynamic
     if tracks = invalid or tracks.Count() = 0 then return invalid
 
-    fileIndex = Playback_Internal_GetFileIndex(file, fallbackIndex)
+    fileIndex = __Playback_GetFileIndex(file, fallbackIndex)
     for each track in tracks
         if track.index <> invalid and int(val(track.index.ToStr())) = fileIndex then return track
         if track.trackNum <> invalid and int(val(track.trackNum.ToStr())) = fileIndex then return track
@@ -134,9 +134,9 @@ function Playback_Internal_GetTrackForFileIndex(tracks as Dynamic, file as Dynam
 end function
 
 '-------------------------------------------------------------------------------
-' Playback_Internal_GetFileIndex
+' __Playback_GetFileIndex
 '-------------------------------------------------------------------------------
-function Playback_Internal_GetFileIndex(file as Dynamic, fallbackIndex as Integer) as Integer
+function __Playback_GetFileIndex(file as Dynamic, fallbackIndex as Integer) as Integer
     if file <> invalid then
         if file.index <> invalid then return int(val(file.index.ToStr()))
         if file.trackNum <> invalid then return int(val(file.trackNum.ToStr()))
@@ -146,28 +146,28 @@ function Playback_Internal_GetFileIndex(file as Dynamic, fallbackIndex as Intege
 end function
 
 '-------------------------------------------------------------------------------
-' Playback_Internal_BuildFileUrl
+' __Playback_BuildFileUrl
 '-------------------------------------------------------------------------------
-function Playback_Internal_BuildFileUrl(server as String, token as Dynamic, sessionId as Dynamic, file as Dynamic, track as Dynamic, fallbackIndex as Integer) as String
+function __Playback_BuildFileUrl(server as String, token as Dynamic, sessionId as Dynamic, file as Dynamic, track as Dynamic, fallbackIndex as Integer) as String
     if track <> invalid and track.contentUrl <> invalid and track.contentUrl <> "" then
-        return Playback_Internal_BuildUrl(server, token, sessionId, track)
+        return __Playback_BuildUrl(server, token, sessionId, track)
     end if
 
     if file <> invalid and file.contentUrl <> invalid and file.contentUrl <> "" then
-        return Playback_Internal_BuildUrl(server, token, sessionId, file)
+        return __Playback_BuildUrl(server, token, sessionId, file)
     end if
 
     if sessionId <> invalid and sessionId <> "" then
-        return server + "/public/session/" + sessionId + "/track/" + Playback_Internal_GetFileIndex(file, fallbackIndex).ToStr()
+        return server + "/public/session/" + sessionId + "/track/" + __Playback_GetFileIndex(file, fallbackIndex).ToStr()
     end if
 
     return ""
 end function
 
 '-------------------------------------------------------------------------------
-' Playback_Internal_GetSessionTracks
+' __Playback_GetSessionTracks
 '-------------------------------------------------------------------------------
-function Playback_Internal_GetSessionTracks(payload as Dynamic) as Dynamic
+function __Playback_GetSessionTracks(payload as Dynamic) as Dynamic
     if payload = invalid then return invalid
 
     if payload.audioTracks <> invalid then return payload.audioTracks
@@ -179,20 +179,20 @@ function Playback_Internal_GetSessionTracks(payload as Dynamic) as Dynamic
 end function
 
 '-------------------------------------------------------------------------------
-' Playback_Internal_GetSessionFiles
+' __Playback_GetSessionFiles
 '-------------------------------------------------------------------------------
-function Playback_Internal_GetSessionFiles(payload as Dynamic, itemPayload as Dynamic) as Dynamic
-    files = Playback_Internal_GetItemFiles(itemPayload)
+function __Playback_GetSessionFiles(payload as Dynamic, itemPayload as Dynamic) as Dynamic
+    files = __Playback_GetItemFiles(itemPayload)
     if files <> invalid then return files
 
-    if payload <> invalid and payload.libraryItem <> invalid then return Playback_Internal_GetItemFiles(payload.libraryItem)
-    return Playback_Internal_GetItemFiles(payload)
+    if payload <> invalid and payload.libraryItem <> invalid then return __Playback_GetItemFiles(payload.libraryItem)
+    return __Playback_GetItemFiles(payload)
 end function
 
 '-------------------------------------------------------------------------------
-' Playback_Internal_GetItemFiles
+' __Playback_GetItemFiles
 '-------------------------------------------------------------------------------
-function Playback_Internal_GetItemFiles(item as Dynamic) as Dynamic
+function __Playback_GetItemFiles(item as Dynamic) as Dynamic
     if item = invalid or item.media = invalid then return invalid
 
     if item.media.audioFiles <> invalid then return item.media.audioFiles
@@ -201,9 +201,9 @@ function Playback_Internal_GetItemFiles(item as Dynamic) as Dynamic
 end function
 
 '-------------------------------------------------------------------------------
-' Playback_Internal_GetFileForTrack
+' __Playback_GetFileForTrack
 '-------------------------------------------------------------------------------
-function Playback_Internal_GetFileForTrack(files as Dynamic, track as Dynamic, fallbackIndex as Integer) as Dynamic
+function __Playback_GetFileForTrack(files as Dynamic, track as Dynamic, fallbackIndex as Integer) as Dynamic
     if files = invalid or files.Count() = 0 then return invalid
 
     trackIndex = fallbackIndex
@@ -219,9 +219,9 @@ function Playback_Internal_GetFileForTrack(files as Dynamic, track as Dynamic, f
 end function
 
 '-------------------------------------------------------------------------------
-' Playback_Internal_GetTrackTitle
+' __Playback_GetTrackTitle
 '-------------------------------------------------------------------------------
-function Playback_Internal_GetTrackTitle(file as Dynamic, track as Dynamic, index as Integer) as String
+function __Playback_GetTrackTitle(file as Dynamic, track as Dynamic, index as Integer) as String
     title = ""
 
     if file <> invalid then
@@ -243,9 +243,9 @@ function Playback_Internal_GetTrackTitle(file as Dynamic, track as Dynamic, inde
 end function
 
 '-------------------------------------------------------------------------------
-' Playback_Internal_GetTrackMimeType
+' __Playback_GetTrackMimeType
 '-------------------------------------------------------------------------------
-function Playback_Internal_GetTrackMimeType(file as Dynamic, track as Dynamic) as String
+function __Playback_GetTrackMimeType(file as Dynamic, track as Dynamic) as String
     if track <> invalid and track.mimeType <> invalid then return SafeString(track.mimeType, "audio/mpeg")
     if file <> invalid and file.mimeType <> invalid then return SafeString(file.mimeType, "audio/mpeg")
     if file <> invalid and file.metadata <> invalid and file.metadata.mimeType <> invalid then return SafeString(file.metadata.mimeType, "audio/mpeg")
@@ -253,9 +253,9 @@ function Playback_Internal_GetTrackMimeType(file as Dynamic, track as Dynamic) a
 end function
 
 '-------------------------------------------------------------------------------
-' Playback_Internal_GetTrackDurationSeconds
+' __Playback_GetTrackDurationSeconds
 '-------------------------------------------------------------------------------
-function Playback_Internal_GetTrackDurationSeconds(file as Dynamic, track as Dynamic) as Integer
+function __Playback_GetTrackDurationSeconds(file as Dynamic, track as Dynamic) as Integer
     duration = invalid
 
     if file <> invalid then
@@ -273,9 +273,9 @@ function Playback_Internal_GetTrackDurationSeconds(file as Dynamic, track as Dyn
 end function
 
 '-------------------------------------------------------------------------------
-' Playback_Internal_BuildUrl
+' __Playback_BuildUrl
 '-------------------------------------------------------------------------------
-function Playback_Internal_BuildUrl(server as String, token as Dynamic, sessionId as Dynamic, track as Dynamic) as String
+function __Playback_BuildUrl(server as String, token as Dynamic, sessionId as Dynamic, track as Dynamic) as String
     contentUrl = SafeString(track.contentUrl, "")
 
     if sessionId <> invalid and sessionId <> "" and Instr(1, LCase(contentUrl), "/hls") <> 1 then
@@ -288,7 +288,7 @@ function Playback_Internal_BuildUrl(server as String, token as Dynamic, sessionI
         url = server + url
     end if
 
-    url = Playback_Internal_ReplaceString(url, " ", "%20")
+    url = __Playback_ReplaceString(url, " ", "%20")
     separator = "?"
     if Instr(1, url, "?") > 0 then separator = "&"
     if token <> invalid and token <> "" then url = url + separator + "token=" + token
@@ -296,9 +296,9 @@ function Playback_Internal_BuildUrl(server as String, token as Dynamic, sessionI
 end function
 
 '-------------------------------------------------------------------------------
-' Playback_Internal_ReplaceString
+' __Playback_ReplaceString
 '-------------------------------------------------------------------------------
-function Playback_Internal_ReplaceString(value as String, oldValue as String, newValue as String) as String
+function __Playback_ReplaceString(value as String, oldValue as String, newValue as String) as String
     result = ""
     remaining = value
     index = Instr(1, remaining, oldValue)

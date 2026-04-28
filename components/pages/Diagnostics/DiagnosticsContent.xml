@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="DiagnosticsContent" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
+  <script type="text/brightscript" uri="pkg:/source/store/AuthStore.brs" />
+  <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Diagnostics/DiagnosticsContent.brs" />
+  <interface>
+    <function name="updateDiagnostics" />
+  </interface>
+  <children>
+    <!-- roku device information -->
+    <Label
+      id="deviceSectionTitle"
+      translation="[0,0]"
+      width="500"
+      height="40"
+      text="Roku Device Information"
+      font="font:MediumBoldSystemFont" />
+    <Label
+      id="deviceInfoKeysLabel"
+      translation="[0,50]"
+      width="260"
+      height="330"
+      wrap="true"
+      font="font:SmallestBoldSystemFont" />
+    <Label
+      id="deviceInfoValuesLabel"
+      translation="[280,50]"
+      width="800"
+      height="330"
+      wrap="true"
+      font="font:SmallestSystemFont" />
+
+    <!-- application registry -->
+    <Label
+      id="registrySectionTitle"
+      translation="[0,340]"
+      width="1080"
+      height="40"
+      text="Application Registry"
+      font="font:MediumBoldSystemFont" />
+    <Label
+      id="registryKeysLabel"
+      translation="[0,390]"
+      width="260"
+      height="290"
+      wrap="true"
+      font="font:SmallestBoldSystemFont" />
+    <Label
+      id="registryValuesLabel"
+      translation="[280,390]"
+      width="800"
+      height="290"
+      wrap="true"
+      font="font:SmallestSystemFont" />
+  </children>
+</component>

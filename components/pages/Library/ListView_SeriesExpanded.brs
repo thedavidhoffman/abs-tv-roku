@@ -125,7 +125,7 @@ sub onLibraryItemsChanged()
     m.libraryList.content = root
     if m.libraryItemsByRow.Count() > 0 then
         showSelectedItem(m.libraryItemsByRow[0])
-        m.libraryList.setFocus(true)
+        if m.top.visible then m.libraryList.setFocus(true)
     else
         showSelectedItem(invalid)
     end if
