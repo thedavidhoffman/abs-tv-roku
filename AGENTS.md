@@ -11,6 +11,11 @@
 - https://github.com/rokudev/samples
 - https://developer.roku.com/en-au/docs/references/references-overview.md
 
+## BrightScript naming
+
+- Use module-style function prefixes, such as `AuthStore_Load` or `Playback_Start`, for shared helpers under `/source`.
+- Do not use module-style prefixes for component-local functions in `components/`; name those functions by their local behavior, such as `initStyle`, `onKeyEvent`, or `colorString`.
+
 ## Commenting Style
 
 - Add a three-line comment header immediately above each function definition in `src/config.js`.

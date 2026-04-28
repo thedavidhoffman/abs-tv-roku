@@ -17,7 +17,7 @@
 
     </Group>
 
-    <Settings id="settings" visible="false" />
+    <Settings id="settings" />
 
     <Player id="player" visible="false" />
 

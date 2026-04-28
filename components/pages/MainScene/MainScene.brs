@@ -205,17 +205,13 @@ end sub
 '-------------------------------------------------------------------------------
 sub onSettingsPressed()
     closeHeaderMenu()
-    if m.settings <> invalid then
-        m.settings.visible = true
-        m.settings.setFocus(true)
-    end if
+    if m.settings <> invalid then m.settings.callFunc("openSettings")
 end sub
 
 '-------------------------------------------------------------------------------
 ' onSettingsCloseRequested
 '-------------------------------------------------------------------------------
 sub onSettingsCloseRequested()
-    if m.settings <> invalid then m.settings.visible = false
     if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
 end sub
 
@@ -314,14 +310,6 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
     if m.player <> invalid and m.player.visible then
-        return false
-    end if
-
-    if m.settings <> invalid and m.settings.visible then
-        if key = "back" then
-            onSettingsCloseRequested()
-            return true
-        end if
         return false
     end if
 

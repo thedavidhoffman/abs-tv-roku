@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="SettingsDialog" extends="StandardDialog" width="900">
+  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Settings/SettingsDialog.brs" />
+  <interface>
+    <function name="focusCustomItem" />
+  </interface>
+  <children>
+    <StdDlgTitleArea
+      id="titleArea"
+      primaryTitle="Settings" />
+    <StdDlgContentArea id="contentArea" />
+    <StdDlgButtonArea id="buttonArea">
+      <StdDlgButton
+        id="saveButton"
+        text="Save" />
+      <StdDlgButton
+        id="cancelButton"
+        text="Cancel" />
+    </StdDlgButtonArea>
+  </children>
+</component>
