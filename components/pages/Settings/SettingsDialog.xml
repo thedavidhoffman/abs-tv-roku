@@ -1,22 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
-<component name="SettingsDialog" extends="StandardDialog" width="900">
+<component name="SettingsDialog" extends="Group" focusable="true">
   <script type="text/brightscript" uri="pkg:/source/Color.brs" />
+  <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Settings/SettingsDialog.brs" />
   <interface>
-    <function name="focusCustomItem" />
+    <field id="closeRequested" type="integer" />
+    <function name="openSettings" />
   </interface>
   <children>
-    <StdDlgTitleArea
-      id="titleArea"
-      primaryTitle="Settings" />
-    <StdDlgContentArea id="contentArea" />
-    <StdDlgButtonArea id="buttonArea">
-      <StdDlgButton
-        id="saveButton"
-        text="Save" />
-      <StdDlgButton
+    <Group id="settingsDialog" visible="false">
+      <Rectangle
+        id="settingsBackdrop"
+        width="1920"
+        height="1080"
+        color="00000099" />
+      <Rectangle
+        id="settingsPanel"
+        translation="[510,170]"
+        width="900"
+        height="650" />
+      <Label
+        id="settingsTitle"
+        translation="[570,230]"
+        width="780"
+        height="56"
+        text="Settings"
+        font="font:LargeSystemFont" />
+      <Rectangle
+        id="settingsTitleRule"
+        translation="[570,296]"
+        width="780"
+        height="2" />
+      <SettingsForm
+        id="settingsForm"
+        translation="[570,342]" />
+      <PrimaryButton
         id="cancelButton"
+        translation="[710,700]"
+        buttonWidth="160"
+        buttonHeight="56"
         text="Cancel" />
-    </StdDlgButtonArea>
+      <PrimaryButton
+        id="saveButton"
+        translation="[570,700]"
+        buttonWidth="120"
+        buttonHeight="56"
+        text="Save" />
+    </Group>
   </children>
 </component>

@@ -10,25 +10,29 @@
 '-------------------------------------------------------------------------------
 ' Color
 '-------------------------------------------------------------------------------
-function Color() as object
+function Color(themeName = "Default" as string) as object
+    if themeName = "Default" then return ThemeDefault()
 
-    PRIMARY_BUTTON_HIGHLIGHT = &h0F1A2AFF
-    PRIMARY_BUTTON_HIGHLIGHT_HEX = "0xh0F1A2AFF"
+    return ThemeDefault()
+end function
+
+'-------------------------------------------------------------------------------
+' ThemeDefault
+'-------------------------------------------------------------------------------
+function ThemeDefault() as object
+
+    BACKGROUND_PRIMARY = &h292836FF
+    BACKGROUND_SECONDARY = &h313040FF
 
     return {
         background: {
             header: &h12112BFF
-            primary: &h292836FF
-            secondary: &h313040FF
+            primary: BACKGROUND_PRIMARY
+            secondary: BACKGROUND_SECONDARY
         }
         dialog: {
-            backgroundHex: "0x313040FF"
-            titleHex: "0xF3F7FBFF"
-            textHex: "0xF3F7FBFF"
-            focusHex: "0xF3F7FBFF"
-            focusTextHex: "0x292836FF"
-            secondaryHex: "0xF3F7FB66"
-            footprintHex: "0xF3F7FB66"
+            backdrop: BACKGROUND_SECONDARY
+            background: BACKGROUND_PRIMARY
         }
     }
 end function

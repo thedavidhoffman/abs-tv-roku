@@ -11,6 +11,7 @@
     <field id="settingsSelected" type="integer" />
     <field id="logoutSelected" type="integer" />
     <field id="changeServerSelected" type="integer" />
+    <field id="usernameUpSequenceSelected" type="integer" />
     <function name="focusHeader" />
   </interface>
   <children>
@@ -31,5 +32,6 @@
       <HeaderButton id="logoutButton" translation="[20,18]" buttonWidth="220" buttonHeight="56" text="Logout" />
       <HeaderButton id="changeServerButton" translation="[20,78]" buttonWidth="220" buttonHeight="56" text="Change Server" />
     </Group>
+    <Timer id="usernameUpSequenceTimer" duration="2" repeat="false" />
   </children>
 </component>

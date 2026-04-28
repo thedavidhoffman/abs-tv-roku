@@ -8,6 +8,7 @@ sub init()
     m.header = m.top.findNode("header")
     m.library = m.top.findNode("library")
     m.settings = m.top.findNode("settings")
+    m.diagnostics = m.top.findNode("diagnostics")
     m.player = m.top.findNode("player")
     m.apiTask = m.top.findNode("apiTask")
 
@@ -16,11 +17,13 @@ sub init()
     m.header.observeField("settingsSelected", "onSettingsPressed")
     m.header.observeField("logoutSelected", "onLogoutPressed")
     m.header.observeField("changeServerSelected", "onChangeServerPressed")
+    m.header.observeField("usernameUpSequenceSelected", "onDiagnosticsSequencePressed")
     m.library.observeField("errorResponse", "onLibraryError")
     m.library.observeField("playSelected", "onLibraryPlaySelected")
     m.player.observeField("closeRequested", "onPlayerCloseRequested")
     m.player.observeField("errorResponse", "onPlayerError")
     m.settings.observeField("closeRequested", "onSettingsCloseRequested")
+    m.diagnostics.observeField("closeRequested", "onDiagnosticsCloseRequested")
     m.apiTask.observeField("response", "onApiResponse")
 
     m.session = AuthStore_Load()
@@ -212,6 +215,21 @@ end sub
 ' onSettingsCloseRequested
 '-------------------------------------------------------------------------------
 sub onSettingsCloseRequested()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+end sub
+
+'-------------------------------------------------------------------------------
+' onDiagnosticsSequencePressed
+'-------------------------------------------------------------------------------
+sub onDiagnosticsSequencePressed()
+    closeHeaderMenu()
+    if m.diagnostics <> invalid then m.diagnostics.callFunc("openDiagnostics")
+end sub
+
+'-------------------------------------------------------------------------------
+' onDiagnosticsCloseRequested
+'-------------------------------------------------------------------------------
+sub onDiagnosticsCloseRequested()
     if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
 end sub
 

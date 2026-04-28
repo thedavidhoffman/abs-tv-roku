@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="SettingsForm" extends="Group" focusable="true">
+  <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Settings/SettingsForm.brs" />
+  <interface>
+    <function name="focusFirstField" />
+    <function name="focusLastField" />
+    <function name="getSettingsValues" />
+  </interface>
+  <children>
+    <Label
+      id="seriesLabel"
+      text="SERIES"
+      width="560"
+      height="36" />
+    <RadioButtonList
+      id="seriesOptions"
+      translation="[20,48]"
+      width="560"
+      height="96"
+      itemSize="[560,48]"
+      numRows="2"
+      checkedItem="0"
+      vertFocusAnimationStyle="floatingFocus"
+      fadeFocusFeedbackWhenAutoScrolling="false"
+      focusFootprintBitmapUri="pkg:/images/focus/transparent_focus_footprint.9.png" />
+    <Label
+      id="displayLabel"
+      translation="[0,172]"
+      text="DISPLAY"
+      width="560"
+      height="36" />
+    <RadioButtonList
+      id="displayOptions"
+      translation="[0,220]"
+      width="560"
+      height="96"
+      itemSize="[560,48]"
+      numRows="2"
+      checkedItem="0"
+      vertFocusAnimationStyle="floatingFocus"
+      fadeFocusFeedbackWhenAutoScrolling="false"
+      focusFootprintBitmapUri="pkg:/images/focus/transparent_focus_footprint.9.png" />
+  </children>
+</component>

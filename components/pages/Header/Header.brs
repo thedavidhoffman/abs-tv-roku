@@ -9,6 +9,8 @@ sub init()
     m.changeServerSelectedCounter = 0
     m.settingsSelectedCounter = 0
     m.downSelectedCounter = 0
+    m.usernameUpSequenceSelectedCounter = 0
+    m.usernameUpPressCount = 0
 
     initStyle()
     updateUserMenuButton()
@@ -28,6 +30,7 @@ sub initReferences()
     m.menuPanel = m.top.findNode("menuPanel")
     m.logoutButton = m.top.findNode("logoutButton")
     m.changeServerButton = m.top.findNode("changeServerButton")
+    m.usernameUpSequenceTimer = m.top.findNode("usernameUpSequenceTimer")
     m.headerButtons = [
         m.homeButton
         m.libraryButton
@@ -45,6 +48,7 @@ sub initHandlers()
     m.userMenuButton.observeField("buttonSelected", "onUserMenuPressed")
     m.logoutButton.observeField("buttonSelected", "onLogoutPressed")
     m.changeServerButton.observeField("buttonSelected", "onChangeServerPressed")
+    if m.usernameUpSequenceTimer <> invalid then m.usernameUpSequenceTimer.observeField("fire", "onUsernameUpSequenceTimerFired")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -87,10 +91,15 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
     if key = "left" then
+        resetUsernameUpSequence()
         return focusHeaderButtonByOffset(-1)
     else if key = "right" then
+        resetUsernameUpSequence()
         return focusHeaderButtonByOffset(1)
+    else if key = "up" then
+        return trackUsernameUpSequence()
     else if key = "down" then
+        resetUsernameUpSequence()
         closeMenu()
         m.downSelectedCounter = m.downSelectedCounter + 1
         m.top.downSelected = m.downSelectedCounter
@@ -99,6 +108,52 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
     return false
 end function
+
+'-------------------------------------------------------------------------------
+' trackUsernameUpSequence
+'-------------------------------------------------------------------------------
+function trackUsernameUpSequence() as boolean
+    if m.userMenuButton = invalid or m.userMenuButton.isInFocusChain() = false then
+        resetUsernameUpSequence()
+        return false
+    end if
+
+    m.usernameUpPressCount = m.usernameUpPressCount + 1
+    restartUsernameUpSequenceTimer()
+
+    if m.usernameUpPressCount >= 5 then
+        resetUsernameUpSequence()
+        m.usernameUpSequenceSelectedCounter = m.usernameUpSequenceSelectedCounter + 1
+        m.top.usernameUpSequenceSelected = m.usernameUpSequenceSelectedCounter
+    end if
+
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' restartUsernameUpSequenceTimer
+'-------------------------------------------------------------------------------
+sub restartUsernameUpSequenceTimer()
+    if m.usernameUpSequenceTimer = invalid then return
+
+    m.usernameUpSequenceTimer.control = "stop"
+    m.usernameUpSequenceTimer.control = "start"
+end sub
+
+'-------------------------------------------------------------------------------
+' resetUsernameUpSequence
+'-------------------------------------------------------------------------------
+sub resetUsernameUpSequence()
+    m.usernameUpPressCount = 0
+    if m.usernameUpSequenceTimer <> invalid then m.usernameUpSequenceTimer.control = "stop"
+end sub
+
+'-------------------------------------------------------------------------------
+' onUsernameUpSequenceTimerFired
+'-------------------------------------------------------------------------------
+sub onUsernameUpSequenceTimerFired()
+    resetUsernameUpSequence()
+end sub
 
 '-------------------------------------------------------------------------------
 ' focusHeaderButtonByOffset

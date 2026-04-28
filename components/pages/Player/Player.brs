@@ -398,22 +398,14 @@ end sub
 ' disableScreenSaver
 '-------------------------------------------------------------------------------
 sub disableScreenSaver()
-    setScreenSaverMode("screenSaverOff")
+    if m.audioPlayer <> invalid then m.audioPlayer.disableScreenSaver = true
 end sub
 
 '-------------------------------------------------------------------------------
 ' enableScreenSaver
 '-------------------------------------------------------------------------------
 sub enableScreenSaver()
-    setScreenSaverMode("screenSaverOn")
-end sub
-
-'-------------------------------------------------------------------------------
-' setScreenSaverMode
-'-------------------------------------------------------------------------------
-sub setScreenSaverMode(mode as string)
-    scene = m.top.getScene()
-    if scene <> invalid then scene.screenSaverMode = mode
+    if m.audioPlayer <> invalid then m.audioPlayer.disableScreenSaver = false
 end sub
 
 '-------------------------------------------------------------------------------

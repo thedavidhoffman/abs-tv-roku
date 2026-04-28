@@ -81,3 +81,20 @@ The successful response includes:
 - `action: "loadLibrary"`
 - `bookLibraryId`
 - `libraryItems`
+
+## Player
+
+`components/pages/Player/Player.xml` uses a hidden Roku `Video` node for
+audiobook playback even though the content is audio-only. This is intentional:
+Roku exposes the `disableScreenSaver` field on `Video`, and that field is the
+supported way to suppress the screensaver during audio-only playback.
+
+The node should keep `enableUI="false"` because the app renders its own player
+controls. Playback content should continue to be configured as audio content in
+`Player.brs`, including `node.contentType = "audio"` and the appropriate
+`streamFormat`.
+
+Do not replace the player node with an `Audio` node unless screensaver behavior
+is handled another way. Do not set screensaver fields on `MainScene`; fields
+such as `screenSaverMode` are not part of the app scene and will cause runtime
+errors.

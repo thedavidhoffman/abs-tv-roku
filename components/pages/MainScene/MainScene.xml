@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="MainScene" extends="Scene">
-  <script type="text/brightscript" uri="pkg:/source/registry/AuthStore.brs" />
+  <script type="text/brightscript" uri="pkg:/source/store/AuthStore.brs" />
   <script type="text/brightscript" uri="pkg:/source/Color.brs" />
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
   <script type="text/brightscript" uri="pkg:/source/SessionHelpers.brs" />
@@ -17,7 +17,9 @@
 
     </Group>
 
-    <Settings id="settings" />
+    <SettingsDialog id="settings" />
+
+    <Diagnostics id="diagnostics" />
 
     <Player id="player" visible="false" />
 
