@@ -7,19 +7,23 @@ sub init()
     m.authenticatedContent = m.top.findNode("authenticatedContent")
     m.header = m.top.findNode("header")
     m.library = m.top.findNode("library")
+    m.settings = m.top.findNode("settings")
     m.player = m.top.findNode("player")
     m.apiTask = m.top.findNode("apiTask")
 
     m.login.observeField("loginSucceeded", "onLoginSucceeded")
+    m.header.observeField("downSelected", "onHeaderDownPressed")
+    m.header.observeField("settingsSelected", "onSettingsPressed")
     m.header.observeField("logoutSelected", "onLogoutPressed")
     m.header.observeField("changeServerSelected", "onChangeServerPressed")
     m.library.observeField("errorResponse", "onLibraryError")
     m.library.observeField("playSelected", "onLibraryPlaySelected")
     m.player.observeField("closeRequested", "onPlayerCloseRequested")
     m.player.observeField("errorResponse", "onPlayerError")
+    m.settings.observeField("closeRequested", "onSettingsCloseRequested")
     m.apiTask.observeField("response", "onApiResponse")
 
-    m.session = LoadAuthState()
+    m.session = AuthStore_Load()
     m.isResumingSession = false
     m.loginActivationCounter = 0
 
@@ -88,7 +92,7 @@ sub onApiResponse()
     if response.ok <> true then
         if m.isResumingSession then
             m.isResumingSession = false
-            ClearAuthState(false)
+            AuthStore_Clear(false)
             showLogin("Your saved session expired. Please sign in again.")
             return
         end if
@@ -166,6 +170,15 @@ sub showApp()
 end sub
 
 '-------------------------------------------------------------------------------
+' onHeaderDownPressed
+'-------------------------------------------------------------------------------
+sub onHeaderDownPressed()
+    if m.library <> invalid and m.library.visible then
+        m.library.callFunc("focusLibraryList")
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
 ' onLibraryPlaySelected
 '-------------------------------------------------------------------------------
 sub onLibraryPlaySelected()
@@ -185,6 +198,25 @@ sub onLibraryPlaySelected()
         coverUrl: coverUrl
         details: selectedItem.details
     }
+end sub
+
+'-------------------------------------------------------------------------------
+' onSettingsPressed
+'-------------------------------------------------------------------------------
+sub onSettingsPressed()
+    closeHeaderMenu()
+    if m.settings <> invalid then
+        m.settings.visible = true
+        m.settings.setFocus(true)
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' onSettingsCloseRequested
+'-------------------------------------------------------------------------------
+sub onSettingsCloseRequested()
+    if m.settings <> invalid then m.settings.visible = false
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -225,7 +257,7 @@ end function
 ' handleExpiredSession
 '-------------------------------------------------------------------------------
 sub handleExpiredSession(message as string)
-    ClearAuthState(false)
+    AuthStore_Clear(false)
     if m.session <> invalid then m.session.token = ""
     m.login.passwordValue = ""
     showLogin(message)
@@ -244,7 +276,7 @@ sub onLogoutPressed()
         m.apiTask.control = "run"
     end if
 
-    ClearAuthState(false)
+    AuthStore_Clear(false)
     if m.session <> invalid then m.session.token = ""
     m.login.passwordValue = ""
     closeHeaderMenu()
@@ -256,7 +288,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onChangeServerPressed()
 
-    m.session = LoadAuthState()
+    m.session = AuthStore_Load()
     m.login.serverValue = ""
     m.login.usernameValue = ""
     m.login.passwordValue = ""
@@ -282,6 +314,14 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
     if m.player <> invalid and m.player.visible then
+        return false
+    end if
+
+    if m.settings <> invalid and m.settings.visible then
+        if key = "back" then
+            onSettingsCloseRequested()
+            return true
+        end if
         return false
     end if
 

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="Settings" extends="Group" focusable="true">
+  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Settings/Settings.brs" />
+  <interface>
+    <field id="closeRequested" type="integer" />
+  </interface>
+  <children>
+    <Rectangle
+      id="settingsBackdrop"
+      width="1920"
+      height="1080"
+      color="000000AA"
+    />
+    <Rectangle
+      id="settingsPanel"
+      translation="[560,280]"
+      width="800"
+      height="520"
+      color="292836FF"
+    />
+    <Label
+      translation="[620,340]"
+      width="680"
+      text="Settings"
+      color="F3F7FBFF"
+      font="font:LargeBoldSystemFont"
+    />
+    <Label
+      translation="[620,430]"
+      width="680"
+      text="Playback"
+      color="F3F7FBFF"
+      font="font:SmallBoldSystemFont"
+    />
+    <Label
+      translation="[620,485]"
+      width="680"
+      text="Library display"
+      color="F3F7FBFF"
+      font="font:SmallBoldSystemFont"
+    />
+    <Label
+      translation="[620,540]"
+      width="680"
+      text="Account"
+      color="F3F7FBFF"
+      font="font:SmallBoldSystemFont"
+    />
+  </children>
+</component>

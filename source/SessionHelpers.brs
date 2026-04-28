@@ -23,7 +23,7 @@ end function
 ' Session_SaveAuthenticatedSession
 '-------------------------------------------------------------------------------
 sub Session_SaveAuthenticatedSession(session as object)
-    SaveAuthState(session.server, session.username, session.token, session.userId)
+    AuthStore_Save(session.server, session.username, session.token, session.userId)
 end sub
 
 '-------------------------------------------------------------------------------

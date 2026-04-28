@@ -1,4 +1,14 @@
 '-------------------------------------------------------------------------------
+' Auth Registry Storage
+'-------------------------------------------------------------------------------
+' roRegistrySection is Roku's persistent key/value storage API. A registry
+' section groups related values under an app-owned name, such as "ABSTV" here.
+' Values written with Write() can be read across app launches with Read().
+' Delete() removes saved values, and Flush() commits pending writes/deletes.
+' This app uses the registry to remember auth state: server, username, token,
+' and user id.
+'
+'-------------------------------------------------------------------------------
 ' GetAuthStore
 '-------------------------------------------------------------------------------
 function GetAuthStore() as object
@@ -6,9 +16,9 @@ function GetAuthStore() as object
 end function
 
 '-------------------------------------------------------------------------------
-' SaveAuthState
+' AuthStore_Save
 '-------------------------------------------------------------------------------
-sub SaveAuthState(server as string, username as string, token as string, userId as dynamic)
+sub AuthStore_Save(server as string, username as string, token as string, userId as dynamic)
     authStore = GetAuthStore()
     authStore.Write("server", server)
     authStore.Write("username", username)
@@ -18,9 +28,9 @@ sub SaveAuthState(server as string, username as string, token as string, userId 
 end sub
 
 '-------------------------------------------------------------------------------
-' LoadAuthState
+' AuthStore_Load
 '-------------------------------------------------------------------------------
-function LoadAuthState() as object
+function AuthStore_Load() as object
     authStore = GetAuthStore()
     return {
         server: authStore.Read("server")
@@ -31,9 +41,9 @@ function LoadAuthState() as object
 end function
 
 '-------------------------------------------------------------------------------
-' ClearAuthState
+' AuthStore_Clear
 '-------------------------------------------------------------------------------
-sub ClearAuthState(clearServer as boolean)
+sub AuthStore_Clear(clearServer as boolean)
     authStore = GetAuthStore()
     authStore.Delete("token")
     authStore.Delete("userId")

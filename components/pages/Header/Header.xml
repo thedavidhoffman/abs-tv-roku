@@ -7,6 +7,8 @@
     <field id="menuOpen" type="boolean" />
     <field id="closeMenuToken" type="integer" onChange="onCloseMenuTokenChanged" />
     <field id="username" type="string" onChange="onUsernameChanged" />
+    <field id="downSelected" type="integer" />
+    <field id="settingsSelected" type="integer" />
     <field id="logoutSelected" type="integer" />
     <field id="changeServerSelected" type="integer" />
     <function name="focusHeader" />
@@ -14,6 +16,13 @@
   <children>
     <Rectangle id="headerBg" width="1920" height="118" color="12112BFF" />
     <Label id="brandLabel" translation="[64,42]" text="ABSTV" color="F6F7FBFF" />
+
+    <Group id="navGroup" translation="[520,26]">
+      <HeaderButton id="homeButton" translation="[0,0]" buttonWidth="150" buttonHeight="56" text="Home" />
+      <HeaderButton id="libraryButton" translation="[170,0]" buttonWidth="170" buttonHeight="56" text="Library" />
+      <HeaderButton id="searchButton" translation="[360,0]" buttonWidth="160" buttonHeight="56" text="Search" />
+      <HeaderButton id="settingsButton" translation="[540,0]" buttonWidth="180" buttonHeight="56" text="Settings" />
+    </Group>
 
     <HeaderButton id="userMenuButton" translation="[1620,26]" buttonWidth="220" buttonHeight="56" text="Account" />
 

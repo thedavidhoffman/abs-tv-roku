@@ -7,6 +7,8 @@ sub init()
 
     m.logoutSelectedCounter = 0
     m.changeServerSelectedCounter = 0
+    m.settingsSelectedCounter = 0
+    m.downSelectedCounter = 0
 
     initStyle()
     updateUserMenuButton()
@@ -18,11 +20,19 @@ end sub
 '-------------------------------------------------------------------------------
 sub initReferences()
     m.headerBg = m.top.findNode("headerBg")
+    m.homeButton = m.top.findNode("homeButton")
+    m.libraryButton = m.top.findNode("libraryButton")
+    m.searchButton = m.top.findNode("searchButton")
+    m.settingsButton = m.top.findNode("settingsButton")
     m.userMenuButton = m.top.findNode("userMenuButton")
     m.menuPanel = m.top.findNode("menuPanel")
     m.logoutButton = m.top.findNode("logoutButton")
     m.changeServerButton = m.top.findNode("changeServerButton")
     m.headerButtons = [
+        m.homeButton
+        m.libraryButton
+        m.searchButton
+        m.settingsButton
         m.userMenuButton
     ]
 end sub
@@ -31,6 +41,7 @@ end sub
 ' initHandlers
 '-------------------------------------------------------------------------------
 sub initHandlers()
+    m.settingsButton.observeField("buttonSelected", "onSettingsPressed")
     m.userMenuButton.observeField("buttonSelected", "onUserMenuPressed")
     m.logoutButton.observeField("buttonSelected", "onLogoutPressed")
     m.changeServerButton.observeField("buttonSelected", "onChangeServerPressed")
@@ -44,6 +55,10 @@ sub initStyle()
     headerBgColor = palette.background.header
     if m.headerBg <> invalid then m.headerBg.color = headerBgColor
 
+    if m.homeButton <> invalid then m.homeButton.headerBgColor = headerBgColor
+    if m.libraryButton <> invalid then m.libraryButton.headerBgColor = headerBgColor
+    if m.searchButton <> invalid then m.searchButton.headerBgColor = headerBgColor
+    if m.settingsButton <> invalid then m.settingsButton.headerBgColor = headerBgColor
     if m.userMenuButton <> invalid then m.userMenuButton.headerBgColor = headerBgColor
     if m.logoutButton <> invalid then m.logoutButton.headerBgColor = headerBgColor
     if m.changeServerButton <> invalid then m.changeServerButton.headerBgColor = headerBgColor
@@ -75,6 +90,11 @@ function onKeyEvent(key as string, press as boolean) as boolean
         return focusHeaderButtonByOffset(-1)
     else if key = "right" then
         return focusHeaderButtonByOffset(1)
+    else if key = "down" then
+        closeMenu()
+        m.downSelectedCounter = m.downSelectedCounter + 1
+        m.top.downSelected = m.downSelectedCounter
+        return true
     end if
 
     return false
@@ -113,9 +133,13 @@ end function
 ' getFocusedHeaderButtonIndex
 '-------------------------------------------------------------------------------
 function getFocusedHeaderButtonIndex() as integer
-    if m.userMenuButton <> invalid and m.userMenuButton.isInFocusChain() then return 0
-    if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return 0
-    if m.changeServerButton <> invalid and m.changeServerButton.isInFocusChain() then return 0
+    if m.homeButton <> invalid and m.homeButton.isInFocusChain() then return 0
+    if m.libraryButton <> invalid and m.libraryButton.isInFocusChain() then return 1
+    if m.searchButton <> invalid and m.searchButton.isInFocusChain() then return 2
+    if m.settingsButton <> invalid and m.settingsButton.isInFocusChain() then return 3
+    if m.userMenuButton <> invalid and m.userMenuButton.isInFocusChain() then return 4
+    if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return 4
+    if m.changeServerButton <> invalid and m.changeServerButton.isInFocusChain() then return 4
 
     return -1
 end function
@@ -132,6 +156,15 @@ end sub
 '-------------------------------------------------------------------------------
 sub onUsernameChanged()
     updateUserMenuButton()
+end sub
+
+'-------------------------------------------------------------------------------
+' onSettingsPressed
+'-------------------------------------------------------------------------------
+sub onSettingsPressed()
+    closeMenu()
+    m.settingsSelectedCounter = m.settingsSelectedCounter + 1
+    m.top.settingsSelected = m.settingsSelectedCounter
 end sub
 
 '-------------------------------------------------------------------------------

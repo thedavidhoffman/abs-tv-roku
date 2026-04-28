@@ -39,9 +39,6 @@
 - Meditations won't play - WHY?
 - chapter nav broken - FIX
 
-# color palette
-- establish
-
 # cover art
 - curved frame for cover
 - placeholder image for no cover
@@ -54,11 +51,6 @@
 
 # device info (for debugging modal?)
 - https://developer.roku.com/en-au/docs/references/brightscript/interfaces/ifdeviceinfo.md
-
-
-# Architecture/Code Quality
-- localization
-- all colors should come from Color()
 
 
 # NEXT UP...
