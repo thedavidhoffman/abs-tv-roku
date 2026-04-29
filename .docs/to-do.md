@@ -45,7 +45,6 @@ I'm open to any and all suggestions for enhancements and improvements.
 
 - listview support collapsed/expanded
 - loading spinner (add only after fixing the collapsed/expanded display quirk)
-- settings modal use heading/label style the same as diagnostics
 - error modal
 - description modal -> convert to dialog use on both ListView and Player
 - html string function move to helper class
@@ -53,6 +52,7 @@ I'm open to any and all suggestions for enhancements and improvements.
 - placeholder image for no cover
 - search
 - home page, continue listening, stats, recently added
+- player, continue listening from last point
 
 
 ## Quirks

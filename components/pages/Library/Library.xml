@@ -8,6 +8,7 @@
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
     <field id="playSelected" type="assocarray" />
     <field id="seriesSelected" type="assocarray" />
+    <field id="upFromFirstGridItemSelected" type="integer" />
     <field id="errorResponse" type="assocarray" />
     <function name="focusLibraryList" />
     <function name="focusItemAtIndex" />

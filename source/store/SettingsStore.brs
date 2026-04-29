@@ -33,6 +33,16 @@ function SettingsStore_Load() as object
 end function
 
 '-------------------------------------------------------------------------------
+' SettingsStore_Clear
+'-------------------------------------------------------------------------------
+sub SettingsStore_Clear()
+    settingsStore = GetSettingsStore()
+    settingsStore.Delete("series-display")
+    settingsStore.Delete("item-display")
+    settingsStore.Flush()
+end sub
+
+'-------------------------------------------------------------------------------
 ' SettingsStore_ReadValue
 '-------------------------------------------------------------------------------
 function SettingsStore_ReadValue(settingsStore as object, key as string, defaultValue as string) as string

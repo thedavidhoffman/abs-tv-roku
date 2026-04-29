@@ -21,6 +21,7 @@ sub init()
     m.library.observeField("errorResponse", "onLibraryError")
     m.library.observeField("playSelected", "onLibraryPlaySelected")
     m.library.observeField("seriesSelected", "onLibrarySeriesSelected")
+    m.library.observeField("upFromFirstGridItemSelected", "onLibraryUpFromFirstGridItemSelected")
     m.player.observeField("closeRequested", "onPlayerCloseRequested")
     m.player.observeField("errorResponse", "onPlayerError")
     m.settings.observeField("closeRequested", "onSettingsCloseRequested")
@@ -32,6 +33,7 @@ sub init()
     m.isResumingSession = false
     m.loginActivationCounter = 0
     m.libraryItemBackStack = []
+    m.focusSettingsAfterLibraryReload = false
 
     preloadSavedFields()
     initStyle()
@@ -233,6 +235,13 @@ sub onLibrarySeriesSelected()
 end sub
 
 '-------------------------------------------------------------------------------
+' onLibraryUpFromFirstGridItemSelected
+'-------------------------------------------------------------------------------
+sub onLibraryUpFromFirstGridItemSelected()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+end sub
+
+'-------------------------------------------------------------------------------
 ' onSettingsPressed
 '-------------------------------------------------------------------------------
 sub onSettingsPressed()
@@ -244,7 +253,7 @@ end sub
 ' onSettingsCloseRequested
 '-------------------------------------------------------------------------------
 sub onSettingsCloseRequested()
-    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+    focusHeaderSettingsButton()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -254,6 +263,7 @@ sub onSettingsSaved()
     if m.library <> invalid and m.settings <> invalid then
         m.library.displaySettings = m.settings.savedSettings
     end if
+    m.focusSettingsAfterLibraryReload = true
     reloadLibraryItems()
 end sub
 
@@ -285,6 +295,11 @@ sub storeLibraryItems(response as object)
 
     m.libraryItemBackStack = []
     if m.library <> invalid then m.library.libraryItems = response.libraryItems
+
+    if m.focusSettingsAfterLibraryReload = true then
+        m.focusSettingsAfterLibraryReload = false
+        focusHeaderSettingsButton()
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -334,7 +349,14 @@ end sub
 ' onDiagnosticsCloseRequested
 '-------------------------------------------------------------------------------
 sub onDiagnosticsCloseRequested()
-    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusUserMenuButton")
+end sub
+
+'-------------------------------------------------------------------------------
+' focusHeaderSettingsButton
+'-------------------------------------------------------------------------------
+sub focusHeaderSettingsButton()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusSettingsButton")
 end sub
 
 '-------------------------------------------------------------------------------

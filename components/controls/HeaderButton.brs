@@ -48,9 +48,9 @@ sub onFocusVisualChanged()
     
     if m.bg <> invalid then
         if m.top.hasFocusVisual = true then
-            m.bg.color = &hFFFFFFFF
+            m.bg.visible = true
         else
-            m.bg.color = &hFFFFFF00
+            m.bg.visible = false
         end if
     end if
 

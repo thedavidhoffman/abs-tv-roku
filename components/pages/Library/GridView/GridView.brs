@@ -7,6 +7,7 @@ sub init()
     m.libraryItemsByIndex = []
     m.playSelectedCounter = 0
     m.seriesSelectedCounter = 0
+    m.upFromFirstItemSelectedCounter = 0
     m.server = invalid
     m.token = invalid
 
@@ -178,6 +179,21 @@ function getValidItemIndex(index as dynamic) as integer
     if m.libraryItemsByIndex = invalid or m.libraryItemsByIndex.Count() = 0 then return 0
     if index >= m.libraryItemsByIndex.Count() then return m.libraryItemsByIndex.Count() - 1
     return index
+end function
+
+'-------------------------------------------------------------------------------
+' onKeyEvent
+'-------------------------------------------------------------------------------
+function onKeyEvent(key as string, press as boolean) as boolean
+    if press = false then return false
+    if key <> "up" then return false
+    if m.markupGrid = invalid then return false
+    if m.markupGrid.isInFocusChain() = false then return false
+    if getValidItemIndex(m.markupGrid.itemFocused) > 0 then return false
+
+    m.upFromFirstItemSelectedCounter = m.upFromFirstItemSelectedCounter + 1
+    m.top.upFromFirstItemSelected = m.upFromFirstItemSelectedCounter
+    return true
 end function
 
 '-------------------------------------------------------------------------------
