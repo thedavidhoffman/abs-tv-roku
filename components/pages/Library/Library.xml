@@ -12,7 +12,7 @@
   </interface>
   <children>
     <ListView_SeriesExpanded id="listView" />
-    <GridView_SeriesExpanded id="gridView" visible="false" />
+    <GridView_SeriesCollapsed id="gridView" visible="false" />
     <GridView_SeriesCollapsed id="collapsedGridView" visible="false" />
   </children>
 </component>

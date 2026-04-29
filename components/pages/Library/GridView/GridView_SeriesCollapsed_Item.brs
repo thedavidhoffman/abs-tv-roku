@@ -22,6 +22,7 @@ sub showContent()
 
     m.poster.uri = SafeString(item.HDPosterUrl, SafeString(item.SDPosterUrl, "pkg:/images/placeholder_cover.png"))
     isSeries = isSeriesItem(item)
+    setPosterSize(isSeries)
     setSeriesDisplay(isSeries, getSeriesName(item))
 end sub
 
@@ -40,8 +41,23 @@ sub setSeriesDisplay(isVisible as boolean, seriesName as string)
     if m.seriesOverlay <> invalid then m.seriesOverlay.visible = isVisible
     if m.seriesLabel <> invalid then
         m.seriesLabel.visible = isVisible
-        m.seriesLabel.text = seriesName
+        m.seriesLabel.text = "SERIES" 'seriesName
     end if
+end sub
+
+'-------------------------------------------------------------------------------
+' setPosterSize
+'-------------------------------------------------------------------------------
+sub setPosterSize(isSeries as boolean)
+    ' if m.poster = invalid then return
+
+    ' if isSeries then
+    '     m.poster.width = 240
+    '     m.poster.height = 240
+    ' else
+    '     m.poster.width = 280
+    '     m.poster.height = 280
+    ' end if
 end sub
 
 '-------------------------------------------------------------------------------

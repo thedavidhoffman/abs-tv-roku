@@ -21,7 +21,7 @@
       visible="false" />
     <Label
       id="seriesLabel"
-      translation="[12,247]"
+      translation="[100,250]"
       width="256"
       height="26"
       maxLines="1"
