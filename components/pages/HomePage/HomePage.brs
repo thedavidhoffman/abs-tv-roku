@@ -4,6 +4,9 @@
 sub init()
     m.homeRowList = m.top.findNode("homeRowList")
     m.statusLabel = m.top.findNode("statusLabel")
+    m.continueListeningTitle = m.top.findNode("continueListeningTitle")
+    m.focusRequested = false
+    m.backSelectedCounter = 0
     onInProgressItemsChanged()
 end sub
 
@@ -33,6 +36,8 @@ sub onInProgressItemsChanged()
     root.appendChild(row)
     m.homeRowList.content = root
     updateStatus(row.getChildCount())
+
+    if m.focusRequested = true and m.top.visible = true then focusHomePage()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -43,6 +48,7 @@ sub updateStatus(itemCount as integer)
 
     hasItems = itemCount > 0
     m.statusLabel.visible = not hasItems
+    if m.continueListeningTitle <> invalid then m.continueListeningTitle.visible = hasItems
     m.homeRowList.visible = hasItems
 
     if hasItems then
@@ -51,6 +57,33 @@ sub updateStatus(itemCount as integer)
         m.statusLabel.text = "Nothing in progress"
     end if
 end sub
+
+'-------------------------------------------------------------------------------
+' focusHomePage
+'-------------------------------------------------------------------------------
+function focusHomePage() as boolean
+    m.focusRequested = true
+
+    if m.homeRowList <> invalid and m.homeRowList.visible = true then
+        m.homeRowList.setFocus(true)
+        return true
+    end if
+
+    m.top.setFocus(true)
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' onKeyEvent
+'-------------------------------------------------------------------------------
+function onKeyEvent(key as string, press as boolean) as boolean
+    if press = false then return false
+    if key <> "back" then return false
+
+    m.backSelectedCounter = m.backSelectedCounter + 1
+    m.top.backSelected = m.backSelectedCounter
+    return true
+end function
 
 '-------------------------------------------------------------------------------
 ' buildCoverUrl

@@ -7,13 +7,24 @@
     <field id="rowFocusPercent" type="float" onChange="onRowFocusPercentChanged" />
   </interface>
   <children>
-    <Poster
-      id="coverPoster"
-      translation="[0,0]"
-      width="300"
-      height="300"
-      uri="pkg:/images/placeholder_cover.png"
-      loadDisplayMode="scaleToFill"
-      scaleRotateCenter="[150,150]" />
+    <Group
+      id="itemVisual"
+      scaleRotateCenter="[160,160]">
+      <Rectangle
+        id="focusFrame"
+        translation="[0,0]"
+        width="320"
+        height="320"
+        color="0xF6F7FBFF"
+        opacity="0"
+        visible="false" />
+      <Poster
+        id="coverPoster"
+        translation="[10,10]"
+        width="300"
+        height="300"
+        uri="pkg:/images/placeholder_cover.png"
+        loadDisplayMode="scaleToFill" />
+    </Group>
   </children>
 </component>

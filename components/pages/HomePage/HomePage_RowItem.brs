@@ -2,6 +2,8 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+    m.itemVisual = m.top.findNode("itemVisual")
+    m.focusFrame = m.top.findNode("focusFrame")
     m.coverPoster = m.top.findNode("coverPoster")
 end sub
 
@@ -23,10 +25,15 @@ end sub
 ' onFocusPercentChanged
 '-------------------------------------------------------------------------------
 sub onFocusPercentChanged()
-    if m.coverPoster = invalid then return
+    if m.itemVisual = invalid then return
 
     scale = 1 + (m.top.focusPercent * 0.06)
-    m.coverPoster.scale = [scale, scale]
+    m.itemVisual.scale = [scale, scale]
+
+    if m.focusFrame <> invalid then
+        m.focusFrame.visible = m.top.focusPercent > 0
+        m.focusFrame.opacity = m.top.focusPercent
+    end if
 end sub
 
 '-------------------------------------------------------------------------------

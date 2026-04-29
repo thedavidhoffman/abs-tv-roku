@@ -23,6 +23,7 @@ sub init()
     m.header.observeField("logoutSelected", "onLogoutPressed")
     m.header.observeField("changeServerSelected", "onChangeServerPressed")
     m.header.observeField("usernameUpSequenceSelected", "onDiagnosticsSequencePressed")
+    m.homePage.observeField("backSelected", "onHomePageBackSelected")
     m.library.observeField("errorResponse", "onLibraryError")
     m.library.observeField("playSelected", "onLibraryPlaySelected")
     m.library.observeField("seriesSelected", "onLibrarySeriesSelected")
@@ -218,7 +219,15 @@ end sub
 sub onHomePressed()
     closeHeaderMenu()
     showHomePage()
+    if m.homePage <> invalid then m.homePage.callFunc("focusHomePage")
     loadInProgressItems()
+end sub
+
+'-------------------------------------------------------------------------------
+' onHomePageBackSelected
+'-------------------------------------------------------------------------------
+sub onHomePageBackSelected()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
 end sub
 
 '-------------------------------------------------------------------------------
