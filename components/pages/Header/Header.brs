@@ -5,6 +5,9 @@ sub init()
     initReferences()
     initHandlers()
 
+    m.homeSelectedCounter = 0
+    m.librarySelectedCounter = 0
+    m.searchSelectedCounter = 0
     m.logoutSelectedCounter = 0
     m.changeServerSelectedCounter = 0
     m.settingsSelectedCounter = 0
@@ -44,6 +47,9 @@ end sub
 ' initHandlers
 '-------------------------------------------------------------------------------
 sub initHandlers()
+    m.homeButton.observeField("buttonSelected", "onHomePressed")
+    m.libraryButton.observeField("buttonSelected", "onLibraryPressed")
+    m.searchButton.observeField("buttonSelected", "onSearchPressed")
     m.settingsButton.observeField("buttonSelected", "onSettingsPressed")
     m.userMenuButton.observeField("buttonSelected", "onUserMenuPressed")
     m.logoutButton.observeField("buttonSelected", "onLogoutPressed")
@@ -82,6 +88,17 @@ function focusHeader() as boolean
     end for
 
     return false
+end function
+
+'-------------------------------------------------------------------------------
+' focusSearchButton
+'-------------------------------------------------------------------------------
+function focusSearchButton() as boolean
+    closeMenu()
+    if m.searchButton = invalid then return focusHeader()
+
+    m.searchButton.setFocus(true)
+    return true
 end function
 
 '-------------------------------------------------------------------------------
@@ -233,6 +250,33 @@ end sub
 '-------------------------------------------------------------------------------
 sub onUsernameChanged()
     updateUserMenuButton()
+end sub
+
+'-------------------------------------------------------------------------------
+' onHomePressed
+'-------------------------------------------------------------------------------
+sub onHomePressed()
+    closeMenu()
+    m.homeSelectedCounter = m.homeSelectedCounter + 1
+    m.top.homeSelected = m.homeSelectedCounter
+end sub
+
+'-------------------------------------------------------------------------------
+' onLibraryPressed
+'-------------------------------------------------------------------------------
+sub onLibraryPressed()
+    closeMenu()
+    m.librarySelectedCounter = m.librarySelectedCounter + 1
+    m.top.librarySelected = m.librarySelectedCounter
+end sub
+
+'-------------------------------------------------------------------------------
+' onSearchPressed
+'-------------------------------------------------------------------------------
+sub onSearchPressed()
+    closeMenu()
+    m.searchSelectedCounter = m.searchSelectedCounter + 1
+    m.top.searchSelected = m.searchSelectedCounter
 end sub
 
 '-------------------------------------------------------------------------------

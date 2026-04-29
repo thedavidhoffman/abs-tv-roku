@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="HomePage" extends="Group">
+  <children>
+    <Label
+      id="homePageLabel"
+      translation="[0,0]"
+      width="1920"
+      height="1080"
+      text="home page"
+      horizAlign="center"
+      vertAlign="center"
+      color="0xF6F7FBFF"
+      font="font:LargeSystemFont" />
+  </children>
+</component>

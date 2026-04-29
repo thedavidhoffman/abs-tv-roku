@@ -24,7 +24,7 @@
       visible="false" />
     <MarkupGrid
       id="markupGrid"
-      translation="[64,144]"
+      translation="[64,135]"
       itemComponentName="GridView_Item"
       itemSize="[280,280]"
       itemSpacing="[28,36]"

@@ -6,13 +6,18 @@ sub init()
     m.login = m.top.findNode("login")
     m.authenticatedContent = m.top.findNode("authenticatedContent")
     m.header = m.top.findNode("header")
+    m.homePage = m.top.findNode("homePage")
     m.library = m.top.findNode("library")
+    m.search = m.top.findNode("search")
     m.settings = m.top.findNode("settings")
     m.diagnostics = m.top.findNode("diagnostics")
     m.player = m.top.findNode("player")
     m.apiTask = m.top.findNode("apiTask")
 
     m.login.observeField("loginSucceeded", "onLoginSucceeded")
+    m.header.observeField("homeSelected", "onHomePressed")
+    m.header.observeField("librarySelected", "onLibraryPressed")
+    m.header.observeField("searchSelected", "onSearchPressed")
     m.header.observeField("downSelected", "onHeaderDownPressed")
     m.header.observeField("settingsSelected", "onSettingsPressed")
     m.header.observeField("logoutSelected", "onLogoutPressed")
@@ -24,6 +29,7 @@ sub init()
     m.library.observeField("upFromFirstGridItemSelected", "onLibraryUpFromFirstGridItemSelected")
     m.player.observeField("closeRequested", "onPlayerCloseRequested")
     m.player.observeField("errorResponse", "onPlayerError")
+    m.search.observeField("closeRequested", "onSearchCloseRequested")
     m.settings.observeField("closeRequested", "onSettingsCloseRequested")
     m.settings.observeField("settingsSaved", "onSettingsSaved")
     m.diagnostics.observeField("closeRequested", "onDiagnosticsCloseRequested")
@@ -173,14 +179,55 @@ sub showApp()
         m.header.visible = true
         m.header.username = m.session.username
     end if
+    showLibraryPage()
     if m.library <> invalid then
-        m.library.visible = true
         m.library.loadRequest = {
             server: m.session.server
             token: m.session.token
             bookLibraryId: m.session.bookLibraryId
         }
     end if
+end sub
+
+'-------------------------------------------------------------------------------
+' showHomePage
+'-------------------------------------------------------------------------------
+sub showHomePage()
+    if m.homePage <> invalid then m.homePage.visible = true
+    if m.library <> invalid then m.library.visible = false
+    m.libraryItemBackStack = []
+end sub
+
+'-------------------------------------------------------------------------------
+' showLibraryPage
+'-------------------------------------------------------------------------------
+sub showLibraryPage()
+    if m.homePage <> invalid then m.homePage.visible = false
+    if m.library <> invalid then m.library.visible = true
+end sub
+
+'-------------------------------------------------------------------------------
+' onHomePressed
+'-------------------------------------------------------------------------------
+sub onHomePressed()
+    closeHeaderMenu()
+    showHomePage()
+end sub
+
+'-------------------------------------------------------------------------------
+' onLibraryPressed
+'-------------------------------------------------------------------------------
+sub onLibraryPressed()
+    closeHeaderMenu()
+    showLibraryPage()
+end sub
+
+'-------------------------------------------------------------------------------
+' onSearchPressed
+'-------------------------------------------------------------------------------
+sub onSearchPressed()
+    closeHeaderMenu()
+    if m.search <> invalid then m.search.callFunc("openSearch")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -350,6 +397,13 @@ end sub
 '-------------------------------------------------------------------------------
 sub onDiagnosticsCloseRequested()
     if m.header <> invalid and m.header.visible then m.header.callFunc("focusUserMenuButton")
+end sub
+
+'-------------------------------------------------------------------------------
+' onSearchCloseRequested
+'-------------------------------------------------------------------------------
+sub onSearchCloseRequested()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusSearchButton")
 end sub
 
 '-------------------------------------------------------------------------------

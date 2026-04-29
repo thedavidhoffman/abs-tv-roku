@@ -7,33 +7,47 @@
     <field id="menuOpen" type="boolean" />
     <field id="closeMenuToken" type="integer" onChange="onCloseMenuTokenChanged" />
     <field id="username" type="string" onChange="onUsernameChanged" />
+    <field id="homeSelected" type="integer" />
+    <field id="librarySelected" type="integer" />
+    <field id="searchSelected" type="integer" />
     <field id="downSelected" type="integer" />
     <field id="settingsSelected" type="integer" />
     <field id="logoutSelected" type="integer" />
     <field id="changeServerSelected" type="integer" />
     <field id="usernameUpSequenceSelected" type="integer" />
     <function name="focusHeader" />
+    <function name="focusSearchButton" />
     <function name="focusSettingsButton" />
     <function name="focusUserMenuButton" />
   </interface>
   <children>
-    <Rectangle id="headerBg" width="1920" height="118" color="12112BFF" />
-    <Label id="brandLabel" translation="[64,42]" text="ABSTV" color="F6F7FBFF" />
+    <Rectangle id="headerBg" width="1920" height="100" color="12112BFF" />
+    <Poster
+      id="brandLogo"
+      translation="[64,25]"
+      width="191"
+      height="50"
+      uri="pkg:/images/icons/abstv-header-logo.png"
+      loadDisplayMode="scaleToFit" />
 
-    <Group id="navGroup" translation="[600,26]">
+    <Group id="navGroup" translation="[600,22]">
       <HeaderButton id="homeButton" translation="[0,0]" buttonWidth="150" buttonHeight="56" text="Home" />
       <HeaderButton id="libraryButton" translation="[170,0]" buttonWidth="170" buttonHeight="56" text="Library" />
       <HeaderButton id="searchButton" translation="[360,0]" buttonWidth="160" buttonHeight="56" text="Search" />
       <HeaderButton id="settingsButton" translation="[540,0]" buttonWidth="180" buttonHeight="56" text="Settings" />
     </Group>
 
-    <HeaderButton id="userMenuButton" translation="[1660,26]" buttonWidth="180" buttonHeight="56" text="Account" />
+    <HeaderButton id="userMenuButton" translation="[1560,22]" buttonWidth="160" buttonHeight="56" />
 
-    <Group id="menuPanel" visible="false" translation="[1600,102]">
+    <Clock id="clock" translation="[1700,30]" clockWidth="176" clockHeight="40" color="0xF6F7FBFF" />
+
+    <Group id="menuPanel" visible="false" translation="[1420,102]">
       <Rectangle width="260" height="150" color="132235FF" />
       <HeaderButton id="logoutButton" translation="[20,18]" buttonWidth="220" buttonHeight="56" text="Logout" />
       <HeaderButton id="changeServerButton" translation="[20,78]" buttonWidth="220" buttonHeight="56" text="Change Server" />
     </Group>
+
+    <!-- timer for pressing up 5 times on the user menu item to display the diagnostics dialog -->
     <Timer id="usernameUpSequenceTimer" duration="2" repeat="false" />
   </children>
 </component>

@@ -11,11 +11,12 @@
     <function name="focusLibraryList" />
   </interface>
   <children>
-    <Rectangle id="overviewBg" translation="[920,118]" width="1000" height="962" />
+    <Rectangle id="overviewBg" translation="[920,100]" width="1000" height="980" />
     <Label id="libraryStatus" translation="[64,212]" width="1200" numLines="2" wrap="true" color="F2C879FF" visible="false" />
     <LabelList
       id="libraryList"
-      translation="[64,180]"
+      translation="[64,162]"
+      height="858"
       itemSize="[760,56]"
       numRows="15"
       drawFocusFeedback="true"

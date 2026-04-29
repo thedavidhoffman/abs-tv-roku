@@ -40,8 +40,7 @@ I'm open to any and all suggestions for enhancements and improvements.
 
 ## Hit List
 
-- diagnostics, [clear settings registry] [clear auth registry]
-- all image requests to new api library
+- home page, continue listening, stats, recently added
 
 - listview support collapsed/expanded
 - loading spinner (add only after fixing the collapsed/expanded display quirk)
@@ -51,7 +50,7 @@ I'm open to any and all suggestions for enhancements and improvements.
 - fix chapter nav not working
 - placeholder image for no cover
 - search
-- home page, continue listening, stats, recently added
+- diagnostics, [clear settings registry] [clear auth registry]
 - player, continue listening from last point
 
 

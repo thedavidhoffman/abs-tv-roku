@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="Search" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/pages/Search/Search.brs" />
+  <interface>
+    <field id="closeRequested" type="integer" />
+    <field id="querySelected" type="assocarray" />
+    <function name="openSearch" />
+  </interface>
+</component>

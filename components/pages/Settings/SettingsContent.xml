@@ -12,9 +12,10 @@
   <children>
     <Label
       id="seriesLabel"
-      text="SERIES"
+      text="Series Display"
       width="560"
-      height="36" />
+      height="36"
+      font="font:MediumBoldSystemFont" />
     <RadioButtonList
       id="seriesOptions"
       translation="[20,48]"
@@ -29,9 +30,10 @@
     <Label
       id="displayLabel"
       translation="[0,172]"
-      text="DISPLAY"
+      text="Items Display"
       width="560"
-      height="36" />
+      height="36"
+      font="font:MediumBoldSystemFont" />
     <RadioButtonList
       id="displayOptions"
       translation="[0,220]"

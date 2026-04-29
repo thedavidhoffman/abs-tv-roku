@@ -12,12 +12,14 @@
 
     <Group id="authenticatedContent" visible="false">
 
+      <HomePage id="homePage" visible="false" />
       <Library id="library" />
       <Header id="header" visible="false" />
 
     </Group>
 
     <SettingsDialog id="settings" />
+    <Search id="search" />
     <DiagnosticsDialog id="diagnostics" />
     <Player id="player" visible="false" />
 
