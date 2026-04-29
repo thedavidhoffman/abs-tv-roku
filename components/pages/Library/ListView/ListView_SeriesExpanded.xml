@@ -11,7 +11,7 @@
     <function name="focusLibraryList" />
   </interface>
   <children>
-    <Rectangle id="overviewBg" translation="[920,100]" width="1000" height="980" />
+    <Rectangle id="overviewBg" translation="[920,91]" width="1000" height="980" />
     <Label id="libraryStatus" translation="[64,212]" width="1200" numLines="2" wrap="true" color="F2C879FF" visible="false" />
     <LabelList
       id="libraryList"
@@ -24,7 +24,7 @@
     />
     <Poster
       id="selectedPoster"
-      translation="[980,250]"
+      translation="[980,241]"
       width="420"
       height="420"
       uri="pkg:/images/placeholder_cover.png"
@@ -32,7 +32,7 @@
     />
     <PrimaryButton
       id="playButton"
-      translation="[980,704]"
+      translation="[980,695]"
       buttonWidth="420"
       buttonHeight="56"
       text="Play"
@@ -40,7 +40,7 @@
     />
     <ScrollingLabel
       id="detailTitle"
-      translation="[980,180]"
+      translation="[980,171]"
       maxWidth="860"
       numLines="2"
       color="F3F7FBFF"
@@ -48,7 +48,7 @@
       repeatCount="1"
     />
     <Label
-      translation="[1430,250]"
+      translation="[1430,241]"
       width="430"
       numLines="1"
       text="AUTHOR"
@@ -57,14 +57,14 @@
     />
     <Label
       id="detailAuthor"
-      translation="[1430,280]"
+      translation="[1430,271]"
       width="430"
       numLines="1"
       color="F3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
-      translation="[1430,326]"
+      translation="[1430,317]"
       width="430"
       numLines="1"
       text="NARRATORS"
@@ -73,14 +73,14 @@
     />
     <Label
       id="detailNarrators"
-      translation="[1430,356]"
+      translation="[1430,347]"
       width="430"
       numLines="1"
       color="F3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
-      translation="[1430,402]"
+      translation="[1430,393]"
       width="430"
       numLines="1"
       text="PUBLISH YEAR"
@@ -89,14 +89,14 @@
     />
     <Label
       id="detailPublishDate"
-      translation="[1430,432]"
+      translation="[1430,423]"
       width="430"
       numLines="1"
       color="F3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
-      translation="[1430,478]"
+      translation="[1430,469]"
       width="430"
       numLines="1"
       text="PUBLISHER"
@@ -105,14 +105,14 @@
     />
     <Label
       id="detailPublisher"
-      translation="[1430,508]"
+      translation="[1430,499]"
       width="430"
       numLines="1"
       color="F3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
-      translation="[1430,554]"
+      translation="[1430,545]"
       width="430"
       numLines="1"
       text="GENRES"
@@ -121,14 +121,14 @@
     />
     <Label
       id="detailGenres"
-      translation="[1430,584]"
+      translation="[1430,575]"
       width="430"
       numLines="1"
       color="F3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
-      translation="[1430,630]"
+      translation="[1430,621]"
       width="430"
       numLines="1"
       text="TAGS"
@@ -137,14 +137,14 @@
     />
     <Label
       id="detailTags"
-      translation="[1430,660]"
+      translation="[1430,651]"
       width="430"
       numLines="1"
       color="F3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
-      translation="[1430,706]"
+      translation="[1430,697]"
       width="430"
       numLines="1"
       text="DURATION"
@@ -153,7 +153,7 @@
     />
     <Label
       id="detailDuration"
-      translation="[1430,736]"
+      translation="[1430,727]"
       width="430"
       numLines="1"
       color="F3F7FBFF"
@@ -161,7 +161,7 @@
     />
     <Label
       id="detailDescription"
-      translation="[980,800]"
+      translation="[980,791]"
       width="860"
       numLines="5"
       wrap="true"

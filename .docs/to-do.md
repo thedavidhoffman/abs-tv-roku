@@ -41,7 +41,7 @@ I'm open to any and all suggestions for enhancements and improvements.
 ## Hit List
 
 - home page, continue listening, stats, recently added
-
+- settings, put focus back on main page
 - listview support collapsed/expanded
 - loading spinner (add only after fixing the collapsed/expanded display quirk)
 - error modal
