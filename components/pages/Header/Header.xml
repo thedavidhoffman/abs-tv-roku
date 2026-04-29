@@ -16,9 +16,6 @@
     <field id="changeServerSelected" type="integer" />
     <field id="usernameUpSequenceSelected" type="integer" />
     <function name="focusHeader" />
-    <function name="focusSearchButton" />
-    <function name="focusSettingsButton" />
-    <function name="focusUserMenuButton" />
   </interface>
   <children>
     <Rectangle id="headerBg" width="1920" height="100" color="12112BFF" />

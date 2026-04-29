@@ -91,39 +91,6 @@ function focusHeader() as boolean
 end function
 
 '-------------------------------------------------------------------------------
-' focusSearchButton
-'-------------------------------------------------------------------------------
-function focusSearchButton() as boolean
-    closeMenu()
-    if m.searchButton = invalid then return focusHeader()
-
-    m.searchButton.setFocus(true)
-    return true
-end function
-
-'-------------------------------------------------------------------------------
-' focusSettingsButton
-'-------------------------------------------------------------------------------
-function focusSettingsButton() as boolean
-    closeMenu()
-    if m.settingsButton = invalid then return focusHeader()
-
-    m.settingsButton.setFocus(true)
-    return true
-end function
-
-'-------------------------------------------------------------------------------
-' focusUserMenuButton
-'-------------------------------------------------------------------------------
-function focusUserMenuButton() as boolean
-    closeMenu()
-    if m.userMenuButton = invalid then return focusHeader()
-
-    m.userMenuButton.setFocus(true)
-    return true
-end function
-
-'-------------------------------------------------------------------------------
 ' onKeyEvent
 '-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean

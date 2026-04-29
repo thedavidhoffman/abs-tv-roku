@@ -52,6 +52,7 @@ I'm open to any and all suggestions for enhancements and improvements.
 - search
 - diagnostics, [clear settings registry] [clear auth registry]
 - player, continue listening from last point
+- back button at certain level closes the app, see if we can trap this and prompt about exit
 
 
 ## Quirks

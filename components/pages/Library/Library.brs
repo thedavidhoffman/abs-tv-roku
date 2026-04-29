@@ -10,6 +10,7 @@ sub init()
     if m.listView <> invalid then
         m.listView.observeField("libraryItems", "onListViewLibraryItemsChanged")
         m.listView.observeField("playSelected", "onListViewPlaySelected")
+        m.listView.observeField("upFromFirstItemSelected", "onListViewUpFromFirstItemSelected")
         m.listView.observeField("errorResponse", "onListViewError")
     end if
 
@@ -122,7 +123,14 @@ end sub
 ' onGridViewUpFromFirstItemSelected
 '-------------------------------------------------------------------------------
 sub onGridViewUpFromFirstItemSelected()
-    if m.gridView <> invalid then m.top.upFromFirstGridItemSelected = m.gridView.upFromFirstItemSelected
+    if m.gridView <> invalid then m.top.upFromFirstItemSelected = m.gridView.upFromFirstItemSelected
+end sub
+
+'-------------------------------------------------------------------------------
+' onListViewUpFromFirstItemSelected
+'-------------------------------------------------------------------------------
+sub onListViewUpFromFirstItemSelected()
+    if m.listView <> invalid then m.top.upFromFirstItemSelected = m.listView.upFromFirstItemSelected
 end sub
 
 '-------------------------------------------------------------------------------

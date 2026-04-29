@@ -7,6 +7,7 @@ sub init()
     m.libraryItemsByRow = []
     m.selectedItem = invalid
     m.playSelectedCounter = 0
+    m.upFromFirstItemSelectedCounter = 0
     m.server = invalid
     m.token = invalid
 
@@ -549,6 +550,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
         end if
 
         if focusFirstLibraryItem() then return true
+        if requestHeaderFocusFromFirstItem() then return true
     end if
 
     if m.playButton <> invalid and m.playButton.isInFocusChain() then
@@ -562,6 +564,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     if m.libraryList <> invalid and m.libraryList.isInFocusChain() then
+        if key = "up" then return requestHeaderFocusFromFirstItem()
         if key = "right" then
             moveLibraryListFocus(10)
             return true
@@ -575,6 +578,23 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     return false
+end function
+
+'-------------------------------------------------------------------------------
+' requestHeaderFocusFromFirstItem
+'-------------------------------------------------------------------------------
+function requestHeaderFocusFromFirstItem() as boolean
+    if m.libraryList = invalid then return false
+    if m.libraryList.isInFocusChain() = false then return false
+
+    currentIndex = m.libraryList.itemFocused
+    if currentIndex = invalid or currentIndex < 0 then currentIndex = m.libraryList.itemSelected
+    if currentIndex = invalid then currentIndex = 0
+    if currentIndex > 0 then return false
+
+    m.upFromFirstItemSelectedCounter = m.upFromFirstItemSelectedCounter + 1
+    m.top.upFromFirstItemSelected = m.upFromFirstItemSelectedCounter
+    return true
 end function
 
 '-------------------------------------------------------------------------------

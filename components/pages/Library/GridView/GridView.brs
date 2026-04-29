@@ -186,7 +186,7 @@ end function
 '-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
-    if key <> "up" then return false
+    if key <> "up" and key <> "back" then return false
     if m.markupGrid = invalid then return false
     if m.markupGrid.isInFocusChain() = false then return false
     if getValidItemIndex(m.markupGrid.itemFocused) > 0 then return false

@@ -26,13 +26,11 @@ sub init()
     m.library.observeField("errorResponse", "onLibraryError")
     m.library.observeField("playSelected", "onLibraryPlaySelected")
     m.library.observeField("seriesSelected", "onLibrarySeriesSelected")
-    m.library.observeField("upFromFirstGridItemSelected", "onLibraryUpFromFirstGridItemSelected")
+    m.library.observeField("upFromFirstItemSelected", "onLibraryUpFromFirstItemSelected")
     m.player.observeField("closeRequested", "onPlayerCloseRequested")
     m.player.observeField("errorResponse", "onPlayerError")
-    m.search.observeField("closeRequested", "onSearchCloseRequested")
     m.settings.observeField("closeRequested", "onSettingsCloseRequested")
     m.settings.observeField("settingsSaved", "onSettingsSaved")
-    m.diagnostics.observeField("closeRequested", "onDiagnosticsCloseRequested")
     m.apiTask.observeField("response", "onApiResponse")
 
     m.session = AuthStore_Load()
@@ -290,14 +288,6 @@ sub onLibrarySeriesSelected()
     m.apiTask.control = "run"
 end sub
 
-'-------------------------------------------------------------------------------
-' onLibraryUpFromFirstGridItemSelected
-'-------------------------------------------------------------------------------
-sub onLibraryUpFromFirstGridItemSelected()
-    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
-end sub
-
-'-------------------------------------------------------------------------------
 ' onSettingsPressed
 '-------------------------------------------------------------------------------
 sub onSettingsPressed()
@@ -309,7 +299,6 @@ end sub
 ' onSettingsCloseRequested
 '-------------------------------------------------------------------------------
 sub onSettingsCloseRequested()
-    focusHeaderSettingsButton()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -359,6 +348,13 @@ sub loadInProgressItems()
 end sub
 
 '-------------------------------------------------------------------------------
+' onLibraryUpFromFirstItemSelected
+'-------------------------------------------------------------------------------
+sub onLibraryUpFromFirstItemSelected()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+end sub
+
+'-------------------------------------------------------------------------------
 ' storeInProgressItems
 '-------------------------------------------------------------------------------
 sub storeInProgressItems(response as object)
@@ -379,7 +375,6 @@ sub storeLibraryItems(response as object)
 
     if m.focusSettingsAfterLibraryReload = true then
         m.focusSettingsAfterLibraryReload = false
-        focusHeaderSettingsButton()
     end if
 end sub
 
@@ -426,28 +421,6 @@ sub onDiagnosticsSequencePressed()
     if m.diagnostics <> invalid then m.diagnostics.callFunc("openDiagnostics")
 end sub
 
-'-------------------------------------------------------------------------------
-' onDiagnosticsCloseRequested
-'-------------------------------------------------------------------------------
-sub onDiagnosticsCloseRequested()
-    if m.header <> invalid and m.header.visible then m.header.callFunc("focusUserMenuButton")
-end sub
-
-'-------------------------------------------------------------------------------
-' onSearchCloseRequested
-'-------------------------------------------------------------------------------
-sub onSearchCloseRequested()
-    if m.header <> invalid and m.header.visible then m.header.callFunc("focusSearchButton")
-end sub
-
-'-------------------------------------------------------------------------------
-' focusHeaderSettingsButton
-'-------------------------------------------------------------------------------
-sub focusHeaderSettingsButton()
-    if m.header <> invalid and m.header.visible then m.header.callFunc("focusSettingsButton")
-end sub
-
-'-------------------------------------------------------------------------------
 ' onPlayerCloseRequested
 '-------------------------------------------------------------------------------
 sub onPlayerCloseRequested()
@@ -557,10 +530,6 @@ function onKeyEvent(key as string, press as boolean) as boolean
         end if
 
         if moveLibraryGridFocusToFirstItem() then return true
-
-        if m.header <> invalid and m.header.visible and not m.header.isInFocusChain() then
-            if m.header.callFunc("focusHeader") then return true
-        end if
     end if
 
     return false
