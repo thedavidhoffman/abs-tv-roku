@@ -13,8 +13,7 @@
       id="settingsDialog"
       title="Settings"
       dialogWidth="900"
-      dialogHeight="650"
-      contentComponentName="SettingsContent"
-      showButtons="true" />
+      dialogHeight="550"
+      contentComponentName="SettingsContent" />
   </children>
 </component>

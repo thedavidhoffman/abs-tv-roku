@@ -7,8 +7,6 @@ sub init()
     m.dialog = m.top.findNode("settingsDialog")
 
     if m.dialog <> invalid then
-        m.dialog.observeField("saveSelected", "onSaveSelected")
-        m.dialog.observeField("cancelSelected", "onCancelSelected")
         m.dialog.observeField("closeRequested", "onDialogCloseRequested")
     end if
 end sub
@@ -50,24 +48,10 @@ sub saveSettings()
 end sub
 
 '-------------------------------------------------------------------------------
-' onSaveSelected
-'-------------------------------------------------------------------------------
-sub onSaveSelected()
-    saveSettings()
-    if m.dialog <> invalid then m.dialog.callFunc("closeDialog")
-end sub
-
-'-------------------------------------------------------------------------------
-' onCancelSelected
-'-------------------------------------------------------------------------------
-sub onCancelSelected()
-    ' Dialog closes itself on cancel; closeRequested forwarding happens separately.
-end sub
-
-'-------------------------------------------------------------------------------
 ' onDialogCloseRequested
 '-------------------------------------------------------------------------------
 sub onDialogCloseRequested()
+    saveSettings()
     m.closeRequestedCounter = m.closeRequestedCounter + 1
     m.top.closeRequested = m.closeRequestedCounter
 end sub
