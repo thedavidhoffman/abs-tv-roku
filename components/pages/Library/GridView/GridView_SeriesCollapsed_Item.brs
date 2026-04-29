@@ -3,8 +3,12 @@
 '-------------------------------------------------------------------------------
 sub init()
     m.poster = m.top.findNode("poster")
+    m.seriesTitleOverlay = m.top.findNode("seriesTitleOverlay")
+    m.seriesTitleLabel = m.top.findNode("seriesTitleLabel")
     m.seriesOverlay = m.top.findNode("seriesOverlay")
     m.seriesLabel = m.top.findNode("seriesLabel")
+    m.isSeriesItem = false
+    m.seriesTitle = ""
 end sub
 
 '-------------------------------------------------------------------------------
@@ -16,14 +20,18 @@ sub showContent()
     item = m.top.itemContent
     if item = invalid then
         m.poster.uri = "pkg:/images/placeholder_cover.png"
+        m.isSeriesItem = false
+        m.seriesTitle = ""
         setSeriesDisplay(false, "")
+        updateSeriesTitleOverlay()
         return
     end if
 
     m.poster.uri = SafeString(item.HDPosterUrl, SafeString(item.SDPosterUrl, "pkg:/images/placeholder_cover.png"))
-    isSeries = isSeriesItem(item)
-    setPosterSize(isSeries)
-    setSeriesDisplay(isSeries, getSeriesName(item))
+    m.isSeriesItem = isSeriesItem(item)
+    m.seriesTitle = getSeriesName(item)
+    setSeriesDisplay(m.isSeriesItem, m.seriesTitle)
+    updateSeriesTitleOverlay()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -46,18 +54,22 @@ sub setSeriesDisplay(isVisible as boolean, seriesName as string)
 end sub
 
 '-------------------------------------------------------------------------------
-' setPosterSize
+' onFocusPercentChanged
 '-------------------------------------------------------------------------------
-sub setPosterSize(isSeries as boolean)
-    ' if m.poster = invalid then return
+sub onFocusPercentChanged()
+    updateSeriesTitleOverlay()
+end sub
 
-    ' if isSeries then
-    '     m.poster.width = 240
-    '     m.poster.height = 240
-    ' else
-    '     m.poster.width = 280
-    '     m.poster.height = 280
-    ' end if
+'-------------------------------------------------------------------------------
+' updateSeriesTitleOverlay
+'-------------------------------------------------------------------------------
+sub updateSeriesTitleOverlay()
+    isVisible = (m.isSeriesItem = true and m.top.focusPercent > 0)
+    if m.seriesTitleOverlay <> invalid then m.seriesTitleOverlay.visible = isVisible
+    if m.seriesTitleLabel <> invalid then
+        m.seriesTitleLabel.text = m.seriesTitle
+        m.seriesTitleLabel.visible = isVisible
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
