@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="ChapterListContent" extends="Group" focusable="true">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Player/ChapterListContent.brs" />
+  <interface>
+    <field id="tracks" type="array" onChange="onTracksChanged" />
+    <field id="currentTrackIndex" type="integer" onChange="onCurrentTrackIndexChanged" />
+    <field id="selectedChapter" type="assocarray" />
+    <function name="focusCurrentChapter" />
+  </interface>
+  <children>
+    <MarkupList
+      id="chapterList"
+      itemComponentName="ChapterListItem"
+      itemSize="[1200,56]"
+      numRows="11"
+      drawFocusFeedback="true"
+      vertFocusAnimationStyle="fixedFocus" />
+  </children>
+</component>
