@@ -154,3 +154,14 @@ sub focusItemAtIndex(index as dynamic)
 
     focusLibraryList()
 end sub
+
+'-------------------------------------------------------------------------------
+' moveFocusToFirstGridItem
+'-------------------------------------------------------------------------------
+function moveFocusToFirstGridItem() as boolean
+    if m.activeView <> "grid" then return false
+    if m.gridView = invalid then return false
+
+    handled = m.gridView.callFunc("moveFocusToFirstItem")
+    return handled = true
+end function

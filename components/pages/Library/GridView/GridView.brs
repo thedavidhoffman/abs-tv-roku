@@ -156,6 +156,21 @@ sub focusItemAtIndex(index as dynamic)
 end sub
 
 '-------------------------------------------------------------------------------
+' moveFocusToFirstItem
+'-------------------------------------------------------------------------------
+function moveFocusToFirstItem() as boolean
+    if m.markupGrid = invalid then return false
+    if m.markupGrid.isInFocusChain() = false then return false
+
+    currentIndex = getValidItemIndex(m.markupGrid.itemFocused)
+    if currentIndex <= 0 then return false
+
+    m.markupGrid.jumpToItem = 0
+    m.markupGrid.setFocus(true)
+    return true
+end function
+
+'-------------------------------------------------------------------------------
 ' getValidItemIndex
 '-------------------------------------------------------------------------------
 function getValidItemIndex(index as dynamic) as integer

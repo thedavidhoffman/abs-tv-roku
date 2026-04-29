@@ -441,7 +441,12 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     if not m.login.visible and key = "back" then
-        if restorePreviousLibraryItems() then return true
+        if hasLibraryBackStack() then
+            if moveLibraryGridFocusToFirstItem() then return true
+            if restorePreviousLibraryItems() then return true
+        end if
+
+        if moveLibraryGridFocusToFirstItem() then return true
 
         if m.header <> invalid and m.header.visible and not m.header.isInFocusChain() then
             if m.header.callFunc("focusHeader") then return true
@@ -449,4 +454,21 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     return false
+end function
+
+'-------------------------------------------------------------------------------
+' hasLibraryBackStack
+'-------------------------------------------------------------------------------
+function hasLibraryBackStack() as boolean
+    return m.libraryItemBackStack <> invalid and m.libraryItemBackStack.Count() > 0
+end function
+
+'-------------------------------------------------------------------------------
+' moveLibraryGridFocusToFirstItem
+'-------------------------------------------------------------------------------
+function moveLibraryGridFocusToFirstItem() as boolean
+    if m.library = invalid or m.library.visible <> true then return false
+
+    handled = m.library.callFunc("moveFocusToFirstGridItem")
+    return handled = true
 end function

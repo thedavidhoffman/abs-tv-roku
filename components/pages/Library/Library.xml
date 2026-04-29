@@ -11,6 +11,7 @@
     <field id="errorResponse" type="assocarray" />
     <function name="focusLibraryList" />
     <function name="focusItemAtIndex" />
+    <function name="moveFocusToFirstGridItem" />
   </interface>
   <children>
     <ListView_SeriesExpanded id="listView" />
