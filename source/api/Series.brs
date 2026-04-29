@@ -1,7 +1,7 @@
 '-------------------------------------------------------------------------------
 ' Series_Load
 '-------------------------------------------------------------------------------
-function Series_Load(request as Object) as Object
+function Series_Load(request as object) as object
     server = NormalizeServerUrl(request.server)
     token = request.token
     bookLibraryId = request.bookLibraryId
@@ -23,7 +23,7 @@ function Series_Load(request as Object) as Object
     keepLoading = true
 
     while keepLoading
-        libraryUrl = server + "/api/libraries/" + bookLibraryId + "/items?limit=" + limit.ToStr() + "&page=" + page.ToStr() + "&sort=media.metadata.title&desc=0&minified=0"
+        libraryUrl = server + "/api/libraries/" + bookLibraryId + "/items?limit=" + limit.ToStr() + "&page=" + page.ToStr()
         if seriesFilter <> "" then libraryUrl = libraryUrl + seriesFilter
 
         libraryResult = HttpClient_Request(libraryUrl, "GET", token, invalid)
@@ -49,6 +49,7 @@ function Series_Load(request as Object) as Object
         action: "loadSeries"
         bookLibraryId: bookLibraryId
         seriesId: request.seriesId
+        sourceItemIndex: request.sourceItemIndex
         libraryItems: allItems
     }
 end function
@@ -56,7 +57,7 @@ end function
 '-------------------------------------------------------------------------------
 ' __GetSeriesFilterQuery
 '-------------------------------------------------------------------------------
-function __GetSeriesFilterQuery(seriesId as Dynamic) as String
+function __GetSeriesFilterQuery(seriesId as dynamic) as string
     if seriesId = invalid then return ""
 
     seriesIdText = seriesId.ToStr()

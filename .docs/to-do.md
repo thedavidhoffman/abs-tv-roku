@@ -3,33 +3,6 @@
 - if already haz auth token, refresh
 - if error, display modal with error info
 
-# home page
-- Continue Listening
-- Recently Added
-
-# header
-- check for audiobook library, only support that
-- home, library, series, search, user
-- settings
-    - library view display { list, grid }
-    - library view series { collapse, expand }
-
-# settings
-
-## Library
-- grid/list view
-- expand/collapse series
-
-
-# library view
-- grid view, list view
-
-# library view - list view
-- clean up layout
-- how to handle collapsed series view
-- if back button is clicked move to top of list
-- if at top of list and back button is clicked move focus to header
-
 # player
 - description modal
     - see if ScrollableText would be a better choice than our custom scroll
@@ -37,14 +10,6 @@
 - Resume
 - Restart
 - Meditations won't play - WHY?
-- chapter nav broken - FIX
-
-# cover art
-- curved frame for cover
-- placeholder image for no cover
-
-# general
-- loading spinner
 
 # localization
 - https://developer.roku.com/en-au/docs/developer-program/core-concepts/localization.md
@@ -53,54 +18,15 @@
 - https://developer.roku.com/en-au/docs/references/brightscript/interfaces/ifdeviceinfo.md
 
 
-# NEXT UP...
-
-two panel layout?
-html string function move to helper class
-
-extract listview "overview" into new component
-
 duration display helper
 
-
-
-LibraryView
-- move list out of Library into LibraryListView
-- create LibraryGridView
-- add toggle for different views
-
-- header
-    - remove audiobooks (aka library list)
-    - add search before books/series, change all to buttons
 - build out DTOs? https://deepwiki.com/audiobookshelf/audiobookshelf-api-docs/3.1-data-model-and-schemas
-
-
-Today...
-description modal
-listview
-listview librarystatus
-error modal
 
 
 json formatter for response output to log...
 https://www.npmjs.com/package/brighterscript-formatter
 https://github.com/nikolay-mamaev/BrightScript-Json-Beautifier
 
-# names
-
-ShelfTV
-
-AudioShelf TV
-
-CouchShelf
-
-BookBeam
-
-ShelfStream
-
-ShelfPlayer
-
-PurplePlayer?
 
 RELEASE NOTES
 I'm excited to release version 1.0 of ABSTV, an AudioBookshelf (ABS) client for Roku. This is my first time developing a Roku app, and to be honest, it would not have been successful without the help of AI. To be clear, I didn't just "vibe code" this app. I'm an experienced senior software developer and I used AI as a tool to help craft this app. I took the AI output and constantly refined, reorganized, encapsulated, and abstracted it. That being said. This is version 1.0 of this app, and there's still plenty of room for improvement, and I'm still learning about the interesting world that is Roku app development. I'm also positive there is room for improvement with performance.
@@ -110,6 +36,27 @@ This app is not availabe in the official Roku channel store. It must be side-loa
 If you're a user of Audiobookshelf and looking to use it on your TV, I hope you find this application useful.
 
 I'm open to any and all suggestions for enhancements and improvements.
+
+
+## Hit List
+
+- chapter list use modal
+- gridview add title??
+- gridview, when in series display, display series label, and back button label
+- diagnostics, [clear settings registry] [clear auth registry]
+- all image requests to new api library
+
+- listview support collapsed/expanded
+- loading spinner (add only after fixing the collapsed/expanded display quirk)
+- settings modal use heading/label style the same as diagnostics
+- error modal
+- description modal use on both ListView and Player
+- html string function move to helper class
+- fix chapter nav time label not always displaying
+- fix chapter nav not working
+- placeholder image for no cover
+- search
+- home page, continue listening, stats, recently added
 
 
 ## Quirks

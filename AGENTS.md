@@ -15,6 +15,10 @@
 
 - Prefix literal XML color values with `0x`, such as `color="0xF3F7FBFF"`.
 
+## BrightScript style
+
+- Assign color fields with integer hex literals, such as `m.title.color = &h0F1A2AFF`, not string values like `"0x0F1A2AFF"`.
+
 ## BrightScript naming
 
 - Use module-style function prefixes, such as `AuthStore_Load` or `Playback_Start`, for shared helpers under `/source`.

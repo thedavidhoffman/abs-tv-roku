@@ -7,7 +7,7 @@
     <field id="focusPercent" type="float" onChange="focusPercentChanged"/> 
   </interface>
   <children>
-    <Label id="title" translation="[24,11]" width="960" maxLines="1" color="F3F7FBFF" />
-    <Label id="duration" translation="[1016,11]" width="160" maxLines="1" horizAlign="right" color="8DA0B5FF" />
+    <Label id="title" translation="[24,11]" width="960" maxLines="1" color="0xF3F7FBFF" />
+    <Label id="duration" translation="[1016,11]" width="160" maxLines="1" horizAlign="right" color="0x8DA0B5FF" />
   </children>
 </component>

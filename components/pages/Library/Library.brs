@@ -142,3 +142,15 @@ sub focusLibraryList()
 
     if m.listView <> invalid then m.listView.callFunc("focusLibraryList")
 end sub
+
+'-------------------------------------------------------------------------------
+' focusItemAtIndex
+'-------------------------------------------------------------------------------
+sub focusItemAtIndex(index as dynamic)
+    if m.activeView = "grid" and m.gridView <> invalid then
+        m.gridView.callFunc("focusItemAtIndex", index)
+        return
+    end if
+
+    focusLibraryList()
+end sub

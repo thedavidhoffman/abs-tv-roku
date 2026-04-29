@@ -80,6 +80,7 @@ sub onPosterSelected()
         m.top.seriesSelected = {
             seriesId: seriesId
             title: getLibraryItemTitle(item)
+            itemIndex: m.markupGrid.itemSelected
             counter: m.seriesSelectedCounter
         }
         return
@@ -142,6 +143,27 @@ end function
 sub focusLibraryList()
     if m.markupGrid <> invalid then m.markupGrid.setFocus(true)
 end sub
+
+'-------------------------------------------------------------------------------
+' focusItemAtIndex
+'-------------------------------------------------------------------------------
+sub focusItemAtIndex(index as dynamic)
+    if m.markupGrid = invalid then return
+
+    itemIndex = getValidItemIndex(index)
+    m.markupGrid.jumpToItem = itemIndex
+    m.markupGrid.setFocus(true)
+end sub
+
+'-------------------------------------------------------------------------------
+' getValidItemIndex
+'-------------------------------------------------------------------------------
+function getValidItemIndex(index as dynamic) as integer
+    if index = invalid or index < 0 then return 0
+    if m.libraryItemsByIndex = invalid or m.libraryItemsByIndex.Count() = 0 then return 0
+    if index >= m.libraryItemsByIndex.Count() then return m.libraryItemsByIndex.Count() - 1
+    return index
+end function
 
 '-------------------------------------------------------------------------------
 ' setStatus

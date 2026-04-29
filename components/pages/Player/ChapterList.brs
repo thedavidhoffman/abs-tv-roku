@@ -94,11 +94,9 @@ function onKeyEvent(key as string, press as boolean) as boolean
         selectFocusedChapter()
         return true
     else if key = "down" then
-        moveChapterListFocus(1)
-        return true
+        return isFocusedAtChapterBoundary(1)
     else if key = "up" then
-        moveChapterListFocus(-1)
-        return true
+        return isFocusedAtChapterBoundary(-1)
     end if
 
     return false
@@ -112,27 +110,39 @@ sub focusChapterList()
 end sub
 
 '-------------------------------------------------------------------------------
-' moveChapterListFocus
+' isFocusedAtChapterBoundary
 '-------------------------------------------------------------------------------
-sub moveChapterListFocus(offset as integer)
-    if m.chapterList = invalid then return
+function isFocusedAtChapterBoundary(offset as integer) as boolean
+    if m.chapterList = invalid then return false
+
+    currentIndex = getFocusedChapterIndex()
+    return getBoundedChapterIndex(currentIndex + offset) = currentIndex
+end function
+
+'-------------------------------------------------------------------------------
+' getFocusedChapterIndex
+'-------------------------------------------------------------------------------
+function getFocusedChapterIndex() as integer
+    if m.chapterList = invalid then return 0
+
+    focusedIndex = m.chapterList.itemFocused
+    if focusedIndex = invalid or focusedIndex < 0 then focusedIndex = m.focusedChapterIndex
+    return getBoundedChapterIndex(focusedIndex)
+end function
+
+'-------------------------------------------------------------------------------
+' getBoundedChapterIndex
+'-------------------------------------------------------------------------------
+function getBoundedChapterIndex(index as dynamic) as integer
+    if index = invalid or index < 0 then return 0
 
     tracks = m.top.tracks
-    if tracks = invalid or tracks.Count() = 0 then return
-
-    currentIndex = m.chapterList.itemFocused
-    if currentIndex = invalid or currentIndex < 0 then currentIndex = 0
-
-    nextIndex = currentIndex + offset
-    if nextIndex < 0 then nextIndex = 0
+    if tracks = invalid or tracks.Count() = 0 then return 0
 
     lastIndex = tracks.Count() - 1
-    if nextIndex > lastIndex then nextIndex = lastIndex
-
-    updateFocusedChapterIndex(nextIndex)
-    m.chapterList.jumpToItem = nextIndex
-    m.chapterList.setFocus(true)
-end sub
+    if index > lastIndex then return lastIndex
+    return index
+end function
 
 '-------------------------------------------------------------------------------
 ' updateChapterListContent

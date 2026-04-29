@@ -227,6 +227,7 @@ sub onLibrarySeriesSelected()
         token: m.session.token
         bookLibraryId: m.session.bookLibraryId
         seriesId: selectedSeries.seriesId
+        sourceItemIndex: selectedSeries.itemIndex
     }
     m.apiTask.control = "run"
 end sub
@@ -295,7 +296,12 @@ sub storeSeriesItems(response as object)
     end if
 
     if m.library <> invalid then
-        if m.library.libraryItems <> invalid then m.libraryItemBackStack.Push(m.library.libraryItems)
+        if m.library.libraryItems <> invalid then
+            m.libraryItemBackStack.Push({
+                items: m.library.libraryItems
+                focusIndex: response.sourceItemIndex
+            })
+        end if
         m.library.libraryItems = response.libraryItems
     end if
 end sub
@@ -308,11 +314,11 @@ function restorePreviousLibraryItems() as boolean
     if m.libraryItemBackStack = invalid or m.libraryItemBackStack.Count() = 0 then return false
 
     lastIndex = m.libraryItemBackStack.Count() - 1
-    previousItems = m.libraryItemBackStack[lastIndex]
+    previousState = m.libraryItemBackStack[lastIndex]
     m.libraryItemBackStack.Delete(lastIndex)
 
-    m.library.libraryItems = previousItems
-    m.library.callFunc("focusLibraryList")
+    m.library.libraryItems = previousState.items
+    m.library.callFunc("focusItemAtIndex", previousState.focusIndex)
     return true
 end function
 

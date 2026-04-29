@@ -9,6 +9,7 @@
     <field id="seriesSelected" type="assocarray" />
     <field id="errorResponse" type="assocarray" />
     <function name="focusLibraryList" />
+    <function name="focusItemAtIndex" />
   </interface>
   <children>
     <Label
