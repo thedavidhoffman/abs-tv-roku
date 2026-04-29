@@ -2,7 +2,7 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.homeRowList = m.top.findNode("homeRowList")
+    m.continueListeningGrid = m.top.findNode("continueListeningGrid")
     m.statusLabel = m.top.findNode("statusLabel")
     m.continueListeningTitle = m.top.findNode("continueListeningTitle")
     m.focusRequested = false
@@ -14,11 +14,9 @@ end sub
 ' onInProgressItemsChanged
 '-------------------------------------------------------------------------------
 sub onInProgressItemsChanged()
-    if m.homeRowList = invalid then return
+    if m.continueListeningGrid = invalid then return
 
     root = CreateObject("roSGNode", "ContentNode")
-    row = CreateObject("roSGNode", "ContentNode")
-    row.title = "Continue Listening"
 
     items = m.top.inProgressItems
     if items <> invalid then
@@ -28,14 +26,13 @@ sub onInProgressItemsChanged()
                 node.title = getLibraryItemTitle(item)
                 node.HDPosterUrl = buildCoverUrl(item.id)
                 node.SDPosterUrl = node.HDPosterUrl
-                row.appendChild(node)
+                root.appendChild(node)
             end if
         end for
     end if
 
-    root.appendChild(row)
-    m.homeRowList.content = root
-    updateStatus(row.getChildCount())
+    m.continueListeningGrid.content = root
+    updateStatus(root.getChildCount())
 
     if m.focusRequested = true and m.top.visible = true then focusHomePage()
 end sub
@@ -44,12 +41,12 @@ end sub
 ' updateStatus
 '-------------------------------------------------------------------------------
 sub updateStatus(itemCount as integer)
-    if m.statusLabel = invalid or m.homeRowList = invalid then return
+    if m.statusLabel = invalid or m.continueListeningGrid = invalid then return
 
     hasItems = itemCount > 0
     m.statusLabel.visible = not hasItems
     if m.continueListeningTitle <> invalid then m.continueListeningTitle.visible = hasItems
-    m.homeRowList.visible = hasItems
+    m.continueListeningGrid.visible = hasItems
 
     if hasItems then
         m.statusLabel.text = ""
@@ -64,8 +61,8 @@ end sub
 function focusHomePage() as boolean
     m.focusRequested = true
 
-    if m.homeRowList <> invalid and m.homeRowList.visible = true then
-        m.homeRowList.setFocus(true)
+    if m.continueListeningGrid <> invalid and m.continueListeningGrid.visible = true then
+        m.continueListeningGrid.setFocus(true)
         return true
     end if
 
