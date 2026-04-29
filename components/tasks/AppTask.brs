@@ -24,6 +24,8 @@ sub executeRequest()
         m.top.response = Authentication_Logout(request)
     else if action = "loadLibrary" then
         m.top.response = LibraryItems_Load(request)
+    else if action = "loadSeries" then
+        m.top.response = Series_Load(request)
     else if action = "startPlayback" then
         m.top.response = Playback_Start(request)
     else

@@ -1,16 +1,11 @@
 '-------------------------------------------------------------------------------
-' Library Items API
+' Series_Load
 '-------------------------------------------------------------------------------
-' Loads audiobook items from a selected Audiobookshelf library. Top-level library
-' discovery lives in Libraries.brs; this module loads the items within a library.
-
-'-------------------------------------------------------------------------------
-' LibraryItems_Load
-'-------------------------------------------------------------------------------
-function LibraryItems_Load(request as object) as object
+function Series_Load(request as Object) as Object
     server = NormalizeServerUrl(request.server)
     token = request.token
     bookLibraryId = request.bookLibraryId
+    seriesFilter = __GetSeriesFilterQuery(request.seriesId)
 
     if bookLibraryId = invalid or bookLibraryId = "" then
         authResult = HttpClient_Request(server + "/api/authorize", "POST", token, "")
@@ -26,10 +21,11 @@ function LibraryItems_Load(request as object) as object
     page = 0
     limit = 100
     keepLoading = true
-    collapseSeries = __GetCollapseSeriesQueryValue()
 
     while keepLoading
-        libraryUrl = server + "/api/libraries/" + bookLibraryId + "/items?limit=" + limit.ToStr() + "&page=" + page.ToStr() + "&sort=media.metadata.title&desc=0&minified=0&collapseseries=" + collapseSeries
+        libraryUrl = server + "/api/libraries/" + bookLibraryId + "/items?limit=" + limit.ToStr() + "&page=" + page.ToStr() + "&sort=media.metadata.title&desc=0&minified=0"
+        if seriesFilter <> "" then libraryUrl = libraryUrl + seriesFilter
+
         libraryResult = HttpClient_Request(libraryUrl, "GET", token, invalid)
         if libraryResult.ok <> true then return libraryResult
 
@@ -57,10 +53,13 @@ function LibraryItems_Load(request as object) as object
 end function
 
 '-------------------------------------------------------------------------------
-' __GetCollapseSeriesQueryValue
+' __GetSeriesFilterQuery
 '-------------------------------------------------------------------------------
-function __GetCollapseSeriesQueryValue() as string
-    settings = SettingsStore_Load()
-    if settings <> invalid and settings["series-display"] = "collapse" then return "1"
-    return "0"
+function __GetSeriesFilterQuery(seriesId as Dynamic) as String
+    if seriesId = invalid then return ""
+
+    seriesIdText = seriesId.ToStr()
+    if seriesIdText = "" then return ""
+
+    return "&filter=series." + Encode_Url(Encode_Base64(seriesIdText))
 end function
