@@ -11,6 +11,10 @@
 - https://github.com/rokudev/samples
 - https://developer.roku.com/en-au/docs/references/references-overview.md
 
+## Roku XML style
+
+- Prefix literal XML color values with `0x`, such as `color="0xF3F7FBFF"`.
+
 ## BrightScript naming
 
 - Use module-style function prefixes, such as `AuthStore_Load` or `Playback_Start`, for shared helpers under `/source`.

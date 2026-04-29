@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="GridView_SeriesCollapsed_Item" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Library/GridView/GridView_SeriesCollapsed_Item.brs" />
+  <interface>
+    <field id="itemContent" type="node" onChange="showContent" />
+  </interface>
+  <children>
+    <Poster
+      id="poster"
+      width="280"
+      height="280"
+      uri="pkg:/images/placeholder_cover.png"
+      loadDisplayMode="scaleToFit" />
+    <Rectangle
+      id="seriesOverlay"
+      translation="[0,240]"
+      width="280"
+      height="40"
+      color="0x000000FF"
+      visible="false" />
+    <Label
+      id="seriesLabel"
+      translation="[12,247]"
+      width="256"
+      height="26"
+      maxLines="1"
+      font="font:TinyBoldSystemFont"
+      color="0xF3F7FBFF"
+      visible="false" />
+  </children>
+</component>

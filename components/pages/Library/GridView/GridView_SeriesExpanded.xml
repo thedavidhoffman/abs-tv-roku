@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<component name="GridView_SeriesCollapsed" extends="Group" focusable="true">
+<component name="GridView_SeriesExpanded" extends="Group" focusable="true">
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
-  <script type="text/brightscript" uri="pkg:/components/pages/Library/GridView_SeriesCollapsed.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Library/GridView/GridView_SeriesExpanded.brs" />
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />

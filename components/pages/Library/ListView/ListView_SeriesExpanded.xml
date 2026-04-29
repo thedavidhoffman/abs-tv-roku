@@ -2,7 +2,7 @@
 <component name="ListView_SeriesExpanded" extends="Group">
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
   <script type="text/brightscript" uri="pkg:/source/Color.brs" />
-  <script type="text/brightscript" uri="pkg:/components/pages/Library/ListView_SeriesExpanded.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Library/ListView/ListView_SeriesExpanded.brs" />
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />

@@ -2,15 +2,15 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.posterGrid = m.top.findNode("posterGrid")
+    m.markupGrid = m.top.findNode("markupGrid")
     m.gridStatus = m.top.findNode("gridStatus")
     m.libraryItemsByIndex = []
     m.playSelectedCounter = 0
     m.server = invalid
     m.token = invalid
 
-    if m.posterGrid <> invalid then
-        m.posterGrid.observeField("itemSelected", "onPosterSelected")
+    if m.markupGrid <> invalid then
+        m.markupGrid.observeField("itemSelected", "onPosterSelected")
     end if
 
     onLibraryItemsChanged()
@@ -32,7 +32,7 @@ end sub
 ' onLibraryItemsChanged
 '-------------------------------------------------------------------------------
 sub onLibraryItemsChanged()
-    if m.posterGrid = invalid then return
+    if m.markupGrid = invalid then return
 
     root = CreateObject("roSGNode", "ContentNode")
     items = m.top.libraryItems
@@ -45,13 +45,17 @@ sub onLibraryItemsChanged()
                 node.title = getLibraryItemTitle(item)
                 node.HDPosterUrl = buildCoverUrl(item)
                 node.SDPosterUrl = node.HDPosterUrl
+                node.AddFields({
+                    isSeriesItem: isSeriesItem(item)
+                    collapsedSeries: item.collapsedSeries
+                })
                 root.appendChild(node)
                 m.libraryItemsByIndex.Push(item)
             end if
         end for
     end if
 
-    m.posterGrid.content = root
+    m.markupGrid.content = root
     setStatus("")
 
     if m.libraryItemsByIndex.Count() = 0 then
@@ -63,7 +67,7 @@ end sub
 ' onPosterSelected
 '-------------------------------------------------------------------------------
 sub onPosterSelected()
-    item = getSelectedLibraryItem(m.posterGrid.itemSelected)
+    item = getSelectedLibraryItem(m.markupGrid.itemSelected)
     if item = invalid or item.id = invalid then
         setStatus("Select an audiobook to play.")
         return
@@ -89,6 +93,14 @@ function getSelectedLibraryItem(index as dynamic) as dynamic
 end function
 
 '-------------------------------------------------------------------------------
+' isSeriesItem
+'-------------------------------------------------------------------------------
+function isSeriesItem(item as dynamic) as boolean
+    if item = invalid then return false
+    return item.collapsedSeries <> invalid
+end function
+
+'-------------------------------------------------------------------------------
 ' buildCoverUrl
 '-------------------------------------------------------------------------------
 function buildCoverUrl(item as dynamic) as string
@@ -101,7 +113,7 @@ end function
 ' focusLibraryList
 '-------------------------------------------------------------------------------
 sub focusLibraryList()
-    if m.posterGrid <> invalid then m.posterGrid.setFocus(true)
+    if m.markupGrid <> invalid then m.markupGrid.setFocus(true)
 end sub
 
 '-------------------------------------------------------------------------------
