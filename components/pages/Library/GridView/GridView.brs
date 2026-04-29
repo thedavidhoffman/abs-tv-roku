@@ -8,6 +8,7 @@ sub init()
     m.playSelectedCounter = 0
     m.seriesSelectedCounter = 0
     m.upFromFirstItemSelectedCounter = 0
+    m.backFromFirstItemSelectedCounter = 0
     m.server = invalid
     m.token = invalid
 
@@ -190,6 +191,12 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if m.markupGrid = invalid then return false
     if m.markupGrid.isInFocusChain() = false then return false
     if getValidItemIndex(m.markupGrid.itemFocused) > 0 then return false
+
+    if key = "back" then
+        m.backFromFirstItemSelectedCounter = m.backFromFirstItemSelectedCounter + 1
+        m.top.backFromFirstItemSelected = m.backFromFirstItemSelectedCounter
+        return true
+    end if
 
     m.upFromFirstItemSelectedCounter = m.upFromFirstItemSelectedCounter + 1
     m.top.upFromFirstItemSelected = m.upFromFirstItemSelectedCounter

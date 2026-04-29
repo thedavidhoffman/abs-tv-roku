@@ -22,21 +22,6 @@ sub onItemContentChanged()
 end sub
 
 '-------------------------------------------------------------------------------
-' onFocusPercentChanged
-'-------------------------------------------------------------------------------
-sub onFocusPercentChanged()
-    if m.itemVisual = invalid then return
-
-    scale = 1 + (m.top.focusPercent * 0.06)
-    m.itemVisual.scale = [scale, scale]
-
-    if m.focusFrame <> invalid then
-        m.focusFrame.visible = m.top.focusPercent > 0
-        m.focusFrame.opacity = m.top.focusPercent
-    end if
-end sub
-
-'-------------------------------------------------------------------------------
 ' onRowFocusPercentChanged
 '-------------------------------------------------------------------------------
 sub onRowFocusPercentChanged()

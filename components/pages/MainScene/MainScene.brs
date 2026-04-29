@@ -28,6 +28,7 @@ sub init()
     m.library.observeField("playSelected", "onLibraryPlaySelected")
     m.library.observeField("seriesSelected", "onLibrarySeriesSelected")
     m.library.observeField("upFromFirstItemSelected", "onLibraryUpFromFirstItemSelected")
+    m.library.observeField("backFromFirstItemSelected", "onLibraryBackFromFirstItemSelected")
     m.player.observeField("closeRequested", "onPlayerCloseRequested")
     m.player.observeField("errorResponse", "onPlayerError")
     m.settings.observeField("closeRequested", "onSettingsCloseRequested")
@@ -360,6 +361,14 @@ end sub
 ' onLibraryUpFromFirstItemSelected
 '-------------------------------------------------------------------------------
 sub onLibraryUpFromFirstItemSelected()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+end sub
+
+'-------------------------------------------------------------------------------
+' onLibraryBackFromFirstItemSelected
+'-------------------------------------------------------------------------------
+sub onLibraryBackFromFirstItemSelected()
+    if restorePreviousLibraryItems() then return
     if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
 end sub
 

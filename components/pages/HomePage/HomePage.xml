@@ -28,15 +28,21 @@
       color="0xF6F7FBFF"
       font="font:LargeBoldSystemFont"
       visible="false" />
-    <RowList
+    <ZoomRowList
       id="homeRowList"
       translation="[64,204]"
       itemComponentName="HomePage_RowItem"
       numRows="1"
+      rowWidth="1792"
+      rowHeight="[320]"
+      rowZoomHeight="[340]"
+      rowItemHeight="[320]"
+      rowItemZoomHeight="[340]"
+      rowItemAspectRatio="[1]"
       itemSize="[1792,320]"
       rowItemSize="[[320,320]]"
       itemSpacing="[0,36]"
-      rowItemSpacing="[[28,0]]"
+      rowItemSpacing="[[8,0]]"
       showRowLabel="[false]"
       drawFocusFeedback="false"
       vertFocusAnimationStyle="fixedFocus"

@@ -18,6 +18,7 @@ sub init()
         m.gridView.observeField("playSelected", "onGridViewPlaySelected")
         m.gridView.observeField("seriesSelected", "onGridViewSeriesSelected")
         m.gridView.observeField("upFromFirstItemSelected", "onGridViewUpFromFirstItemSelected")
+        m.gridView.observeField("backFromFirstItemSelected", "onGridViewBackFromFirstItemSelected")
         m.gridView.observeField("errorResponse", "onGridViewError")
     end if
 
@@ -124,6 +125,13 @@ end sub
 '-------------------------------------------------------------------------------
 sub onGridViewUpFromFirstItemSelected()
     if m.gridView <> invalid then m.top.upFromFirstItemSelected = m.gridView.upFromFirstItemSelected
+end sub
+
+'-------------------------------------------------------------------------------
+' onGridViewBackFromFirstItemSelected
+'-------------------------------------------------------------------------------
+sub onGridViewBackFromFirstItemSelected()
+    if m.gridView <> invalid then m.top.backFromFirstItemSelected = m.gridView.backFromFirstItemSelected
 end sub
 
 '-------------------------------------------------------------------------------

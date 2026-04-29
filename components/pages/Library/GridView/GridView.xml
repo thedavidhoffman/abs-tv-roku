@@ -8,6 +8,7 @@
     <field id="playSelected" type="assocarray" />
     <field id="seriesSelected" type="assocarray" />
     <field id="upFromFirstItemSelected" type="integer" />
+    <field id="backFromFirstItemSelected" type="integer" />
     <field id="errorResponse" type="assocarray" />
     <function name="focusLibraryList" />
     <function name="focusItemAtIndex" />

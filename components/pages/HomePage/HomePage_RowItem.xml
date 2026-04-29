@@ -3,21 +3,12 @@
   <script type="text/brightscript" uri="pkg:/components/pages/HomePage/HomePage_RowItem.brs" />
   <interface>
     <field id="itemContent" type="node" onChange="onItemContentChanged" />
-    <field id="focusPercent" type="float" onChange="onFocusPercentChanged" />
     <field id="rowFocusPercent" type="float" onChange="onRowFocusPercentChanged" />
   </interface>
   <children>
     <Group
       id="itemVisual"
       scaleRotateCenter="[160,160]">
-      <Rectangle
-        id="focusFrame"
-        translation="[0,0]"
-        width="320"
-        height="320"
-        color="0xF6F7FBFF"
-        opacity="0"
-        visible="false" />
       <Poster
         id="coverPoster"
         translation="[10,10]"
