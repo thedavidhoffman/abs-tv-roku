@@ -24,6 +24,7 @@ sub init()
     m.header.observeField("changeServerSelected", "onChangeServerPressed")
     m.header.observeField("usernameUpSequenceSelected", "onDiagnosticsSequencePressed")
     m.homePage.observeField("backSelected", "onHomePageBackSelected")
+    m.homePage.observeField("playSelected", "onHomePagePlaySelected")
     m.library.observeField("errorResponse", "onLibraryError")
     m.library.observeField("playSelected", "onLibraryPlaySelected")
     m.library.observeField("seriesSelected", "onLibrarySeriesSelected")
@@ -40,6 +41,7 @@ sub init()
     m.loginActivationCounter = 0
     m.libraryItemBackStack = []
     m.focusSettingsAfterLibraryReload = false
+    m.playerReturnTarget = ""
 
     preloadSavedFields()
     initStyle()
@@ -232,6 +234,15 @@ sub onHomePageBackSelected()
 end sub
 
 '-------------------------------------------------------------------------------
+' onHomePagePlaySelected
+'-------------------------------------------------------------------------------
+sub onHomePagePlaySelected()
+    selectedItem = m.homePage.playSelected
+    m.playerReturnTarget = "home"
+    playLibraryItem(selectedItem)
+end sub
+
+'-------------------------------------------------------------------------------
 ' onLibraryPressed
 '-------------------------------------------------------------------------------
 sub onLibraryPressed()
@@ -261,6 +272,14 @@ end sub
 '-------------------------------------------------------------------------------
 sub onLibraryPlaySelected()
     selectedItem = m.library.playSelected
+    m.playerReturnTarget = "library"
+    playLibraryItem(selectedItem)
+end sub
+
+'-------------------------------------------------------------------------------
+' playLibraryItem
+'-------------------------------------------------------------------------------
+sub playLibraryItem(selectedItem as dynamic)
     if selectedItem = invalid or selectedItem.id = invalid then return
     if m.session = invalid then return
 
@@ -444,6 +463,11 @@ end sub
 sub onPlayerCloseRequested()
     m.player.visible = false
     m.authenticatedContent.visible = true
+    if m.playerReturnTarget = "home" and m.homePage <> invalid and m.homePage.visible then
+        m.homePage.callFunc("focusHomePage")
+        return
+    end if
+
     if m.library <> invalid and m.library.visible then
         m.library.callFunc("focusLibraryList")
     end if

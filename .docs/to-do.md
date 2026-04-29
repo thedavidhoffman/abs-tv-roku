@@ -40,6 +40,7 @@ I'm open to any and all suggestions for enhancements and improvements.
 
 ## Hit List
 
+- continue listening, play
 - home page, continue listening, stats, recently added
 - settings, put focus back on main page
 - listview support collapsed/expanded
@@ -54,6 +55,7 @@ I'm open to any and all suggestions for enhancements and improvements.
 - player, continue listening from last point
 - back button at certain level closes the app, see if we can trap this and prompt about exit
 - expand gridview series, navigate away, come back, can't get back to collapsed gridview
+- look at supporting "HideFromContinueListening"
 
 
 ## Quirks

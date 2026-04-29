@@ -6,6 +6,7 @@
     <field id="server" type="string" onChange="onInProgressItemsChanged" />
     <field id="token" type="string" onChange="onInProgressItemsChanged" />
     <field id="inProgressItems" type="array" onChange="onInProgressItemsChanged" />
+    <field id="playSelected" type="assocarray" />
     <field id="backSelected" type="integer" />
     <function name="focusHomePage" />
   </interface>
