@@ -46,8 +46,9 @@ function Series_Load(request as Object) as Object
 
     return {
         ok: true
-        action: "loadLibrary"
+        action: "loadSeries"
         bookLibraryId: bookLibraryId
+        seriesId: request.seriesId
         libraryItems: allItems
     }
 end function

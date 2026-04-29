@@ -21,6 +21,7 @@ sub init()
 
     if m.collapsedGridView <> invalid then
         m.collapsedGridView.observeField("playSelected", "onCollapsedGridViewPlaySelected")
+        m.collapsedGridView.observeField("seriesSelected", "onCollapsedGridViewSeriesSelected")
         m.collapsedGridView.observeField("errorResponse", "onCollapsedGridViewError")
     end if
 
@@ -137,6 +138,13 @@ end sub
 '-------------------------------------------------------------------------------
 sub onCollapsedGridViewPlaySelected()
     if m.collapsedGridView <> invalid then m.top.playSelected = m.collapsedGridView.playSelected
+end sub
+
+'-------------------------------------------------------------------------------
+' onCollapsedGridViewSeriesSelected
+'-------------------------------------------------------------------------------
+sub onCollapsedGridViewSeriesSelected()
+    if m.collapsedGridView <> invalid then m.top.seriesSelected = m.collapsedGridView.seriesSelected
 end sub
 
 '-------------------------------------------------------------------------------

@@ -6,6 +6,7 @@
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
     <field id="playSelected" type="assocarray" />
+    <field id="seriesSelected" type="assocarray" />
     <field id="errorResponse" type="assocarray" />
     <function name="focusLibraryList" />
   </interface>

@@ -6,6 +6,7 @@ sub init()
     m.gridStatus = m.top.findNode("gridStatus")
     m.libraryItemsByIndex = []
     m.playSelectedCounter = 0
+    m.seriesSelectedCounter = 0
     m.server = invalid
     m.token = invalid
 
@@ -68,7 +69,23 @@ end sub
 '-------------------------------------------------------------------------------
 sub onPosterSelected()
     item = getSelectedLibraryItem(m.markupGrid.itemSelected)
-    if item = invalid or item.id = invalid then
+    if item = invalid then
+        setStatus("Select an audiobook to play.")
+        return
+    end if
+
+    seriesId = getCollapsedSeriesId(item)
+    if seriesId <> invalid then
+        m.seriesSelectedCounter = m.seriesSelectedCounter + 1
+        m.top.seriesSelected = {
+            seriesId: seriesId
+            title: getLibraryItemTitle(item)
+            counter: m.seriesSelectedCounter
+        }
+        return
+    end if
+
+    if item.id = invalid then
         setStatus("Select an audiobook to play.")
         return
     end if
@@ -98,6 +115,16 @@ end function
 function isSeriesItem(item as dynamic) as boolean
     if item = invalid then return false
     return item.collapsedSeries <> invalid
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesId
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesId(item as dynamic) as dynamic
+    if item = invalid then return invalid
+    if item.collapsedSeries = invalid then return invalid
+    if item.collapsedSeries.id = invalid then return invalid
+    return item.collapsedSeries.id
 end function
 
 '-------------------------------------------------------------------------------

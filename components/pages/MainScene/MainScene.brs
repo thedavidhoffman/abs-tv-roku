@@ -20,6 +20,7 @@ sub init()
     m.header.observeField("usernameUpSequenceSelected", "onDiagnosticsSequencePressed")
     m.library.observeField("errorResponse", "onLibraryError")
     m.library.observeField("playSelected", "onLibraryPlaySelected")
+    m.library.observeField("seriesSelected", "onLibrarySeriesSelected")
     m.player.observeField("closeRequested", "onPlayerCloseRequested")
     m.player.observeField("errorResponse", "onPlayerError")
     m.settings.observeField("closeRequested", "onSettingsCloseRequested")
@@ -30,6 +31,7 @@ sub init()
     m.session = AuthStore_Load()
     m.isResumingSession = false
     m.loginActivationCounter = 0
+    m.libraryItemBackStack = []
 
     preloadSavedFields()
     initStyle()
@@ -118,6 +120,9 @@ sub onApiResponse()
         return
     else if action = "loadLibrary" then
         storeLibraryItems(response)
+        return
+    else if action = "loadSeries" then
+        storeSeriesItems(response)
         return
     end if
 
@@ -208,6 +213,25 @@ sub onLibraryPlaySelected()
 end sub
 
 '-------------------------------------------------------------------------------
+' onLibrarySeriesSelected
+'-------------------------------------------------------------------------------
+sub onLibrarySeriesSelected()
+    selectedSeries = m.library.seriesSelected
+    if selectedSeries = invalid or selectedSeries.seriesId = invalid then return
+    if m.session = invalid then return
+    if m.apiTask = invalid then return
+
+    m.apiTask.request = {
+        action: "loadSeries"
+        server: m.session.server
+        token: m.session.token
+        bookLibraryId: m.session.bookLibraryId
+        seriesId: selectedSeries.seriesId
+    }
+    m.apiTask.control = "run"
+end sub
+
+'-------------------------------------------------------------------------------
 ' onSettingsPressed
 '-------------------------------------------------------------------------------
 sub onSettingsPressed()
@@ -258,8 +282,39 @@ sub storeLibraryItems(response as object)
         m.session.bookLibraryId = response.bookLibraryId
     end if
 
+    m.libraryItemBackStack = []
     if m.library <> invalid then m.library.libraryItems = response.libraryItems
 end sub
+
+'-------------------------------------------------------------------------------
+' storeSeriesItems
+'-------------------------------------------------------------------------------
+sub storeSeriesItems(response as object)
+    if response.bookLibraryId <> invalid and response.bookLibraryId <> "" then
+        m.session.bookLibraryId = response.bookLibraryId
+    end if
+
+    if m.library <> invalid then
+        if m.library.libraryItems <> invalid then m.libraryItemBackStack.Push(m.library.libraryItems)
+        m.library.libraryItems = response.libraryItems
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' restorePreviousLibraryItems
+'-------------------------------------------------------------------------------
+function restorePreviousLibraryItems() as boolean
+    if m.library = invalid then return false
+    if m.libraryItemBackStack = invalid or m.libraryItemBackStack.Count() = 0 then return false
+
+    lastIndex = m.libraryItemBackStack.Count() - 1
+    previousItems = m.libraryItemBackStack[lastIndex]
+    m.libraryItemBackStack.Delete(lastIndex)
+
+    m.library.libraryItems = previousItems
+    m.library.callFunc("focusLibraryList")
+    return true
+end function
 
 '-------------------------------------------------------------------------------
 ' onDiagnosticsSequencePressed
@@ -380,6 +435,8 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     if not m.login.visible and key = "back" then
+        if restorePreviousLibraryItems() then return true
+
         if m.header <> invalid and m.header.visible and not m.header.isInFocusChain() then
             if m.header.callFunc("focusHeader") then return true
         end if
