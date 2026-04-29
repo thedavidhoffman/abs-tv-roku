@@ -39,7 +39,6 @@
     </Group>
     <Timer id="progressTimer" duration="1" repeat="true" />
     <Timer id="seekHoldTimer" duration="1" repeat="true" />
-    <Label id="hintLabel" translation="[700,924]" width="1040" text="Press Back to return to the library." color="B7C5D4FF" />
     <Video
       id="audioPlayer"
       visible="false"

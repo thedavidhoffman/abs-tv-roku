@@ -40,9 +40,6 @@ I'm open to any and all suggestions for enhancements and improvements.
 
 ## Hit List
 
-- chapter list use modal
-- gridview add title??
-- gridview, when in series display, display series label, and back button label
 - diagnostics, [clear settings registry] [clear auth registry]
 - all image requests to new api library
 
@@ -50,9 +47,8 @@ I'm open to any and all suggestions for enhancements and improvements.
 - loading spinner (add only after fixing the collapsed/expanded display quirk)
 - settings modal use heading/label style the same as diagnostics
 - error modal
-- description modal use on both ListView and Player
+- description modal -> convert to dialog use on both ListView and Player
 - html string function move to helper class
-- fix chapter nav time label not always displaying
 - fix chapter nav not working
 - placeholder image for no cover
 - search

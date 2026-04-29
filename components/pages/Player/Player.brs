@@ -862,9 +862,9 @@ sub updateDescriptionFocus(hasFocus as boolean)
     if m.descriptionFocusRing = invalid then return
 
     if m.descriptionHasFocus then
-        m.descriptionFocusRing.color = &hE09B4233
+        m.descriptionFocusRing.color = Color().background.primary
     else
-        m.descriptionFocusRing.color = &hE09B4200
+        m.descriptionFocusRing.color = &h29283600
     end if
 end sub
 

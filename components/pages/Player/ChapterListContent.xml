@@ -11,8 +11,9 @@
   <children>
     <MarkupList
       id="chapterList"
+      translation="[20,0]"
       itemComponentName="ChapterListItem"
-      itemSize="[1200,56]"
+      itemSize="[1160,56]"
       numRows="11"
       drawFocusFeedback="true"
       vertFocusAnimationStyle="fixedFocus" />
