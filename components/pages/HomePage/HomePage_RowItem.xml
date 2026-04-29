@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="HomePage_RowItem" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/pages/HomePage/HomePage_RowItem.brs" />
+  <interface>
+    <field id="itemContent" type="node" onChange="onItemContentChanged" />
+    <field id="focusPercent" type="float" onChange="onFocusPercentChanged" />
+    <field id="rowFocusPercent" type="float" onChange="onRowFocusPercentChanged" />
+  </interface>
+  <children>
+    <Poster
+      id="coverPoster"
+      translation="[0,0]"
+      width="300"
+      height="300"
+      uri="pkg:/images/placeholder_cover.png"
+      loadDisplayMode="scaleToFill"
+      scaleRotateCenter="[150,150]" />
+  </children>
+</component>

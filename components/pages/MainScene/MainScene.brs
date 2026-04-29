@@ -126,6 +126,9 @@ sub onApiResponse()
         storeAuthenticatedSession(response)
         showApp()
         return
+    else if action = "loadInProgress" then
+        storeInProgressItems(response)
+        return
     else if action = "loadLibrary" then
         storeLibraryItems(response)
         return
@@ -179,7 +182,12 @@ sub showApp()
         m.header.visible = true
         m.header.username = m.session.username
     end if
+    if m.homePage <> invalid then
+        m.homePage.server = m.session.server
+        m.homePage.token = m.session.token
+    end if
     showLibraryPage()
+    loadInProgressItems()
     if m.library <> invalid then
         m.library.loadRequest = {
             server: m.session.server
@@ -212,6 +220,7 @@ end sub
 sub onHomePressed()
     closeHeaderMenu()
     showHomePage()
+    loadInProgressItems()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -330,6 +339,31 @@ sub reloadLibraryItems()
         bookLibraryId: m.session.bookLibraryId
     }
     m.apiTask.control = "run"
+end sub
+
+'-------------------------------------------------------------------------------
+' loadInProgressItems
+'-------------------------------------------------------------------------------
+sub loadInProgressItems()
+    if m.session = invalid then return
+    if m.session.server = invalid or m.session.server = "" then return
+    if m.session.token = invalid or m.session.token = "" then return
+    if m.apiTask = invalid then return
+
+    m.apiTask.request = {
+        action: "loadInProgress"
+        server: m.session.server
+        token: m.session.token
+    }
+    m.apiTask.control = "run"
+end sub
+
+'-------------------------------------------------------------------------------
+' storeInProgressItems
+'-------------------------------------------------------------------------------
+sub storeInProgressItems(response as object)
+    if m.homePage = invalid then return
+    m.homePage.inProgressItems = response.libraryItems
 end sub
 
 '-------------------------------------------------------------------------------

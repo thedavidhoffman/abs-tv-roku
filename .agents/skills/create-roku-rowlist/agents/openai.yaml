@@ -1,0 +1,3 @@
+﻿display_name: Create Roku RowList
+short_description: Build Roku SceneGraph RowList components.
+default_prompt: Create or modify a Roku SceneGraph RowList using project conventions and the official RowList references.

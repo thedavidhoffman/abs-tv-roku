@@ -1,15 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="HomePage" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/HomePage/HomePage.brs" />
+  <interface>
+    <field id="server" type="string" onChange="onInProgressItemsChanged" />
+    <field id="token" type="string" onChange="onInProgressItemsChanged" />
+    <field id="inProgressItems" type="array" onChange="onInProgressItemsChanged" />
+  </interface>
   <children>
     <Label
-      id="homePageLabel"
-      translation="[0,0]"
-      width="1920"
-      height="1080"
-      text="home page"
-      horizAlign="center"
-      vertAlign="center"
+      id="statusLabel"
+      translation="[64,144]"
+      width="1200"
+      numLines="2"
+      wrap="true"
+      text=""
       color="0xF6F7FBFF"
-      font="font:LargeSystemFont" />
+      font="font:MediumSystemFont"
+      visible="false" />
+    <RowList
+      id="homeRowList"
+      translation="[64,144]"
+      itemComponentName="HomePage_RowItem"
+      numRows="1"
+      itemSize="[1792,300]"
+      rowItemSize="[[300,300]]"
+      itemSpacing="[0,36]"
+      rowItemSpacing="[[28,0]]"
+      showRowLabel="[true]"
+      drawFocusFeedback="false"
+      vertFocusAnimationStyle="fixedFocus"
+      rowFocusAnimationStyle="fixedFocus" />
   </children>
 </component>
