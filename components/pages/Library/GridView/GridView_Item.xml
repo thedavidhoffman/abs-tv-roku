@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<component name="GridView_SeriesCollapsed_Item" extends="Group">
+<component name="GridView_Item" extends="Group">
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
-  <script type="text/brightscript" uri="pkg:/components/pages/Library/GridView/GridView_SeriesCollapsed_Item.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Library/GridView/GridView_Item.brs" />
   <interface>
     <field id="itemContent" type="node" onChange="showContent" />
     <field id="focusPercent" type="float" onChange="onFocusPercentChanged" />

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<component name="GridView_SeriesCollapsed" extends="Group" focusable="true">
+<component name="GridView" extends="Group" focusable="true">
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
-  <script type="text/brightscript" uri="pkg:/components/pages/Library/GridView/GridView_SeriesCollapsed.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Library/GridView/GridView.brs" />
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
@@ -22,7 +22,7 @@
     <MarkupGrid
       id="markupGrid"
       translation="[64,144]"
-      itemComponentName="GridView_SeriesCollapsed_Item"
+      itemComponentName="GridView_Item"
       itemSize="[280,280]"
       itemSpacing="[28,36]"
       numColumns="6"

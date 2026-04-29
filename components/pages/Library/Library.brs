@@ -4,7 +4,6 @@
 sub init()
     m.listView = m.top.findNode("listView")
     m.gridView = m.top.findNode("gridView")
-    m.collapsedGridView = m.top.findNode("collapsedGridView")
     m.activeView = "list"
     m.syncingLibraryItems = false
 
@@ -16,13 +15,8 @@ sub init()
 
     if m.gridView <> invalid then
         m.gridView.observeField("playSelected", "onGridViewPlaySelected")
+        m.gridView.observeField("seriesSelected", "onGridViewSeriesSelected")
         m.gridView.observeField("errorResponse", "onGridViewError")
-    end if
-
-    if m.collapsedGridView <> invalid then
-        m.collapsedGridView.observeField("playSelected", "onCollapsedGridViewPlaySelected")
-        m.collapsedGridView.observeField("seriesSelected", "onCollapsedGridViewSeriesSelected")
-        m.collapsedGridView.observeField("errorResponse", "onCollapsedGridViewError")
     end if
 
     applyDisplaySettings(SettingsStore_Load())
@@ -34,7 +28,6 @@ end sub
 sub onLoadRequestChanged()
     if m.listView <> invalid then m.listView.loadRequest = m.top.loadRequest
     if m.gridView <> invalid then m.gridView.loadRequest = m.top.loadRequest
-    if m.collapsedGridView <> invalid then m.collapsedGridView.loadRequest = m.top.loadRequest
 end sub
 
 '-------------------------------------------------------------------------------
@@ -55,12 +48,7 @@ sub applyDisplaySettings(settings as object)
 
     itemDisplay = getItemDisplaySetting(settings)
     if itemDisplay = "grid" then
-        seriesDisplay = getSeriesDisplaySetting(settings)
-        if seriesDisplay = "collapse" then
-            updateActiveView("grid-collapsed")
-        else
-            updateActiveView("grid-expanded")
-        end if
+        updateActiveView("grid")
     else
         updateActiveView("list")
     end if
@@ -76,22 +64,12 @@ function getItemDisplaySetting(settings as object) as string
 end function
 
 '-------------------------------------------------------------------------------
-' getSeriesDisplaySetting
-'-------------------------------------------------------------------------------
-function getSeriesDisplaySetting(settings as object) as string
-    if settings["series-display"] <> invalid then return settings["series-display"]
-    if settings.seriesDisplay <> invalid then return settings.seriesDisplay
-    return "collapse"
-end function
-
-'-------------------------------------------------------------------------------
 ' updateActiveView
 '-------------------------------------------------------------------------------
 sub updateActiveView(viewName as string)
     m.activeView = viewName
     if m.listView <> invalid then m.listView.visible = (viewName = "list")
-    if m.gridView <> invalid then m.gridView.visible = (viewName = "grid-expanded")
-    if m.collapsedGridView <> invalid then m.collapsedGridView.visible = (viewName = "grid-collapsed")
+    if m.gridView <> invalid then m.gridView.visible = (viewName = "grid")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -113,7 +91,6 @@ sub onLibraryItemsChanged()
 
     if m.listView <> invalid then m.listView.libraryItems = items
     if m.gridView <> invalid then m.gridView.libraryItems = items
-    if m.collapsedGridView <> invalid then m.collapsedGridView.libraryItems = items
 
     m.syncingLibraryItems = false
     focusLibraryList()
@@ -134,17 +111,10 @@ sub onGridViewPlaySelected()
 end sub
 
 '-------------------------------------------------------------------------------
-' onCollapsedGridViewPlaySelected
+' onGridViewSeriesSelected
 '-------------------------------------------------------------------------------
-sub onCollapsedGridViewPlaySelected()
-    if m.collapsedGridView <> invalid then m.top.playSelected = m.collapsedGridView.playSelected
-end sub
-
-'-------------------------------------------------------------------------------
-' onCollapsedGridViewSeriesSelected
-'-------------------------------------------------------------------------------
-sub onCollapsedGridViewSeriesSelected()
-    if m.collapsedGridView <> invalid then m.top.seriesSelected = m.collapsedGridView.seriesSelected
+sub onGridViewSeriesSelected()
+    if m.gridView <> invalid then m.top.seriesSelected = m.gridView.seriesSelected
 end sub
 
 '-------------------------------------------------------------------------------
@@ -162,23 +132,11 @@ sub onGridViewError()
 end sub
 
 '-------------------------------------------------------------------------------
-' onCollapsedGridViewError
-'-------------------------------------------------------------------------------
-sub onCollapsedGridViewError()
-    if m.collapsedGridView <> invalid then m.top.errorResponse = m.collapsedGridView.errorResponse
-end sub
-
-'-------------------------------------------------------------------------------
 ' focusLibraryList
 '-------------------------------------------------------------------------------
 sub focusLibraryList()
-    if m.activeView = "grid-expanded" then
+    if m.activeView = "grid" then
         if m.gridView <> invalid then m.gridView.callFunc("focusLibraryList")
-        return
-    end if
-
-    if m.activeView = "grid-collapsed" then
-        if m.collapsedGridView <> invalid then m.collapsedGridView.callFunc("focusLibraryList")
         return
     end if
 

@@ -110,3 +110,12 @@ This app is not availabe in the official Roku channel store. It must be side-loa
 If you're a user of Audiobookshelf and looking to use it on your TV, I hope you find this application useful.
 
 I'm open to any and all suggestions for enhancements and improvements.
+
+
+## Quirks
+
+when switching expand to collapse, it starts to render the component with old data, then updates it when the new data returns from the api
+--> roku performance tricks on hide/show things
+--> should you tear things down and dynamically reload them
+
+- click on an item to play, quickly hit return, the list is displayed, but the player is still playing
