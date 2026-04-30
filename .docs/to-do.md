@@ -40,6 +40,7 @@ I'm open to any and all suggestions for enhancements and improvements.
 
 ## Hit List
 
+- cleanup bad color assignments
 - continue listening, set playback from last position
 - listview support collapsed/expanded
 - expand gridview series, navigate away, come back, can't get back to collapsed gridview

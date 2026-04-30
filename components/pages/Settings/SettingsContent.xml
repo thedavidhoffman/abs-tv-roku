@@ -19,8 +19,6 @@
     <RadioButtonList
       id="seriesOptions"
       translation="[20,48]"
-      width="560"
-      height="96"
       itemSize="[560,48]"
       numRows="2"
       checkedItem="0"
@@ -37,8 +35,6 @@
     <RadioButtonList
       id="displayOptions"
       translation="[0,220]"
-      width="560"
-      height="96"
       itemSize="[560,48]"
       numRows="2"
       checkedItem="0"
