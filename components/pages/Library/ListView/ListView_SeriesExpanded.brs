@@ -35,7 +35,6 @@ sub initReferences()
     m.detailGenres = m.top.findNode("detailGenres")
     m.detailTags = m.top.findNode("detailTags")
     m.detailDuration = m.top.findNode("detailDuration")
-    m.libraryApiTask = m.top.findNode("libraryApiTask")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -46,7 +45,6 @@ sub initHandlers()
         m.libraryList.observeField("itemFocused", "onLibraryItemFocused")
         m.libraryList.observeField("itemSelected", "onLibraryItemSelected")
     end if
-    if m.libraryApiTask <> invalid then m.libraryApiTask.observeField("response", "onLibraryApiResponse")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -66,34 +64,6 @@ sub onLoadRequestChanged()
 
     m.server = request.server
     m.token = request.token
-    showSelectedItem(invalid)
-    setStatus("Loading library...")
-    m.libraryApiTask.request = {
-        action: "loadLibrary"
-        server: request.server
-        token: request.token
-        bookLibraryId: request.bookLibraryId
-    }
-    m.libraryApiTask.control = "run"
-end sub
-
-'-------------------------------------------------------------------------------
-' onLibraryApiResponse
-'-------------------------------------------------------------------------------
-sub onLibraryApiResponse()
-    response = m.libraryApiTask.response
-    if response = invalid then return
-
-    if response.ok <> true then
-        m.top.errorResponse = response
-        setStatus(response.errorMessage)
-        return
-    end if
-
-    if response.action = "loadLibrary" then
-        m.top.libraryItems = response.libraryItems
-        setStatus("")
-    end if
 end sub
 
 '-------------------------------------------------------------------------------

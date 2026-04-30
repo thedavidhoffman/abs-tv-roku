@@ -2,6 +2,9 @@
 ' Series_Load
 '-------------------------------------------------------------------------------
 function Series_Load(request as object) as object
+
+    ? "(API) Series_Load..."
+    
     server = NormalizeServerUrl(request.server)
     token = request.token
     bookLibraryId = request.bookLibraryId

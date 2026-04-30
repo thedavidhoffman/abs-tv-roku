@@ -24,5 +24,6 @@
     <Player id="player" visible="false" />
 
     <AppTask id="apiTask" />
+    <AppTask id="libraryApiTask" />
   </children>
 </component>

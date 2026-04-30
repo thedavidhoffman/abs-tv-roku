@@ -169,6 +169,5 @@
       color="B7C5D4FF"
       font="font:SmallestSystemFont"
     />
-    <AppTask id="libraryApiTask" />
   </children>
 </component>

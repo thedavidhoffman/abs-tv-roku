@@ -2,6 +2,9 @@
 ' Authentication_Login
 '-------------------------------------------------------------------------------
 function Authentication_Login(request as Object) as Object
+
+    ? "(API) Authentication_Login..."
+
     server = NormalizeServerUrl(request.server)
     body = FormatJson({
         username: request.username
@@ -10,9 +13,13 @@ function Authentication_Login(request as Object) as Object
     result = HttpClient_Request(server + "/login", "POST", invalid, body)
     if result.ok <> true then return result
     payload = result.data
+
     if payload = invalid or payload.user = invalid or payload.user.token = invalid then
         return { ok: false, errorMessage: "The server response did not include a token." }
     end if
+
+    ? ""
+
     return {
         ok: true
         action: "login"
@@ -25,9 +32,15 @@ end function
 ' Authentication_AuthorizeToken
 '-------------------------------------------------------------------------------
 function Authentication_AuthorizeToken(request as Object) as Object
+
+    ? "(API) Authentication_AuthorizeToken..."
+
     server = NormalizeServerUrl(request.server)
     result = HttpClient_Request(server + "/api/authorize", "POST", request.token, "")
     if result.ok <> true then return result
+
+    ? ""
+    
     return {
         ok: true
         action: "authorize"

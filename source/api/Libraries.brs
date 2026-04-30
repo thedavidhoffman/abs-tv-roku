@@ -8,9 +8,14 @@
 ' Libraries_Load
 '-------------------------------------------------------------------------------
 function Libraries_Load(server as String, token as Dynamic) as Object
+
+    ? "(API) Libraries_Load..."
+
     result = HttpClient_Request(server + "/api/libraries", "GET", token, invalid)
     if result.ok <> true then return result
 
+    ? ""
+    
     return {
         ok: true
         libraries: __Libraries_Map(result.data)

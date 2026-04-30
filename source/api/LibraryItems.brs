@@ -8,6 +8,9 @@
 ' LibraryItems_Load
 '-------------------------------------------------------------------------------
 function LibraryItems_Load(request as object) as object
+
+    ? "(API) LibraryItems_Load..."
+
     server = NormalizeServerUrl(request.server)
     token = request.token
     bookLibraryId = request.bookLibraryId
@@ -29,6 +32,9 @@ function LibraryItems_Load(request as object) as object
     collapseSeries = __GetCollapseSeriesQueryValue()
 
     while keepLoading
+
+        ? "...page "; page.ToStr()
+
         libraryUrl = server + "/api/libraries/" + bookLibraryId + "/items?limit=" + limit.ToStr() + "&page=" + page.ToStr() + "&sort=media.metadata.title&desc=0&minified=0&collapseseries=" + collapseSeries
         libraryResult = HttpClient_Request(libraryUrl, "GET", token, invalid)
         if libraryResult.ok <> true then return libraryResult
@@ -47,6 +53,8 @@ function LibraryItems_Load(request as object) as object
             keepLoading = (results.Count() = limit)
         end if
     end while
+
+    ? ""
 
     return {
         ok: true

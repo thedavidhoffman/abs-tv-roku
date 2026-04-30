@@ -13,6 +13,7 @@ sub init()
     m.diagnostics = m.top.findNode("diagnostics")
     m.player = m.top.findNode("player")
     m.apiTask = m.top.findNode("apiTask")
+    m.libraryApiTask = m.top.findNode("libraryApiTask")
 
     m.login.observeField("loginSucceeded", "onLoginSucceeded")
     m.header.observeField("homeSelected", "onHomePressed")
@@ -36,6 +37,7 @@ sub init()
     m.settings.observeField("settingsSaved", "onSettingsSaved")
     m.diagnostics.observeField("closeRequested", "onDiagnosticsCloseRequested")
     m.apiTask.observeField("response", "onApiResponse")
+    m.libraryApiTask.observeField("response", "onLibraryApiResponse")
 
     m.session = AuthStore_Load()
     m.isResumingSession = false
@@ -143,6 +145,33 @@ sub onApiResponse()
 end sub
 
 '-------------------------------------------------------------------------------
+' onLibraryApiResponse
+'-------------------------------------------------------------------------------
+sub onLibraryApiResponse()
+    response = m.libraryApiTask.response
+    if response = invalid then return
+
+    if response.ok <> true then
+        if response.authExpired = true then
+            handleExpiredSession(response.errorMessage)
+            return
+        end if
+
+        if m.library <> invalid then m.library.errorResponse = response
+        return
+    end if
+
+    action = response.action
+    if action = "loadLibrary" then
+        storeLibraryItems(response)
+        return
+    else if action = "loadSeries" then
+        storeSeriesItems(response)
+        return
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
 ' showLogin
 '-------------------------------------------------------------------------------
 sub showLogin(message as string)
@@ -198,6 +227,7 @@ sub showApp()
             bookLibraryId: m.session.bookLibraryId
         }
     end if
+    reloadLibraryItems()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -305,9 +335,9 @@ sub onLibrarySeriesSelected()
     selectedSeries = m.library.seriesSelected
     if selectedSeries = invalid or selectedSeries.seriesId = invalid then return
     if m.session = invalid then return
-    if m.apiTask = invalid then return
+    if m.libraryApiTask = invalid then return
 
-    m.apiTask.request = {
+    m.libraryApiTask.request = {
         action: "loadSeries"
         server: m.session.server
         token: m.session.token
@@ -315,7 +345,7 @@ sub onLibrarySeriesSelected()
         seriesId: selectedSeries.seriesId
         sourceItemIndex: selectedSeries.itemIndex
     }
-    m.apiTask.control = "run"
+    m.libraryApiTask.control = "run"
 end sub
 
 ' onSettingsPressed
@@ -349,15 +379,15 @@ sub reloadLibraryItems()
     if m.session = invalid then return
     if m.session.server = invalid or m.session.server = "" then return
     if m.session.token = invalid or m.session.token = "" then return
-    if m.apiTask = invalid then return
+    if m.libraryApiTask = invalid then return
 
-    m.apiTask.request = {
+    m.libraryApiTask.request = {
         action: "loadLibrary"
         server: m.session.server
         token: m.session.token
         bookLibraryId: m.session.bookLibraryId
     }
-    m.apiTask.control = "run"
+    m.libraryApiTask.control = "run"
 end sub
 
 '-------------------------------------------------------------------------------
