@@ -40,10 +40,11 @@ I'm open to any and all suggestions for enhancements and improvements.
 
 ## Hit List
 
-- continue listening, play
+- continue listening, set playback from last position
+- listview support collapsed/expanded
 - home page, continue listening, stats, recently added
 - settings, put focus back on main page
-- listview support collapsed/expanded
+
 - loading spinner (add only after fixing the collapsed/expanded display quirk)
 - error modal
 - description modal -> convert to dialog use on both ListView and Player

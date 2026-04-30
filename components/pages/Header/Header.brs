@@ -91,6 +91,17 @@ function focusHeader() as boolean
 end function
 
 '-------------------------------------------------------------------------------
+' focusUserMenuButton
+'-------------------------------------------------------------------------------
+function focusUserMenuButton() as boolean
+    closeMenu()
+    if m.userMenuButton = invalid then return false
+
+    m.userMenuButton.setFocus(true)
+    return true
+end function
+
+'-------------------------------------------------------------------------------
 ' onKeyEvent
 '-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean

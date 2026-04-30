@@ -34,6 +34,7 @@ sub init()
     m.player.observeField("errorResponse", "onPlayerError")
     m.settings.observeField("closeRequested", "onSettingsCloseRequested")
     m.settings.observeField("settingsSaved", "onSettingsSaved")
+    m.diagnostics.observeField("closeRequested", "onDiagnosticsCloseRequested")
     m.apiTask.observeField("response", "onApiResponse")
 
     m.session = AuthStore_Load()
@@ -456,6 +457,13 @@ end function
 sub onDiagnosticsSequencePressed()
     closeHeaderMenu()
     if m.diagnostics <> invalid then m.diagnostics.callFunc("openDiagnostics")
+end sub
+
+'-------------------------------------------------------------------------------
+' onDiagnosticsCloseRequested
+'-------------------------------------------------------------------------------
+sub onDiagnosticsCloseRequested()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusUserMenuButton")
 end sub
 
 ' onPlayerCloseRequested
