@@ -3,6 +3,7 @@
 '-------------------------------------------------------------------------------
 sub init()
     m.bg = m.top.findNode("bg")
+    m.activeBg = m.top.findNode("activeBg")
     m.textLabel = m.top.findNode("textLabel")
     m.buttonSelectedCounter = 0
     if m.top.buttonWidth = invalid or m.top.buttonWidth <= 0 then m.top.buttonWidth = 300
@@ -35,6 +36,11 @@ sub onDimensionsChanged()
         m.bg.height = height
     end if
 
+    if m.activeBg <> invalid then
+        m.activeBg.width = width
+        m.activeBg.height = height
+    end if
+
     if m.textLabel <> invalid then
         m.textLabel.width = width
         m.textLabel.translation = [0, int((height - 32) / 2)]
@@ -60,6 +66,10 @@ sub onFocusVisualChanged()
         else
             m.textLabel.color = &hFFFFFFFF
         end if
+    end if
+
+    if m.activeBg <> invalid then
+        m.activeBg.visible = (m.top.isActive = true and m.top.hasFocusVisual <> true)
     end if
 end sub
 

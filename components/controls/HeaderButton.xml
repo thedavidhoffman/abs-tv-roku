@@ -6,10 +6,12 @@
     <field id="buttonWidth" type="float" onChange="onDimensionsChanged" />
     <field id="buttonHeight" type="float" onChange="onDimensionsChanged" />
     <field id="hasFocusVisual" type="boolean" onChange="onFocusVisualChanged" />
+    <field id="isActive" type="boolean" onChange="onFocusVisualChanged" />
     <field id="headerBgColor" type="integer" onChange="onFocusVisualChanged" />
     <field id="buttonSelected" type="integer" />
   </interface>
   <children>
+    <Poster id="activeBg" width="300" height="56" uri="pkg:/images/buttons/header_active.9.png" loadDisplayMode="scaleToFill" visible="false" />
     <Poster id="bg" width="300" height="56" uri="pkg:/images/buttons/header_focused.9.png" loadDisplayMode="scaleToFill" visible="false" />
     <Label id="textLabel" translation="[0,12]" width="300" horizAlign="center" />
   </children>

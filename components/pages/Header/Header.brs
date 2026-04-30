@@ -17,6 +17,7 @@ sub init()
 
     initStyle()
     updateUserMenuButton()
+    setActiveHeaderButton("library")
     setMenuOpen(false)
 end sub
 
@@ -235,6 +236,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onHomePressed()
     closeMenu()
+    setActiveHeaderButton("home")
     m.homeSelectedCounter = m.homeSelectedCounter + 1
     m.top.homeSelected = m.homeSelectedCounter
 end sub
@@ -244,6 +246,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onLibraryPressed()
     closeMenu()
+    setActiveHeaderButton("library")
     m.librarySelectedCounter = m.librarySelectedCounter + 1
     m.top.librarySelected = m.librarySelectedCounter
 end sub
@@ -253,6 +256,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onSearchPressed()
     closeMenu()
+    setActiveHeaderButton("search")
     m.searchSelectedCounter = m.searchSelectedCounter + 1
     m.top.searchSelected = m.searchSelectedCounter
 end sub
@@ -262,8 +266,19 @@ end sub
 '-------------------------------------------------------------------------------
 sub onSettingsPressed()
     closeMenu()
+    setActiveHeaderButton("settings")
     m.settingsSelectedCounter = m.settingsSelectedCounter + 1
     m.top.settingsSelected = m.settingsSelectedCounter
+end sub
+
+'-------------------------------------------------------------------------------
+' setActiveHeaderButton
+'-------------------------------------------------------------------------------
+sub setActiveHeaderButton(activeButtonName as string)
+    if m.homeButton <> invalid then m.homeButton.isActive = (activeButtonName = "home")
+    if m.libraryButton <> invalid then m.libraryButton.isActive = (activeButtonName = "library")
+    if m.searchButton <> invalid then m.searchButton.isActive = (activeButtonName = "search")
+    if m.settingsButton <> invalid then m.settingsButton.isActive = (activeButtonName = "settings")
 end sub
 
 '-------------------------------------------------------------------------------
