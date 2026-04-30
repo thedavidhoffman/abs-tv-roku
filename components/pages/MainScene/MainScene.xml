@@ -23,6 +23,7 @@
     <Search id="search" />
     <DiagnosticsDialog id="diagnostics" />
     <Player id="player" visible="false" />
+    <Spinner id="spinner" translation="[928,508]" active="false" visible="false" />
 
     <AppTask id="apiTask" />
     <AppTask id="libraryApiTask" />

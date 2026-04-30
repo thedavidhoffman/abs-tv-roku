@@ -48,10 +48,15 @@ I'm open to any and all suggestions for enhancements and improvements.
 Goals for Thursday 4/30
 ----------------------------------------------------
 - cleanup bad color assignments
+
+- ItemPoster to root
+    - consume on GridView
+    - move GridViewItem logic into ItemPoster
+    - have AI add a comment to the brs file
+
 - get in-progress working ==> make a reusable grid item?
 - continue listening, set playback from last position
-- grid display title and author
-- listen again exclude playback
+
 - on player close, sync progress
 
 Continue Listening (home page)
@@ -75,6 +80,7 @@ Continue Listening (home page)
 - diagnostics, [clear settings registry] [clear auth registry]
 - player, continue listening from last point
 - back button at certain level closes the app, see if we can trap this and prompt about exit
+- fix api logging
 
 
 ## Quirks

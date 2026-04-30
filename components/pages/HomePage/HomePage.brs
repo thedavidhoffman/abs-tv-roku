@@ -9,9 +9,11 @@ sub init()
     m.focusRequested = false
     m.backSelectedCounter = 0
     m.upFromFirstRowSelectedCounter = 0
+    m.focusedItemNode = invalid
 
     if m.homeRowList <> invalid then
         m.homeRowList.observeField("itemSelected", "onItemSelected")
+        m.homeRowList.observeField("rowItemFocused", "onRowItemFocused")
     end if
 
     onPersonalizedShelvesChanged()
@@ -25,6 +27,7 @@ sub onPersonalizedShelvesChanged()
 
     root = CreateObject("roSGNode", "ContentNode")
     m.shelfItemsByRow = []
+    m.focusedItemNode = invalid
 
     appendShelfRow(root, "continue-listening", "Continue Listening")
     appendShelfRow(root, "recently-added", "Recently Added")
@@ -56,7 +59,10 @@ sub appendShelfRow(root as object, shelfId as string, title as string)
             node.HDPosterUrl = buildCoverPathUrl(item)
             node.SDPosterUrl = node.HDPosterUrl
             progress = getProgressData(item)
+            metadata = getItemMetadata(item)
             node.AddFields({
+                author: getItemAuthor(metadata)
+                focused: false
                 showProgressBar: shelfId <> "listen-again"
                 progressPercent: progress.progress
                 progressCurrentTime: progress.currentTime
@@ -170,6 +176,37 @@ sub onItemSelected()
         counter: m.playSelectedCounter
     }
 end sub
+
+'-------------------------------------------------------------------------------
+' onRowItemFocused
+'-------------------------------------------------------------------------------
+sub onRowItemFocused()
+    if m.focusedItemNode <> invalid then m.focusedItemNode.focused = false
+
+    m.focusedItemNode = getFocusedItemNode()
+    if m.focusedItemNode <> invalid then m.focusedItemNode.focused = true
+end sub
+
+'-------------------------------------------------------------------------------
+' getFocusedItemNode
+'-------------------------------------------------------------------------------
+function getFocusedItemNode() as dynamic
+    if m.homeRowList = invalid or m.homeRowList.content = invalid then return invalid
+
+    focused = m.homeRowList.rowItemFocused
+    if focused = invalid or focused.Count() < 2 then return invalid
+
+    rowIndex = focused[0]
+    itemIndex = focused[1]
+    if rowIndex = invalid or itemIndex = invalid then return invalid
+    if rowIndex < 0 or rowIndex >= m.homeRowList.content.getChildCount() then return invalid
+
+    row = m.homeRowList.content.getChild(rowIndex)
+    if row = invalid then return invalid
+    if itemIndex < 0 or itemIndex >= row.getChildCount() then return invalid
+
+    return row.getChild(itemIndex)
+end function
 
 '-------------------------------------------------------------------------------
 ' getSelectedItem

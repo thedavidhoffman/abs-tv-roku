@@ -37,7 +37,7 @@
 
     <HeaderButton id="userMenuButton" translation="[1560,22]" buttonWidth="160" buttonHeight="56" />
 
-    <Clock id="clock" translation="[1700,30]" clockWidth="176" clockHeight="40" color="0xF6F7FBFF" />
+    <Clock id="clock" translation="[1680,30]" clockWidth="176" clockHeight="40" color="0xF6F7FBFF" />
 
     <Group id="menuPanel" visible="false" translation="[1420,102]">
       <Rectangle width="260" height="150" color="132235FF" />

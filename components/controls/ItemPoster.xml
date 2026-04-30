@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="ItemPoster" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/components/controls/ItemPoster.brs" />
+  <interface>
+    <field id="itemContent" type="node" onChange="showContent" />
+  </interface>
+  <children>
+    <Poster
+      id="poster"
+      width="280"
+      height="280"
+      uri="pkg:/images/placeholder_cover.png"
+      loadDisplayMode="scaleToFit" />
+    <Rectangle
+      id="progressFill"
+      translation="[0,270]"
+      width="1"
+      height="10"
+      color="0xE09B42FF"
+      visible="false" />
+    <Label
+      id="titleLabel"
+      translation="[5,292]"
+      width="270"
+      height="28"
+      maxLines="1"
+      text=""
+      color="0xF6F7FBFF"
+      font="font:TinyBoldSystemFont" />
+    <ScrollingLabel
+      id="scrollingTitleLabel"
+      translation="[5,292]"
+      maxWidth="270"
+      text=""
+      color="0xF6F7FBFF"
+      font="font:TinyBoldSystemFont"
+      visible="false" />
+    <Label
+      id="authorLabel"
+      translation="[5,322]"
+      width="270"
+      height="28"
+      maxLines="1"
+      text=""
+      color="0xB7C5D4FF"
+      font="font:TinySystemFont" />
+  </children>
+</component>
