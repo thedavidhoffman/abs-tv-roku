@@ -26,13 +26,13 @@
       translation="[64,144]"
       itemComponentName="ContinueListening_Item"
       numRows="3"
-      itemSize="[1792,320]"
+      itemSize="[1792,340]"
       rowItemSize="[[280,280],[280,280],[280,280]]"
       itemSpacing="[0,34]"
       rowItemSpacing="[[28,0],[28,0],[28,0]]"
       showRowLabel="[true]"
       rowLabelFont="font:SmallSystemFont"
-      rowLabelOffset="[[0,0],[0,0],[0,0]]"
+      rowLabelOffset="[[0,16],[0,16],[0,16]]"
       drawFocusFeedback="true"
       vertFocusAnimationStyle="fixedFocus" />
   </children>

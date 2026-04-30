@@ -29,6 +29,8 @@ function Personalized_Load(request as object) as object
     result = HttpClient_Request(server + "/api/libraries/" + bookLibraryId + "/personalized", "GET", token, invalid)
     if result.ok <> true then return result
 
+    ? ""
+
     return {
         ok: true
         action: "loadPersonalized"
