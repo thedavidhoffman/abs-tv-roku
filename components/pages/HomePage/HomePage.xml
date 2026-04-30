@@ -27,11 +27,47 @@
       width="1200"
       text="Continue Listening"
       color="0xF6F7FBFF"
-      font="font:LargeBoldSystemFont"
+      font="font:SmallSystemFont"
       visible="false" />
     <MarkupGrid
       id="continueListeningGrid"
-      translation="[64,215]"
+      translation="[64,190]"
+      itemComponentName="ContinueListening_Item"
+      numRows="1"
+      numColumns="6"
+      itemSize="[280,280]"
+      itemSpacing="[28,36]"
+      drawFocusFeedback="true"
+      vertFocusAnimationStyle="fixedFocus" />
+    <Label
+      id="recentlyAddedTitle"
+      translation="[64,488]"
+      width="1200"
+      text="Recently Added"
+      color="0xF6F7FBFF"
+      font="font:SmallSystemFont"
+      visible="false" />
+    <MarkupGrid
+      id="recentlyAddedGrid"
+      translation="[64,534]"
+      itemComponentName="ContinueListening_Item"
+      numRows="1"
+      numColumns="6"
+      itemSize="[280,280]"
+      itemSpacing="[28,36]"
+      drawFocusFeedback="true"
+      vertFocusAnimationStyle="fixedFocus" />
+    <Label
+      id="listenAgainTitle"
+      translation="[64,832]"
+      width="1200"
+      text="Listen Again"
+      color="0xF6F7FBFF"
+      font="font:SmallSystemFont"
+      visible="false" />
+    <MarkupGrid
+      id="listenAgainGrid"
+      translation="[64,878]"
       itemComponentName="ContinueListening_Item"
       numRows="1"
       numColumns="6"
