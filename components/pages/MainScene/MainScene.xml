@@ -25,5 +25,6 @@
 
     <AppTask id="apiTask" />
     <AppTask id="libraryApiTask" />
+    <AppTask id="personalizedApiTask" />
   </children>
 </component>

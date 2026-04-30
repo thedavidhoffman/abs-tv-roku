@@ -14,6 +14,7 @@ sub init()
     m.player = m.top.findNode("player")
     m.apiTask = m.top.findNode("apiTask")
     m.libraryApiTask = m.top.findNode("libraryApiTask")
+    m.personalizedApiTask = m.top.findNode("personalizedApiTask")
 
     m.login.observeField("loginSucceeded", "onLoginSucceeded")
     m.header.observeField("homeSelected", "onHomePressed")
@@ -38,6 +39,7 @@ sub init()
     m.diagnostics.observeField("closeRequested", "onDiagnosticsCloseRequested")
     m.apiTask.observeField("response", "onApiResponse")
     m.libraryApiTask.observeField("response", "onLibraryApiResponse")
+    m.personalizedApiTask.observeField("response", "onPersonalizedApiResponse")
 
     m.session = AuthStore_Load()
     m.isResumingSession = false
@@ -131,9 +133,6 @@ sub onApiResponse()
         storeAuthenticatedSession(response)
         showApp()
         return
-    else if action = "loadPersonalized" then
-        storePersonalizedShelves(response)
-        return
     else if action = "loadLibrary" then
         storeLibraryItems(response)
         return
@@ -142,6 +141,23 @@ sub onApiResponse()
         return
     end if
 
+end sub
+
+'-------------------------------------------------------------------------------
+' onPersonalizedApiResponse
+'-------------------------------------------------------------------------------
+sub onPersonalizedApiResponse()
+    response = m.personalizedApiTask.response
+    if response = invalid then return
+
+    if response.ok <> true then
+        if response.authExpired = true then
+            handleExpiredSession(response.errorMessage)
+        end if
+        return
+    end if
+
+    if response.action = "loadPersonalized" then storePersonalizedShelves(response)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -218,7 +234,7 @@ sub showApp()
         m.homePage.server = m.session.server
         m.homePage.token = m.session.token
     end if
-    showLibraryPage()
+    showHomePage()
     loadPersonalizedShelves()
     if m.library <> invalid then
         m.library.loadRequest = {
@@ -397,15 +413,15 @@ sub loadPersonalizedShelves()
     if m.session = invalid then return
     if m.session.server = invalid or m.session.server = "" then return
     if m.session.token = invalid or m.session.token = "" then return
-    if m.apiTask = invalid then return
+    if m.personalizedApiTask = invalid then return
 
-    m.apiTask.request = {
+    m.personalizedApiTask.request = {
         action: "loadPersonalized"
         server: m.session.server
         token: m.session.token
         bookLibraryId: m.session.bookLibraryId
     }
-    m.apiTask.control = "run"
+    m.personalizedApiTask.control = "run"
 end sub
 
 '-------------------------------------------------------------------------------

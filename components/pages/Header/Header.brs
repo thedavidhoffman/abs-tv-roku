@@ -17,7 +17,7 @@ sub init()
 
     initStyle()
     updateUserMenuButton()
-    setActiveHeaderButton("library")
+    setActiveHeaderButton("home")
     setMenuOpen(false)
 end sub
 
@@ -266,7 +266,6 @@ end sub
 '-------------------------------------------------------------------------------
 sub onSettingsPressed()
     closeMenu()
-    setActiveHeaderButton("settings")
     m.settingsSelectedCounter = m.settingsSelectedCounter + 1
     m.top.settingsSelected = m.settingsSelectedCounter
 end sub
@@ -278,7 +277,7 @@ sub setActiveHeaderButton(activeButtonName as string)
     if m.homeButton <> invalid then m.homeButton.isActive = (activeButtonName = "home")
     if m.libraryButton <> invalid then m.libraryButton.isActive = (activeButtonName = "library")
     if m.searchButton <> invalid then m.searchButton.isActive = (activeButtonName = "search")
-    if m.settingsButton <> invalid then m.settingsButton.isActive = (activeButtonName = "settings")
+    if m.settingsButton <> invalid then m.settingsButton.isActive = false
 end sub
 
 '-------------------------------------------------------------------------------

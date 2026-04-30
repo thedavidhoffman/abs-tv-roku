@@ -38,6 +38,10 @@ If you're a user of Audiobookshelf and looking to use it on your TV, I hope you 
 I'm open to any and all suggestions for enhancements and improvements.
 
 
+# PREVIEW NOTES
+- Does not support podcasts. I called that out of scope for the unforeseable future to reduce scope.
+- I'm not trying to hit every bell and blow every whistle, instead I'm looking to release a reasonable functioning Roku app for playing audiobooks from audiobookshelf. Hopefully this app will gain some adoption and that user base can drive additional features, as well as my own future personal development on the app.
+
 ## Hit List
 
 - cleanup bad color assignments
