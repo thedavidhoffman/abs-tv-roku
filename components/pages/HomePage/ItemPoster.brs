@@ -28,6 +28,10 @@ end sub
 '-------------------------------------------------------------------------------
 sub updateProgressFill(item as dynamic)
     if m.progressFill = invalid then return
+    if item = invalid or item.showProgressBar = false then
+        m.progressFill.visible = false
+        return
+    end if
 
     percentComplete = getPercentComplete(item)
     fillWidth = int(280 * percentComplete)

@@ -26,6 +26,7 @@ sub init()
     m.header.observeField("changeServerSelected", "onChangeServerPressed")
     m.header.observeField("usernameUpSequenceSelected", "onDiagnosticsSequencePressed")
     m.homePage.observeField("backSelected", "onHomePageBackSelected")
+    m.homePage.observeField("upFromFirstRowSelected", "onHomePageUpFromFirstRowSelected")
     m.homePage.observeField("playSelected", "onHomePagePlaySelected")
     m.library.observeField("errorResponse", "onLibraryError")
     m.library.observeField("playSelected", "onLibraryPlaySelected")
@@ -45,6 +46,7 @@ sub init()
     m.isResumingSession = false
     m.loginActivationCounter = 0
     m.libraryItemBackStack = []
+    m.mediaProgress = []
     m.focusSettingsAfterLibraryReload = false
     m.playerReturnTarget = ""
 
@@ -204,6 +206,8 @@ end sub
 '-------------------------------------------------------------------------------
 sub storeAuthenticatedSession(response as object)
     m.session = Session_BuildAuthenticatedSession(response)
+    m.mediaProgress = m.session.mediaProgress
+    if m.homePage <> invalid then m.homePage.mediaProgress = m.mediaProgress
     Session_SaveAuthenticatedSession(m.session)
 end sub
 
@@ -233,8 +237,10 @@ sub showApp()
     if m.homePage <> invalid then
         m.homePage.server = m.session.server
         m.homePage.token = m.session.token
+        m.homePage.mediaProgress = m.mediaProgress
     end if
     showHomePage()
+    if m.homePage <> invalid then m.homePage.callFunc("focusHomePage")
     loadPersonalizedShelves()
     if m.library <> invalid then
         m.library.loadRequest = {
@@ -281,6 +287,13 @@ sub onHomePageBackSelected()
 end sub
 
 '-------------------------------------------------------------------------------
+' onHomePageUpFromFirstRowSelected
+'-------------------------------------------------------------------------------
+sub onHomePageUpFromFirstRowSelected()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+end sub
+
+'-------------------------------------------------------------------------------
 ' onHomePagePlaySelected
 '-------------------------------------------------------------------------------
 sub onHomePagePlaySelected()
@@ -295,6 +308,7 @@ end sub
 sub onLibraryPressed()
     closeHeaderMenu()
     showLibraryPage()
+    if m.library <> invalid then m.library.callFunc("focusLibraryList")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -309,6 +323,11 @@ end sub
 ' onHeaderDownPressed
 '-------------------------------------------------------------------------------
 sub onHeaderDownPressed()
+    if m.homePage <> invalid and m.homePage.visible then
+        m.homePage.callFunc("focusHomePage")
+        return
+    end if
+
     if m.library <> invalid and m.library.visible then
         m.library.callFunc("focusLibraryList")
     end if
@@ -364,6 +383,7 @@ sub onLibrarySeriesSelected()
     m.libraryApiTask.control = "run"
 end sub
 
+'-------------------------------------------------------------------------------
 ' onSettingsPressed
 '-------------------------------------------------------------------------------
 sub onSettingsPressed()

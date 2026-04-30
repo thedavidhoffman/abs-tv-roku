@@ -6,8 +6,10 @@
     <field id="server" type="string" onChange="onPersonalizedShelvesChanged" />
     <field id="token" type="string" onChange="onPersonalizedShelvesChanged" />
     <field id="personalizedShelves" type="array" onChange="onPersonalizedShelvesChanged" />
+    <field id="mediaProgress" type="array" onChange="onPersonalizedShelvesChanged" />
     <field id="playSelected" type="assocarray" />
     <field id="backSelected" type="integer" />
+    <field id="upFromFirstRowSelected" type="integer" />
     <function name="focusHomePage" />
   </interface>
   <children>
@@ -24,7 +26,7 @@
     <RowList
       id="homeRowList"
       translation="[64,144]"
-      itemComponentName="ContinueListening_Item"
+      itemComponentName="ItemPoster"
       numRows="3"
       itemSize="[1792,340]"
       rowItemSize="[[280,280],[280,280],[280,280]]"

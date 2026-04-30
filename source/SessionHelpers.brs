@@ -16,6 +16,7 @@ function Session_BuildAuthenticatedSession(response as object) as object
         userId: userId
         bookLibraryId: Session_GetInitialLibraryId(response)
         libraries: response.libraries
+        mediaProgress: MediaProgressMapper_Map(payload)
     }
 end function
 

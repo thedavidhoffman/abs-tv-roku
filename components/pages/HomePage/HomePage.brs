@@ -8,6 +8,7 @@ sub init()
     m.playSelectedCounter = 0
     m.focusRequested = false
     m.backSelectedCounter = 0
+    m.upFromFirstRowSelectedCounter = 0
 
     if m.homeRowList <> invalid then
         m.homeRowList.observeField("itemSelected", "onItemSelected")
@@ -56,6 +57,7 @@ sub appendShelfRow(root as object, shelfId as string, title as string)
             node.SDPosterUrl = node.HDPosterUrl
             progress = getProgressData(item)
             node.AddFields({
+                showProgressBar: shelfId <> "listen-again"
                 progressPercent: progress.progress
                 progressCurrentTime: progress.currentTime
                 progressDuration: progress.duration
@@ -121,11 +123,36 @@ end function
 '-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
+
+    if key = "up" and isFocusedOnFirstRow() then
+        m.upFromFirstRowSelectedCounter = m.upFromFirstRowSelectedCounter + 1
+        m.top.upFromFirstRowSelected = m.upFromFirstRowSelectedCounter
+        return true
+    end if
+
     if key <> "back" then return false
 
     m.backSelectedCounter = m.backSelectedCounter + 1
     m.top.backSelected = m.backSelectedCounter
     return true
+end function
+
+'-------------------------------------------------------------------------------
+' isFocusedOnFirstRow
+'-------------------------------------------------------------------------------
+function isFocusedOnFirstRow() as boolean
+    if m.homeRowList = invalid then return false
+    if m.homeRowList.visible <> true then return false
+    if m.homeRowList.isInFocusChain() <> true then return false
+
+    focused = m.homeRowList.rowItemFocused
+    if focused = invalid then focused = m.homeRowList.rowItemSelected
+    if focused = invalid or focused.Count() < 1 then return true
+
+    rowIndex = focused[0]
+    if rowIndex = invalid then return true
+
+    return rowIndex = 0
 end function
 
 '-------------------------------------------------------------------------------
@@ -220,6 +247,15 @@ end function
 ' getProgressData
 '-------------------------------------------------------------------------------
 function getProgressData(item as dynamic) as object
+    mappedProgress = getMappedProgressForItem(item)
+    if mappedProgress <> invalid then
+        return {
+            progress: getNumberFromFields(mappedProgress, ["progress"])
+            currentTime: getNumberFromFields(mappedProgress, ["currentTime"])
+            duration: getNumberFromFields(mappedProgress, ["duration"])
+        }
+    end if
+
     progress = invalid
 
     if item <> invalid and item.userMediaProgress <> invalid then
@@ -241,6 +277,23 @@ function getProgressData(item as dynamic) as object
         currentTime: getNumberFromFields(progress, ["currentTime"])
         duration: getNumberFromFields(progress, ["duration"])
     }
+end function
+
+'-------------------------------------------------------------------------------
+' getMappedProgressForItem
+'-------------------------------------------------------------------------------
+function getMappedProgressForItem(item as dynamic) as dynamic
+    if item = invalid or item.id = invalid then return invalid
+    if m.top.mediaProgress = invalid then return invalid
+
+    itemId = item.id.ToStr()
+    for each progress in m.top.mediaProgress
+        if progress <> invalid and progress.itemId <> invalid and progress.itemId.ToStr() = itemId then
+            return progress
+        end if
+    end for
+
+    return invalid
 end function
 
 '-------------------------------------------------------------------------------

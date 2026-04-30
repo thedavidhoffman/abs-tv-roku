@@ -3,6 +3,7 @@
   <script type="text/brightscript" uri="pkg:/source/store/AuthStore.brs" />
   <script type="text/brightscript" uri="pkg:/source/Color.brs" />
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/source/mappers/MediaProgressMapper.brs" />
   <script type="text/brightscript" uri="pkg:/source/SessionHelpers.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/MainScene/MainScene.brs" />
   <children>
