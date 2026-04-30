@@ -11,6 +11,6 @@
   </interface>
   <children>
     <Poster id="bg" width="300" height="56" uri="pkg:/images/buttons/header_focused.9.png" loadDisplayMode="scaleToFill" visible="false" />
-    <Label id="textLabel" translation="[0,12]" width="300" horizAlign="center" color="FFFFFFFF" />
+    <Label id="textLabel" translation="[0,12]" width="300" horizAlign="center" />
   </children>
 </component>

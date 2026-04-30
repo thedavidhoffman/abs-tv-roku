@@ -19,7 +19,7 @@
     <function name="focusUserMenuButton" />
   </interface>
   <children>
-    <Rectangle id="headerBg" width="1920" height="100" color="12112BFF" />
+    <Rectangle id="headerBg" width="1920" height="100" />
     <Poster
       id="brandLogo"
       translation="[64,25]"
