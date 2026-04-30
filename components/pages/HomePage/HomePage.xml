@@ -31,7 +31,7 @@
       itemSize="[1792,405]"
       rowItemSize="[[280,360],[280,360],[280,360]]"
       itemSpacing="[0,34]"
-      rowItemSpacing="[[28,0],[28,0],[28,0]]"
+      rowItemSpacing="[[22,0],[22,0],[22,0]]"
       showRowLabel="[true]"
       rowLabelFont="font:SmallSystemFont"
       rowLabelOffset="[[0,16],[0,16],[0,16]]"
