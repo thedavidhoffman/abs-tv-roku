@@ -16,7 +16,7 @@
     <function name="moveFocusToFirstGridItem" />
   </interface>
   <children>
-    <ListView_SeriesExpanded id="listView" />
+    <ListView id="listView" />
     <GridView id="gridView" visible="false" />
   </children>
 </component>
