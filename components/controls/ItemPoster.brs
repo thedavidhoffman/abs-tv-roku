@@ -33,14 +33,34 @@ sub showContent()
     end if
 
     m.poster.uri = SafeString(item.HDPosterUrl, SafeString(item.SDPosterUrl, "pkg:/images/placeholder_cover.png"))
-    m.titleText = SafeString(item.title, "")
+    m.titleText = getDisplayTitle(item)
     setLabelText(m.titleLabel, m.titleText)
     setLabelText(m.scrollingTitleLabel, "")
-    setLabelText(m.authorLabel, SafeString(item.author, ""))
+    setLabelText(m.authorLabel, getDisplayAuthor(item))
     if item.focused <> invalid then item.observeFieldScoped("focused", "onFocusedChanged")
     updateTitleFocusDisplay()
     updateProgressFill(item)
 end sub
+
+'-------------------------------------------------------------------------------
+' getDisplayTitle
+'-------------------------------------------------------------------------------
+function getDisplayTitle(item as dynamic) as string
+    if isSeriesItem(item) then
+        seriesName = getSeriesName(item)
+        if seriesName <> "" then return seriesName
+    end if
+
+    return SafeString(item.title, "")
+end function
+
+'-------------------------------------------------------------------------------
+' getDisplayAuthor
+'-------------------------------------------------------------------------------
+function getDisplayAuthor(item as dynamic) as string
+    if isSeriesItem(item) then return "SERIES"
+    return SafeString(item.author, "")
+end function
 
 '-------------------------------------------------------------------------------
 ' setLabelText
@@ -128,4 +148,25 @@ function clampPercent(value as float) as float
     if value < 0 then return 0
     if value > 1 then return 1
     return value
+end function
+
+'-------------------------------------------------------------------------------
+' isSeriesItem
+'-------------------------------------------------------------------------------
+function isSeriesItem(item as dynamic) as boolean
+    if item = invalid then return false
+    return item.isSeriesItem = true
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesName
+'-------------------------------------------------------------------------------
+function getSeriesName(item as dynamic) as string
+    if item = invalid then return ""
+
+    collapsedSeries = item.collapsedSeries
+    if collapsedSeries = invalid then return ""
+
+    if collapsedSeries.nameIgnorePrefix <> invalid then return collapsedSeries.nameIgnorePrefix
+    return ""
 end function

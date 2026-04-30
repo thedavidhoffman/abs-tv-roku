@@ -9,11 +9,13 @@ sub init()
     m.seriesSelectedCounter = 0
     m.upFromFirstItemSelectedCounter = 0
     m.backFromFirstItemSelectedCounter = 0
+    m.focusedItemNode = invalid
     m.server = invalid
     m.token = invalid
 
     if m.markupGrid <> invalid then
         m.markupGrid.observeField("itemSelected", "onPosterSelected")
+        m.markupGrid.observeField("itemFocused", "onItemFocused")
     end if
 
     onLibraryItemsChanged()
@@ -40,17 +42,22 @@ sub onLibraryItemsChanged()
     root = CreateObject("roSGNode", "ContentNode")
     items = m.top.libraryItems
     m.libraryItemsByIndex = []
+    m.focusedItemNode = invalid
 
     if items <> invalid then
         for each item in items
             if item.mediaType = invalid or item.mediaType = "book" then
+                metadata = getItemMetadata(item)
                 node = CreateObject("roSGNode", "ContentNode")
                 node.title = getLibraryItemTitle(item)
                 node.HDPosterUrl = buildCoverUrl(item)
                 node.SDPosterUrl = node.HDPosterUrl
                 node.AddFields({
+                    author: getItemAuthor(metadata)
+                    focused: false
                     isSeriesItem: isSeriesItem(item)
                     collapsedSeries: item.collapsedSeries
+                    showProgressBar: false
                 })
                 root.appendChild(node)
                 m.libraryItemsByIndex.Push(item)
@@ -101,6 +108,29 @@ sub onPosterSelected()
         counter: m.playSelectedCounter
     }
 end sub
+
+'-------------------------------------------------------------------------------
+' onItemFocused
+'-------------------------------------------------------------------------------
+sub onItemFocused()
+    if m.focusedItemNode <> invalid then m.focusedItemNode.focused = false
+
+    m.focusedItemNode = getFocusedItemNode()
+    if m.focusedItemNode <> invalid then m.focusedItemNode.focused = true
+end sub
+
+'-------------------------------------------------------------------------------
+' getFocusedItemNode
+'-------------------------------------------------------------------------------
+function getFocusedItemNode() as dynamic
+    if m.markupGrid = invalid or m.markupGrid.content = invalid then return invalid
+
+    itemIndex = m.markupGrid.itemFocused
+    if itemIndex = invalid or itemIndex < 0 then return invalid
+    if itemIndex >= m.markupGrid.content.getChildCount() then return invalid
+
+    return m.markupGrid.content.getChild(itemIndex)
+end function
 
 '-------------------------------------------------------------------------------
 ' getSelectedLibraryItem

@@ -26,9 +26,9 @@
     <MarkupGrid
       id="markupGrid"
       translation="[64,135]"
-      itemComponentName="GridView_Item"
-      itemSize="[280,280]"
-      itemSpacing="[28,36]"
+      itemComponentName="ItemPoster"
+      itemSize="[280,360]"
+      itemSpacing="[22,34]"
       numColumns="6"
       numRows="3"
       drawFocusFeedback="true"
