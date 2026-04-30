@@ -47,6 +47,8 @@ function Series_Load(request as object) as object
         end if
     end while
 
+    ? ""
+
     return {
         ok: true
         action: "loadSeries"

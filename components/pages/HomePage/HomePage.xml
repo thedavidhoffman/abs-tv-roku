@@ -3,9 +3,9 @@
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/HomePage/HomePage.brs" />
   <interface>
-    <field id="server" type="string" onChange="onInProgressItemsChanged" />
-    <field id="token" type="string" onChange="onInProgressItemsChanged" />
-    <field id="inProgressItems" type="array" onChange="onInProgressItemsChanged" />
+    <field id="server" type="string" onChange="onPersonalizedShelvesChanged" />
+    <field id="token" type="string" onChange="onPersonalizedShelvesChanged" />
+    <field id="personalizedShelves" type="array" onChange="onPersonalizedShelvesChanged" />
     <field id="playSelected" type="assocarray" />
     <field id="backSelected" type="integer" />
     <function name="focusHomePage" />

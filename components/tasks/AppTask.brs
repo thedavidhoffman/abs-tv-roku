@@ -28,6 +28,8 @@ sub executeRequest()
         m.top.response = Series_Load(request)
     else if action = "loadInProgress" then
         m.top.response = InProgress_Load(request)
+    else if action = "loadPersonalized" then
+        m.top.response = Personalized_Load(request)
     else if action = "startPlayback" then
         m.top.response = Playback_Start(request)
     else

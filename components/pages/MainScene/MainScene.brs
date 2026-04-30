@@ -131,8 +131,8 @@ sub onApiResponse()
         storeAuthenticatedSession(response)
         showApp()
         return
-    else if action = "loadInProgress" then
-        storeInProgressItems(response)
+    else if action = "loadPersonalized" then
+        storePersonalizedShelves(response)
         return
     else if action = "loadLibrary" then
         storeLibraryItems(response)
@@ -219,7 +219,7 @@ sub showApp()
         m.homePage.token = m.session.token
     end if
     showLibraryPage()
-    loadInProgressItems()
+    loadPersonalizedShelves()
     if m.library <> invalid then
         m.library.loadRequest = {
             server: m.session.server
@@ -254,7 +254,7 @@ sub onHomePressed()
     closeHeaderMenu()
     showHomePage()
     if m.homePage <> invalid then m.homePage.callFunc("focusHomePage")
-    loadInProgressItems()
+    loadPersonalizedShelves()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -391,18 +391,19 @@ sub reloadLibraryItems()
 end sub
 
 '-------------------------------------------------------------------------------
-' loadInProgressItems
+' loadPersonalizedShelves
 '-------------------------------------------------------------------------------
-sub loadInProgressItems()
+sub loadPersonalizedShelves()
     if m.session = invalid then return
     if m.session.server = invalid or m.session.server = "" then return
     if m.session.token = invalid or m.session.token = "" then return
     if m.apiTask = invalid then return
 
     m.apiTask.request = {
-        action: "loadInProgress"
+        action: "loadPersonalized"
         server: m.session.server
         token: m.session.token
+        bookLibraryId: m.session.bookLibraryId
     }
     m.apiTask.control = "run"
 end sub
@@ -423,11 +424,15 @@ sub onLibraryBackFromFirstItemSelected()
 end sub
 
 '-------------------------------------------------------------------------------
-' storeInProgressItems
+' storePersonalizedShelves
 '-------------------------------------------------------------------------------
-sub storeInProgressItems(response as object)
+sub storePersonalizedShelves(response as object)
+    if response.bookLibraryId <> invalid and response.bookLibraryId <> "" then
+        m.session.bookLibraryId = response.bookLibraryId
+    end if
+
     if m.homePage = invalid then return
-    m.homePage.inProgressItems = response.libraryItems
+    m.homePage.personalizedShelves = response.shelves
 end sub
 
 '-------------------------------------------------------------------------------

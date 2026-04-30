@@ -5,7 +5,7 @@ sub init()
     m.continueListeningGrid = m.top.findNode("continueListeningGrid")
     m.statusLabel = m.top.findNode("statusLabel")
     m.continueListeningTitle = m.top.findNode("continueListeningTitle")
-    m.inProgressItemsByIndex = []
+    m.continueListeningItemsByIndex = []
     m.playSelectedCounter = 0
     m.focusRequested = false
     m.backSelectedCounter = 0
@@ -14,25 +14,28 @@ sub init()
         m.continueListeningGrid.observeField("itemSelected", "onItemSelected")
     end if
 
-    onInProgressItemsChanged()
+    onPersonalizedShelvesChanged()
 end sub
 
 '-------------------------------------------------------------------------------
-' onInProgressItemsChanged
+' onPersonalizedShelvesChanged
 '-------------------------------------------------------------------------------
-sub onInProgressItemsChanged()
+sub onPersonalizedShelvesChanged()
     if m.continueListeningGrid = invalid then return
 
     root = CreateObject("roSGNode", "ContentNode")
-    m.inProgressItemsByIndex = []
+    m.continueListeningItemsByIndex = []
 
-    items = m.top.inProgressItems
+    shelf = getShelfById(m.top.personalizedShelves, "continue-listening")
+    items = invalid
+    if shelf <> invalid then items = shelf.entities
+
     if items <> invalid then
         for each item in items
             if item <> invalid and item.id <> invalid then
                 node = CreateObject("roSGNode", "ContentNode")
                 node.title = getLibraryItemTitle(item)
-                node.HDPosterUrl = buildCoverUrl(item.id)
+                node.HDPosterUrl = buildCoverPathUrl(item)
                 node.SDPosterUrl = node.HDPosterUrl
                 progress = getProgressData(item)
                 node.AddFields({
@@ -41,7 +44,7 @@ sub onInProgressItemsChanged()
                     progressDuration: progress.duration
                 })
                 root.appendChild(node)
-                m.inProgressItemsByIndex.Push(item)
+                m.continueListeningItemsByIndex.Push(item)
             end if
         end for
     end if
@@ -51,6 +54,19 @@ sub onInProgressItemsChanged()
 
     if m.focusRequested = true and m.top.visible = true then focusHomePage()
 end sub
+
+'-------------------------------------------------------------------------------
+' getShelfById
+'-------------------------------------------------------------------------------
+function getShelfById(shelves as dynamic, shelfId as string) as dynamic
+    if shelves = invalid then return invalid
+
+    for each shelf in shelves
+        if shelf <> invalid and shelf.id = shelfId then return shelf
+    end for
+
+    return invalid
+end function
 
 '-------------------------------------------------------------------------------
 ' updateStatus
@@ -118,9 +134,9 @@ end sub
 '-------------------------------------------------------------------------------
 function getSelectedItem(index as dynamic) as dynamic
     if index = invalid then return invalid
-    if m.inProgressItemsByIndex = invalid then return invalid
-    if index < 0 or index >= m.inProgressItemsByIndex.Count() then return invalid
-    return m.inProgressItemsByIndex[index]
+    if m.continueListeningItemsByIndex = invalid then return invalid
+    if index < 0 or index >= m.continueListeningItemsByIndex.Count() then return invalid
+    return m.continueListeningItemsByIndex[index]
 end function
 
 '-------------------------------------------------------------------------------
@@ -132,6 +148,29 @@ function buildCoverUrl(itemId as dynamic) as string
 
     url = m.top.server + "/api/items/" + itemId.ToStr() + "/cover?width=400"
     if m.top.token <> invalid and m.top.token <> "" then url = url + "&token=" + m.top.token
+    return url
+end function
+
+'-------------------------------------------------------------------------------
+' buildCoverPathUrl
+'-------------------------------------------------------------------------------
+function buildCoverPathUrl(item as dynamic) as string
+    if item = invalid then return "pkg:/images/placeholder_cover.png"
+    coverPath = SafeString(item.coverPath, "")
+    if coverPath = "" then return buildCoverUrl(item.id)
+    if Left(coverPath, 4) = "http" then return coverPath
+    if m.top.server = invalid or m.top.server = "" then return "pkg:/images/placeholder_cover.png"
+
+    path = coverPath
+    if Left(path, 1) <> "/" then path = "/" + path
+
+    url = m.top.server + path
+    if m.top.token <> invalid and m.top.token <> "" then
+        separator = "?"
+        if Instr(1, url, "?") > 0 then separator = "&"
+        url = url + separator + "token=" + m.top.token
+    end if
+
     return url
 end function
 

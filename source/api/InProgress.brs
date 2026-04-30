@@ -2,6 +2,7 @@
 ' InProgress_Load
 '-------------------------------------------------------------------------------
 function InProgress_Load(request as object) as object
+
     server = NormalizeServerUrl(request.server)
     token = request.token
 
