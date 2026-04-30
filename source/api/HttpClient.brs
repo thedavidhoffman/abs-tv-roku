@@ -45,7 +45,9 @@ function HttpClient_Request(url as String, method as String, token as Dynamic, b
     status = msg.GetResponseCode()
     responseText = msg.GetString()
     ? "response"; " status="; status
-    ? "response body="; responseText
+
+    ' uncomment to see the response in the log
+    ' ? "response body="; responseText
 
     if status = 0 then
         return { ok: false, status: status, errorMessage: "Unable to reach the Audiobookshelf server." }

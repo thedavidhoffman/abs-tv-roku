@@ -34,6 +34,12 @@ sub onInProgressItemsChanged()
                 node.title = getLibraryItemTitle(item)
                 node.HDPosterUrl = buildCoverUrl(item.id)
                 node.SDPosterUrl = node.HDPosterUrl
+                progress = getProgressData(item)
+                node.AddFields({
+                    progressPercent: progress.progress
+                    progressCurrentTime: progress.currentTime
+                    progressDuration: progress.duration
+                })
                 root.appendChild(node)
                 m.inProgressItemsByIndex.Push(item)
             end if
@@ -142,6 +148,55 @@ function getLibraryItemTitle(item as dynamic) as string
     end if
 
     return title
+end function
+
+'-------------------------------------------------------------------------------
+' getProgressData
+'-------------------------------------------------------------------------------
+function getProgressData(item as dynamic) as object
+    progress = invalid
+
+    if item <> invalid and item.userMediaProgress <> invalid then
+        progress = item.userMediaProgress
+    else if item <> invalid and item.mediaProgress <> invalid then
+        progress = item.mediaProgress
+    end if
+
+    if progress = invalid then
+        return {
+            progress: getNumberFromFields(item, ["progress"])
+            currentTime: getNumberFromFields(item, ["currentTime", "progressCurrentTime"])
+            duration: getNumberFromFields(item, ["duration", "progressDuration"])
+        }
+    end if
+
+    return {
+        progress: getNumberFromFields(progress, ["progress"])
+        currentTime: getNumberFromFields(progress, ["currentTime"])
+        duration: getNumberFromFields(progress, ["duration"])
+    }
+end function
+
+'-------------------------------------------------------------------------------
+' getNumberFromFields
+'-------------------------------------------------------------------------------
+function getNumberFromFields(value as dynamic, fieldNames as object) as float
+    if value = invalid then return 0
+
+    for each fieldName in fieldNames
+        fieldValue = value[fieldName]
+        if fieldValue <> invalid then return getNumber(fieldValue)
+    end for
+
+    return 0
+end function
+
+'-------------------------------------------------------------------------------
+' getNumber
+'-------------------------------------------------------------------------------
+function getNumber(value as dynamic) as float
+    if value = invalid then return 0
+    return val(value.ToStr())
 end function
 
 '-------------------------------------------------------------------------------

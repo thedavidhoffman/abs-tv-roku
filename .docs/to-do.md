@@ -42,9 +42,10 @@ I'm open to any and all suggestions for enhancements and improvements.
 
 - continue listening, set playback from last position
 - listview support collapsed/expanded
+- expand gridview series, navigate away, come back, can't get back to collapsed gridview
 - home page, continue listening, stats, recently added
 - settings, put focus back on main page
-
+- dialog close on left button? right now it's just on back
 - loading spinner (add only after fixing the collapsed/expanded display quirk)
 - error modal
 - description modal -> convert to dialog use on both ListView and Player
@@ -55,7 +56,6 @@ I'm open to any and all suggestions for enhancements and improvements.
 - diagnostics, [clear settings registry] [clear auth registry]
 - player, continue listening from last point
 - back button at certain level closes the app, see if we can trap this and prompt about exit
-- expand gridview series, navigate away, come back, can't get back to collapsed gridview
 - look at supporting "HideFromContinueListening"
 
 

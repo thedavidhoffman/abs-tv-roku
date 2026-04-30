@@ -12,5 +12,12 @@
       height="280"
       uri="pkg:/images/placeholder_cover.png"
       loadDisplayMode="scaleToFit" />
+    <Rectangle
+      id="progressFill"
+      translation="[0,270]"
+      width="1"
+      height="10"
+      color="0xE09B42FF"
+      visible="false" />
   </children>
 </component>
