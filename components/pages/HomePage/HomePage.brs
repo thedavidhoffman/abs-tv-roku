@@ -2,30 +2,15 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.continueListeningGrid = m.top.findNode("continueListeningGrid")
-    m.recentlyAddedGrid = m.top.findNode("recentlyAddedGrid")
-    m.listenAgainGrid = m.top.findNode("listenAgainGrid")
+    m.homeRowList = m.top.findNode("homeRowList")
     m.statusLabel = m.top.findNode("statusLabel")
-    m.continueListeningTitle = m.top.findNode("continueListeningTitle")
-    m.recentlyAddedTitle = m.top.findNode("recentlyAddedTitle")
-    m.listenAgainTitle = m.top.findNode("listenAgainTitle")
-    m.continueListeningItemsByIndex = []
-    m.recentlyAddedItemsByIndex = []
-    m.listenAgainItemsByIndex = []
+    m.shelfItemsByRow = []
     m.playSelectedCounter = 0
     m.focusRequested = false
     m.backSelectedCounter = 0
 
-    if m.continueListeningGrid <> invalid then
-        m.continueListeningGrid.observeField("itemSelected", "onContinueListeningItemSelected")
-    end if
-
-    if m.recentlyAddedGrid <> invalid then
-        m.recentlyAddedGrid.observeField("itemSelected", "onRecentlyAddedItemSelected")
-    end if
-
-    if m.listenAgainGrid <> invalid then
-        m.listenAgainGrid.observeField("itemSelected", "onListenAgainItemSelected")
+    if m.homeRowList <> invalid then
+        m.homeRowList.observeField("itemSelected", "onItemSelected")
     end if
 
     onPersonalizedShelvesChanged()
@@ -35,51 +20,56 @@ end sub
 ' onPersonalizedShelvesChanged
 '-------------------------------------------------------------------------------
 sub onPersonalizedShelvesChanged()
-    if m.continueListeningGrid = invalid then return
+    if m.homeRowList = invalid then return
 
-    continueListeningCount = populateShelfGrid("continue-listening", m.continueListeningGrid, m.continueListeningItemsByIndex)
-    recentlyAddedCount = populateShelfGrid("recently-added", m.recentlyAddedGrid, m.recentlyAddedItemsByIndex)
-    listenAgainCount = populateShelfGrid("listen-again", m.listenAgainGrid, m.listenAgainItemsByIndex)
-    updateStatus(continueListeningCount, recentlyAddedCount, listenAgainCount)
+    root = CreateObject("roSGNode", "ContentNode")
+    m.shelfItemsByRow = []
+
+    appendShelfRow(root, "continue-listening", "Continue Listening")
+    appendShelfRow(root, "recently-added", "Recently Added")
+    appendShelfRow(root, "listen-again", "Listen Again")
+
+    m.homeRowList.content = root
+    updateStatus(root.getChildCount())
 
     if m.focusRequested = true and m.top.visible = true then focusHomePage()
 end sub
 
 '-------------------------------------------------------------------------------
-' populateShelfGrid
+' appendShelfRow
 '-------------------------------------------------------------------------------
-function populateShelfGrid(shelfId as string, grid as dynamic, itemsByIndex as object) as integer
-    if grid = invalid then return 0
-
-    root = CreateObject("roSGNode", "ContentNode")
-    itemsByIndex.Clear()
-
+sub appendShelfRow(root as object, shelfId as string, title as string)
     shelf = getShelfById(m.top.personalizedShelves, shelfId)
     items = invalid
     if shelf <> invalid then items = shelf.entities
+    if items = invalid then return
 
-    if items <> invalid then
-        for each item in items
-            if item <> invalid and item.id <> invalid then
-                node = CreateObject("roSGNode", "ContentNode")
-                node.title = getLibraryItemTitle(item)
-                node.HDPosterUrl = buildCoverPathUrl(item)
-                node.SDPosterUrl = node.HDPosterUrl
-                progress = getProgressData(item)
-                node.AddFields({
-                    progressPercent: progress.progress
-                    progressCurrentTime: progress.currentTime
-                    progressDuration: progress.duration
-                })
-                root.appendChild(node)
-                itemsByIndex.Push(item)
-            end if
-        end for
-    end if
+    row = CreateObject("roSGNode", "ContentNode")
+    row.title = title
+    itemsByIndex = []
 
-    grid.content = root
-    return root.getChildCount()
-end function
+    for each item in items
+        if item <> invalid and item.id <> invalid then
+            node = CreateObject("roSGNode", "ContentNode")
+            node.title = getLibraryItemTitle(item)
+            node.HDPosterUrl = buildCoverPathUrl(item)
+            node.SDPosterUrl = node.HDPosterUrl
+            progress = getProgressData(item)
+            node.AddFields({
+                progressPercent: progress.progress
+                progressCurrentTime: progress.currentTime
+                progressDuration: progress.duration
+            })
+            row.appendChild(node)
+            itemsByIndex.Push(item)
+        end if
+    end for
+
+    if row.getChildCount() = 0 then return
+
+    root.appendChild(row)
+    m.shelfItemsByRow.Push(itemsByIndex)
+end sub
 
 '-------------------------------------------------------------------------------
 ' getShelfById
@@ -97,21 +87,12 @@ end function
 '-------------------------------------------------------------------------------
 ' updateStatus
 '-------------------------------------------------------------------------------
-sub updateStatus(continueListeningCount as integer, recentlyAddedCount as integer, listenAgainCount as integer)
-    if m.statusLabel = invalid or m.continueListeningGrid = invalid then return
+sub updateStatus(rowCount as integer)
+    if m.statusLabel = invalid or m.homeRowList = invalid then return
 
-    hasContinueListeningItems = continueListeningCount > 0
-    hasRecentlyAddedItems = recentlyAddedCount > 0
-    hasListenAgainItems = listenAgainCount > 0
-    hasItems = hasContinueListeningItems or hasRecentlyAddedItems or hasListenAgainItems
-
+    hasItems = rowCount > 0
     m.statusLabel.visible = not hasItems
-    if m.continueListeningTitle <> invalid then m.continueListeningTitle.visible = hasContinueListeningItems
-    if m.recentlyAddedTitle <> invalid then m.recentlyAddedTitle.visible = hasRecentlyAddedItems
-    if m.listenAgainTitle <> invalid then m.listenAgainTitle.visible = hasListenAgainItems
-    m.continueListeningGrid.visible = hasContinueListeningItems
-    if m.recentlyAddedGrid <> invalid then m.recentlyAddedGrid.visible = hasRecentlyAddedItems
-    if m.listenAgainGrid <> invalid then m.listenAgainGrid.visible = hasListenAgainItems
+    m.homeRowList.visible = hasItems
 
     if hasItems then
         m.statusLabel.text = ""
@@ -126,18 +107,8 @@ end sub
 function focusHomePage() as boolean
     m.focusRequested = true
 
-    if m.continueListeningGrid <> invalid and m.continueListeningGrid.visible = true then
-        m.continueListeningGrid.setFocus(true)
-        return true
-    end if
-
-    if m.recentlyAddedGrid <> invalid and m.recentlyAddedGrid.visible = true then
-        m.recentlyAddedGrid.setFocus(true)
-        return true
-    end if
-
-    if m.listenAgainGrid <> invalid and m.listenAgainGrid.visible = true then
-        m.listenAgainGrid.setFocus(true)
+    if m.homeRowList <> invalid and m.homeRowList.visible = true then
+        m.homeRowList.setFocus(true)
         return true
     end if
 
@@ -150,17 +121,6 @@ end function
 '-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
-
-    if key = "down" then
-        if moveFocusDownFromGrid(m.continueListeningGrid, m.recentlyAddedGrid) then return true
-        if moveFocusDownFromGrid(m.recentlyAddedGrid, m.listenAgainGrid) then return true
-    end if
-
-    if key = "up" then
-        if moveFocusUpFromGrid(m.listenAgainGrid, m.recentlyAddedGrid) then return true
-        if moveFocusUpFromGrid(m.recentlyAddedGrid, m.continueListeningGrid) then return true
-    end if
-
     if key <> "back" then return false
 
     m.backSelectedCounter = m.backSelectedCounter + 1
@@ -169,62 +129,10 @@ function onKeyEvent(key as string, press as boolean) as boolean
 end function
 
 '-------------------------------------------------------------------------------
-' isNodeFocused
+' onItemSelected
 '-------------------------------------------------------------------------------
-function isNodeFocused(node as dynamic) as boolean
-    return node <> invalid and node.isInFocusChain()
-end function
-
-'-------------------------------------------------------------------------------
-' moveFocusDownFromGrid
-'-------------------------------------------------------------------------------
-function moveFocusDownFromGrid(fromGrid as dynamic, toGrid as dynamic) as boolean
-    if isNodeFocused(fromGrid) = false then return false
-    if toGrid = invalid or toGrid.visible <> true then return false
-
-    toGrid.setFocus(true)
-    return true
-end function
-
-'-------------------------------------------------------------------------------
-' moveFocusUpFromGrid
-'-------------------------------------------------------------------------------
-function moveFocusUpFromGrid(fromGrid as dynamic, toGrid as dynamic) as boolean
-    if isNodeFocused(fromGrid) = false then return false
-    if toGrid = invalid or toGrid.visible <> true then return false
-
-    toGrid.setFocus(true)
-    return true
-end function
-
-'-------------------------------------------------------------------------------
-' onContinueListeningItemSelected
-'-------------------------------------------------------------------------------
-sub onContinueListeningItemSelected()
-    item = getSelectedItem(m.continueListeningGrid.itemSelected)
-    selectItem(item)
-end sub
-
-'-------------------------------------------------------------------------------
-' onRecentlyAddedItemSelected
-'-------------------------------------------------------------------------------
-sub onRecentlyAddedItemSelected()
-    item = getSelectedItemFromList(m.recentlyAddedGrid.itemSelected, m.recentlyAddedItemsByIndex)
-    selectItem(item)
-end sub
-
-'-------------------------------------------------------------------------------
-' onListenAgainItemSelected
-'-------------------------------------------------------------------------------
-sub onListenAgainItemSelected()
-    item = getSelectedItemFromList(m.listenAgainGrid.itemSelected, m.listenAgainItemsByIndex)
-    selectItem(item)
-end sub
-
-'-------------------------------------------------------------------------------
-' selectItem
-'-------------------------------------------------------------------------------
-sub selectItem(item as dynamic)
+sub onItemSelected()
+    item = getSelectedItem()
     if item = invalid or item.id = invalid then return
 
     m.playSelectedCounter = m.playSelectedCounter + 1
@@ -239,18 +147,23 @@ end sub
 '-------------------------------------------------------------------------------
 ' getSelectedItem
 '-------------------------------------------------------------------------------
-function getSelectedItem(index as dynamic) as dynamic
-    return getSelectedItemFromList(index, m.continueListeningItemsByIndex)
-end function
+function getSelectedItem() as dynamic
+    if m.homeRowList = invalid then return invalid
+    if m.shelfItemsByRow = invalid then return invalid
 
-'-------------------------------------------------------------------------------
-' getSelectedItemFromList
-'-------------------------------------------------------------------------------
-function getSelectedItemFromList(index as dynamic, itemsByIndex as object) as dynamic
-    if index = invalid then return invalid
+    selected = m.homeRowList.rowItemSelected
+    if selected = invalid or selected.Count() < 2 then return invalid
+
+    rowIndex = selected[0]
+    itemIndex = selected[1]
+    if rowIndex = invalid or itemIndex = invalid then return invalid
+    if rowIndex < 0 or rowIndex >= m.shelfItemsByRow.Count() then return invalid
+
+    itemsByIndex = m.shelfItemsByRow[rowIndex]
     if itemsByIndex = invalid then return invalid
-    if index < 0 or index >= itemsByIndex.Count() then return invalid
-    return itemsByIndex[index]
+    if itemIndex < 0 or itemIndex >= itemsByIndex.Count() then return invalid
+
+    return itemsByIndex[itemIndex]
 end function
 
 '-------------------------------------------------------------------------------

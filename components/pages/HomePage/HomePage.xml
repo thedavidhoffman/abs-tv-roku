@@ -21,58 +21,18 @@
       color="0xF6F7FBFF"
       font="font:MediumSystemFont"
       visible="false" />
-    <Label
-      id="continueListeningTitle"
+    <RowList
+      id="homeRowList"
       translation="[64,144]"
-      width="1200"
-      text="Continue Listening"
-      color="0xF6F7FBFF"
-      font="font:SmallSystemFont"
-      visible="false" />
-    <MarkupGrid
-      id="continueListeningGrid"
-      translation="[64,190]"
       itemComponentName="ContinueListening_Item"
-      numRows="1"
-      numColumns="6"
-      itemSize="[280,280]"
-      itemSpacing="[28,36]"
-      drawFocusFeedback="true"
-      vertFocusAnimationStyle="fixedFocus" />
-    <Label
-      id="recentlyAddedTitle"
-      translation="[64,488]"
-      width="1200"
-      text="Recently Added"
-      color="0xF6F7FBFF"
-      font="font:SmallSystemFont"
-      visible="false" />
-    <MarkupGrid
-      id="recentlyAddedGrid"
-      translation="[64,534]"
-      itemComponentName="ContinueListening_Item"
-      numRows="1"
-      numColumns="6"
-      itemSize="[280,280]"
-      itemSpacing="[28,36]"
-      drawFocusFeedback="true"
-      vertFocusAnimationStyle="fixedFocus" />
-    <Label
-      id="listenAgainTitle"
-      translation="[64,832]"
-      width="1200"
-      text="Listen Again"
-      color="0xF6F7FBFF"
-      font="font:SmallSystemFont"
-      visible="false" />
-    <MarkupGrid
-      id="listenAgainGrid"
-      translation="[64,878]"
-      itemComponentName="ContinueListening_Item"
-      numRows="1"
-      numColumns="6"
-      itemSize="[280,280]"
-      itemSpacing="[28,36]"
+      numRows="3"
+      itemSize="[1792,320]"
+      rowItemSize="[[280,280],[280,280],[280,280]]"
+      itemSpacing="[0,34]"
+      rowItemSpacing="[[28,0],[28,0],[28,0]]"
+      showRowLabel="[true]"
+      rowLabelFont="font:SmallSystemFont"
+      rowLabelOffset="[[0,0],[0,0],[0,0]]"
       drawFocusFeedback="true"
       vertFocusAnimationStyle="fixedFocus" />
   </children>
