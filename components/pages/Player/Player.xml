@@ -9,7 +9,7 @@
     <field id="errorResponse" type="assocarray" />
   </interface>
   <children>
-    <Rectangle id="playerBg" width="1920" height="1080" color="00000000" />
+    <Rectangle id="playerBg" width="1920" height="1080" />
     <Poster
       id="cover"
       translation="[120,180]"
@@ -18,18 +18,18 @@
       uri="pkg:/images/placeholder_cover.png"
       loadDisplayMode="best-fit"
     />
-    <ScrollingLabel id="titleLabel" translation="[700,210]" maxWidth="1040" color="F3F7FBFF" font="font:LargeBoldSystemFont" repeatCount="1" />
-    <Label id="authorLabel" translation="[700,260]" width="1040" color="B7C5D4FF" />
-    <Label id="metadataLabel" translation="[700,310]" width="1040" color="B7C5D4FF" font="font:SmallestSystemFont" />
-    <Rectangle id="descriptionFocusRing" translation="[674,362]" width="1092" height="244" color="E09B4200" />
-    <Label id="descriptionLabel" translation="[700,389]" width="1040" numLines="5" wrap="true" color="F3F7FBFF" font="font:SmallestSystemFont" />
-    <Label id="trackTitleLabel" translation="[700,664]" width="1040" color="B7C5D4FF" />
-    <Label id="statusLabel" translation="[700,724]" width="1040" color="F2C879FF" />
+    <ScrollingLabel id="titleLabel" translation="[700,210]" maxWidth="1040" font="font:LargeBoldSystemFont" repeatCount="1" />
+    <Label id="authorLabel" translation="[700,260]" width="1040" color="0xB7C5D4FF" />
+    <Label id="metadataLabel" translation="[700,310]" width="1040" color="0xB7C5D4FF" font="font:SmallestSystemFont" />
+    <Rectangle id="descriptionFocusRing" translation="[674,362]" width="1092" height="244" color="0xE09B4200" />
+    <Label id="descriptionLabel" translation="[700,389]" width="1040" numLines="5" wrap="true" color="0xF3F7FBFF" font="font:SmallestSystemFont" />
+    <Label id="trackTitleLabel" translation="[700,664]" width="1040" />
+    <Label id="statusLabel" translation="[700,724]" width="1040" color="0xF2C879FF" />
     <Group id="progressGroup" translation="[700,774]">
-      <Rectangle id="progressTrack" width="1040" height="12" color="555555FF" />
-      <Rectangle id="progressFill" width="1" height="12" color="E09B42FF" visible="false" />
-      <Label id="currentTimeLabel" translation="[0,26]" width="220" text="0:00" color="B7C5D4FF" />
-      <Label id="totalTimeLabel" translation="[820,26]" width="220" horizAlign="right" text="0:00" color="B7C5D4FF" />
+      <Rectangle id="progressTrack" width="1040" height="12" color="0x555555FF" />
+      <Rectangle id="progressFill" width="1" height="12" color="0xE09B42FF" visible="false" />
+      <Label id="currentTimeLabel" translation="[0,26]" width="220" text="0:00" />
+      <Label id="totalTimeLabel" translation="[820,26]" width="220" horizAlign="right" text="0:00" />
     </Group>
     <Group id="transportControls" translation="[700,849]">
       <PrimaryButton id="rewindButton" translation="[0,0]" buttonWidth="160" buttonHeight="56" text="-30s" />
@@ -47,14 +47,14 @@
     <AppTask id="playbackApiTask" />
 
     <Group id="descriptionModal" visible="false">
-      <Rectangle id="descriptionModalBackdrop" width="1920" height="1080" color="000000FF" />
-      <Rectangle id="descriptionModalPanel" translation="[300,150]" width="1320" height="780" color="101B2BFF" />
-      <ScrollingLabel id="modalTitleLabel" translation="[360,205]" maxWidth="1200" text="Description" color="F3F7FBFF" font="font:LargeBoldSystemFont" repeatCount="1" />
+      <Rectangle id="descriptionModalBackdrop" width="1920" height="1080" color="0x000000FF" />
+      <Rectangle id="descriptionModalPanel" translation="[300,150]" width="1320" height="780" color="0x101B2BFF" />
+      <ScrollingLabel id="modalTitleLabel" translation="[360,205]" maxWidth="1200" text="Description" color="0xF3F7FBFF" font="font:LargeBoldSystemFont" repeatCount="1" />
       <Group id="modalDescriptionViewport" translation="[360,285]" clippingRect="[0,0,1120,600]">
-        <Label id="modalDescriptionLabel" translation="[0,0]" width="1120" wrap="true" color="F3F7FBFF" />
+        <Label id="modalDescriptionLabel" translation="[0,0]" width="1120" wrap="true" color="0xF3F7FBFF" />
       </Group>
-      <Rectangle id="modalScrollbarTrack" translation="[1552,285]" width="8" height="600" color="555555FF" />
-      <Rectangle id="modalScrollbarThumb" translation="[1552,285]" width="8" height="80" color="E09B42FF" />
+      <Rectangle id="modalScrollbarTrack" translation="[1552,285]" width="8" height="600" color="0x555555FF" />
+      <Rectangle id="modalScrollbarThumb" translation="[1552,285]" width="8" height="80" color="0xE09B42FF" />
     </Group>
 
     <ChapterList id="chapterList" visible="false" />
