@@ -51,7 +51,8 @@ Goals for Thursday 4/30
 ----------------------------------------------------
 - cleanup bad color assignments
 
-- ItemPoster on GridView not displaying in-progress bar
+- in-progress bar for series
+- in-progress bar for overview
 - continue listening, set playback from last position
 
 - on player close, sync progress

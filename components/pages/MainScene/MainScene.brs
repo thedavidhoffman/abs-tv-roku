@@ -102,6 +102,7 @@ sub onLoginSucceeded()
     if response = invalid then return
 
     storeAuthenticatedSession(response)
+    storeMediaProgress(m.session.mediaProgress)
     showApp()
 end sub
 
@@ -133,6 +134,7 @@ sub onApiResponse()
     if action = "authorize" then
         m.isResumingSession = false
         storeAuthenticatedSession(response)
+        storeMediaProgress(m.session.mediaProgress)
         showApp()
         return
     else if action = "loadLibrary" then
@@ -206,10 +208,21 @@ end sub
 '-------------------------------------------------------------------------------
 sub storeAuthenticatedSession(response as object)
     m.session = Session_BuildAuthenticatedSession(response)
-    m.mediaProgress = m.session.mediaProgress
+    Session_SaveAuthenticatedSession(m.session)
+end sub
+
+'-------------------------------------------------------------------------------
+' storeMediaProgress
+'-------------------------------------------------------------------------------
+sub storeMediaProgress(mediaProgress as dynamic)
+    if mediaProgress = invalid then
+        m.mediaProgress = []
+    else
+        m.mediaProgress = mediaProgress
+    end if
+
     if m.homePage <> invalid then m.homePage.mediaProgress = m.mediaProgress
     if m.library <> invalid then m.library.mediaProgress = m.mediaProgress
-    Session_SaveAuthenticatedSession(m.session)
 end sub
 
 '-------------------------------------------------------------------------------
