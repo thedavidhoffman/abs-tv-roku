@@ -41,6 +41,8 @@ I'm open to any and all suggestions for enhancements and improvements.
 # PREVIEW NOTES
 - The app in its current state does not support podcasts. I called that out of scope for the unforeseable future.
 - I'm not trying to hit every bell and blow every whistle, instead I'm looking to release a reasonable functioning Roku app for playing audiobooks from audiobookshelf. Hopefully this app will gain some adoption and then the user base can drive additional features, as well as my own future personal development on the app.
+- no collections
+- no playlists
 - This is a beta release, it's my first Roku app, and I'm sure there are bugs and other improvements to be made.
 
 ## Hit List
@@ -49,12 +51,7 @@ Goals for Thursday 4/30
 ----------------------------------------------------
 - cleanup bad color assignments
 
-- ItemPoster to root
-    - consume on GridView
-    - move GridViewItem logic into ItemPoster
-    - have AI add a comment to the brs file
-
-- get in-progress working ==> make a reusable grid item?
+- ItemPoster on GridView not displaying in-progress bar
 - continue listening, set playback from last position
 
 - on player close, sync progress

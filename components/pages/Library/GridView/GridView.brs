@@ -52,12 +52,16 @@ sub onLibraryItemsChanged()
                 node.title = getLibraryItemTitle(item)
                 node.HDPosterUrl = buildCoverUrl(item)
                 node.SDPosterUrl = node.HDPosterUrl
+                progress = getProgressData(item)
                 node.AddFields({
                     author: getItemAuthor(metadata)
                     focused: false
                     isSeriesItem: isSeriesItem(item)
                     collapsedSeries: item.collapsedSeries
-                    showProgressBar: false
+                    showProgressBar: not isSeriesItem(item)
+                    progressPercent: progress.progress
+                    progressCurrentTime: progress.currentTime
+                    progressDuration: progress.duration
                 })
                 root.appendChild(node)
                 m.libraryItemsByIndex.Push(item)
@@ -167,6 +171,81 @@ function buildCoverUrl(item as dynamic) as string
     if item = invalid or item.id = invalid then return "pkg:/images/placeholder_cover.png"
     if m.server = invalid or m.server = "" or m.token = invalid or m.token = "" then return "pkg:/images/placeholder_cover.png"
     return m.server + "/api/items/" + item.id.ToStr() + "/cover?width=400&token=" + m.token
+end function
+
+'-------------------------------------------------------------------------------
+' getProgressData
+'-------------------------------------------------------------------------------
+function getProgressData(item as dynamic) as object
+    mappedProgress = getMappedProgressForItem(item)
+    if mappedProgress <> invalid then
+        return {
+            progress: getNumberFromFields(mappedProgress, ["progress"])
+            currentTime: getNumberFromFields(mappedProgress, ["currentTime"])
+            duration: getNumberFromFields(mappedProgress, ["duration"])
+        }
+    end if
+
+    progress = invalid
+
+    if item <> invalid and item.userMediaProgress <> invalid then
+        progress = item.userMediaProgress
+    else if item <> invalid and item.mediaProgress <> invalid then
+        progress = item.mediaProgress
+    end if
+
+    if progress = invalid then
+        return {
+            progress: getNumberFromFields(item, ["progress"])
+            currentTime: getNumberFromFields(item, ["currentTime", "progressCurrentTime"])
+            duration: getNumberFromFields(item, ["duration", "progressDuration"])
+        }
+    end if
+
+    return {
+        progress: getNumberFromFields(progress, ["progress"])
+        currentTime: getNumberFromFields(progress, ["currentTime"])
+        duration: getNumberFromFields(progress, ["duration"])
+    }
+end function
+
+'-------------------------------------------------------------------------------
+' getMappedProgressForItem
+'-------------------------------------------------------------------------------
+function getMappedProgressForItem(item as dynamic) as dynamic
+    if item = invalid or item.id = invalid then return invalid
+    if m.top.mediaProgress = invalid then return invalid
+
+    itemId = item.id.ToStr()
+    for each progress in m.top.mediaProgress
+        if progress <> invalid and progress.itemId <> invalid and progress.itemId.ToStr() = itemId then
+            return progress
+        end if
+    end for
+
+    return invalid
+end function
+
+'-------------------------------------------------------------------------------
+' getNumberFromFields
+'-------------------------------------------------------------------------------
+function getNumberFromFields(value as dynamic, fieldNames as object) as float
+    if value = invalid then return 0
+
+    for each fieldName in fieldNames
+        fieldValue = value[fieldName]
+        if fieldValue <> invalid then return getNumber(fieldValue)
+    end for
+
+    return 0
+end function
+
+'-------------------------------------------------------------------------------
+' getNumber
+'-------------------------------------------------------------------------------
+function getNumber(value as dynamic) as float
+    if value = invalid then return 0
+    return val(value.ToStr())
 end function
 
 '-------------------------------------------------------------------------------

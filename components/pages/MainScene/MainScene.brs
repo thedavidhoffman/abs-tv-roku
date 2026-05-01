@@ -208,6 +208,7 @@ sub storeAuthenticatedSession(response as object)
     m.session = Session_BuildAuthenticatedSession(response)
     m.mediaProgress = m.session.mediaProgress
     if m.homePage <> invalid then m.homePage.mediaProgress = m.mediaProgress
+    if m.library <> invalid then m.library.mediaProgress = m.mediaProgress
     Session_SaveAuthenticatedSession(m.session)
 end sub
 
@@ -239,6 +240,7 @@ sub showApp()
         m.homePage.token = m.session.token
         m.homePage.mediaProgress = m.mediaProgress
     end if
+    if m.library <> invalid then m.library.mediaProgress = m.mediaProgress
     showHomePage()
     if m.homePage <> invalid then m.homePage.callFunc("focusHomePage")
     loadPersonalizedShelves()

@@ -128,6 +128,13 @@ sub onGridViewUpFromFirstItemSelected()
 end sub
 
 '-------------------------------------------------------------------------------
+' onMediaProgressChanged
+'-------------------------------------------------------------------------------
+sub onMediaProgressChanged()
+    if m.gridView <> invalid then m.gridView.mediaProgress = m.top.mediaProgress
+end sub
+
+'-------------------------------------------------------------------------------
 ' onGridViewBackFromFirstItemSelected
 '-------------------------------------------------------------------------------
 sub onGridViewBackFromFirstItemSelected()
