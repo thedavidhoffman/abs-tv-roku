@@ -9,7 +9,10 @@
     - extend scroll by one line (see ark in space)
 - Resume
 - Restart
-- Meditations won't play - WHY?
+
+## titles with playback issues
+- Meditations
+- The Courtship of Princess Leia
 
 # localization
 - https://developer.roku.com/en-au/docs/developer-program/core-concepts/localization.md
@@ -39,20 +42,32 @@ I'm open to any and all suggestions for enhancements and improvements.
 
 
 # PREVIEW NOTES
-- The app in its current state does not support podcasts. I called that out of scope for the unforeseable future.
-- I'm not trying to hit every bell and blow every whistle, instead I'm looking to release a reasonable functioning Roku app for playing audiobooks from audiobookshelf. Hopefully this app will gain some adoption and then the user base can drive additional features, as well as my own future personal development on the app.
-- no collections
-- no playlists
-- This is a beta release, it's my first Roku app, and I'm sure there are bugs and other improvements to be made.
+I wanted to share some progess that I'm making on a Roku app for Audiobookshelf. I started this as a side project to do for fun, and while there is no shortage of iPhone apps for ABS, I couldn't find any for Roku.
+
+Let's take a look at what it does, and then we'll discuss what it doesn't do.
+
+So here's what the app doesn't do...
+- There is no support for podcasts, collections, playlists, browsing by authors or narrators. Maybe in the future, but for now I've limited the scope of work to exclude those features.
+- I'm not trying to hit every bell and blow every whistle, instead I'm looking to release a reasonable functioning Roku app for playing audiobooks from audiobookshelf.
+- This app will not be availabe in the official Roku channel store. It must be side-loaded onto a Roku device. I'm assuming that most people that run the ABS docker image have some technical ability, so they should be able to side-load this app. In the future I may look to get it on the official Roku channel store.
+
+Also, big disclaimer...
+This is my first time developing a Roku app, and to be honest, it would not have been successful without the help of AI. To be clear, I didn't just "vibe code" this app. I'm an experienced senior software engineer and I used AI as a tool to help craft this app. I took the AI output and constantly refined, reorganized, encapsulated, and abstracted it. That being said. This app is still in beta, there will be bugs and there's plenty of room for improvement.
+
+Ok, all that being said, if you're interested in being a beta tester hit me up in the comments. And if anyone out there is asking themselves if you can trust some random Roku app from some random guy on the internet, that is most definitely a question you should be asking yourself. I'll say two things in reponse to that. First, I am in no way attempting to exploit or track any of your data. And second, if you're using an ABS client on your iPhone or Android, then you've already extended your trust to those apps.
 
 ## Hit List
 
-Goals for Thursday 4/30
+
 ----------------------------------------------------
 - cleanup bad color assignments
 
 - in-progress bar for series
 - in-progress bar for overview
+- if progress is complete, add a checkmark
+
+- series display # in series
+
 - continue listening, set playback from last position
 
 - on player close, sync progress
@@ -80,6 +95,7 @@ Continue Listening (home page)
 - back button at certain level closes the app, see if we can trap this and prompt about exit
 - fix api logging
 
+- on playback (https://api.audiobookshelf.org/#play-a-library-item-or-podcast-episode) send the device info
 
 ## Quirks
 

@@ -375,8 +375,27 @@ sub playLibraryItem(selectedItem as dynamic)
         title: selectedItem.title
         coverUrl: coverUrl
         details: selectedItem.details
+        startPositionSeconds: getMediaProgressCurrentTime(selectedItem.id)
     }
 end sub
+
+'-------------------------------------------------------------------------------
+' getMediaProgressCurrentTime
+'-------------------------------------------------------------------------------
+function getMediaProgressCurrentTime(itemId as dynamic) as integer
+    if itemId = invalid then return 0
+    if m.mediaProgress = invalid then return 0
+
+    targetItemId = itemId.ToStr()
+    for each progress in m.mediaProgress
+        if progress <> invalid and progress.itemId <> invalid and progress.itemId.ToStr() = targetItemId then
+            if progress.isFinished = true then return 0
+            if progress.currentTime <> invalid then return int(val(progress.currentTime.ToStr()))
+        end if
+    end for
+
+    return 0
+end function
 
 '-------------------------------------------------------------------------------
 ' onLibrarySeriesSelected

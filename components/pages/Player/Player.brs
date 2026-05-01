@@ -58,6 +58,8 @@ sub initValues()
     m.tracks = []
     m.currentTrackIndex = 0
     m.currentTrackStartPosition = 0
+    m.requestedStartPositionSeconds = 0
+    m.pendingTrackSeekPosition = invalid
     m.isPaused = false
     m.totalDurationSeconds = 0
     m.progressBarWidth = 1040
@@ -115,6 +117,8 @@ sub onPlayRequestChanged()
     if request = invalid then return
 
     m.audiobookTitle = SafeString(request.title, "Audiobook")
+    m.requestedStartPositionSeconds = getRequestStartPosition(request)
+    m.pendingTrackSeekPosition = invalid
 
     if m.cover <> invalid then m.cover.uri = SafeString(request.coverUrl, "pkg:/images/placeholder_cover.png")
     if m.titleLabel <> invalid then m.titleLabel.text = m.audiobookTitle
@@ -257,6 +261,7 @@ sub playTracks(tracks as dynamic)
 
     m.tracks = tracks
     m.currentTrackIndex = 0
+    applyRequestedStartPosition()
     updateChaptersButtonVisibility()
     updateChapterList()
     playCurrentTrack()
@@ -293,17 +298,114 @@ sub playCurrentTrack()
     m.isPaused = false
     disableScreenSaver()
     m.audioPlayer.control = "play"
-    if m.currentTrackStartPosition > 0 then
-        m.audioPlayer.seek = m.currentTrackStartPosition
-    end if
+    seekPosition = getInitialTrackSeekPosition()
+    if seekPosition > 0 then m.audioPlayer.seek = seekPosition
+    m.pendingTrackSeekPosition = invalid
     setStatus("Playing")
     updatePlayPauseButton()
 end sub
 
 '-------------------------------------------------------------------------------
+' getRequestStartPosition
+'-------------------------------------------------------------------------------
+function getRequestStartPosition(request as dynamic) as integer
+    if request = invalid or request.startPositionSeconds = invalid then return 0
+    startPosition = int(val(request.startPositionSeconds.ToStr()))
+    if startPosition < 0 then return 0
+    return startPosition
+end function
+
+'-------------------------------------------------------------------------------
+' applyRequestedStartPosition
+'-------------------------------------------------------------------------------
+sub applyRequestedStartPosition()
+    m.currentTrackIndex = 0
+    m.pendingTrackSeekPosition = invalid
+    if m.requestedStartPositionSeconds <= 0 then return
+    if m.tracks = invalid or m.tracks.Count() = 0 then return
+
+    if tracksHaveStartPositions() then
+        applySharedStreamStartPosition()
+    else
+        applyFileTrackStartPosition()
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' tracksHaveStartPositions
+'-------------------------------------------------------------------------------
+function tracksHaveStartPositions() as boolean
+    if m.tracks = invalid then return false
+
+    for each track in m.tracks
+        if track <> invalid and track.startPositionSeconds <> invalid then return true
+    end for
+
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' applySharedStreamStartPosition
+'-------------------------------------------------------------------------------
+sub applySharedStreamStartPosition()
+    lastMatchingIndex = 0
+
+    for i = 0 to m.tracks.Count() - 1
+        track = m.tracks[i]
+        trackStart = getTrackStartPosition(track)
+        trackDuration = getTrackDurationSeconds(track)
+        trackEnd = trackStart + trackDuration
+
+        if m.requestedStartPositionSeconds >= trackStart then
+            lastMatchingIndex = i
+            if trackDuration <= 0 or m.requestedStartPositionSeconds < trackEnd then
+                m.currentTrackIndex = i
+                m.pendingTrackSeekPosition = m.requestedStartPositionSeconds
+                return
+            end if
+        end if
+    end for
+
+    m.currentTrackIndex = lastMatchingIndex
+    m.pendingTrackSeekPosition = m.requestedStartPositionSeconds
+end sub
+
+'-------------------------------------------------------------------------------
+' applyFileTrackStartPosition
+'-------------------------------------------------------------------------------
+sub applyFileTrackStartPosition()
+    elapsedSeconds = 0
+
+    for i = 0 to m.tracks.Count() - 1
+        track = m.tracks[i]
+        trackDuration = getTrackDurationSeconds(track)
+
+        if trackDuration <= 0 or m.requestedStartPositionSeconds < elapsedSeconds + trackDuration then
+            m.currentTrackIndex = i
+            m.pendingTrackSeekPosition = m.requestedStartPositionSeconds - elapsedSeconds
+            if m.pendingTrackSeekPosition < 0 then m.pendingTrackSeekPosition = 0
+            return
+        end if
+
+        elapsedSeconds = elapsedSeconds + trackDuration
+    end for
+
+    m.currentTrackIndex = m.tracks.Count() - 1
+    m.pendingTrackSeekPosition = getTrackDurationSeconds(m.tracks[m.currentTrackIndex])
+end sub
+
+'-------------------------------------------------------------------------------
+' getInitialTrackSeekPosition
+'-------------------------------------------------------------------------------
+function getInitialTrackSeekPosition() as integer
+    if m.pendingTrackSeekPosition <> invalid then return int(val(m.pendingTrackSeekPosition.ToStr()))
+    return m.currentTrackStartPosition
+end function
+
+'-------------------------------------------------------------------------------
 ' getTrackDurationSeconds
 '-------------------------------------------------------------------------------
-function getTrackDurationSeconds(track as Dynamic) as Integer
+function getTrackDurationSeconds(track as dynamic) as integer
     if track = invalid then return 0
     if track.durationSeconds = invalid then return 0
     return int(val(track.durationSeconds.ToStr()))
@@ -312,7 +414,7 @@ end function
 '-------------------------------------------------------------------------------
 ' getTrackStartPosition
 '-------------------------------------------------------------------------------
-function getTrackStartPosition(track as Dynamic) as Integer
+function getTrackStartPosition(track as dynamic) as integer
     if track = invalid then return 0
     if track.startPositionSeconds = invalid then return 0
     return int(val(track.startPositionSeconds.ToStr()))
