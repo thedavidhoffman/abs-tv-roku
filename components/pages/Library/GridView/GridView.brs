@@ -58,6 +58,7 @@ sub onLibraryItemsChanged()
                     focused: false
                     isSeriesItem: isSeriesItem(item)
                     collapsedSeries: item.collapsedSeries
+                    seriesSequence: getSeriesSequence(item)
                     showProgressBar: not isSeriesItem(item)
                     progressPercent: progress.progress
                     progressCurrentTime: progress.currentTime
@@ -162,6 +163,49 @@ function getCollapsedSeriesId(item as dynamic) as dynamic
     if item.collapsedSeries = invalid then return invalid
     if item.collapsedSeries.id = invalid then return invalid
     return item.collapsedSeries.id
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesSequence
+'-------------------------------------------------------------------------------
+function getSeriesSequence(item as dynamic) as string
+    if item = invalid then return ""
+
+    metadata = getItemMetadata(item)
+    if metadata.seriesSequence <> invalid then return metadata.seriesSequence.ToStr()
+    if metadata.sequence <> invalid then return metadata.sequence.ToStr()
+    if metadata.series <> invalid then return getSequenceFromSeriesValue(metadata.series)
+
+    if item.seriesSequence <> invalid then return item.seriesSequence.ToStr()
+    if item.sequence <> invalid then return item.sequence.ToStr()
+
+    return ""
+end function
+
+'-------------------------------------------------------------------------------
+' getSequenceFromSeriesValue
+'-------------------------------------------------------------------------------
+function getSequenceFromSeriesValue(series as dynamic) as string
+    if series = invalid then return ""
+
+    seriesType = Type(series)
+    if seriesType = "roArray" then
+        if series.Count() = 0 then return ""
+
+        firstSeries = series[0]
+        if firstSeries <> invalid then
+            if firstSeries.sequence <> invalid then return firstSeries.sequence.ToStr()
+            if firstSeries.seriesSequence <> invalid then return firstSeries.seriesSequence.ToStr()
+        end if
+    else if seriesType = "roAssociativeArray" then
+        if series.sequence <> invalid then return series.sequence.ToStr()
+        if series.seriesSequence <> invalid then return series.seriesSequence.ToStr()
+    end if
+
+    if series.sequence <> invalid then return series.sequence.ToStr()
+    if series.seriesSequence <> invalid then return series.seriesSequence.ToStr()
+
+    return ""
 end function
 
 '-------------------------------------------------------------------------------

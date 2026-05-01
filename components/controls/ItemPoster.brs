@@ -4,6 +4,8 @@
 sub init()
     m.poster = m.top.findNode("poster")
     m.progressFill = m.top.findNode("progressFill")
+    m.seriesSequenceBackground = m.top.findNode("seriesSequenceBackground")
+    m.seriesSequenceLabel = m.top.findNode("seriesSequenceLabel")
     m.titleLabel = m.top.findNode("titleLabel")
     m.scrollingTitleLabel = m.top.findNode("scrollingTitleLabel")
     m.authorLabel = m.top.findNode("authorLabel")
@@ -27,6 +29,7 @@ sub showContent()
         setLabelText(m.titleLabel, "")
         setLabelText(m.scrollingTitleLabel, "")
         setLabelText(m.authorLabel, "")
+        updateSeriesSequence(invalid)
         updateTitleFocusDisplay()
         updateProgressFill(invalid)
         return
@@ -37,6 +40,7 @@ sub showContent()
     setLabelText(m.titleLabel, m.titleText)
     setLabelText(m.scrollingTitleLabel, "")
     setLabelText(m.authorLabel, getDisplayAuthor(item))
+    updateSeriesSequence(item)
     if item.focused <> invalid then item.observeFieldScoped("focused", "onFocusedChanged")
     updateTitleFocusDisplay()
     updateProgressFill(item)
@@ -68,6 +72,38 @@ end function
 sub setLabelText(label as dynamic, text as string)
     if label <> invalid then label.text = text
 end sub
+
+'-------------------------------------------------------------------------------
+' updateSeriesSequence
+'-------------------------------------------------------------------------------
+sub updateSeriesSequence(item as dynamic)
+    sequence = getSeriesSequence(item)
+    isVisible = (sequence <> "")
+
+    if m.seriesSequenceBackground <> invalid then m.seriesSequenceBackground.visible = isVisible
+    if m.seriesSequenceLabel <> invalid then
+        m.seriesSequenceLabel.text = "#" + sequence
+        m.seriesSequenceLabel.visible = isVisible
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' getSeriesSequence
+'-------------------------------------------------------------------------------
+function getSeriesSequence(item as dynamic) as string
+    if item = invalid then return ""
+
+    if item.seriesSequence <> invalid then return item.seriesSequence.ToStr()
+    if item.sequence <> invalid then return item.sequence.ToStr()
+
+    collapsedSeries = item.collapsedSeries
+    if collapsedSeries <> invalid then
+        if collapsedSeries.sequence <> invalid then return collapsedSeries.sequence.ToStr()
+        if collapsedSeries.seriesSequence <> invalid then return collapsedSeries.seriesSequence.ToStr()
+    end if
+
+    return ""
+end function
 
 '-------------------------------------------------------------------------------
 ' onFocusedChanged

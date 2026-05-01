@@ -19,6 +19,25 @@
       height="10"
       color="0xE09B42FF"
       visible="false" />
+    <Rectangle
+      id="seriesSequenceBackground"
+      translation="[210,10]"
+      width="60"
+      height="35"
+      color="0x000000DD"
+      visible="false" />
+    <Label
+      id="seriesSequenceLabel"
+      translation="[214,17]"
+      width="52"
+      height="25"
+      horizAlign="center"
+      vertAlign="center"
+      maxLines="1"
+      text=""
+      color="0xF6F7FBFF"
+      font="font:TinyBoldSystemFont"
+      visible="false" />
     <Label
       id="titleLabel"
       translation="[5,292]"

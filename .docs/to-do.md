@@ -68,8 +68,6 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 
 - series display # in series
 
-- continue listening, set playback from last position
-
 - on player close, sync progress
 
 Continue Listening (home page)
