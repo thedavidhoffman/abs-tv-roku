@@ -67,7 +67,6 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 - in-progress bar for overview
 
 - expand gridview series, navigate away, come back, can't get back to collapsed gridview
-- click on an item to play, quickly hit return, the list is displayed, but the player is still playing
 
 - on player close, sync progress
 
@@ -78,7 +77,7 @@ Continue Listening (home page)
 
 - listview support collapsed/expanded
 
-- loading spinner (add only after fixing the collapsed/expanded display quirk)
+- loading spinner
 - error modal
 - description modal -> convert to dialog use on both ListView and Player
 - html string function move to helper class

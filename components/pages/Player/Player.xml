@@ -41,6 +41,7 @@
     </Group>
     <Timer id="progressTimer" duration="1" repeat="true" />
     <Timer id="seekHoldTimer" duration="1" repeat="true" />
+    <Timer id="closeTimer" duration="0.5" repeat="false" />
     <Video
       id="audioPlayer"
       visible="false"

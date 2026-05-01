@@ -18,9 +18,12 @@ function Playback_Start(request as Object) as Object
             model: "Roku"
         }
         forceDirectPlay: false
-        forceTranscode: false
+        forceTranscode: true
         supportedMimeTypes: [
-            "audio/mpeg"
+            "application/vnd.apple.mpegurl"
+            "application/x-mpegURL"
+            "audio/mpegurl"
+            "audio/x-mpegurl"
         ]
         mediaPlayer: "roku"
     })
@@ -277,8 +280,10 @@ end function
 '-------------------------------------------------------------------------------
 function ___BuildUrl(server as String, token as Dynamic, sessionId as Dynamic, track as Dynamic) as String
     contentUrl = SafeString(track.contentUrl, "")
+    lowerContentUrl = LCase(contentUrl)
 
-    if sessionId <> invalid and sessionId <> "" and Instr(1, LCase(contentUrl), "/hls") <> 1 then
+    isHlsUrl = (Instr(1, lowerContentUrl, "/hls") > 0 or Instr(1, lowerContentUrl, ".m3u8") > 0)
+    if sessionId <> invalid and sessionId <> "" and isHlsUrl = false then
         return server + "/public/session/" + sessionId + "/track/" + track.index.ToStr()
     end if
 

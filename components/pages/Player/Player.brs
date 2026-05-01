@@ -33,6 +33,7 @@ sub initReferences()
     m.totalTimeLabel = m.top.findNode("totalTimeLabel")
     m.progressTimer = m.top.findNode("progressTimer")
     m.seekHoldTimer = m.top.findNode("seekHoldTimer")
+    m.closeTimer = m.top.findNode("closeTimer")
     m.rewindButton = m.top.findNode("rewindButton")
     m.playPauseButton = m.top.findNode("playPauseButton")
     m.forwardButton = m.top.findNode("forwardButton")
@@ -84,6 +85,7 @@ sub initValues()
     m.descriptionContentHeight = 600
     m.modalScrollbarTrackHeight = 600
     m.modalScrollbarBaseY = 285
+    m.isClosing = false
 end sub
 
 '-------------------------------------------------------------------------------
@@ -92,6 +94,7 @@ end sub
 sub initHandlers()
     if m.progressTimer <> invalid then m.progressTimer.observeField("fire", "onProgressTimerFired")
     if m.seekHoldTimer <> invalid then m.seekHoldTimer.observeField("fire", "onSeekHoldTimerFired")
+    if m.closeTimer <> invalid then m.closeTimer.observeField("fire", "onCloseTimerFired")
     if m.audioPlayer <> invalid then m.audioPlayer.observeField("state", "onAudioStateChanged")
     if m.chapterList <> invalid then
         m.chapterList.observeField("selectedChapter", "onChapterSelected")
@@ -114,6 +117,8 @@ sub onPlayRequestChanged()
     request = m.top.playRequest
     if request = invalid then return
 
+    m.isClosing = false
+    if m.closeTimer <> invalid then m.closeTimer.control = "stop"
     m.audiobookTitle = SafeString(request.title, "Audiobook")
     m.requestedStartPositionSeconds = getRequestStartPosition(request)
     m.pendingTrackSeekPosition = invalid
@@ -147,6 +152,7 @@ end sub
 sub onPlaybackResponseChanged()
     response = m.top.playbackResponse
     if response = invalid then return
+    if m.isClosing = true then return
 
     if response.ok <> true then
         m.top.errorResponse = response
@@ -511,10 +517,48 @@ end sub
 ' closePlayer
 '-------------------------------------------------------------------------------
 sub closePlayer()
-    if m.audioPlayer <> invalid then m.audioPlayer.control = "stop"
+    if m.isClosing = true then return
+    m.isClosing = true
+
     resetSeekHold()
     stopProgressTimer()
     enableScreenSaver()
+    closeDescriptionModal()
+    closeChapterList()
+    setStatus("Stopping...")
+
+    if m.audioPlayer <> invalid then m.audioPlayer.control = "stop"
+
+    if m.closeTimer <> invalid then
+        m.closeTimer.control = "start"
+    else
+        finalizeClosePlayer()
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' onCloseTimerFired
+'-------------------------------------------------------------------------------
+sub onCloseTimerFired()
+    finalizeClosePlayer()
+end sub
+
+'-------------------------------------------------------------------------------
+' finalizeClosePlayer
+'-------------------------------------------------------------------------------
+sub finalizeClosePlayer()
+    if m.audioPlayer <> invalid then
+        m.audioPlayer.control = "stop"
+        m.audioPlayer.content = invalid
+    end if
+
+    m.tracks = []
+    m.currentTrackIndex = 0
+    m.currentTrackStartPosition = 0
+    m.pendingTrackSeekPosition = invalid
+    m.isPaused = false
+    resetProgress()
+    updateChaptersButtonVisibility()
     m.closeRequestedCounter = m.closeRequestedCounter + 1
     m.top.closeRequested = m.closeRequestedCounter
 end sub
