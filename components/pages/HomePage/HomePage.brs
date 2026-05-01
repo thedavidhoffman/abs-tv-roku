@@ -67,6 +67,7 @@ sub appendShelfRow(root as object, shelfId as string, title as string)
                 progressPercent: progress.progress
                 progressCurrentTime: progress.currentTime
                 progressDuration: progress.duration
+                progressIsFinished: progress.isFinished
             })
             row.appendChild(node)
             itemsByIndex.Push(item)
@@ -290,6 +291,7 @@ function getProgressData(item as dynamic) as object
             progress: getNumberFromFields(mappedProgress, ["progress"])
             currentTime: getNumberFromFields(mappedProgress, ["currentTime"])
             duration: getNumberFromFields(mappedProgress, ["duration"])
+            isFinished: getBooleanFromFields(mappedProgress, ["isFinished"])
         }
     end if
 
@@ -306,6 +308,7 @@ function getProgressData(item as dynamic) as object
             progress: getNumberFromFields(item, ["progress"])
             currentTime: getNumberFromFields(item, ["currentTime", "progressCurrentTime"])
             duration: getNumberFromFields(item, ["duration", "progressDuration"])
+            isFinished: getBooleanFromFields(item, ["isFinished", "progressIsFinished"])
         }
     end if
 
@@ -313,6 +316,7 @@ function getProgressData(item as dynamic) as object
         progress: getNumberFromFields(progress, ["progress"])
         currentTime: getNumberFromFields(progress, ["currentTime"])
         duration: getNumberFromFields(progress, ["duration"])
+        isFinished: getBooleanFromFields(progress, ["isFinished"])
     }
 end function
 
@@ -348,11 +352,36 @@ function getNumberFromFields(value as dynamic, fieldNames as object) as float
 end function
 
 '-------------------------------------------------------------------------------
+' getBooleanFromFields
+'-------------------------------------------------------------------------------
+function getBooleanFromFields(value as dynamic, fieldNames as object) as boolean
+    if value = invalid then return false
+
+    for each fieldName in fieldNames
+        fieldValue = value[fieldName]
+        if fieldValue <> invalid then return getBoolean(fieldValue)
+    end for
+
+    return false
+end function
+
+'-------------------------------------------------------------------------------
 ' getNumber
 '-------------------------------------------------------------------------------
 function getNumber(value as dynamic) as float
     if value = invalid then return 0
     return val(value.ToStr())
+end function
+
+'-------------------------------------------------------------------------------
+' getBoolean
+'-------------------------------------------------------------------------------
+function getBoolean(value as dynamic) as boolean
+    if value = invalid then return false
+    if Type(value) = "Boolean" or Type(value) = "roBoolean" then return value
+
+    text = LCase(value.ToStr())
+    return text = "true" or text = "1"
 end function
 
 '-------------------------------------------------------------------------------

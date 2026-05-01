@@ -64,9 +64,6 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 
 - in-progress bar for series
 - in-progress bar for overview
-- if progress is complete, add a checkmark
-
-- series display # in series
 
 - on player close, sync progress
 

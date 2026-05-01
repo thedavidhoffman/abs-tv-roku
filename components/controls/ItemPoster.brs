@@ -149,6 +149,11 @@ sub updateProgressFill(item as dynamic)
 
     if fillWidth < 1 then fillWidth = 1
     if fillWidth > 280 then fillWidth = 280
+    if item.progressIsFinished = true then
+        m.progressFill.color = &h3BB273FF
+    else
+        m.progressFill.color = &hE09B42FF
+    end if
     m.progressFill.width = fillWidth
     m.progressFill.visible = true
 end sub
