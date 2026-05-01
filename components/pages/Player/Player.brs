@@ -46,7 +46,6 @@ sub initReferences()
     m.modalScrollbarThumb = m.top.findNode("modalScrollbarThumb")
     m.chapterList = m.top.findNode("chapterList")
     m.audioPlayer = m.top.findNode("audioPlayer")
-    m.playbackApiTask = m.top.findNode("playbackApiTask")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -91,7 +90,6 @@ end sub
 ' initHandlers
 '-------------------------------------------------------------------------------
 sub initHandlers()
-    if m.playbackApiTask <> invalid then m.playbackApiTask.observeField("response", "onPlaybackApiResponse")
     if m.progressTimer <> invalid then m.progressTimer.observeField("fire", "onProgressTimerFired")
     if m.seekHoldTimer <> invalid then m.seekHoldTimer.observeField("fire", "onSeekHoldTimerFired")
     if m.audioPlayer <> invalid then m.audioPlayer.observeField("state", "onAudioStateChanged")
@@ -134,21 +132,20 @@ sub onPlayRequestChanged()
     focusTransportButton(1)
     setStatus("Starting playback...")
 
-    m.playbackApiTask.request = {
+    m.top.playbackStartRequested = {
         action: "startPlayback"
         server: request.server
         token: request.token
         itemId: request.itemId
         title: request.title
     }
-    m.playbackApiTask.control = "run"
 end sub
 
 '-------------------------------------------------------------------------------
-' onPlaybackApiResponse
+' onPlaybackResponseChanged
 '-------------------------------------------------------------------------------
-sub onPlaybackApiResponse()
-    response = m.playbackApiTask.response
+sub onPlaybackResponseChanged()
+    response = m.top.playbackResponse
     if response = invalid then return
 
     if response.ok <> true then

@@ -7,7 +7,6 @@ sub init()
     m.passwordInput = m.top.findNode("passwordInput")
     m.loginButton = m.top.findNode("loginButton")
     m.loginStatus = m.top.findNode("loginStatus")
-    m.loginApiTask = m.top.findNode("loginApiTask")
 
     m.loginFocusNodes = [
         m.serverInput
@@ -15,8 +14,6 @@ sub init()
         m.passwordInput
         m.loginButton
     ]
-
-    m.loginApiTask.observeField("response", "onLoginApiResponse")
 
     if m.top.serverValue = invalid or TrimString(m.top.serverValue) = "" then m.top.serverValue = "192.168.0.178:8098"
     if m.top.usernameValue = invalid or TrimString(m.top.usernameValue) = "" then m.top.usernameValue = "David"
@@ -75,29 +72,12 @@ sub onLoginPressed()
     end if
 
     m.top.statusMessage = "Signing in..."
-    m.loginApiTask.request = {
+    m.top.loginRequested = {
         action: "login"
         server: server
         username: username
         password: password
     }
-    m.loginApiTask.control = "run"
-end sub
-
-'-------------------------------------------------------------------------------
-' onLoginApiResponse
-'-------------------------------------------------------------------------------
-sub onLoginApiResponse()
-    response = m.loginApiTask.response
-    if response = invalid then return
-
-    if response.ok <> true then
-        m.top.statusMessage = "Login failed: " + SafeString(response.errorMessage, "Unknown error.")
-        return
-    end if
-
-    m.top.statusMessage = ""
-    m.top.loginSucceeded = response
 end sub
 
 '-------------------------------------------------------------------------------

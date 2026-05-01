@@ -9,19 +9,26 @@
 '-------------------------------------------------------------------------------
 function LibraryItems_Load(request as object) as object
 
-    ? "(API) LibraryItems_Load..."
+    log = Logger("(API) LibraryItems_Load")
 
     server = NormalizeServerUrl(request.server)
     token = request.token
     bookLibraryId = request.bookLibraryId
 
     if bookLibraryId = invalid or bookLibraryId = "" then
-        authResult = HttpClient_Request(server + "/api/authorize", "POST", token, "")
-        if authResult.ok <> true then return authResult
+        authorizeUrl = server + "/api/authorize"
+        authResult = HttpClient_Request(authorizeUrl, "POST", token, "")
+        log.add(authorizeUrl)
+        log.add("status = " + SafeString(authResult.status, ""))
+        if authResult.ok <> true then
+            log.flush()
+            return authResult
+        end if
         bookLibraryId = ResolveBookLibraryId(authResult.data)
     end if
 
     if bookLibraryId = invalid or bookLibraryId = "" then
+        log.flush()
         return { ok: false, errorMessage: "No book library was found for this account." }
     end if
 
@@ -32,12 +39,14 @@ function LibraryItems_Load(request as object) as object
     collapseSeries = __GetCollapseSeriesQueryValue()
 
     while keepLoading
-
-        ? "...page "; page.ToStr()
-
         libraryUrl = server + "/api/libraries/" + bookLibraryId + "/items?limit=" + limit.ToStr() + "&page=" + page.ToStr() + "&sort=media.metadata.title&desc=0&minified=0&collapseseries=" + collapseSeries
         libraryResult = HttpClient_Request(libraryUrl, "GET", token, invalid)
-        if libraryResult.ok <> true then return libraryResult
+        log.add(libraryUrl)
+        log.add("status = " + SafeString(libraryResult.status, ""))
+        if libraryResult.ok <> true then
+            log.flush()
+            return libraryResult
+        end if
 
         results = invalid
         if libraryResult.data <> invalid and libraryResult.data.results <> invalid then results = libraryResult.data.results
@@ -54,7 +63,7 @@ function LibraryItems_Load(request as object) as object
         end if
     end while
 
-    ? ""
+    log.flush()
 
     return {
         ok: true

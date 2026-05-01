@@ -5,6 +5,8 @@
   <script type="text/brightscript" uri="pkg:/components/pages/Player/Player.brs" />
   <interface>
     <field id="playRequest" type="assocarray" onChange="onPlayRequestChanged" />
+    <field id="playbackStartRequested" type="assocarray" />
+    <field id="playbackResponse" type="assocarray" onChange="onPlaybackResponseChanged" />
     <field id="closeRequested" type="integer" />
     <field id="errorResponse" type="assocarray" />
   </interface>
@@ -44,8 +46,6 @@
       visible="false"
       enableUI="false"
       disableScreenSaver="false" />
-    <AppTask id="playbackApiTask" />
-
     <Group id="descriptionModal" visible="false">
       <Rectangle id="descriptionModalBackdrop" width="1920" height="1080" color="0x000000FF" />
       <Rectangle id="descriptionModalPanel" translation="[300,150]" width="1320" height="780" color="0x101B2BFF" />

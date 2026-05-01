@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="Spinner" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
   <script type="text/brightscript" uri="pkg:/components/controls/Spinner.brs" />
   <interface>
     <field id="active" type="boolean" onChange="onActiveChanged" />
   </interface>
   <children>
-    <Group id="spinnerGroup" rotationCenter="[32,32]">
-      <Rectangle id="segment0" translation="[29,0]" width="6" height="16" color="0xF6F7FBFF" />
-      <Rectangle id="segment1" translation="[44,6]" width="6" height="16" rotation="0.785398" rotationCenter="[3,8]" color="0xF6F7FBDD" />
-      <Rectangle id="segment2" translation="[58,29]" width="6" height="16" rotation="1.5708" rotationCenter="[3,8]" color="0xF6F7FBBB" />
-      <Rectangle id="segment3" translation="[52,44]" width="6" height="16" rotation="2.35619" rotationCenter="[3,8]" color="0xF6F7FB99" />
-      <Rectangle id="segment4" translation="[29,58]" width="6" height="16" color="0xF6F7FB77" />
-      <Rectangle id="segment5" translation="[14,52]" width="6" height="16" rotation="0.785398" rotationCenter="[3,8]" color="0xF6F7FB66" />
-      <Rectangle id="segment6" translation="[0,29]" width="6" height="16" rotation="1.5708" rotationCenter="[3,8]" color="0xF6F7FB55" />
-      <Rectangle id="segment7" translation="[6,14]" width="6" height="16" rotation="2.35619" rotationCenter="[3,8]" color="0xF6F7FB44" />
-    </Group>
-    <Timer id="spinnerTimer" duration="0.05" repeat="true" />
+    <Rectangle id="background" width="1920" height="1080" />
+    <BusySpinner
+      id="busySpinner"
+      translation="[897,477]"
+      clockwise="true"
+      spinInterval="0.5" />
   </children>
 </component>

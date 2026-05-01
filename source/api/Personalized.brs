@@ -10,26 +10,39 @@
 '-------------------------------------------------------------------------------
 function Personalized_Load(request as object) as object
 
-    ? "(API) Personalized_Load..."
+    log = Logger("(API) Personalized_Load")
 
     server = NormalizeServerUrl(request.server)
     token = request.token
     bookLibraryId = request.bookLibraryId
 
     if bookLibraryId = invalid or bookLibraryId = "" then
-        authResult = HttpClient_Request(server + "/api/authorize", "POST", token, "")
-        if authResult.ok <> true then return authResult
+        authorizeUrl = server + "/api/authorize"
+        authResult = HttpClient_Request(authorizeUrl, "POST", token, "")
+        log.add(authorizeUrl)
+        log.add("status = " + SafeString(authResult.status, ""))
+        if authResult.ok <> true then
+            log.flush()
+            return authResult
+        end if
         bookLibraryId = ResolveBookLibraryId(authResult.data)
     end if
 
     if bookLibraryId = invalid or bookLibraryId = "" then
+        log.flush()
         return { ok: false, errorMessage: "No book library was found for this account." }
     end if
 
-    result = HttpClient_Request(server + "/api/libraries/" + bookLibraryId + "/personalized", "GET", token, invalid)
-    if result.ok <> true then return result
+    personalizedUrl = server + "/api/libraries/" + bookLibraryId + "/personalized"
+    result = HttpClient_Request(personalizedUrl, "GET", token, invalid)
+    log.add(personalizedUrl)
+    log.add("status = " + SafeString(result.status, ""))
+    if result.ok <> true then
+        log.flush()
+        return result
+    end if
 
-    ? ""
+    log.flush()
 
     return {
         ok: true

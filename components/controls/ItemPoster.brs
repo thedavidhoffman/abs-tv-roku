@@ -77,15 +77,39 @@ end sub
 ' updateSeriesSequence
 '-------------------------------------------------------------------------------
 sub updateSeriesSequence(item as dynamic)
-    sequence = getSeriesSequence(item)
-    isVisible = (sequence <> "")
+    badgeText = getSeriesBadgeText(item)
+    isVisible = (badgeText <> "")
 
     if m.seriesSequenceBackground <> invalid then m.seriesSequenceBackground.visible = isVisible
     if m.seriesSequenceLabel <> invalid then
-        m.seriesSequenceLabel.text = "#" + sequence
+        m.seriesSequenceLabel.text = badgeText
         m.seriesSequenceLabel.visible = isVisible
     end if
 end sub
+
+'-------------------------------------------------------------------------------
+' getSeriesBadgeText
+'-------------------------------------------------------------------------------
+function getSeriesBadgeText(item as dynamic) as string
+    if isSeriesItem(item) then return getSeriesCount(item)
+
+    sequence = getSeriesSequence(item)
+    if sequence = "" then return ""
+    return "#" + sequence
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesCount
+'-------------------------------------------------------------------------------
+function getSeriesCount(item as dynamic) as string
+    if item = invalid then return ""
+
+    collapsedSeries = item.collapsedSeries
+    if collapsedSeries = invalid then return ""
+    if collapsedSeries.numBooks = invalid then return ""
+
+    return collapsedSeries.numBooks.ToStr()
+end function
 
 '-------------------------------------------------------------------------------
 ' getSeriesSequence

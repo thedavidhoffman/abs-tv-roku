@@ -3,22 +3,29 @@
 '-------------------------------------------------------------------------------
 function Authentication_Login(request as Object) as Object
 
-    ? "(API) Authentication_Login..."
+    log = Logger("(API) Authentication_Login")
 
     server = NormalizeServerUrl(request.server)
     body = FormatJson({
         username: request.username
         password: request.password
     })
-    result = HttpClient_Request(server + "/login", "POST", invalid, body)
-    if result.ok <> true then return result
+    loginUrl = server + "/login"
+    result = HttpClient_Request(loginUrl, "POST", invalid, body)
+    log.add(loginUrl)
+    log.add("status = " + SafeString(result.status, ""))
+    if result.ok <> true then
+        log.flush()
+        return result
+    end if
     payload = result.data
 
     if payload = invalid or payload.user = invalid or payload.user.token = invalid then
+        log.flush()
         return { ok: false, errorMessage: "The server response did not include a token." }
     end if
 
-    ? ""
+    log.flush()
 
     return {
         ok: true
@@ -33,13 +40,19 @@ end function
 '-------------------------------------------------------------------------------
 function Authentication_AuthorizeToken(request as Object) as Object
 
-    ? "(API) Authentication_AuthorizeToken..."
+    log = Logger("(API) Authentication_AuthorizeToken")
 
     server = NormalizeServerUrl(request.server)
-    result = HttpClient_Request(server + "/api/authorize", "POST", request.token, "")
-    if result.ok <> true then return result
+    authorizeUrl = server + "/api/authorize"
+    result = HttpClient_Request(authorizeUrl, "POST", request.token, "")
+    log.add(authorizeUrl)
+    log.add("status = " + SafeString(result.status, ""))
+    if result.ok <> true then
+        log.flush()
+        return result
+    end if
 
-    ? ""
+    log.flush()
     
     return {
         ok: true
@@ -54,10 +67,16 @@ end function
 ' Authentication_Logout
 '-------------------------------------------------------------------------------
 function Authentication_Logout(request as Object) as Object
+    log = Logger("(API) Authentication_Logout")
     server = NormalizeServerUrl(request.server)
-    result = HttpClient_Request(server + "/logout", "POST", request.token, "")
+    logoutUrl = server + "/logout"
+    result = HttpClient_Request(logoutUrl, "POST", request.token, "")
+    log.add(logoutUrl)
+    log.add("status = " + SafeString(result.status, ""))
     if result.ok <> true and result.status <> 401 then
+        log.flush()
         return result
     end if
+    log.flush()
     return { ok: true, action: "logout" }
 end function

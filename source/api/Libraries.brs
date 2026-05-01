@@ -9,12 +9,18 @@
 '-------------------------------------------------------------------------------
 function Libraries_Load(server as String, token as Dynamic) as Object
 
-    ? "(API) Libraries_Load..."
+    log = Logger("(API) Libraries_Load")
 
-    result = HttpClient_Request(server + "/api/libraries", "GET", token, invalid)
-    if result.ok <> true then return result
+    librariesUrl = server + "/api/libraries"
+    result = HttpClient_Request(librariesUrl, "GET", token, invalid)
+    log.add(librariesUrl)
+    log.add("status = " + SafeString(result.status, ""))
+    if result.ok <> true then
+        log.flush()
+        return result
+    end if
 
-    ? ""
+    log.flush()
     
     return {
         ok: true

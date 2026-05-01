@@ -3,14 +3,23 @@
 '-------------------------------------------------------------------------------
 function InProgress_Load(request as object) as object
 
+    log = Logger("(API) InProgress_Load")
     server = NormalizeServerUrl(request.server)
     token = request.token
 
-    result = HttpClient_Request(server + "/api/me/items-in-progress", "GET", token, invalid)
-    if result.ok <> true then return result
+    inProgressUrl = server + "/api/me/items-in-progress"
+    result = HttpClient_Request(inProgressUrl, "GET", token, invalid)
+    log.add(inProgressUrl)
+    log.add("status = " + SafeString(result.status, ""))
+    if result.ok <> true then
+        log.flush()
+        return result
+    end if
 
     libraryItems = []
     if result.data <> invalid and result.data.libraryItems <> invalid then libraryItems = result.data.libraryItems
+
+    log.flush()
 
     return {
         ok: true

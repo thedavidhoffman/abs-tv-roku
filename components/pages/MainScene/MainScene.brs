@@ -16,7 +16,7 @@ sub init()
     m.libraryApiTask = m.top.findNode("libraryApiTask")
     m.personalizedApiTask = m.top.findNode("personalizedApiTask")
 
-    m.login.observeField("loginSucceeded", "onLoginSucceeded")
+    m.login.observeField("loginRequested", "onLoginRequested")
     m.header.observeField("homeSelected", "onHomePressed")
     m.header.observeField("librarySelected", "onLibraryPressed")
     m.header.observeField("searchSelected", "onSearchPressed")
@@ -35,6 +35,7 @@ sub init()
     m.library.observeField("backFromFirstItemSelected", "onLibraryBackFromFirstItemSelected")
     m.player.observeField("closeRequested", "onPlayerCloseRequested")
     m.player.observeField("errorResponse", "onPlayerError")
+    m.player.observeField("playbackStartRequested", "onPlaybackStartRequested")
     m.settings.observeField("closeRequested", "onSettingsCloseRequested")
     m.settings.observeField("settingsSaved", "onSettingsSaved")
     m.diagnostics.observeField("closeRequested", "onDiagnosticsCloseRequested")
@@ -83,27 +84,24 @@ sub tryResumeSession()
         m.isResumingSession = true
         m.login.visible = false
         m.authenticatedContent.visible = false
-        m.apiTask.request = {
+        startApiTask(m.apiTask, {
             action: "authorize"
             server: m.session.server
             token: m.session.token
-        }
-        m.apiTask.control = "run"
+        })
     else
         showLogin("Enter your Audiobookshelf server to begin.")
     end if
 end sub
 
 '-------------------------------------------------------------------------------
-' onLoginSucceeded
+' onLoginRequested
 '-------------------------------------------------------------------------------
-sub onLoginSucceeded()
-    response = m.login.loginSucceeded
-    if response = invalid then return
+sub onLoginRequested()
+    request = m.login.loginRequested
+    if request = invalid then return
 
-    storeAuthenticatedSession(response)
-    storeMediaProgress(m.session.mediaProgress)
-    showApp()
+    startApiTask(m.apiTask, request)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -112,37 +110,35 @@ end sub
 sub onApiResponse()
     response = m.apiTask.response
     if response = invalid then return
+    action = getApiResponseAction(m.apiTask, response)
 
     if response.ok <> true then
         if m.isResumingSession then
             m.isResumingSession = false
             AuthStore_Clear(false)
             showLogin("Your saved session expired. Please sign in again.")
-            return
-        end if
-
-        if response.authExpired = true then
+        else if response.authExpired = true then
             handleExpiredSession(response.errorMessage)
-            return
+        else if action = "startPlayback" then
+            if m.player <> invalid then m.player.playbackResponse = response
+        else if action = "login" or m.login.visible then
+            m.login.statusMessage = "Login failed: " + SafeString(response.errorMessage, "Unknown error.")
         end if
-
-        if m.login.visible then m.login.statusMessage = "Login failed: " + SafeString(response.errorMessage, "Unknown error.")
-        return
-    end if
-
-    action = response.action
-    if action = "authorize" then
+    else if action = "login" then
+        storeAuthenticatedSession(response)
+        storeMediaProgress(m.session.mediaProgress)
+        showApp()
+    else if action = "authorize" then
         m.isResumingSession = false
         storeAuthenticatedSession(response)
         storeMediaProgress(m.session.mediaProgress)
         showApp()
-        return
     else if action = "loadLibrary" then
         storeLibraryItems(response)
-        return
     else if action = "loadSeries" then
         storeSeriesItems(response)
-        return
+    else if action = "startPlayback" then
+        if m.player <> invalid then m.player.playbackResponse = response
     end if
 
 end sub
@@ -158,10 +154,10 @@ sub onPersonalizedApiResponse()
         if response.authExpired = true then
             handleExpiredSession(response.errorMessage)
         end if
-        return
+    else if response.action = "loadPersonalized" then
+        storePersonalizedShelves(response)
     end if
 
-    if response.action = "loadPersonalized" then storePersonalizedShelves(response)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -174,21 +170,15 @@ sub onLibraryApiResponse()
     if response.ok <> true then
         if response.authExpired = true then
             handleExpiredSession(response.errorMessage)
-            return
+        else if m.library <> invalid then
+            m.library.errorResponse = response
         end if
-
-        if m.library <> invalid then m.library.errorResponse = response
-        return
-    end if
-
-    action = response.action
-    if action = "loadLibrary" then
+    else if response.action = "loadLibrary" then
         storeLibraryItems(response)
-        return
-    else if action = "loadSeries" then
+    else if response.action = "loadSeries" then
         storeSeriesItems(response)
-        return
     end if
+
 end sub
 
 '-------------------------------------------------------------------------------
@@ -380,6 +370,16 @@ sub playLibraryItem(selectedItem as dynamic)
 end sub
 
 '-------------------------------------------------------------------------------
+' onPlaybackStartRequested
+'-------------------------------------------------------------------------------
+sub onPlaybackStartRequested()
+    request = m.player.playbackStartRequested
+    if request = invalid then return
+
+    startApiTask(m.apiTask, request)
+end sub
+
+'-------------------------------------------------------------------------------
 ' getMediaProgressCurrentTime
 '-------------------------------------------------------------------------------
 function getMediaProgressCurrentTime(itemId as dynamic) as integer
@@ -406,15 +406,14 @@ sub onLibrarySeriesSelected()
     if m.session = invalid then return
     if m.libraryApiTask = invalid then return
 
-    m.libraryApiTask.request = {
+    startApiTask(m.libraryApiTask, {
         action: "loadSeries"
         server: m.session.server
         token: m.session.token
         bookLibraryId: m.session.bookLibraryId
         seriesId: selectedSeries.seriesId
         sourceItemIndex: selectedSeries.itemIndex
-    }
-    m.libraryApiTask.control = "run"
+    })
 end sub
 
 '-------------------------------------------------------------------------------
@@ -451,13 +450,12 @@ sub reloadLibraryItems()
     if m.session.token = invalid or m.session.token = "" then return
     if m.libraryApiTask = invalid then return
 
-    m.libraryApiTask.request = {
+    startApiTask(m.libraryApiTask, {
         action: "loadLibrary"
         server: m.session.server
         token: m.session.token
         bookLibraryId: m.session.bookLibraryId
-    }
-    m.libraryApiTask.control = "run"
+    })
 end sub
 
 '-------------------------------------------------------------------------------
@@ -469,13 +467,12 @@ sub loadPersonalizedShelves()
     if m.session.token = invalid or m.session.token = "" then return
     if m.personalizedApiTask = invalid then return
 
-    m.personalizedApiTask.request = {
+    startApiTask(m.personalizedApiTask, {
         action: "loadPersonalized"
         server: m.session.server
         token: m.session.token
         bookLibraryId: m.session.bookLibraryId
-    }
-    m.personalizedApiTask.control = "run"
+    })
 end sub
 
 '-------------------------------------------------------------------------------
@@ -624,12 +621,11 @@ end sub
 '-------------------------------------------------------------------------------
 sub onLogoutPressed()
     if m.session <> invalid and m.session.server <> invalid and m.session.token <> invalid and m.session.token <> "" then
-        m.apiTask.request = {
+        startApiTask(m.apiTask, {
             action: "logout"
             server: m.session.server
             token: m.session.token
-        }
-        m.apiTask.control = "run"
+        })
     end if
 
     AuthStore_Clear(false)
@@ -706,3 +702,24 @@ function moveLibraryGridFocusToFirstItem() as boolean
     handled = m.library.callFunc("moveFocusToFirstGridItem")
     return handled = true
 end function
+
+'-------------------------------------------------------------------------------
+' getApiResponseAction
+'-------------------------------------------------------------------------------
+function getApiResponseAction(task as dynamic, response as dynamic) as string
+    if response <> invalid and response.action <> invalid then return response.action
+    if task <> invalid and task.request <> invalid and task.request.action <> invalid then
+        return task.request.action
+    end if
+    return ""
+end function
+
+'-------------------------------------------------------------------------------
+' startApiTask
+'-------------------------------------------------------------------------------
+sub startApiTask(task as dynamic, request as object)
+    if task = invalid then return
+
+    task.request = request
+    task.control = "run"
+end sub

@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 function Series_Load(request as object) as object
 
-    ? "(API) Series_Load..."
+    log = Logger("(API) Series_Load")
     
     server = NormalizeServerUrl(request.server)
     token = request.token
@@ -30,6 +30,9 @@ function Series_Load(request as object) as object
         if seriesFilter <> "" then libraryUrl = libraryUrl + seriesFilter
 
         libraryResult = HttpClient_Request(libraryUrl, "GET", token, invalid)
+        log.add(libraryUrl)
+        log.add("status = " + SafeString(libraryResult.status, "unknown"))
+
         if libraryResult.ok <> true then return libraryResult
 
         results = invalid
@@ -47,7 +50,7 @@ function Series_Load(request as object) as object
         end if
     end while
 
-    ? ""
+    log.flush()
 
     return {
         ok: true

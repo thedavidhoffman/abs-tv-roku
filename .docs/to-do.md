@@ -62,8 +62,12 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 ----------------------------------------------------
 - cleanup bad color assignments
 
+
 - in-progress bar for series
 - in-progress bar for overview
+
+- expand gridview series, navigate away, come back, can't get back to collapsed gridview
+- click on an item to play, quickly hit return, the list is displayed, but the player is still playing
 
 - on player close, sync progress
 
@@ -72,24 +76,14 @@ Continue Listening (home page)
     - mark as finished
     - removed from continue listening "HideFromContinueListening"
 
-
 - listview support collapsed/expanded
-- expand gridview series, navigate away, come back, can't get back to collapsed gridview
-- home page, continue listening, stats, recently added
-- settings, put focus back on main page
-- dialog close on left button? right now it's just on back
+
 - loading spinner (add only after fixing the collapsed/expanded display quirk)
 - error modal
 - description modal -> convert to dialog use on both ListView and Player
 - html string function move to helper class
-- fix chapter nav not working
-- placeholder image for no cover
 - search
-- diagnostics, [clear settings registry] [clear auth registry]
-- player, continue listening from last point
 - back button at certain level closes the app, see if we can trap this and prompt about exit
-- fix api logging
-
 - on playback (https://api.audiobookshelf.org/#play-a-library-item-or-podcast-episode) send the device info
 
 ## Quirks
@@ -98,4 +92,3 @@ when switching expand to collapse, it starts to render the component with old da
 --> roku performance tricks on hide/show things
 --> should you tear things down and dynamically reload them
 
-- click on an item to play, quickly hit return, the list is displayed, but the player is still playing

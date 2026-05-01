@@ -8,7 +8,7 @@
     <field id="passwordValue" type="string" onChange="onPasswordValueChanged" />
     <field id="statusMessage" type="string" onChange="onStatusMessageChanged" />
     <field id="activationToken" type="integer" onChange="onActivationTokenChanged" />
-    <field id="loginSucceeded" type="assocarray" />
+    <field id="loginRequested" type="assocarray" />
   </interface>
   <children>
 
@@ -63,6 +63,5 @@
 
       <Label id="loginStatus" translation="[0,664]" width="680" numLines="4" wrap="true" color="F2C879FF" />
     </Group>
-    <AppTask id="loginApiTask" />
   </children>
 </component>

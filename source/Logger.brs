@@ -2,13 +2,16 @@
 ' Logger
 '-------------------------------------------------------------------------------
 function Logger(label = "" as string) as object
-    return {
+    log = {
         label: label
         lines: []
         add: __Logger_Add
         flush: __Logger_Flush
         text: __Logger_Text
     }
+
+    log.add("....................................")
+    return log
 end function
 
 '-------------------------------------------------------------------------------
@@ -32,6 +35,7 @@ end sub
 ' __Logger_Text
 '-------------------------------------------------------------------------------
 function __Logger_Text() as string
+
     output = ""
 
     for each line in m.lines

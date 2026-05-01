@@ -2,13 +2,16 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.spinnerGroup = m.top.findNode("spinnerGroup")
-    m.spinnerTimer = m.top.findNode("spinnerTimer")
+    m.background = m.top.findNode("background")
+    m.busySpinner = m.top.findNode("busySpinner")
 
+    if m.background <> invalid then m.background.color = Color().background.primary
+    if m.busySpinner <> invalid and m.busySpinner.poster <> invalid then
+        m.busySpinner.poster.uri = "pkg:/images/spinner.png"
+    end if
+    if m.busySpinner <> invalid then m.busySpinner.control = "start"
+    m.isActive = false
     if m.top.active = invalid then m.top.active = true
-
-    if m.spinnerTimer <> invalid then m.spinnerTimer.observeField("fire", "onSpinnerTimerFired")
-
     onActiveChanged()
 end sub
 
@@ -16,25 +19,13 @@ end sub
 ' onActiveChanged
 '-------------------------------------------------------------------------------
 sub onActiveChanged()
-    isActive = (m.top.active = true)
-    if m.spinnerGroup <> invalid then m.spinnerGroup.visible = isActive
+    nextActive = (m.top.active = true)
+    if m.isActive = nextActive then return
+    m.isActive = nextActive
 
-    if m.spinnerTimer <> invalid then
-        if isActive then
-            m.spinnerTimer.control = "start"
-        else
-            m.spinnerTimer.control = "stop"
-        end if
-    end if
-end sub
+    nextOpacity = 0
+    if nextActive then nextOpacity = 1
 
-'-------------------------------------------------------------------------------
-' onSpinnerTimerFired
-'-------------------------------------------------------------------------------
-sub onSpinnerTimerFired()
-    if m.spinnerGroup = invalid then return
-
-    nextRotation = m.spinnerGroup.rotation + 0.392699
-    if nextRotation >= 6.28318 then nextRotation = nextRotation - 6.28318
-    m.spinnerGroup.rotation = nextRotation
+    if m.background <> invalid then m.background.opacity = nextOpacity
+    if m.busySpinner <> invalid then m.busySpinner.opacity = nextOpacity
 end sub

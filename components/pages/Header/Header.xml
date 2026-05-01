@@ -35,7 +35,7 @@
       <HeaderButton id="settingsButton" translation="[540,0]" buttonWidth="180" buttonHeight="56" text="Settings" />
     </Group>
 
-    <HeaderButton id="userMenuButton" translation="[1560,22]" buttonWidth="160" buttonHeight="56" />
+    <HeaderButton id="userMenuButton" translation="[1520,22]" buttonWidth="160" buttonHeight="56" />
 
     <Clock id="clock" translation="[1680,30]" clockWidth="176" clockHeight="40" color="0xF6F7FBFF" />
 
