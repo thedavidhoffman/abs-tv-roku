@@ -4,6 +4,9 @@
   <script type="text/brightscript" uri="pkg:/components/controls/ItemPoster.brs" />
   <interface>
     <field id="itemContent" type="node" onChange="showContent" />
+    <field id="posterWidth" type="integer" value="280" onChange="onPosterWidthChanged" />
+    <field id="showText" type="boolean" value="true" onChange="onShowTextChanged" />
+    <field id="showProgressBar" type="boolean" value="true" onChange="onShowProgressBarChanged" />
   </interface>
   <children>
     <Poster

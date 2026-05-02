@@ -6,13 +6,14 @@
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
+    <field id="mediaProgress" type="array" onChange="onLibraryItemsChanged" />
     <field id="playSelected" type="assocarray" />
     <field id="upFromFirstItemSelected" type="integer" />
     <field id="errorResponse" type="assocarray" />
     <function name="focusLibraryList" />
   </interface>
   <children>
-    <Rectangle id="overviewBg" translation="[920,91]" width="1000" height="980" />
+    <!-- left side -->
     <Label id="libraryStatus" translation="[64,212]" width="1200" numLines="2" wrap="true" color="F2C879FF" visible="false" />
     <LabelList
       id="libraryList"
@@ -23,22 +24,8 @@
       drawFocusFeedback="true"
       vertFocusAnimationStyle="fixedFocus"
     />
-    <Poster
-      id="selectedPoster"
-      translation="[980,241]"
-      width="420"
-      height="420"
-      uri="pkg:/images/placeholder_cover.png"
-      loadDisplayMode="best-fit"
-    />
-    <PrimaryButton
-      id="playButton"
-      translation="[980,695]"
-      buttonWidth="420"
-      buttonHeight="56"
-      text="Play"
-      iconUri="pkg:/images/icons/dark/play_dark.png"
-    />
+    <!-- right side -->
+    <Rectangle id="overviewBg" translation="[920,91]" width="1000" height="980" />
     <ScrollingLabel
       id="detailTitle"
       translation="[980,171]"
@@ -47,6 +34,19 @@
       color="F3F7FBFF"
       font="font:LargeBoldSystemFont"
       repeatCount="1"
+    />
+    <ItemPoster
+      id="selectedPoster"
+      translation="[980,241]"
+      posterWidth="420"
+      showText="false" />
+    <PrimaryButton
+      id="playButton"
+      translation="[980,695]"
+      buttonWidth="420"
+      buttonHeight="56"
+      text="Play"
+      iconUri="pkg:/images/icons/dark/play_dark.png"
     />
     <Label
       translation="[1430,241]"

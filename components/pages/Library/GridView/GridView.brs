@@ -55,7 +55,6 @@ sub onLibraryItemsChanged()
                 progress = getProgressData(item)
                 node.AddFields({
                     author: getItemAuthor(metadata)
-                    focused: false
                     isSeriesItem: isSeriesItem(item)
                     collapsedSeries: item.collapsedSeries
                     seriesSequence: getSeriesSequence(item)

@@ -131,6 +131,7 @@ end sub
 ' onMediaProgressChanged
 '-------------------------------------------------------------------------------
 sub onMediaProgressChanged()
+    if m.listView <> invalid then m.listView.mediaProgress = m.top.mediaProgress
     if m.gridView <> invalid then m.gridView.mediaProgress = m.top.mediaProgress
 end sub
 

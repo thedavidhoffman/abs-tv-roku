@@ -131,9 +131,33 @@ end function
 '-------------------------------------------------------------------------------
 sub showSelectedItem(item as dynamic)
     m.selectedItem = item
-    if m.selectedPoster <> invalid then m.selectedPoster.uri = buildCoverUrl(item)
+    if m.selectedPoster <> invalid then m.selectedPoster.itemContent = getSelectedPosterContent(item)
     updateSelectedDetails(item)
 end sub
+
+'-------------------------------------------------------------------------------
+' getSelectedPosterContent
+'-------------------------------------------------------------------------------
+function getSelectedPosterContent(item as dynamic) as dynamic
+    if item = invalid then return invalid
+
+    progress = getProgressData(item)
+    node = CreateObject("roSGNode", "ContentNode")
+    node.title = getLibraryItemTitle(item)
+    node.HDPosterUrl = buildCoverUrl(item)
+    node.SDPosterUrl = node.HDPosterUrl
+    node.AddFields({
+        author: getItemAuthor(getItemMetadata(item))
+        posterWidth: 420
+        showText: false
+        progressPercent: progress.progress
+        progressCurrentTime: progress.currentTime
+        progressDuration: progress.duration
+        progressIsFinished: progress.isFinished
+        focused: false
+    })
+    return node
+end function
 
 '-------------------------------------------------------------------------------
 ' buildCoverUrl
@@ -142,6 +166,109 @@ function buildCoverUrl(item as dynamic) as string
     if item = invalid or item.id = invalid then return "pkg:/images/placeholder_cover.png"
     if m.server = invalid or m.server = "" or m.token = invalid or m.token = "" then return "pkg:/images/placeholder_cover.png"
     return m.server + "/api/items/" + item.id.ToStr() + "/cover?width=600&token=" + m.token
+end function
+
+'-------------------------------------------------------------------------------
+' getProgressData
+'-------------------------------------------------------------------------------
+function getProgressData(item as dynamic) as object
+    mappedProgress = getMappedProgressForItem(item)
+    if mappedProgress <> invalid then
+        return {
+            progress: getNumberFromFields(mappedProgress, ["progress"])
+            currentTime: getNumberFromFields(mappedProgress, ["currentTime"])
+            duration: getNumberFromFields(mappedProgress, ["duration"])
+            isFinished: getBooleanFromFields(mappedProgress, ["isFinished"])
+        }
+    end if
+
+    progress = invalid
+
+    if item <> invalid and item.userMediaProgress <> invalid then
+        progress = item.userMediaProgress
+    else if item <> invalid and item.mediaProgress <> invalid then
+        progress = item.mediaProgress
+    end if
+
+    if progress = invalid then
+        return {
+            progress: getNumberFromFields(item, ["progress"])
+            currentTime: getNumberFromFields(item, ["currentTime", "progressCurrentTime"])
+            duration: getNumberFromFields(item, ["duration", "progressDuration"])
+            isFinished: getBooleanFromFields(item, ["isFinished", "progressIsFinished"])
+        }
+    end if
+
+    return {
+        progress: getNumberFromFields(progress, ["progress"])
+        currentTime: getNumberFromFields(progress, ["currentTime"])
+        duration: getNumberFromFields(progress, ["duration"])
+        isFinished: getBooleanFromFields(progress, ["isFinished"])
+    }
+end function
+
+'-------------------------------------------------------------------------------
+' getMappedProgressForItem
+'-------------------------------------------------------------------------------
+function getMappedProgressForItem(item as dynamic) as dynamic
+    if item = invalid or item.id = invalid then return invalid
+    if m.top.mediaProgress = invalid then return invalid
+
+    itemId = item.id.ToStr()
+    for each progress in m.top.mediaProgress
+        if progress <> invalid and progress.itemId <> invalid and progress.itemId.ToStr() = itemId then
+            return progress
+        end if
+    end for
+
+    return invalid
+end function
+
+'-------------------------------------------------------------------------------
+' getNumberFromFields
+'-------------------------------------------------------------------------------
+function getNumberFromFields(value as dynamic, fieldNames as object) as float
+    if value = invalid then return 0
+
+    for each fieldName in fieldNames
+        fieldValue = value[fieldName]
+        if fieldValue <> invalid then return getNumber(fieldValue)
+    end for
+
+    return 0
+end function
+
+'-------------------------------------------------------------------------------
+' getBooleanFromFields
+'-------------------------------------------------------------------------------
+function getBooleanFromFields(value as dynamic, fieldNames as object) as boolean
+    if value = invalid then return false
+
+    for each fieldName in fieldNames
+        fieldValue = value[fieldName]
+        if fieldValue <> invalid then return getBoolean(fieldValue)
+    end for
+
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' getNumber
+'-------------------------------------------------------------------------------
+function getNumber(value as dynamic) as float
+    if value = invalid then return 0
+    return val(value.ToStr())
+end function
+
+'-------------------------------------------------------------------------------
+' getBoolean
+'-------------------------------------------------------------------------------
+function getBoolean(value as dynamic) as boolean
+    if value = invalid then return false
+    if Type(value) = "Boolean" or Type(value) = "roBoolean" then return value
+
+    text = LCase(value.ToStr())
+    return text = "true" or text = "1"
 end function
 
 '-------------------------------------------------------------------------------

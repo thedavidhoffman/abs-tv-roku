@@ -62,8 +62,6 @@ sub appendShelfRow(root as object, shelfId as string, title as string)
             metadata = getItemMetadata(item)
             node.AddFields({
                 author: getItemAuthor(metadata)
-                focused: false
-                showProgressBar: shelfId <> "listen-again"
                 progressPercent: progress.progress
                 progressCurrentTime: progress.currentTime
                 progressDuration: progress.duration

@@ -1,4 +1,11 @@
 '-------------------------------------------------------------------------------
+' ItemPoster data model
+'-------------------------------------------------------------------------------
+' itemContent carries item data such as title, author, cover URLs, focus state,
+' and progress values. Component fields carry presentation settings for this
+' specific ItemPoster usage, such as posterWidth, showText, and showProgressBar.
+
+'-------------------------------------------------------------------------------
 ' init
 '-------------------------------------------------------------------------------
 sub init()
@@ -11,6 +18,7 @@ sub init()
     m.authorLabel = m.top.findNode("authorLabel")
     m.content = invalid
     m.titleText = ""
+    applyLayoutForWidth(getPosterWidth(invalid))
     updateTitleFocusDisplay()
 end sub
 
@@ -25,8 +33,13 @@ sub showContent()
     ' a poster that no longer represents that item.
     if m.content <> invalid then m.content.unobserveFieldScoped("focused")
 
+    ' itemContent is passed in and includes information about the item being displayed
+    ' this information does not include behavorial flags for the component displayed
+    ' such as "width", "showText" and "showProgressBar"
     item = m.top.itemContent
     m.content = item
+
+    ' safety render if itemContent wasn't set
     if item = invalid then
         m.poster.uri = "pkg:/images/placeholder_cover.png"
         m.titleText = ""
@@ -39,6 +52,8 @@ sub showContent()
         return
     end if
 
+    ' render based on itemContent being set
+    applyLayoutForWidth(getPosterWidth(item))
     m.poster.uri = SafeString(item.HDPosterUrl, SafeString(item.SDPosterUrl, "pkg:/images/placeholder_cover.png"))
     m.titleText = getDisplayTitle(item)
     setLabelText(m.titleLabel, m.titleText)
@@ -52,6 +67,127 @@ sub showContent()
 
     updateTitleFocusDisplay()
     updateProgressFill(item)
+end sub
+
+'-------------------------------------------------------------------------------
+' onShowTextChanged
+'-------------------------------------------------------------------------------
+sub onShowTextChanged()
+    updateTitleFocusDisplay()
+end sub
+
+'-------------------------------------------------------------------------------
+' onShowProgressBarChanged
+'-------------------------------------------------------------------------------
+sub onShowProgressBarChanged()
+    updateProgressFill(m.content)
+end sub
+
+'-------------------------------------------------------------------------------
+' onPosterWidthChanged
+'-------------------------------------------------------------------------------
+sub onPosterWidthChanged()
+    applyLayoutForWidth(getPosterWidth(m.content))
+    updateProgressFill(m.content)
+end sub
+
+'-------------------------------------------------------------------------------
+' getPosterWidth
+'-------------------------------------------------------------------------------
+function getPosterWidth(item as dynamic) as integer
+    width = m.top.posterWidth
+    if item <> invalid and item.posterWidth <> invalid then width = item.posterWidth
+    if width = invalid or width < 1 then width = 280
+    return width
+end function
+
+'-------------------------------------------------------------------------------
+' applyLayoutForWidth
+'-------------------------------------------------------------------------------
+sub applyLayoutForWidth(width as integer)
+    if width < 1 then width = 280
+
+    scale = width / 280
+    labelMargin = int(5 * scale)
+    if labelMargin < 1 then labelMargin = 1
+
+    textWidth = width - (labelMargin * 2)
+    if textWidth < 1 then textWidth = 1
+
+    progressHeight = int(10 * scale)
+    if progressHeight < 1 then progressHeight = 1
+
+    titleHeight = int(28 * scale)
+    if titleHeight < 1 then titleHeight = 1
+
+    titleY = width + int(12 * scale)
+    authorY = width + int(42 * scale)
+
+    if m.poster <> invalid then
+        m.poster.width = width
+        m.poster.height = width
+    end if
+
+    if m.progressFill <> invalid then
+        m.progressFill.translation = [0, width - progressHeight]
+        m.progressFill.height = progressHeight
+    end if
+
+    updateSeriesSequenceLayout(width, scale)
+
+    if m.titleLabel <> invalid then
+        m.titleLabel.translation = [labelMargin, titleY]
+        m.titleLabel.width = textWidth
+        m.titleLabel.height = titleHeight
+    end if
+
+    if m.scrollingTitleLabel <> invalid then
+        m.scrollingTitleLabel.translation = [labelMargin, titleY]
+        m.scrollingTitleLabel.maxWidth = textWidth
+    end if
+
+    if m.authorLabel <> invalid then
+        m.authorLabel.translation = [labelMargin, authorY]
+        m.authorLabel.width = textWidth
+        m.authorLabel.height = titleHeight
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' updateSeriesSequenceLayout
+'-------------------------------------------------------------------------------
+sub updateSeriesSequenceLayout(width as integer, scale as float)
+    badgeWidth = int(60 * scale)
+    if badgeWidth < 1 then badgeWidth = 1
+
+    badgeHeight = int(35 * scale)
+    if badgeHeight < 1 then badgeHeight = 1
+
+    badgeMargin = int(10 * scale)
+    if badgeMargin < 0 then badgeMargin = 0
+
+    labelInsetX = int(4 * scale)
+    labelInsetY = int(7 * scale)
+    labelWidth = badgeWidth - (labelInsetX * 2)
+    if labelWidth < 1 then labelWidth = 1
+
+    labelHeight = badgeHeight - (labelInsetY * 2)
+    if labelHeight < 1 then labelHeight = 1
+
+    badgeX = width - badgeWidth - badgeMargin
+    if badgeX < 0 then badgeX = 0
+
+    if m.seriesSequenceBackground <> invalid then
+        m.seriesSequenceBackground.translation = [badgeX, badgeMargin]
+        m.seriesSequenceBackground.width = badgeWidth
+        m.seriesSequenceBackground.height = badgeHeight
+    end if
+
+    if m.seriesSequenceLabel <> invalid then
+        m.seriesSequenceLabel.translation = [badgeX + labelInsetX, badgeMargin + labelInsetY]
+        m.seriesSequenceLabel.width = labelWidth
+        m.seriesSequenceLabel.height = labelHeight
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -148,6 +284,16 @@ end sub
 ' updateTitleFocusDisplay
 '-------------------------------------------------------------------------------
 sub updateTitleFocusDisplay()
+    if shouldShowText(m.content) <> true then
+        if m.titleLabel <> invalid then m.titleLabel.visible = false
+        if m.scrollingTitleLabel <> invalid then
+            m.scrollingTitleLabel.visible = false
+            m.scrollingTitleLabel.text = ""
+        end if
+        if m.authorLabel <> invalid then m.authorLabel.visible = false
+        return
+    end if
+
     isFocused = (m.content <> invalid and m.content.focused = true)
     if m.titleLabel <> invalid then m.titleLabel.visible = not isFocused
     if m.scrollingTitleLabel <> invalid then
@@ -161,20 +307,30 @@ sub updateTitleFocusDisplay()
             m.scrollingTitleLabel.text = ""
         end if
     end if
+    if m.authorLabel <> invalid then m.authorLabel.visible = true
 end sub
+
+'-------------------------------------------------------------------------------
+' shouldShowText
+'-------------------------------------------------------------------------------
+function shouldShowText(item as dynamic) as boolean
+    if item <> invalid and item.showText <> invalid then return item.showText = true
+    return m.top.showText = true
+end function
 
 '-------------------------------------------------------------------------------
 ' updateProgressFill
 '-------------------------------------------------------------------------------
 sub updateProgressFill(item as dynamic)
     if m.progressFill = invalid then return
-    if item = invalid or item.showProgressBar = false then
+    if item = invalid or shouldShowProgressBar(item) <> true then
         m.progressFill.visible = false
         return
     end if
 
     percentComplete = getPercentComplete(item)
-    fillWidth = int(280 * percentComplete)
+    posterWidth = getPosterWidth(item)
+    fillWidth = int(posterWidth * percentComplete)
 
     if percentComplete <= 0 then
         m.progressFill.visible = false
@@ -182,7 +338,7 @@ sub updateProgressFill(item as dynamic)
     end if
 
     if fillWidth < 1 then fillWidth = 1
-    if fillWidth > 280 then fillWidth = 280
+    if fillWidth > posterWidth then fillWidth = posterWidth
     if item.progressIsFinished = true then
         m.progressFill.color = &h3BB273FF
     else
@@ -191,6 +347,15 @@ sub updateProgressFill(item as dynamic)
     m.progressFill.width = fillWidth
     m.progressFill.visible = true
 end sub
+
+'-------------------------------------------------------------------------------
+' shouldShowProgressBar
+'-------------------------------------------------------------------------------
+function shouldShowProgressBar(item as dynamic) as boolean
+    if m.top.showProgressBar <> true then return false
+    if item <> invalid and item.showProgressBar <> invalid then return item.showProgressBar = true
+    return true
+end function
 
 '-------------------------------------------------------------------------------
 ' getPercentComplete

@@ -12,14 +12,12 @@
   </interface>
   <children>
     <Rectangle id="playerBg" width="1920" height="1080" />
-    <Poster
+    <ItemPoster
       id="cover"
       translation="[120,180]"
-      width="500"
-      height="500"
-      uri="pkg:/images/placeholder_cover.png"
-      loadDisplayMode="best-fit"
-    />
+      posterWidth="500"
+      showText="false"
+      showProgressBar="false" />
     <ScrollingLabel id="titleLabel" translation="[700,210]" maxWidth="1040" font="font:LargeBoldSystemFont" repeatCount="1" />
     <Label id="authorLabel" translation="[700,260]" width="1040" color="0xB7C5D4FF" />
     <Label id="metadataLabel" translation="[700,310]" width="1040" color="0xB7C5D4FF" font="font:SmallestSystemFont" />

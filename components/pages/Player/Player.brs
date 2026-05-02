@@ -123,7 +123,7 @@ sub onPlayRequestChanged()
     m.requestedStartPositionSeconds = getRequestStartPosition(request)
     m.pendingTrackSeekPosition = invalid
 
-    if m.cover <> invalid then m.cover.uri = SafeString(request.coverUrl, "pkg:/images/placeholder_cover.png")
+    if m.cover <> invalid then m.cover.itemContent = getCoverContent(request)
     if m.titleLabel <> invalid then m.titleLabel.text = m.audiobookTitle
     setLabelText(m.modalTitleLabel, m.audiobookTitle)
     if m.chapterList <> invalid then m.chapterList.audiobookTitle = m.audiobookTitle
@@ -145,6 +145,25 @@ sub onPlayRequestChanged()
         title: request.title
     }
 end sub
+
+'-------------------------------------------------------------------------------
+' getCoverContent
+'-------------------------------------------------------------------------------
+function getCoverContent(request as dynamic) as dynamic
+    if request = invalid then return invalid
+
+    node = CreateObject("roSGNode", "ContentNode")
+    node.title = SafeString(request.title, "")
+    node.HDPosterUrl = SafeString(request.coverUrl, "pkg:/images/placeholder_cover.png")
+    node.SDPosterUrl = node.HDPosterUrl
+    node.AddFields({
+        posterWidth: 500
+        showText: false
+        showProgressBar: false
+        focused: false
+    })
+    return node
+end function
 
 '-------------------------------------------------------------------------------
 ' onPlaybackResponseChanged
