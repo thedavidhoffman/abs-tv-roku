@@ -148,8 +148,6 @@ function getSelectedPosterContent(item as dynamic) as dynamic
     node.SDPosterUrl = node.HDPosterUrl
     node.AddFields({
         author: getItemAuthor(getItemMetadata(item))
-        posterWidth: 420
-        showText: false
         progressPercent: progress.progress
         progressCurrentTime: progress.currentTime
         progressDuration: progress.duration

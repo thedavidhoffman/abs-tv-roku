@@ -58,7 +58,6 @@ sub onLibraryItemsChanged()
                     isSeriesItem: isSeriesItem(item)
                     collapsedSeries: item.collapsedSeries
                     seriesSequence: getSeriesSequence(item)
-                    showProgressBar: not isSeriesItem(item)
                     progressPercent: progress.progress
                     progressCurrentTime: progress.currentTime
                     progressDuration: progress.duration

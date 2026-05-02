@@ -157,9 +157,6 @@ function getCoverContent(request as dynamic) as dynamic
     node.HDPosterUrl = SafeString(request.coverUrl, "pkg:/images/placeholder_cover.png")
     node.SDPosterUrl = node.HDPosterUrl
     node.AddFields({
-        posterWidth: 500
-        showText: false
-        showProgressBar: false
         focused: false
     })
     return node

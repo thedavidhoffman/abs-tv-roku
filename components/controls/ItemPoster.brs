@@ -2,8 +2,9 @@
 ' ItemPoster data model
 '-------------------------------------------------------------------------------
 ' itemContent carries item data such as title, author, cover URLs, focus state,
-' and progress values. Component fields carry presentation settings for this
-' specific ItemPoster usage, such as posterWidth, showText, and showProgressBar.
+' series data, and progress values. Component fields carry presentation settings
+' for this specific ItemPoster usage, such as posterWidth, showText, and
+' showProgressBar.
 
 '-------------------------------------------------------------------------------
 ' init
@@ -18,7 +19,7 @@ sub init()
     m.authorLabel = m.top.findNode("authorLabel")
     m.content = invalid
     m.titleText = ""
-    applyLayoutForWidth(getPosterWidth(invalid))
+    applyLayoutForWidth(getPosterWidth())
     updateTitleFocusDisplay()
 end sub
 
@@ -31,11 +32,13 @@ sub showContent()
     ' RowList/Grid renderers are reused, so detach from the old content node
     ' before observing the new one. Otherwise stale focus changes can update
     ' a poster that no longer represents that item.
-    if m.content <> invalid then m.content.unobserveFieldScoped("focused")
+    if m.content <> invalid and m.content.focused <> invalid then
+        m.content.unobserveFieldScoped("focused")
+    end if
 
     ' itemContent is passed in and includes information about the item being displayed
-    ' this information does not include behavorial flags for the component displayed
-    ' such as "width", "showText" and "showProgressBar"
+    ' this information does not include behavioral flags for the component displayed
+    ' such as "posterWidth", "showText" and "showProgressBar"
     item = m.top.itemContent
     m.content = item
 
@@ -53,7 +56,7 @@ sub showContent()
     end if
 
     ' render based on itemContent being set
-    applyLayoutForWidth(getPosterWidth(item))
+    applyLayoutForWidth(getPosterWidth())
     m.poster.uri = getPosterUrl(item)
     m.titleText = getDisplayTitle(item)
     setLabelText(m.titleLabel, m.titleText)
@@ -87,16 +90,15 @@ end sub
 ' onPosterWidthChanged
 '-------------------------------------------------------------------------------
 sub onPosterWidthChanged()
-    applyLayoutForWidth(getPosterWidth(m.content))
+    applyLayoutForWidth(getPosterWidth())
     updateProgressFill(m.content)
 end sub
 
 '-------------------------------------------------------------------------------
 ' getPosterWidth
 '-------------------------------------------------------------------------------
-function getPosterWidth(item as dynamic) as integer
+function getPosterWidth() as integer
     width = m.top.posterWidth
-    if item <> invalid and item.posterWidth <> invalid then width = item.posterWidth
     if width = invalid or width < 1 then width = 280
     return width
 end function
@@ -105,7 +107,6 @@ end function
 ' getPosterUrl
 '-------------------------------------------------------------------------------
 function getPosterUrl(item as dynamic) as string
-
     return SafeString(item.HDPosterUrl, SafeString(item.SDPosterUrl, "pkg:/images/placeholder_cover.png"))
 end function
 
@@ -292,7 +293,7 @@ end sub
 ' updateTitleFocusDisplay
 '-------------------------------------------------------------------------------
 sub updateTitleFocusDisplay()
-    if shouldShowText(m.content) <> true then
+    if shouldShowText() <> true then
         if m.titleLabel <> invalid then m.titleLabel.visible = false
         if m.scrollingTitleLabel <> invalid then
             m.scrollingTitleLabel.visible = false
@@ -321,8 +322,7 @@ end sub
 '-------------------------------------------------------------------------------
 ' shouldShowText
 '-------------------------------------------------------------------------------
-function shouldShowText(item as dynamic) as boolean
-    if item <> invalid and item.showText <> invalid then return item.showText = true
+function shouldShowText() as boolean
     return m.top.showText = true
 end function
 
@@ -337,7 +337,7 @@ sub updateProgressFill(item as dynamic)
     end if
 
     percentComplete = getPercentComplete(item)
-    posterWidth = getPosterWidth(item)
+    posterWidth = getPosterWidth()
     fillWidth = int(posterWidth * percentComplete)
 
     if percentComplete <= 0 then
@@ -361,7 +361,7 @@ end sub
 '-------------------------------------------------------------------------------
 function shouldShowProgressBar(item as dynamic) as boolean
     if m.top.showProgressBar <> true then return false
-    if item <> invalid and item.showProgressBar <> invalid then return item.showProgressBar = true
+    if isSeriesItem(item) then return false
     return true
 end function
 
