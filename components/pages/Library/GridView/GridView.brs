@@ -50,7 +50,7 @@ sub onLibraryItemsChanged()
                 metadata = getItemMetadata(item)
                 node = CreateObject("roSGNode", "ContentNode")
                 node.title = getLibraryItemTitle(item)
-                node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, 400)
+                node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, 280)
                 node.SDPosterUrl = node.HDPosterUrl
                 progress = getProgressData(item)
                 node.AddFields({
