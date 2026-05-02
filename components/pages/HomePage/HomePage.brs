@@ -56,7 +56,7 @@ sub appendShelfRow(root as object, shelfId as string, title as string)
         if item <> invalid and item.id <> invalid then
             node = CreateObject("roSGNode", "ContentNode")
             node.title = getLibraryItemTitle(item)
-            node.HDPosterUrl = buildCoverPathUrl(item)
+            node.HDPosterUrl = Cover_BuildUrl(m.top.server, m.top.token, item.id, 280)
             node.SDPosterUrl = node.HDPosterUrl
             progress = getProgressData(item)
             metadata = getItemMetadata(item)
@@ -227,41 +227,6 @@ function getSelectedItem() as dynamic
     if itemIndex < 0 or itemIndex >= itemsByIndex.Count() then return invalid
 
     return itemsByIndex[itemIndex]
-end function
-
-'-------------------------------------------------------------------------------
-' buildCoverUrl
-'-------------------------------------------------------------------------------
-function buildCoverUrl(itemId as dynamic) as string
-    if itemId = invalid then return "pkg:/images/placeholder_cover.png"
-    if m.top.server = invalid or m.top.server = "" then return "pkg:/images/placeholder_cover.png"
-
-    url = m.top.server + "/api/items/" + itemId.ToStr() + "/cover?width=400"
-    if m.top.token <> invalid and m.top.token <> "" then url = url + "&token=" + m.top.token
-    return url
-end function
-
-'-------------------------------------------------------------------------------
-' buildCoverPathUrl
-'-------------------------------------------------------------------------------
-function buildCoverPathUrl(item as dynamic) as string
-    if item = invalid then return "pkg:/images/placeholder_cover.png"
-    coverPath = SafeString(item.coverPath, "")
-    if coverPath = "" then return buildCoverUrl(item.id)
-    if Left(coverPath, 4) = "http" then return coverPath
-    if m.top.server = invalid or m.top.server = "" then return "pkg:/images/placeholder_cover.png"
-
-    path = coverPath
-    if Left(path, 1) <> "/" then path = "/" + path
-
-    url = m.top.server + path
-    if m.top.token <> invalid and m.top.token <> "" then
-        separator = "?"
-        if Instr(1, url, "?") > 0 then separator = "&"
-        url = url + separator + "token=" + m.top.token
-    end if
-
-    return url
 end function
 
 '-------------------------------------------------------------------------------

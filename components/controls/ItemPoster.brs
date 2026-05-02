@@ -54,7 +54,7 @@ sub showContent()
 
     ' render based on itemContent being set
     applyLayoutForWidth(getPosterWidth(item))
-    m.poster.uri = SafeString(item.HDPosterUrl, SafeString(item.SDPosterUrl, "pkg:/images/placeholder_cover.png"))
+    m.poster.uri = getPosterUrl(item)
     m.titleText = getDisplayTitle(item)
     setLabelText(m.titleLabel, m.titleText)
     setLabelText(m.scrollingTitleLabel, "")
@@ -99,6 +99,14 @@ function getPosterWidth(item as dynamic) as integer
     if item <> invalid and item.posterWidth <> invalid then width = item.posterWidth
     if width = invalid or width < 1 then width = 280
     return width
+end function
+
+'-------------------------------------------------------------------------------
+' getPosterUrl
+'-------------------------------------------------------------------------------
+function getPosterUrl(item as dynamic) as string
+
+    return SafeString(item.HDPosterUrl, SafeString(item.SDPosterUrl, "pkg:/images/placeholder_cover.png"))
 end function
 
 '-------------------------------------------------------------------------------

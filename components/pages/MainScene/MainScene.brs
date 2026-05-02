@@ -2,6 +2,26 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+    initReferences()
+    initHandlers()
+
+    m.session = AuthStore_Load()
+    m.isResumingSession = false
+    m.loginActivationCounter = 0
+    m.libraryItemBackStack = []
+    m.mediaProgress = []
+    m.focusSettingsAfterLibraryReload = false
+    m.playerReturnTarget = ""
+
+    preloadSavedFields()
+    initStyle()
+    tryResumeSession()
+end sub
+
+'-------------------------------------------------------------------------------
+' initReferences
+'-------------------------------------------------------------------------------
+sub initReferences()
     m.bg = m.top.findNode("bg")
     m.login = m.top.findNode("login")
     m.authenticatedContent = m.top.findNode("authenticatedContent")
@@ -15,7 +35,12 @@ sub init()
     m.apiTask = m.top.findNode("apiTask")
     m.libraryApiTask = m.top.findNode("libraryApiTask")
     m.personalizedApiTask = m.top.findNode("personalizedApiTask")
+end sub
 
+'-------------------------------------------------------------------------------
+' initHandlers
+'-------------------------------------------------------------------------------
+sub initHandlers()
     m.login.observeField("loginRequested", "onLoginRequested")
     m.header.observeField("homeSelected", "onHomePressed")
     m.header.observeField("librarySelected", "onLibraryPressed")
@@ -42,18 +67,6 @@ sub init()
     m.apiTask.observeField("response", "onApiResponse")
     m.libraryApiTask.observeField("response", "onLibraryApiResponse")
     m.personalizedApiTask.observeField("response", "onPersonalizedApiResponse")
-
-    m.session = AuthStore_Load()
-    m.isResumingSession = false
-    m.loginActivationCounter = 0
-    m.libraryItemBackStack = []
-    m.mediaProgress = []
-    m.focusSettingsAfterLibraryReload = false
-    m.playerReturnTarget = ""
-
-    preloadSavedFields()
-    initStyle()
-    tryResumeSession()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -354,7 +367,7 @@ sub playLibraryItem(selectedItem as dynamic)
     if selectedItem = invalid or selectedItem.id = invalid then return
     if m.session = invalid then return
 
-    coverUrl = buildCoverUrl(selectedItem.id)
+    coverUrl = Cover_BuildUrl(m.session.server, m.session.token, selectedItem.id, 400)
     m.authenticatedContent.visible = false
     m.player.visible = true
     m.player.setFocus(true)
@@ -595,16 +608,6 @@ sub onPlayerError()
         handleExpiredSession(response.errorMessage)
     end if
 end sub
-
-'-------------------------------------------------------------------------------
-' buildCoverUrl
-'-------------------------------------------------------------------------------
-function buildCoverUrl(itemId as dynamic) as string
-    if m.session = invalid or m.session.server = invalid or m.session.token = invalid or itemId = invalid then
-        return "pkg:/images/placeholder_cover.png"
-    end if
-    return m.session.server + "/api/items/" + itemId.ToStr() + "/cover?width=400&token=" + m.session.token
-end function
 
 '-------------------------------------------------------------------------------
 ' handleExpiredSession

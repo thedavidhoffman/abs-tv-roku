@@ -144,7 +144,7 @@ function getSelectedPosterContent(item as dynamic) as dynamic
     progress = getProgressData(item)
     node = CreateObject("roSGNode", "ContentNode")
     node.title = getLibraryItemTitle(item)
-    node.HDPosterUrl = buildCoverUrl(item)
+    node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, 600)
     node.SDPosterUrl = node.HDPosterUrl
     node.AddFields({
         author: getItemAuthor(getItemMetadata(item))
@@ -157,15 +157,6 @@ function getSelectedPosterContent(item as dynamic) as dynamic
         focused: false
     })
     return node
-end function
-
-'-------------------------------------------------------------------------------
-' buildCoverUrl
-'-------------------------------------------------------------------------------
-function buildCoverUrl(item as dynamic) as string
-    if item = invalid or item.id = invalid then return "pkg:/images/placeholder_cover.png"
-    if m.server = invalid or m.server = "" or m.token = invalid or m.token = "" then return "pkg:/images/placeholder_cover.png"
-    return m.server + "/api/items/" + item.id.ToStr() + "/cover?width=600&token=" + m.token
 end function
 
 '-------------------------------------------------------------------------------

@@ -50,7 +50,7 @@ sub onLibraryItemsChanged()
                 metadata = getItemMetadata(item)
                 node = CreateObject("roSGNode", "ContentNode")
                 node.title = getLibraryItemTitle(item)
-                node.HDPosterUrl = buildCoverUrl(item)
+                node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, 400)
                 node.SDPosterUrl = node.HDPosterUrl
                 progress = getProgressData(item)
                 node.AddFields({
@@ -206,15 +206,6 @@ function getSequenceFromSeriesValue(series as dynamic) as string
     if series.seriesSequence <> invalid then return series.seriesSequence.ToStr()
 
     return ""
-end function
-
-'-------------------------------------------------------------------------------
-' buildCoverUrl
-'-------------------------------------------------------------------------------
-function buildCoverUrl(item as dynamic) as string
-    if item = invalid or item.id = invalid then return "pkg:/images/placeholder_cover.png"
-    if m.server = invalid or m.server = "" or m.token = invalid or m.token = "" then return "pkg:/images/placeholder_cover.png"
-    return m.server + "/api/items/" + item.id.ToStr() + "/cover?width=400&token=" + m.token
 end function
 
 '-------------------------------------------------------------------------------
