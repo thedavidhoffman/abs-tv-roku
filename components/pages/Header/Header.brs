@@ -103,6 +103,13 @@ function focusUserMenuButton() as boolean
 end function
 
 '-------------------------------------------------------------------------------
+' isHomeButtonFocused
+'-------------------------------------------------------------------------------
+function isHomeButtonFocused() as boolean
+    return m.homeButton <> invalid and m.homeButton.isInFocusChain()
+end function
+
+'-------------------------------------------------------------------------------
 ' onKeyEvent
 '-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean

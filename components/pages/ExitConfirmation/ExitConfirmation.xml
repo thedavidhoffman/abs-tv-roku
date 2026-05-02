@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="ExitConfirmation" extends="Group" focusable="true">
+  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/ExitConfirmation/ExitConfirmation.brs" />
+  <interface>
+    <field id="confirmed" type="integer" alwaysNotify="true" />
+    <field id="canceled" type="integer" alwaysNotify="true" />
+    <function name="openConfirmation" />
+    <function name="closeConfirmation" />
+  </interface>
+  <children>
+    <Rectangle id="backdrop" width="1920" height="1080" />
+    <Rectangle id="panel" translation="[560,330]" width="800" height="420" />
+    <Label
+      id="titleLabel"
+      translation="[620,390]"
+      width="680"
+      height="56"
+      text="Exit ABSTV?"
+      color="0xF3F7FBFF"
+      font="font:LargeSystemFont" />
+    <Rectangle
+      id="titleRule"
+      translation="[620,456]"
+      width="680"
+      height="2"
+      color="0xF3F7FB33" />
+    <Label
+      id="messageLabel"
+      translation="[620,500]"
+      width="680"
+      height="96"
+      numLines="2"
+      wrap="true"
+      text="Are you sure you want to exit?"
+      color="0xB7C5D4FF"
+      font="font:SmallSystemFont" />
+    <Rectangle
+      id="footer"
+      translation="[560,630]"
+      width="800"
+      height="120"
+      color="0x00000040" />
+    <PrimaryButton
+      id="exitButton"
+      translation="[620,660]"
+      buttonWidth="120"
+      buttonHeight="56"
+      text="Exit" />
+    <PrimaryButton
+      id="cancelButton"
+      translation="[760,660]"
+      buttonWidth="160"
+      buttonHeight="56"
+      text="Cancel" />
+  </children>
+</component>

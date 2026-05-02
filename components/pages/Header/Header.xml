@@ -17,6 +17,7 @@
     <field id="usernameUpSequenceSelected" type="integer" />
     <function name="focusHeader" />
     <function name="focusUserMenuButton" />
+    <function name="isHomeButtonFocused" />
   </interface>
   <children>
     <Rectangle id="headerBg" width="1920" height="100" />

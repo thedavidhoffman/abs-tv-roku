@@ -55,6 +55,7 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 - reduce library info
 - listview support collapsed/expanded
 - loading spinner/indicator
+- make exit confirmation use dialog?
 
 Continue Listening (home page)
     - * key triggers menu

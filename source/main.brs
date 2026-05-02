@@ -6,7 +6,12 @@ sub Main()
     screen.Show()
 
     while true
-        msg = wait(0, port)
+        msg = wait(100, port)
+        if scene.closeRequested = true then
+            screen.Close()
+            return
+        end if
+
         if type(msg) = "roSGScreenEvent" then
             if msg.isScreenClosed() then return
         end if

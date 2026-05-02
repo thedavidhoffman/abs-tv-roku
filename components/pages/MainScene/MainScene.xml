@@ -8,6 +8,9 @@
   <script type="text/brightscript" uri="pkg:/source/mappers/MediaProgressMapper.brs" />
   <script type="text/brightscript" uri="pkg:/source/SessionHelpers.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/MainScene/MainScene.brs" />
+  <interface>
+    <field id="closeRequested" type="boolean" />
+  </interface>
   <children>
     <Rectangle id="bg" width="1920" height="1080" />
 
@@ -24,6 +27,7 @@
     <SettingsDialog id="settings" />
     <Search id="search" />
     <DiagnosticsDialog id="diagnostics" />
+    <ExitConfirmation id="exitConfirmation" visible="false" />
     <Player id="player" visible="false" />
 
     <AppTask id="apiTask" />

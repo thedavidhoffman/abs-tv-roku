@@ -31,6 +31,7 @@ sub initReferences()
     m.search = m.top.findNode("search")
     m.settings = m.top.findNode("settings")
     m.diagnostics = m.top.findNode("diagnostics")
+    m.exitConfirmation = m.top.findNode("exitConfirmation")
     m.player = m.top.findNode("player")
     m.apiTask = m.top.findNode("apiTask")
     m.playbackApiTask = m.top.findNode("playbackApiTask")
@@ -66,6 +67,8 @@ sub initHandlers()
     m.settings.observeField("closeRequested", "onSettingsCloseRequested")
     m.settings.observeField("settingsSaved", "onSettingsSaved")
     m.diagnostics.observeField("closeRequested", "onDiagnosticsCloseRequested")
+    m.exitConfirmation.observeField("confirmed", "onExitConfirmationConfirmed")
+    m.exitConfirmation.observeField("canceled", "onExitConfirmationCanceled")
     m.apiTask.observeField("response", "onApiResponse")
     m.playbackApiTask.observeField("response", "onPlaybackApiResponse")
     m.libraryApiTask.observeField("response", "onLibraryApiResponse")
@@ -623,6 +626,20 @@ sub onDiagnosticsCloseRequested()
     if m.header <> invalid and m.header.visible then m.header.callFunc("focusUserMenuButton")
 end sub
 
+'-------------------------------------------------------------------------------
+' onExitConfirmationConfirmed
+'-------------------------------------------------------------------------------
+sub onExitConfirmationConfirmed()
+    m.top.closeRequested = true
+end sub
+
+'-------------------------------------------------------------------------------
+' onExitConfirmationCanceled
+'-------------------------------------------------------------------------------
+sub onExitConfirmationCanceled()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+end sub
+
 ' onPlayerCloseRequested
 '-------------------------------------------------------------------------------
 sub onPlayerCloseRequested()
@@ -719,6 +736,11 @@ function onKeyEvent(key as string, press as boolean) as boolean
         return true
     end if
 
+    if key = "back" and isHeaderHomeButtonFocused() then
+        if m.exitConfirmation <> invalid then m.exitConfirmation.callFunc("openConfirmation")
+        return true
+    end if
+
     if not m.login.visible and key = "back" then
         if hasLibraryBackStack() then
             if moveLibraryGridFocusToFirstItem() then return true
@@ -729,6 +751,16 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     return false
+end function
+
+'-------------------------------------------------------------------------------
+' isHeaderHomeButtonFocused
+'-------------------------------------------------------------------------------
+function isHeaderHomeButtonFocused() as boolean
+    if m.header = invalid then return false
+
+    isFocused = m.header.callFunc("isHomeButtonFocused")
+    return isFocused = true
 end function
 
 '-------------------------------------------------------------------------------
