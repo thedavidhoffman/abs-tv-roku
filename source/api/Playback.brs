@@ -2,6 +2,8 @@
 ' Playback_Start
 '-------------------------------------------------------------------------------
 function Playback_Start(request as Object) as Object
+    log = CreateLogger("Playback_Start")
+
     server = NormalizeServerUrl(request.server)
     token = request.token
     itemId = request.itemId
@@ -10,7 +12,7 @@ function Playback_Start(request as Object) as Object
         return { ok: false, errorMessage: "No audiobook was selected." }
     end if
 
-    body = FormatJson({
+    bodyData = {
         deviceInfo: {
             clientName: "ABSTV"
             clientVersion: "0.1.0"
@@ -26,7 +28,10 @@ function Playback_Start(request as Object) as Object
             "audio/x-mpegurl"
         ]
         mediaPlayer: "roku"
-    })
+    }
+    body = FormatJson(bodyData)
+
+    log.log("forceDirectPlay=" + bodyData.forceDirectPlay.ToStr() + " forceTranscode=" + bodyData.forceTranscode.ToStr() + " supportedMimeTypes=" + ___JoinStringValues(bodyData.supportedMimeTypes))
 
     result = HttpClient_Request(server + "/api/items/" + itemId + "/play", "POST", token, body)
     if result.ok <> true then return result
@@ -35,7 +40,7 @@ function Playback_Start(request as Object) as Object
     itemPayload = invalid
     if itemResult.ok = true then itemPayload = itemResult.data
 
-    tracks = ___MapTracks(server, token, result.data, itemPayload)
+    tracks = ___MapTracks(server, token, result.data, itemPayload, log)
     if tracks.Count() = 0 then
         return { ok: false, errorMessage: "No playable audio tracks were returned." }
     end if
@@ -51,9 +56,24 @@ function Playback_Start(request as Object) as Object
 end function
 
 '-------------------------------------------------------------------------------
+' ___JoinStringValues
+'-------------------------------------------------------------------------------
+function ___JoinStringValues(values as Dynamic) as String
+    if values = invalid then return ""
+
+    result = ""
+    for each value in values
+        if result <> "" then result = result + ", "
+        result = result + SafeString(value, "")
+    end for
+
+    return result
+end function
+
+'-------------------------------------------------------------------------------
 ' ___MapTracks
 '-------------------------------------------------------------------------------
-function ___MapTracks(server as String, token as Dynamic, payload as Dynamic, itemPayload as Dynamic) as Object
+function ___MapTracks(server as String, token as Dynamic, payload as Dynamic, itemPayload as Dynamic, log as Object) as Object
     mappedTracks = []
     tracks = ___GetSessionTracks(payload)
     files = ___GetSessionFiles(payload, itemPayload)
@@ -61,7 +81,7 @@ function ___MapTracks(server as String, token as Dynamic, payload as Dynamic, it
 
     if payload <> invalid and payload.id <> invalid then sessionId = payload.id
 
-    ? "playback mapping"; " audioTracks="; ___GetArrayCount(tracks); " files="; ___GetArrayCount(files)
+    log.log("playback mapping audioTracks=" + ___GetArrayCount(tracks).ToStr() + " files=" + ___GetArrayCount(files).ToStr())
 
     if files <> invalid and files.Count() > 0 and tracks <> invalid and tracks.Count() = 1 then
         track = tracks[0]

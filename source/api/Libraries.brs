@@ -9,7 +9,7 @@
 '-------------------------------------------------------------------------------
 function Libraries_Load(server as String, token as Dynamic) as Object
 
-    log = Logger("(API) Libraries_Load")
+    log = CreateLogger("(API) Libraries_Load")
 
     librariesUrl = server + "/api/libraries"
     result = HttpClient_Request(librariesUrl, "GET", token, invalid)

@@ -10,7 +10,7 @@
 '-------------------------------------------------------------------------------
 function Personalized_Load(request as object) as object
 
-    log = Logger("(API) Personalized_Load")
+    log = CreateLogger("(API) Personalized_Load")
 
     server = NormalizeServerUrl(request.server)
     token = request.token

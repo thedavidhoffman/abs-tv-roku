@@ -9,7 +9,7 @@
 '-------------------------------------------------------------------------------
 function LibraryItems_Load(request as object) as object
 
-    log = Logger("(API) LibraryItems_Load")
+    log = CreateLogger("(API) LibraryItems_Load")
 
     server = NormalizeServerUrl(request.server)
     token = request.token

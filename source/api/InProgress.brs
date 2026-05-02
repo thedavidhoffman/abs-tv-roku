@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 function InProgress_Load(request as object) as object
 
-    log = Logger("(API) InProgress_Load")
+    log = CreateLogger("(API) InProgress_Load")
     server = NormalizeServerUrl(request.server)
     token = request.token
 

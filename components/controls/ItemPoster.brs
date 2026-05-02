@@ -19,6 +19,10 @@ end sub
 '-------------------------------------------------------------------------------
 sub showContent()
     if m.poster = invalid then return
+    
+    ' RowList/Grid renderers are reused, so detach from the old content node
+    ' before observing the new one. Otherwise stale focus changes can update
+    ' a poster that no longer represents that item.
     if m.content <> invalid then m.content.unobserveFieldScoped("focused")
 
     item = m.top.itemContent
@@ -41,7 +45,11 @@ sub showContent()
     setLabelText(m.scrollingTitleLabel, "")
     setLabelText(m.authorLabel, getDisplayAuthor(item))
     updateSeriesSequence(item)
+
+    ' Watch the content-level focused field so this reused poster can swap
+    ' between the static and scrolling title displays as focus moves.
     if item.focused <> invalid then item.observeFieldScoped("focused", "onFocusedChanged")
+
     updateTitleFocusDisplay()
     updateProgressFill(item)
 end sub
@@ -148,6 +156,8 @@ sub updateTitleFocusDisplay()
             m.scrollingTitleLabel.visible = true
         else
             m.scrollingTitleLabel.visible = false
+            ' Clear the scrolling label while unfocused so refocusing starts the
+            ' title animation from the beginning instead of its previous offset.
             m.scrollingTitleLabel.text = ""
         end if
     end if

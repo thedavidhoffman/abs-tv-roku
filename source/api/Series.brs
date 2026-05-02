@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 function Series_Load(request as object) as object
 
-    log = Logger("(API) Series_Load")
+    log = CreateLogger("(API) Series_Load")
     
     server = NormalizeServerUrl(request.server)
     token = request.token
