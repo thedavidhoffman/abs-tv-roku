@@ -56,6 +56,32 @@ function Playback_Start(request as Object) as Object
 end function
 
 '-------------------------------------------------------------------------------
+' Playback_CloseSession
+'-------------------------------------------------------------------------------
+function Playback_CloseSession(request as Object) as Object
+    log = CreateLogger("Playback_CloseSession")
+
+    server = NormalizeServerUrl(request.server)
+    token = request.token
+    sessionId = request.sessionId
+
+    if sessionId = invalid or sessionId = "" then
+        return { ok: false, action: "closePlaybackSession", errorMessage: "No playback session was available to close." }
+    end if
+
+    bodyData = {}
+    if request.currentTime <> invalid then bodyData.currentTime = request.currentTime
+    if request.timeListened <> invalid then bodyData.timeListened = request.timeListened
+    if request.duration <> invalid then bodyData.duration = request.duration
+
+    log.log("sessionId=" + sessionId.ToStr() + " currentTime=" + SafeString(bodyData.currentTime, "invalid") + " timeListened=" + SafeString(bodyData.timeListened, "invalid") + " duration=" + SafeString(bodyData.duration, "invalid"))
+
+    result = HttpClient_Request(server + "/api/session/" + sessionId.ToStr() + "/close", "POST", token, FormatJson(bodyData))
+    result.action = "closePlaybackSession"
+    return result
+end function
+
+'-------------------------------------------------------------------------------
 ' ___JoinStringValues
 '-------------------------------------------------------------------------------
 function ___JoinStringValues(values as Dynamic) as String

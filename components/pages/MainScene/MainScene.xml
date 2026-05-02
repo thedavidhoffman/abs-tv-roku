@@ -27,6 +27,7 @@
     <Player id="player" visible="false" />
 
     <AppTask id="apiTask" />
+    <AppTask id="playbackApiTask" />
     <AppTask id="libraryApiTask" />
     <AppTask id="personalizedApiTask" />
   </children>

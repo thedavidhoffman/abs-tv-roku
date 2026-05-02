@@ -42,6 +42,8 @@ function HttpClient_Request(url as String, method as String, token as Dynamic, b
 
     status = msg.GetResponseCode()
     responseText = msg.GetString()
+    responseHeaders = msg.GetResponseHeaders()
+    contentType = __GetResponseHeader(responseHeaders, "content-type")
 
     if status = 0 then
         return { ok: false, status: status, errorMessage: "Unable to reach the Audiobookshelf server." }
@@ -52,7 +54,7 @@ function HttpClient_Request(url as String, method as String, token as Dynamic, b
     end if
 
     data = invalid
-    if responseText <> invalid and responseText <> "" then
+    if __IsJsonContentType(contentType) and responseText <> invalid and responseText <> "" then
         data = ParseJson(responseText)
     end if
 
@@ -69,7 +71,35 @@ function HttpClient_Request(url as String, method as String, token as Dynamic, b
         return { ok: false, status: status, errorMessage: message }
     end if
 
-    return { ok: true, status: status, data: data }
+    return { ok: true, status: status, data: data, responseText: responseText }
+end function
+
+'-------------------------------------------------------------------------------
+' GetResponseHeader
+'-------------------------------------------------------------------------------
+function __GetResponseHeader(headers as Dynamic, name as String) as String
+    if headers = invalid then return ""
+
+    value = headers[name]
+    if value <> invalid then return value.ToStr()
+
+    lowerName = LCase(name)
+    for each key in headers
+        if LCase(key.ToStr()) = lowerName then
+            value = headers[key]
+            if value <> invalid then return value.ToStr()
+        end if
+    end for
+
+    return ""
+end function
+
+'-------------------------------------------------------------------------------
+' IsJsonContentType
+'-------------------------------------------------------------------------------
+function __IsJsonContentType(contentType as Dynamic) as Boolean
+    normalized = LCase(SafeString(contentType, ""))
+    return Instr(1, normalized, "application/json") > 0 or Instr(1, normalized, "+json") > 0
 end function
 
 '-------------------------------------------------------------------------------

@@ -60,6 +60,11 @@ sub initValues()
     m.currentTrackStartPosition = 0
     m.requestedStartPositionSeconds = 0
     m.pendingTrackSeekPosition = invalid
+    m.playbackServer = invalid
+    m.playbackToken = invalid
+    m.playbackSession = invalid
+    m.playbackSessionId = invalid
+    m.playbackStartedAtSeconds = 0
     m.isPaused = false
     m.totalDurationSeconds = 0
     m.progressBarWidth = 1040
@@ -119,6 +124,11 @@ sub onPlayRequestChanged()
 
     m.isClosing = false
     if m.closeTimer <> invalid then m.closeTimer.control = "stop"
+    m.playbackServer = request.server
+    m.playbackToken = request.token
+    m.playbackSession = invalid
+    m.playbackSessionId = invalid
+    m.playbackStartedAtSeconds = 0
     m.audiobookTitle = SafeString(request.title, "Audiobook")
     m.requestedStartPositionSeconds = getRequestStartPosition(request)
     m.pendingTrackSeekPosition = invalid
@@ -176,8 +186,19 @@ sub onPlaybackResponseChanged()
         return
     end if
 
+    m.playbackSession = response.playbackSession
+    m.playbackSessionId = getPlaybackSessionId(response.playbackSession)
+    m.playbackStartedAtSeconds = getNowSeconds()
     playTracks(response.tracks)
 end sub
+
+'-------------------------------------------------------------------------------
+' getPlaybackSessionId
+'-------------------------------------------------------------------------------
+function getPlaybackSessionId(playbackSession as dynamic) as dynamic
+    if playbackSession = invalid then return invalid
+    return playbackSession.id
+end function
 
 '-------------------------------------------------------------------------------
 ' updateDetails
@@ -536,6 +557,7 @@ sub closePlayer()
     if m.isClosing = true then return
     m.isClosing = true
 
+    requestClosePlaybackSession()
     resetSeekHold()
     stopProgressTimer()
     enableScreenSaver()
@@ -572,11 +594,33 @@ sub finalizeClosePlayer()
     m.currentTrackIndex = 0
     m.currentTrackStartPosition = 0
     m.pendingTrackSeekPosition = invalid
+    m.playbackSession = invalid
+    m.playbackSessionId = invalid
+    m.playbackStartedAtSeconds = 0
     m.isPaused = false
     resetProgress()
     updateChaptersButtonVisibility()
     m.closeRequestedCounter = m.closeRequestedCounter + 1
     m.top.closeRequested = m.closeRequestedCounter
+end sub
+
+'-------------------------------------------------------------------------------
+' requestClosePlaybackSession
+'-------------------------------------------------------------------------------
+sub requestClosePlaybackSession()
+    if m.playbackSessionId = invalid or m.playbackSessionId = "" then return
+    if m.playbackServer = invalid or m.playbackServer = "" then return
+    if m.playbackToken = invalid or m.playbackToken = "" then return
+
+    m.top.playbackCloseRequested = {
+        action: "closePlaybackSession"
+        server: m.playbackServer
+        token: m.playbackToken
+        sessionId: m.playbackSessionId
+        currentTime: getPlaybackCurrentTimeSeconds()
+        timeListened: getPlaybackTimeListenedSeconds()
+        duration: getPlaybackDurationSeconds()
+    }
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1192,6 +1236,65 @@ function getCurrentTrackPlaybackPosition() as integer
     position = getCurrentPlaybackPosition() - m.currentTrackStartPosition
     if position < 0 then position = 0
     return position
+end function
+
+'-------------------------------------------------------------------------------
+' getPlaybackCurrentTimeSeconds
+'-------------------------------------------------------------------------------
+function getPlaybackCurrentTimeSeconds() as integer
+    currentTrackPosition = getCurrentTrackPlaybackPosition()
+    if m.tracks = invalid then return currentTrackPosition
+    if m.currentTrackIndex < 0 or m.currentTrackIndex >= m.tracks.Count() then return currentTrackPosition
+
+    currentTrack = m.tracks[m.currentTrackIndex]
+    currentTrackStart = getTrackStartPosition(currentTrack)
+    if currentTrackStart > 0 or tracksHaveStartPositions() then
+        return currentTrackStart + currentTrackPosition
+    end if
+
+    elapsedSeconds = 0
+    for i = 0 to m.currentTrackIndex - 1
+        elapsedSeconds = elapsedSeconds + getTrackDurationSeconds(m.tracks[i])
+    end for
+
+    return elapsedSeconds + currentTrackPosition
+end function
+
+'-------------------------------------------------------------------------------
+' getPlaybackDurationSeconds
+'-------------------------------------------------------------------------------
+function getPlaybackDurationSeconds() as integer
+    if m.playbackSession <> invalid and m.playbackSession.duration <> invalid then
+        return int(val(m.playbackSession.duration.ToStr()))
+    end if
+
+    durationSeconds = 0
+    if m.tracks <> invalid then
+        for each track in m.tracks
+            durationSeconds = durationSeconds + getTrackDurationSeconds(track)
+        end for
+    end if
+
+    return durationSeconds
+end function
+
+'-------------------------------------------------------------------------------
+' getPlaybackTimeListenedSeconds
+'-------------------------------------------------------------------------------
+function getPlaybackTimeListenedSeconds() as integer
+    if m.playbackStartedAtSeconds <= 0 then return 0
+
+    timeListened = getNowSeconds() - m.playbackStartedAtSeconds
+    if timeListened < 0 then return 0
+    return timeListened
+end function
+
+'-------------------------------------------------------------------------------
+' getNowSeconds
+'-------------------------------------------------------------------------------
+function getNowSeconds() as integer
+    dateTime = CreateObject("roDateTime")
+    return dateTime.AsSeconds()
 end function
 
 '-------------------------------------------------------------------------------

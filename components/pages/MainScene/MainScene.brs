@@ -33,6 +33,7 @@ sub initReferences()
     m.diagnostics = m.top.findNode("diagnostics")
     m.player = m.top.findNode("player")
     m.apiTask = m.top.findNode("apiTask")
+    m.playbackApiTask = m.top.findNode("playbackApiTask")
     m.libraryApiTask = m.top.findNode("libraryApiTask")
     m.personalizedApiTask = m.top.findNode("personalizedApiTask")
 end sub
@@ -61,10 +62,12 @@ sub initHandlers()
     m.player.observeField("closeRequested", "onPlayerCloseRequested")
     m.player.observeField("errorResponse", "onPlayerError")
     m.player.observeField("playbackStartRequested", "onPlaybackStartRequested")
+    m.player.observeField("playbackCloseRequested", "onPlaybackCloseRequested")
     m.settings.observeField("closeRequested", "onSettingsCloseRequested")
     m.settings.observeField("settingsSaved", "onSettingsSaved")
     m.diagnostics.observeField("closeRequested", "onDiagnosticsCloseRequested")
     m.apiTask.observeField("response", "onApiResponse")
+    m.playbackApiTask.observeField("response", "onPlaybackApiResponse")
     m.libraryApiTask.observeField("response", "onLibraryApiResponse")
     m.personalizedApiTask.observeField("response", "onPersonalizedApiResponse")
 end sub
@@ -192,6 +195,18 @@ sub onLibraryApiResponse()
         storeSeriesItems(response)
     end if
 
+end sub
+
+'-------------------------------------------------------------------------------
+' onPlaybackApiResponse
+'-------------------------------------------------------------------------------
+sub onPlaybackApiResponse()
+    response = m.playbackApiTask.response
+    if response = invalid then return
+
+    if response.ok <> true and response.authExpired = true then
+        handleExpiredSession(response.errorMessage)
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -392,6 +407,16 @@ sub onPlaybackStartRequested()
     if request = invalid then return
 
     startApiTask(m.apiTask, request)
+end sub
+
+'-------------------------------------------------------------------------------
+' onPlaybackCloseRequested
+'-------------------------------------------------------------------------------
+sub onPlaybackCloseRequested()
+    request = m.player.playbackCloseRequested
+    if request = invalid then return
+
+    startApiTask(m.playbackApiTask, request)
 end sub
 
 '-------------------------------------------------------------------------------
