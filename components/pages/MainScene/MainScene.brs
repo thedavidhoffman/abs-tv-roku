@@ -275,8 +275,10 @@ end sub
 '-------------------------------------------------------------------------------
 sub showHomePage()
     if m.homePage <> invalid then m.homePage.visible = true
-    if m.library <> invalid then m.library.visible = false
-    m.libraryItemBackStack = []
+    if m.library <> invalid then
+        m.library.visible = false
+        resetLibraryDrilldown()
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -565,6 +567,21 @@ function restorePreviousLibraryItems() as boolean
     m.library.callFunc("focusItemAtIndex", previousState.focusIndex)
     return true
 end function
+
+'-------------------------------------------------------------------------------
+' resetLibraryDrilldown
+'-------------------------------------------------------------------------------
+sub resetLibraryDrilldown()
+    if m.library = invalid then return
+    if m.libraryItemBackStack = invalid or m.libraryItemBackStack.Count() = 0 then return
+
+    rootState = m.libraryItemBackStack[0]
+    m.libraryItemBackStack = []
+
+    if rootState <> invalid and rootState.items <> invalid then
+        m.library.libraryItems = rootState.items
+    end if
+end sub
 
 '-------------------------------------------------------------------------------
 ' onDiagnosticsSequencePressed

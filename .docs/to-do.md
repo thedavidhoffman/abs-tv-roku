@@ -62,12 +62,7 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 ----------------------------------------------------
 - cleanup bad color assignments
 
-
 - in-progress bar for series
-- in-progress bar for overview
-
-- expand gridview series, navigate away, come back, can't get back to collapsed gridview
-
 - on player close, sync progress
 
 Continue Listening (home page)
