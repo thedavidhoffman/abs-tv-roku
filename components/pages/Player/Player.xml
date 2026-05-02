@@ -32,10 +32,10 @@
       <Label id="totalTimeLabel" translation="[820,26]" width="220" horizAlign="right" text="0:00" />
     </Group>
     <Group id="transportControls" translation="[700,849]">
-      <PrimaryButton id="rewindButton" translation="[0,0]" buttonWidth="160" buttonHeight="56" text="-30s" />
-      <PrimaryButton id="playPauseButton" translation="[190,0]" buttonWidth="220" buttonHeight="56" text="Pause" />
-      <PrimaryButton id="forwardButton" translation="[440,0]" buttonWidth="160" buttonHeight="56" text="+30s" />
-      <PrimaryButton id="chaptersButton" translation="[820,0]" buttonWidth="220" buttonHeight="56" text="Chapters" visible="false" />
+      <PrimaryButton id="rewindButton" translation="[0,0]" buttonWidth="132" buttonHeight="56" text="-30s" />
+      <PrimaryButton id="playPauseButton" translation="[146,0]" buttonWidth="188" buttonHeight="56" text="Pause" />
+      <PrimaryButton id="forwardButton" translation="[348,0]" buttonWidth="132" buttonHeight="56" text="+30s" />
+      <PrimaryButton id="chaptersButton" translation="[850,0]" buttonWidth="190" buttonHeight="56" text="Chapters" visible="false" />
     </Group>
     <Timer id="progressTimer" duration="1" repeat="true" />
     <Timer id="seekHoldTimer" duration="1" repeat="true" />

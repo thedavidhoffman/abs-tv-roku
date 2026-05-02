@@ -1,15 +1,3 @@
-# login page
-- branding
-- if already haz auth token, refresh
-- if error, display modal with error info
-
-# player
-- description modal
-    - see if ScrollableText would be a better choice than our custom scroll
-    - extend scroll by one line (see ark in space)
-- Resume
-- Restart
-
 ## titles with playback issues
 - Meditations
 - The Courtship of Princess Leia
@@ -20,8 +8,6 @@
 # device info (for debugging modal?)
 - https://developer.roku.com/en-au/docs/references/brightscript/interfaces/ifdeviceinfo.md
 
-
-duration display helper
 
 - build out DTOs? https://deepwiki.com/audiobookshelf/audiobookshelf-api-docs/3.1-data-model-and-schemas
 
@@ -60,29 +46,28 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 
 
 ----------------------------------------------------
+- description modal -> convert to dialog use on both ListView and Player
+- end session when playback stops
+- sync progress
 - cleanup bad color assignments
-
+- home screen refresh continue listening
 - in-progress bar for series
-- on player close, sync progress
+- reduce library info
+- listview support collapsed/expanded
+- loading spinner/indicator
 
 Continue Listening (home page)
     - * key triggers menu
     - mark as finished
     - removed from continue listening "HideFromContinueListening"
 
-- listview support collapsed/expanded
 
-- loading spinner
 - error modal
-- description modal -> convert to dialog use on both ListView and Player
+
 - html string function move to helper class
 - search
 - back button at certain level closes the app, see if we can trap this and prompt about exit
 - on playback (https://api.audiobookshelf.org/#play-a-library-item-or-podcast-episode) send the device info
 
-## Quirks
 
-when switching expand to collapse, it starts to render the component with old data, then updates it when the new data returns from the api
---> roku performance tricks on hide/show things
---> should you tear things down and dynamically reload them
 
