@@ -398,7 +398,7 @@ sub playLibraryItem(selectedItem as dynamic)
         title: selectedItem.title
         coverUrl: coverUrl
         details: selectedItem.details
-        startPositionSeconds: getMediaProgressCurrentTime(selectedItem.id)
+        startPositionSeconds: getPlaybackStartPosition(selectedItem)
     }
 end sub
 
@@ -433,11 +433,60 @@ function getMediaProgressCurrentTime(itemId as dynamic) as integer
     for each progress in m.mediaProgress
         if progress <> invalid and progress.itemId <> invalid and progress.itemId.ToStr() = targetItemId then
             if progress.isFinished = true then return 0
-            if progress.currentTime <> invalid then return int(val(progress.currentTime.ToStr()))
+
+            currentTime = 0
+            if progress.currentTime <> invalid then currentTime = int(val(progress.currentTime.ToStr()))
+            if currentTime > 0 then return currentTime
+
+            duration = 0
+            if progress.duration <> invalid then duration = val(progress.duration.ToStr())
+
+            progressValue = 0
+            if progress.progress <> invalid then progressValue = val(progress.progress.ToStr())
+            if duration > 0 and progressValue > 0 then
+                if progressValue > 1 then progressValue = progressValue / 100
+                if progressValue > 1 then progressValue = 1
+                return int(progressValue * duration)
+            end if
         end if
     end for
 
     return 0
+end function
+
+'-------------------------------------------------------------------------------
+' getPlaybackStartPosition
+'-------------------------------------------------------------------------------
+function getPlaybackStartPosition(selectedItem as dynamic) as integer
+    if selectedItem = invalid then return 0
+
+    if selectedItem.startPositionSeconds <> invalid then
+        startPosition = int(val(selectedItem.startPositionSeconds.ToStr()))
+        if startPosition > 0 then return startPosition
+    end if
+
+    candidateIds = getProgressCandidateIdsForPlayback(selectedItem)
+    for each candidateId in candidateIds
+        startTime = getMediaProgressCurrentTime(candidateId)
+        if startTime > 0 then return startTime
+    end for
+
+    return 0
+end function
+
+'-------------------------------------------------------------------------------
+' getProgressCandidateIdsForPlayback
+'-------------------------------------------------------------------------------
+function getProgressCandidateIdsForPlayback(item as dynamic) as object
+    ids = []
+    if item = invalid then return ids
+
+    if item.id <> invalid then ids.Push(item.id)
+    if item.libraryItemId <> invalid then ids.Push(item.libraryItemId)
+    if item.mediaItemId <> invalid then ids.Push(item.mediaItemId)
+    if item.media <> invalid and item.media.id <> invalid then ids.Push(item.media.id)
+
+    return ids
 end function
 
 '-------------------------------------------------------------------------------

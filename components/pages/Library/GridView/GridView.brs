@@ -109,6 +109,7 @@ sub onPosterSelected()
         id: item.id
         title: getLibraryItemTitle(item)
         details: getPlaybackDetails(item)
+        startPositionSeconds: getPlaybackStartPosition(item)
         counter: m.playSelectedCounter
     }
 end sub
@@ -250,17 +251,63 @@ end function
 ' getMappedProgressForItem
 '-------------------------------------------------------------------------------
 function getMappedProgressForItem(item as dynamic) as dynamic
-    if item = invalid or item.id = invalid then return invalid
+    if item = invalid then return invalid
     if m.top.mediaProgress = invalid then return invalid
 
-    itemId = item.id.ToStr()
+    candidateIds = getProgressCandidateIds(item)
+    if candidateIds = invalid or candidateIds.Count() = 0 then return invalid
+
     for each progress in m.top.mediaProgress
-        if progress <> invalid and progress.itemId <> invalid and progress.itemId.ToStr() = itemId then
+        if progress <> invalid and progress.itemId <> invalid and candidateIds[progress.itemId.ToStr()] = true then
             return progress
         end if
     end for
 
     return invalid
+end function
+
+'-------------------------------------------------------------------------------
+' getProgressCandidateIds
+'-------------------------------------------------------------------------------
+function getProgressCandidateIds(item as dynamic) as object
+    ids = {}
+    if item = invalid then return ids
+
+    if item.id <> invalid then ids[item.id.ToStr()] = true
+    if item.libraryItemId <> invalid then ids[item.libraryItemId.ToStr()] = true
+    if item.mediaItemId <> invalid then ids[item.mediaItemId.ToStr()] = true
+    if item.media <> invalid and item.media.id <> invalid then ids[item.media.id.ToStr()] = true
+
+    return ids
+end function
+
+'-------------------------------------------------------------------------------
+' getPlaybackStartPosition
+'-------------------------------------------------------------------------------
+function getPlaybackStartPosition(item as dynamic) as integer
+    progress = getProgressData(item)
+    if progress = invalid then return 0
+    if progress.isFinished = true then return 0
+
+    currentTime = int(val(progress.currentTime.ToStr()))
+    if currentTime > 0 then return currentTime
+
+    return getDerivedCurrentTime(progress.progress, progress.duration)
+end function
+
+'-------------------------------------------------------------------------------
+' getDerivedCurrentTime
+'-------------------------------------------------------------------------------
+function getDerivedCurrentTime(progressValue as dynamic, durationValue as dynamic) as integer
+    duration = val(durationValue.ToStr())
+    if duration <= 0 then return 0
+
+    progress = val(progressValue.ToStr())
+    if progress <= 0 then return 0
+    if progress > 1 then progress = progress / 100
+    if progress > 1 then progress = 1
+
+    return int(progress * duration)
 end function
 
 '-------------------------------------------------------------------------------
