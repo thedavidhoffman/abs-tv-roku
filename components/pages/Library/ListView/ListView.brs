@@ -356,10 +356,14 @@ end sub
 '-------------------------------------------------------------------------------
 ' focusDescription
 '-------------------------------------------------------------------------------
-sub focusDescription()
+function focusDescription() as boolean
+    if m.detailDescription = invalid then return false
+    if m.detailDescription.canAcceptFocus <> true then return false
+
     updatePlayButtonFocus(false)
-    if m.detailDescription <> invalid then m.detailDescription.setFocus(true)
-end sub
+    m.detailDescription.setFocus(true)
+    return true
+end function
 
 '-------------------------------------------------------------------------------
 ' onPlayPressed
@@ -459,8 +463,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             focusLibraryList()
             return true
         else if key = "down" then
-            focusDescription()
-            return true
+            return focusDescription()
         else if key = "OK" or key = "select" then
             onPlayPressed()
             return true

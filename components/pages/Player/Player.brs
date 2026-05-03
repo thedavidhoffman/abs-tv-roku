@@ -631,8 +631,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             focusTransportButton(m.transportFocusIndex + 1)
             return true
         else if key = "up" then
-            focusDescriptionFromTransport()
-            return true
+            return focusDescriptionFromTransport()
         else if key = "down" then
             return true
         else if key = "OK" or key = "select" then
@@ -667,12 +666,14 @@ end function
 '-------------------------------------------------------------------------------
 ' focusDescriptionFromTransport
 '-------------------------------------------------------------------------------
-sub focusDescriptionFromTransport()
+function focusDescriptionFromTransport() as boolean
+    if m.descriptionLabel = invalid then return false
+    if m.descriptionLabel.canAcceptFocus <> true then return false
+
     updateTransportFocus(-1)
-    if m.descriptionLabel <> invalid and m.descriptionLabel.canAcceptFocus = true then
-        m.descriptionLabel.setFocus(true)
-    end if
-end sub
+    m.descriptionLabel.setFocus(true)
+    return true
+end function
 
 ' focusTransportButton
 '-------------------------------------------------------------------------------
