@@ -28,6 +28,7 @@
     <Search id="search" />
     <ExitConfirmation id="exitConfirmation" visible="false" />
     <Player id="player" visible="false" />
+    <OverlayHost id="overlayHost" />
 
     <AppTask id="apiTask" />
     <AppTask id="playbackApiTask" />

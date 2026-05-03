@@ -12,7 +12,6 @@ sub init()
     m.mediaProgress = []
     m.focusSettingsAfterLibraryReload = false
     m.playerReturnTarget = ""
-    m.diagnostics = invalid
 
     preloadSavedFields()
     initStyle()
@@ -33,6 +32,7 @@ sub initReferences()
     m.settings = m.top.findNode("settings")
     m.exitConfirmation = m.top.findNode("exitConfirmation")
     m.player = m.top.findNode("player")
+    m.overlayHost = m.top.findNode("overlayHost")
     m.apiTask = m.top.findNode("apiTask")
     m.playbackApiTask = m.top.findNode("playbackApiTask")
     m.libraryApiTask = m.top.findNode("libraryApiTask")
@@ -68,6 +68,7 @@ sub initHandlers()
     m.settings.observeField("settingsSaved", "onSettingsSaved")
     m.exitConfirmation.observeField("confirmed", "onExitConfirmationConfirmed")
     m.exitConfirmation.observeField("canceled", "onExitConfirmationCanceled")
+    m.overlayHost.observeField("closedCounter", "onOverlayClosed")
     m.apiTask.observeField("response", "onApiResponse")
     m.playbackApiTask.observeField("response", "onPlaybackApiResponse")
     m.libraryApiTask.observeField("response", "onLibraryApiResponse")
@@ -664,39 +665,20 @@ end sub
 '-------------------------------------------------------------------------------
 sub onDiagnosticsSequencePressed()
     closeHeaderMenu()
-    openDiagnostics()
+    if m.overlayHost <> invalid then
+        m.overlayHost.callFunc("openOverlay", {
+            componentName: "DiagnosticsDialog"
+            closeField: "closeRequested"
+            openFunction: "openDiagnostics"
+        })
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
-' openDiagnostics
+' onOverlayClosed
 '-------------------------------------------------------------------------------
-sub openDiagnostics()
-    if m.diagnostics <> invalid then return
-
-    m.diagnostics = CreateObject("roSGNode", "DiagnosticsDialog")
-    if m.diagnostics = invalid then return
-
-    m.diagnostics.observeField("closeRequested", "onDiagnosticsCloseRequested")
-    m.top.appendChild(m.diagnostics)
-    m.diagnostics.callFunc("openDiagnostics")
-end sub
-
-'-------------------------------------------------------------------------------
-' onDiagnosticsCloseRequested
-'-------------------------------------------------------------------------------
-sub onDiagnosticsCloseRequested()
-    closeDiagnostics()
+sub onOverlayClosed()
     if m.header <> invalid and m.header.visible then m.header.callFunc("focusUserMenuButton")
-end sub
-
-'-------------------------------------------------------------------------------
-' closeDiagnostics
-'-------------------------------------------------------------------------------
-sub closeDiagnostics()
-    if m.diagnostics = invalid then return
-
-    m.top.removeChild(m.diagnostics)
-    m.diagnostics = invalid
 end sub
 
 '-------------------------------------------------------------------------------
