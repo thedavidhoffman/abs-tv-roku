@@ -26,7 +26,6 @@
 
     <SettingsDialog id="settings" />
     <Search id="search" />
-    <DiagnosticsDialog id="diagnostics" />
     <ExitConfirmation id="exitConfirmation" visible="false" />
     <Player id="player" visible="false" />
 

@@ -46,10 +46,6 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 
 
 ----------------------------------------------------
-- description component
-    prevent focus if not truncated
-    display modal
-    test more against various descriptions
 
 - load diagnostics and settings dynamically
 

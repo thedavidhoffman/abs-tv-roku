@@ -12,6 +12,7 @@ sub init()
     m.mediaProgress = []
     m.focusSettingsAfterLibraryReload = false
     m.playerReturnTarget = ""
+    m.diagnostics = invalid
 
     preloadSavedFields()
     initStyle()
@@ -30,7 +31,6 @@ sub initReferences()
     m.library = m.top.findNode("library")
     m.search = m.top.findNode("search")
     m.settings = m.top.findNode("settings")
-    m.diagnostics = m.top.findNode("diagnostics")
     m.exitConfirmation = m.top.findNode("exitConfirmation")
     m.player = m.top.findNode("player")
     m.apiTask = m.top.findNode("apiTask")
@@ -66,7 +66,6 @@ sub initHandlers()
     m.player.observeField("playbackCloseRequested", "onPlaybackCloseRequested")
     m.settings.observeField("closeRequested", "onSettingsCloseRequested")
     m.settings.observeField("settingsSaved", "onSettingsSaved")
-    m.diagnostics.observeField("closeRequested", "onDiagnosticsCloseRequested")
     m.exitConfirmation.observeField("confirmed", "onExitConfirmationConfirmed")
     m.exitConfirmation.observeField("canceled", "onExitConfirmationCanceled")
     m.apiTask.observeField("response", "onApiResponse")
@@ -665,14 +664,39 @@ end sub
 '-------------------------------------------------------------------------------
 sub onDiagnosticsSequencePressed()
     closeHeaderMenu()
-    if m.diagnostics <> invalid then m.diagnostics.callFunc("openDiagnostics")
+    openDiagnostics()
+end sub
+
+'-------------------------------------------------------------------------------
+' openDiagnostics
+'-------------------------------------------------------------------------------
+sub openDiagnostics()
+    if m.diagnostics <> invalid then return
+
+    m.diagnostics = CreateObject("roSGNode", "DiagnosticsDialog")
+    if m.diagnostics = invalid then return
+
+    m.diagnostics.observeField("closeRequested", "onDiagnosticsCloseRequested")
+    m.top.appendChild(m.diagnostics)
+    m.diagnostics.callFunc("openDiagnostics")
 end sub
 
 '-------------------------------------------------------------------------------
 ' onDiagnosticsCloseRequested
 '-------------------------------------------------------------------------------
 sub onDiagnosticsCloseRequested()
+    closeDiagnostics()
     if m.header <> invalid and m.header.visible then m.header.callFunc("focusUserMenuButton")
+end sub
+
+'-------------------------------------------------------------------------------
+' closeDiagnostics
+'-------------------------------------------------------------------------------
+sub closeDiagnostics()
+    if m.diagnostics = invalid then return
+
+    m.top.removeChild(m.diagnostics)
+    m.diagnostics = invalid
 end sub
 
 '-------------------------------------------------------------------------------
