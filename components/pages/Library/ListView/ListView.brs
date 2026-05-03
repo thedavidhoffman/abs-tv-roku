@@ -578,6 +578,14 @@ sub focusPlayButton()
 end sub
 
 '-------------------------------------------------------------------------------
+' focusDescription
+'-------------------------------------------------------------------------------
+sub focusDescription()
+    updatePlayButtonFocus(false)
+    if m.detailDescription <> invalid then m.detailDescription.setFocus(true)
+end sub
+
+'-------------------------------------------------------------------------------
 ' onPlayPressed
 '-------------------------------------------------------------------------------
 sub onPlayPressed()
@@ -690,8 +698,18 @@ function onKeyEvent(key as string, press as boolean) as boolean
         if key = "left" then
             focusLibraryList()
             return true
+        else if key = "down" then
+            focusDescription()
+            return true
         else if key = "OK" or key = "select" then
             onPlayPressed()
+            return true
+        end if
+    end if
+
+    if m.detailDescription <> invalid and m.detailDescription.isInFocusChain() then
+        if key = "up" then
+            focusPlayButton()
             return true
         end if
     end if

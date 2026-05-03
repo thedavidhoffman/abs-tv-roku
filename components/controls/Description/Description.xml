@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="Description" extends="Group" focusable="true">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/components/controls/Description/Description.brs" />
+  <interface>
+    <field id="text" type="string" onChange="onTextChanged" />
+    <field id="width" type="float" onChange="onWidthChanged" />
+    <field id="numLines" type="integer" onChange="onNumLinesChanged" />
+    <field id="isTruncated" type="boolean" />
+    <field id="canAcceptFocus" type="boolean" />
+  </interface>
+  <children>
+    <Rectangle
+      id="descriptionFocusRing"
+      color="0xFFFFFF40"
+      visible="false" />
+    <Label
+      id="descriptionLabel"
+      wrap="true"
+      color="0xF3F7FBFF"
+      font="font:SmallestSystemFont" />
+  </children>
+</component>

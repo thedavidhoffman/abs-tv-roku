@@ -46,10 +46,21 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 
 
 ----------------------------------------------------
+- description component
+    prevent focus if not truncated
+    display modal
+
+
+
 - more playback logging
-- description modal -> convert to dialog use on both ListView and Player
+
 - end session when playback stops
 - sync progress
+- load diagnostics and settings dynamically
+
+- investigate passing episode id into play, this might fix our play/advance issue
+- /api/items/${this.libraryItem.id}/play/${this.episodeId}` : `/api/items/${this.libraryItem.id}/play`
+
 - cleanup bad color assignments
 - home screen refresh continue listening
 - in-progress bar for series

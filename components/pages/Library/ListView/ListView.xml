@@ -162,14 +162,11 @@
       color="F3F7FBFF"
       font="font:TinySystemFont"
     />
-    <Label
+    <Description
       id="detailDescription"
       translation="[980,791]"
       width="860"
       numLines="5"
-      wrap="true"
-      color="B7C5D4FF"
-      font="font:SmallestSystemFont"
     />
   </children>
 </component>

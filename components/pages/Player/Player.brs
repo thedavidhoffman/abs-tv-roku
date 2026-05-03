@@ -7,8 +7,6 @@ sub init()
     initHandlers()
     initStyle()
     styleProgressBar()
-    styleDescriptionModal()
-    updateDescriptionFocus(false)
     updateChaptersButtonVisibility()
     updateTransportFocus(-1)
     updatePlayPauseButton()
@@ -20,12 +18,11 @@ end sub
 sub initReferences()
     m.log = CreateLogger("Player")
     m.playerBg = m.top.findNode("playerBg")
-    m.cover = m.top.findNode("cover")
+    m.cover = m.top.findNode("itemPoster")
     m.titleLabel = m.top.findNode("titleLabel")
     m.authorLabel = m.top.findNode("authorLabel")
     m.metadataLabel = m.top.findNode("metadataLabel")
-    m.descriptionLabel = m.top.findNode("descriptionLabel")
-    m.descriptionFocusRing = m.top.findNode("descriptionFocusRing")
+    m.descriptionLabel = m.top.findNode("description")
     m.trackTitleLabel = m.top.findNode("trackTitleLabel")
     m.statusLabel = m.top.findNode("statusLabel")
     m.progressFill = m.top.findNode("progressFill")
@@ -39,13 +36,6 @@ sub initReferences()
     m.playPauseButton = m.top.findNode("playPauseButton")
     m.forwardButton = m.top.findNode("forwardButton")
     m.chaptersButton = m.top.findNode("chaptersButton")
-    m.descriptionModal = m.top.findNode("descriptionModal")
-    m.descriptionModalBackdrop = m.top.findNode("descriptionModalBackdrop")
-    m.descriptionModalPanel = m.top.findNode("descriptionModalPanel")
-    m.modalTitleLabel = m.top.findNode("modalTitleLabel")
-    m.modalDescriptionLabel = m.top.findNode("modalDescriptionLabel")
-    m.modalScrollbarTrack = m.top.findNode("modalScrollbarTrack")
-    m.modalScrollbarThumb = m.top.findNode("modalScrollbarThumb")
     m.chapterList = m.top.findNode("chapterList")
     m.audioPlayer = m.top.findNode("audioPlayer")
 end sub
@@ -81,16 +71,6 @@ sub initValues()
         m.forwardButton
         m.chaptersButton
     ]
-    m.fullDescription = ""
-    m.descriptionIsExpandable = false
-    m.descriptionHasFocus = false
-    m.descriptionScrollY = 0
-    m.descriptionScrollStep = 80
-    m.descriptionViewportHeight = 600
-    m.descriptionLineHeight = 34
-    m.descriptionContentHeight = 600
-    m.modalScrollbarTrackHeight = 600
-    m.modalScrollbarBaseY = 285
     m.isClosing = false
 end sub
 
@@ -148,12 +128,10 @@ sub onPlayRequestChanged()
 
     if m.cover <> invalid then m.cover.itemContent = getCoverContent(request)
     if m.titleLabel <> invalid then m.titleLabel.text = m.audiobookTitle
-    setLabelText(m.modalTitleLabel, m.audiobookTitle)
     if m.chapterList <> invalid then m.chapterList.audiobookTitle = m.audiobookTitle
     updateDetails(request.details)
     resetProgress()
     resetSeekHold()
-    closeDescriptionModal()
     closeChapterList()
     m.tracks = []
     updateChaptersButtonVisibility()
@@ -222,30 +200,17 @@ end function
 sub updateDetails(details as dynamic)
     if details = invalid then details = {}
 
-    m.fullDescription = FirstNonEmpty([details.description], "No description available.")
-    m.descriptionIsExpandable = descriptionNeedsModal(m.fullDescription)
-    m.descriptionScrollY = 0
-    updateDescriptionFocus(false)
+    description = FirstNonEmpty([details.description], "No description available.")
 
     setLabelText(m.authorLabel, "by " + FirstNonEmpty([details.authors], "Unknown"))
     setLabelText(m.metadataLabel, getMetadataText(details))
-    setLabelText(m.descriptionLabel, m.fullDescription)
+    setLabelText(m.descriptionLabel, description)
     setLabelText(m.trackTitleLabel, "")
 
     m.totalDurationSeconds = 0
     setLabelText(m.totalTimeLabel, "0:00")
 end sub
 
-'-------------------------------------------------------------------------------
-' descriptionNeedsModal
-'-------------------------------------------------------------------------------
-function descriptionNeedsModal(description as string) as boolean
-    if Len(description) > 420 then return true
-    if Instr(1, description, Chr(10)) > 0 then return true
-    return false
-end function
-
-'-------------------------------------------------------------------------------
 ' getMetadataText
 '-------------------------------------------------------------------------------
 function getMetadataText(details as dynamic) as string
@@ -575,7 +540,6 @@ sub closePlayer()
     resetSeekHold()
     stopProgressTimer()
     enableScreenSaver()
-    closeDescriptionModal()
     closeChapterList()
     setStatus("Stopping...")
 
@@ -652,19 +616,6 @@ function onKeyEvent(key as string, press as boolean) as boolean
         return false
     end if
 
-    if m.descriptionModal <> invalid and m.descriptionModal.visible then
-        if key = "back" or key = "OK" or key = "select" then
-            closeDescriptionModal()
-            return true
-        else if key = "down" or key = "right" then
-            scrollDescriptionModal(1)
-            return true
-        else if key = "up" or key = "left" then
-            scrollDescriptionModal(-1)
-            return true
-        end if
-    end if
-
     if key = "back" then
         closePlayer()
         return true
@@ -678,12 +629,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             focusTransportButton(m.transportFocusIndex + 1)
             return true
         else if key = "up" then
-            if m.descriptionIsExpandable then
-                updateTransportFocus(-1)
-                updateDescriptionFocus(true)
-            else
-                updateTransportFocus(-1)
-            end if
+            focusDescriptionFromTransport()
             return true
         else if key = "down" then
             return true
@@ -703,25 +649,6 @@ function onKeyEvent(key as string, press as boolean) as boolean
         end if
     end if
 
-    if m.descriptionHasFocus then
-        if key = "OK" or key = "select" then
-            openDescriptionModal()
-            return true
-        else if key = "up" then
-            updateDescriptionFocus(false)
-            return true
-        else if key = "down" then
-            updateDescriptionFocus(false)
-            focusTransportButton(1)
-            return true
-        end if
-    end if
-
-    if m.descriptionIsExpandable and key = "down" then
-        updateDescriptionFocus(true)
-        return true
-    end if
-
     if key = "down" then
         focusTransportButton(1)
         return true
@@ -736,13 +663,22 @@ function onKeyEvent(key as string, press as boolean) as boolean
 end function
 
 '-------------------------------------------------------------------------------
+' focusDescriptionFromTransport
+'-------------------------------------------------------------------------------
+sub focusDescriptionFromTransport()
+    updateTransportFocus(-1)
+    if m.descriptionLabel <> invalid and m.descriptionLabel.canAcceptFocus = true then
+        m.descriptionLabel.setFocus(true)
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
 ' focusTransportButton
 '-------------------------------------------------------------------------------
 sub focusTransportButton(index as integer)
     if index < 0 then index = 0
     transportButtonCount = getTransportButtonCount()
     if index >= transportButtonCount then index = transportButtonCount - 1
-    updateDescriptionFocus(false)
     updateTransportFocus(index)
 
     button = m.transportButtons[index]
@@ -1071,159 +1007,6 @@ sub seekRelative(offsetSeconds as integer)
     updateProgress(nextPosition)
 end sub
 
-'-------------------------------------------------------------------------------
-' updateDescriptionFocus
-'-------------------------------------------------------------------------------
-sub updateDescriptionFocus(hasFocus as boolean)
-    m.descriptionHasFocus = hasFocus and m.descriptionIsExpandable
-    if m.descriptionFocusRing = invalid then return
-
-    if m.descriptionHasFocus then
-        m.descriptionFocusRing.color = Color().background.primary
-    else
-        m.descriptionFocusRing.color = &h29283600
-    end if
-end sub
-
-'-------------------------------------------------------------------------------
-' openDescriptionModal
-'-------------------------------------------------------------------------------
-sub openDescriptionModal()
-    if m.descriptionIsExpandable <> true then return
-    if m.descriptionModal = invalid then return
-
-    styleDescriptionModal()
-    m.descriptionScrollY = 0
-    updateModalDescriptionText()
-    m.descriptionModal.visible = true
-    if m.descriptionModal <> invalid then m.descriptionModal.setFocus(true)
-end sub
-
-'-------------------------------------------------------------------------------
-' styleDescriptionModal
-'-------------------------------------------------------------------------------
-sub styleDescriptionModal()
-    if m.descriptionModalBackdrop <> invalid then m.descriptionModalBackdrop.color = &h000000FF
-    if m.descriptionModalPanel <> invalid then m.descriptionModalPanel.color = &h101B2BFF
-    if m.modalScrollbarTrack <> invalid then m.modalScrollbarTrack.color = &h555555FF
-    if m.modalScrollbarThumb <> invalid then m.modalScrollbarThumb.color = &hE09B42FF
-end sub
-
-'-------------------------------------------------------------------------------
-' closeDescriptionModal
-'-------------------------------------------------------------------------------
-sub closeDescriptionModal()
-    if m.descriptionModal <> invalid then m.descriptionModal.visible = false
-    if m.descriptionLabel <> invalid then m.descriptionLabel.setFocus(true)
-end sub
-
-'-------------------------------------------------------------------------------
-' scrollDescriptionModal
-'-------------------------------------------------------------------------------
-sub scrollDescriptionModal(offset as integer)
-    if m.modalDescriptionLabel = invalid then return
-
-    maxScrollY = getDescriptionMaxScrollY()
-
-    nextScrollY = m.descriptionScrollY
-    if offset > 0 then nextScrollY = m.descriptionScrollY + m.descriptionScrollStep
-    if offset < 0 then nextScrollY = m.descriptionScrollY - m.descriptionScrollStep
-
-    if nextScrollY < 0 then nextScrollY = 0
-    if nextScrollY > maxScrollY then nextScrollY = maxScrollY
-
-    m.descriptionScrollY = nextScrollY
-    updateModalDescriptionText()
-end sub
-
-'-------------------------------------------------------------------------------
-' updateModalDescriptionText
-'-------------------------------------------------------------------------------
-sub updateModalDescriptionText()
-    if m.modalDescriptionLabel = invalid then return
-
-    m.modalDescriptionLabel.text = m.fullDescription
-    updateDescriptionContentHeight()
-    maxScrollY = getDescriptionMaxScrollY()
-    if m.descriptionScrollY > maxScrollY then m.descriptionScrollY = maxScrollY
-    m.modalDescriptionLabel.translation = [0, -m.descriptionScrollY]
-    updateModalScrollbar()
-end sub
-
-'-------------------------------------------------------------------------------
-' getDescriptionMaxScrollY
-'-------------------------------------------------------------------------------
-function getDescriptionMaxScrollY() as integer
-    contentHeight = getDescriptionContentHeight()
-    maxScrollY = contentHeight - m.descriptionViewportHeight - (m.descriptionLineHeight * 4)
-    if maxScrollY < 0 then maxScrollY = 0
-    return maxScrollY
-end function
-
-'-------------------------------------------------------------------------------
-' updateDescriptionContentHeight
-'-------------------------------------------------------------------------------
-sub updateDescriptionContentHeight()
-    m.descriptionContentHeight = getEstimatedDescriptionContentHeight()
-
-    if m.modalDescriptionLabel <> invalid then
-        bounds = m.modalDescriptionLabel.boundingRect()
-        if bounds <> invalid and bounds.height <> invalid and bounds.height > m.descriptionContentHeight then
-            m.descriptionContentHeight = int(bounds.height)
-        end if
-    end if
-end sub
-
-'-------------------------------------------------------------------------------
-' getDescriptionContentHeight
-'-------------------------------------------------------------------------------
-function getDescriptionContentHeight() as integer
-    if m.descriptionContentHeight = invalid or m.descriptionContentHeight <= 0 then
-        return getEstimatedDescriptionContentHeight()
-    end if
-
-    return m.descriptionContentHeight
-end function
-
-'-------------------------------------------------------------------------------
-' getEstimatedDescriptionContentHeight
-'-------------------------------------------------------------------------------
-function getEstimatedDescriptionContentHeight() as integer
-    estimatedLineCount = int(Len(m.fullDescription) / 42) + 1
-    for i = 1 to Len(m.fullDescription)
-        if Mid(m.fullDescription, i, 1) = Chr(10) then estimatedLineCount = estimatedLineCount + 1
-    end for
-
-    estimatedHeight = estimatedLineCount * m.descriptionLineHeight
-    if estimatedHeight < m.descriptionViewportHeight then estimatedHeight = m.descriptionViewportHeight
-    return estimatedHeight
-end function
-
-'-------------------------------------------------------------------------------
-' updateModalScrollbar
-'-------------------------------------------------------------------------------
-sub updateModalScrollbar()
-    if m.modalScrollbarThumb = invalid then return
-
-    maxScrollY = getDescriptionMaxScrollY()
-    if maxScrollY <= 0 then
-        m.modalScrollbarThumb.visible = false
-        return
-    end if
-
-    m.modalScrollbarThumb.visible = true
-    thumbHeight = int((m.descriptionViewportHeight / getDescriptionContentHeight()) * m.modalScrollbarTrackHeight)
-    if thumbHeight < 56 then thumbHeight = 56
-    if thumbHeight > m.modalScrollbarTrackHeight then thumbHeight = m.modalScrollbarTrackHeight
-
-    maxThumbY = m.modalScrollbarTrackHeight - thumbHeight
-    thumbY = m.modalScrollbarBaseY + int((m.descriptionScrollY / maxScrollY) * maxThumbY)
-
-    m.modalScrollbarThumb.height = thumbHeight
-    m.modalScrollbarThumb.translation = [m.modalScrollbarThumb.translation[0], thumbY]
-end sub
-
-'-------------------------------------------------------------------------------
 ' onProgressTimerFired
 '-------------------------------------------------------------------------------
 sub onProgressTimerFired()
