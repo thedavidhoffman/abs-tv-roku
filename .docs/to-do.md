@@ -46,6 +46,7 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 
 
 ----------------------------------------------------
+- more playback logging
 - description modal -> convert to dialog use on both ListView and Player
 - end session when playback stops
 - sync progress

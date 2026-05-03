@@ -62,6 +62,7 @@ sub onLibraryItemsChanged()
                     progressCurrentTime: progress.currentTime
                     progressDuration: progress.duration
                     progressIsFinished: progress.isFinished
+                    focused: false
                 })
                 root.appendChild(node)
                 m.libraryItemsByIndex.Push(item)

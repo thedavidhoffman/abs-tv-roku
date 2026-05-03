@@ -105,7 +105,7 @@ sub updateStatus(rowCount as integer)
     if hasItems then
         m.statusLabel.text = ""
     else
-        m.statusLabel.text = "Nothing in progress"
+        m.statusLabel.text = "Loading"
     end if
 end sub
 

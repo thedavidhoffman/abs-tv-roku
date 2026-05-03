@@ -17,7 +17,7 @@ end function
 '-------------------------------------------------------------------------------
 ' SafeString
 '-------------------------------------------------------------------------------
-function SafeString(value as dynamic, fallback as string) as string
+function SafeString(value as dynamic, fallback = "" as string) as string
     if value = invalid then return fallback
     return value.ToStr()
 end function

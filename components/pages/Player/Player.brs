@@ -18,6 +18,7 @@ end sub
 ' initReferences
 '-------------------------------------------------------------------------------
 sub initReferences()
+    m.log = CreateLogger("Player")
     m.playerBg = m.top.findNode("playerBg")
     m.cover = m.top.findNode("cover")
     m.titleLabel = m.top.findNode("titleLabel")
@@ -119,11 +120,23 @@ end sub
 ' onPlayRequestChanged
 '-------------------------------------------------------------------------------
 sub onPlayRequestChanged()
+
+    m.log.log("onPlayRequestChanged")
+
     request = m.top.playRequest
-    if request = invalid then return
+
+    if request = invalid then 
+        m.log.log("invalid request")
+        return
+    end if
+
+    m.log.log("title = " + SafeString(request.title))
+    m.log.log("itemId = " + SafeString(request.itemId))
+    m.log.log("startPosition = " + SafeString(request.startPosition))
 
     m.isClosing = false
     if m.closeTimer <> invalid then m.closeTimer.control = "stop"
+
     m.playbackServer = request.server
     m.playbackToken = request.token
     m.playbackSession = invalid
@@ -176,6 +189,9 @@ end function
 ' onPlaybackResponseChanged
 '-------------------------------------------------------------------------------
 sub onPlaybackResponseChanged()
+
+    m.log.log("onPlaybackResponseChanged")
+
     response = m.top.playbackResponse
     if response = invalid then return
     if m.isClosing = true then return
@@ -227,14 +243,6 @@ function descriptionNeedsModal(description as string) as boolean
     if Len(description) > 420 then return true
     if Instr(1, description, Chr(10)) > 0 then return true
     return false
-end function
-
-'-------------------------------------------------------------------------------
-' getSingularPluralText
-'-------------------------------------------------------------------------------
-function getSingularPluralText(singularLabel as string, count as dynamic) as string
-    if count <> invalid and int(val(count.ToStr())) > 1 then return singularLabel + "s"
-    return singularLabel
 end function
 
 '-------------------------------------------------------------------------------
@@ -293,6 +301,9 @@ end function
 ' playTracks
 '-------------------------------------------------------------------------------
 sub playTracks(tracks as dynamic)
+
+    m.log.log("playTracks")
+
     if m.audioPlayer = invalid then return
     if tracks = invalid or tracks.Count() = 0 then
         setStatus("No playable audio tracks were returned.")
@@ -311,6 +322,9 @@ end sub
 ' playCurrentTrack
 '-------------------------------------------------------------------------------
 sub playCurrentTrack()
+
+    m.log.log("playCurrentTrack")
+
     if m.audioPlayer = invalid then return
     if m.tracks = invalid or m.currentTrackIndex < 0 or m.currentTrackIndex >= m.tracks.Count() then return
 
@@ -321,7 +335,7 @@ sub playCurrentTrack()
     node.streamFormat = getStreamFormat(track.mimeType, track.url)
     node.contentType = "audio"
 
-    ? "player track"; " index="; m.currentTrackIndex; " format="; node.streamFormat; " url="; node.url
+    m.log.log("track index=" + m.currentTrackIndex.ToStr() + " format=" + SafeString(node.streamFormat) + " url=" + SafeString(node.url))
 
     m.totalDurationSeconds = getTrackDurationSeconds(track)
     m.currentTrackStartPosition = getTrackStartPosition(track)

@@ -1,7 +1,7 @@
 '-------------------------------------------------------------------------------
 ' Playback_Start
 '-------------------------------------------------------------------------------
-function Playback_Start(request as Object) as Object
+function Playback_Start(request as object) as object
     log = CreateLogger("Playback_Start")
 
     server = NormalizeServerUrl(request.server)
@@ -33,14 +33,26 @@ function Playback_Start(request as Object) as Object
 
     log.log("forceDirectPlay=" + bodyData.forceDirectPlay.ToStr() + " forceTranscode=" + bodyData.forceTranscode.ToStr() + " supportedMimeTypes=" + ___JoinStringValues(bodyData.supportedMimeTypes))
 
-    result = HttpClient_Request(server + "/api/items/" + itemId + "/play", "POST", token, body)
-    if result.ok <> true then return result
+    playbackUrl = server + "/api/items/" + itemId + "/play"
+    playbackResult = HttpClient_Request(playbackUrl, "POST", token, body)
 
-    itemResult = HttpClient_Request(server + "/api/items/" + itemId, "GET", token, invalid)
+    log.log(playbackUrl)
+    log.log("status = " + SafeString(playbackResult.status))
+
+    if playbackResult.ok <> true then return playbackResult
+
+    ' get the item so that we can get track information
+    itemUrl = server + "/api/items/" + itemId
+    itemResult = HttpClient_Request(itemUrl, "GET", token, invalid)
     itemPayload = invalid
+
+    log.log("getting item for track data")
+    log.log(itemUrl)
+    log.log("status = " + SafeString(itemResult.status))
+
     if itemResult.ok = true then itemPayload = itemResult.data
 
-    tracks = ___MapTracks(server, token, result.data, itemPayload, log)
+    tracks = ___MapTracks(server, token, playbackResult.data, itemPayload, log)
     if tracks.Count() = 0 then
         return { ok: false, errorMessage: "No playable audio tracks were returned." }
     end if
@@ -50,7 +62,7 @@ function Playback_Start(request as Object) as Object
         action: "startPlayback"
         itemId: itemId
         title: request.title
-        playbackSession: result.data
+        playbackSession: playbackResult.data
         tracks: tracks
     }
 end function
@@ -58,7 +70,7 @@ end function
 '-------------------------------------------------------------------------------
 ' Playback_CloseSession
 '-------------------------------------------------------------------------------
-function Playback_CloseSession(request as Object) as Object
+function Playback_CloseSession(request as object) as object
     log = CreateLogger("Playback_CloseSession")
 
     server = NormalizeServerUrl(request.server)
@@ -84,7 +96,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___JoinStringValues
 '-------------------------------------------------------------------------------
-function ___JoinStringValues(values as Dynamic) as String
+function ___JoinStringValues(values as dynamic) as string
     if values = invalid then return ""
 
     result = ""
@@ -99,7 +111,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___MapTracks
 '-------------------------------------------------------------------------------
-function ___MapTracks(server as String, token as Dynamic, payload as Dynamic, itemPayload as Dynamic, log as Object) as Object
+function ___MapTracks(server as string, token as dynamic, payload as dynamic, itemPayload as dynamic, log as object) as object
     mappedTracks = []
     tracks = ___GetSessionTracks(payload)
     files = ___GetSessionFiles(payload, itemPayload)
@@ -161,7 +173,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___GetArrayCount
 '-------------------------------------------------------------------------------
-function ___GetArrayCount(values as Dynamic) as Integer
+function ___GetArrayCount(values as dynamic) as integer
     if values = invalid then return 0
     return values.Count()
 end function
@@ -169,7 +181,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___GetTrackForFileIndex
 '-------------------------------------------------------------------------------
-function ___GetTrackForFileIndex(tracks as Dynamic, file as Dynamic, fallbackIndex as Integer) as Dynamic
+function ___GetTrackForFileIndex(tracks as dynamic, file as dynamic, fallbackIndex as integer) as dynamic
     if tracks = invalid or tracks.Count() = 0 then return invalid
 
     fileIndex = ___GetFileIndex(file, fallbackIndex)
@@ -185,7 +197,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___GetFileIndex
 '-------------------------------------------------------------------------------
-function ___GetFileIndex(file as Dynamic, fallbackIndex as Integer) as Integer
+function ___GetFileIndex(file as dynamic, fallbackIndex as integer) as integer
     if file <> invalid then
         if file.index <> invalid then return int(val(file.index.ToStr()))
         if file.trackNum <> invalid then return int(val(file.trackNum.ToStr()))
@@ -197,7 +209,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___BuildFileUrl
 '-------------------------------------------------------------------------------
-function ___BuildFileUrl(server as String, token as Dynamic, sessionId as Dynamic, file as Dynamic, track as Dynamic, fallbackIndex as Integer) as String
+function ___BuildFileUrl(server as string, token as dynamic, sessionId as dynamic, file as dynamic, track as dynamic, fallbackIndex as integer) as string
     if track <> invalid and track.contentUrl <> invalid and track.contentUrl <> "" then
         return ___BuildUrl(server, token, sessionId, track)
     end if
@@ -216,7 +228,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___GetSessionTracks
 '-------------------------------------------------------------------------------
-function ___GetSessionTracks(payload as Dynamic) as Dynamic
+function ___GetSessionTracks(payload as dynamic) as dynamic
     if payload = invalid then return invalid
 
     if payload.audioTracks <> invalid then return payload.audioTracks
@@ -230,7 +242,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___GetSessionFiles
 '-------------------------------------------------------------------------------
-function ___GetSessionFiles(payload as Dynamic, itemPayload as Dynamic) as Dynamic
+function ___GetSessionFiles(payload as dynamic, itemPayload as dynamic) as dynamic
     files = ___GetItemFiles(itemPayload)
     if files <> invalid then return files
 
@@ -241,7 +253,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___GetItemFiles
 '-------------------------------------------------------------------------------
-function ___GetItemFiles(item as Dynamic) as Dynamic
+function ___GetItemFiles(item as dynamic) as dynamic
     if item = invalid or item.media = invalid then return invalid
 
     if item.media.audioFiles <> invalid then return item.media.audioFiles
@@ -252,7 +264,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___GetFileForTrack
 '-------------------------------------------------------------------------------
-function ___GetFileForTrack(files as Dynamic, track as Dynamic, fallbackIndex as Integer) as Dynamic
+function ___GetFileForTrack(files as dynamic, track as dynamic, fallbackIndex as integer) as dynamic
     if files = invalid or files.Count() = 0 then return invalid
 
     trackIndex = fallbackIndex
@@ -270,7 +282,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___GetTrackTitle
 '-------------------------------------------------------------------------------
-function ___GetTrackTitle(file as Dynamic, track as Dynamic, index as Integer) as String
+function ___GetTrackTitle(file as dynamic, track as dynamic, index as integer) as string
     title = ""
 
     if file <> invalid then
@@ -294,7 +306,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___GetTrackMimeType
 '-------------------------------------------------------------------------------
-function ___GetTrackMimeType(file as Dynamic, track as Dynamic) as String
+function ___GetTrackMimeType(file as dynamic, track as dynamic) as string
     if track <> invalid and track.mimeType <> invalid then return SafeString(track.mimeType, "audio/mpeg")
     if file <> invalid and file.mimeType <> invalid then return SafeString(file.mimeType, "audio/mpeg")
     if file <> invalid and file.metadata <> invalid and file.metadata.mimeType <> invalid then return SafeString(file.metadata.mimeType, "audio/mpeg")
@@ -304,7 +316,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___GetTrackDurationSeconds
 '-------------------------------------------------------------------------------
-function ___GetTrackDurationSeconds(file as Dynamic, track as Dynamic) as Integer
+function ___GetTrackDurationSeconds(file as dynamic, track as dynamic) as integer
     duration = invalid
 
     if file <> invalid then
@@ -324,7 +336,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___BuildUrl
 '-------------------------------------------------------------------------------
-function ___BuildUrl(server as String, token as Dynamic, sessionId as Dynamic, track as Dynamic) as String
+function ___BuildUrl(server as string, token as dynamic, sessionId as dynamic, track as dynamic) as string
     contentUrl = SafeString(track.contentUrl, "")
     lowerContentUrl = LCase(contentUrl)
 
@@ -349,7 +361,7 @@ end function
 '-------------------------------------------------------------------------------
 ' ___ReplaceString
 '-------------------------------------------------------------------------------
-function ___ReplaceString(value as String, oldValue as String, newValue as String) as String
+function ___ReplaceString(value as string, oldValue as string, newValue as string) as string
     result = ""
     remaining = value
     index = Instr(1, remaining, oldValue)
