@@ -12,7 +12,7 @@ sub init()
     m.changeServerSelectedCounter = 0
     m.settingsSelectedCounter = 0
     m.downSelectedCounter = 0
-    m.usernameUpSequenceSelectedCounter = 0
+    m.overlayRequestedCounter = 0
     m.usernameUpPressCount = 0
 
     initStyle()
@@ -148,8 +148,13 @@ function trackUsernameUpSequence() as boolean
 
     if m.usernameUpPressCount >= 5 then
         resetUsernameUpSequence()
-        m.usernameUpSequenceSelectedCounter = m.usernameUpSequenceSelectedCounter + 1
-        m.top.usernameUpSequenceSelected = m.usernameUpSequenceSelectedCounter
+        m.overlayRequestedCounter = m.overlayRequestedCounter + 1
+        m.top.overlayRequested = {
+            componentName: "DiagnosticsDialog"
+            closeField: "closeRequested"
+            openFunction: "openDiagnostics"
+            counter: m.overlayRequestedCounter
+        }
     end if
 
     return true

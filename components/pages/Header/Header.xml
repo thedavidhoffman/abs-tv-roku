@@ -14,7 +14,7 @@
     <field id="settingsSelected" type="integer" />
     <field id="logoutSelected" type="integer" />
     <field id="changeServerSelected" type="integer" />
-    <field id="usernameUpSequenceSelected" type="integer" />
+    <field id="overlayRequested" type="assocarray" />
     <function name="focusHeader" />
     <function name="focusUserMenuButton" />
     <function name="isHomeButtonFocused" />

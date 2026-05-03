@@ -51,7 +51,7 @@ sub initHandlers()
     m.header.observeField("settingsSelected", "onSettingsPressed")
     m.header.observeField("logoutSelected", "onLogoutPressed")
     m.header.observeField("changeServerSelected", "onChangeServerPressed")
-    m.header.observeField("usernameUpSequenceSelected", "onDiagnosticsSequencePressed")
+    m.header.observeField("overlayRequested", "onOverlayRequested")
     m.homePage.observeField("backSelected", "onHomePageBackSelected")
     m.homePage.observeField("upFromFirstRowSelected", "onHomePageUpFromFirstRowSelected")
     m.homePage.observeField("playSelected", "onHomePagePlaySelected")
@@ -661,17 +661,16 @@ sub resetLibraryDrilldown()
 end sub
 
 '-------------------------------------------------------------------------------
-' onDiagnosticsSequencePressed
+' onOverlayRequested
 '-------------------------------------------------------------------------------
-sub onDiagnosticsSequencePressed()
+sub onOverlayRequested()
     closeHeaderMenu()
-    if m.overlayHost <> invalid then
-        m.overlayHost.callFunc("openOverlay", {
-            componentName: "DiagnosticsDialog"
-            closeField: "closeRequested"
-            openFunction: "openDiagnostics"
-        })
-    end if
+    if m.overlayHost = invalid then return
+
+    request = m.header.overlayRequested
+    if request = invalid then return
+
+    m.overlayHost.callFunc("openOverlay", request)
 end sub
 
 '-------------------------------------------------------------------------------
