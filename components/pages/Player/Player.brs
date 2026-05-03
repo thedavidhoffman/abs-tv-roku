@@ -337,9 +337,9 @@ sub playCurrentTrack()
     m.audioPlayer.content = node
     m.isPaused = false
     disableScreenSaver()
-    m.audioPlayer.control = "play"
     seekPosition = getInitialTrackSeekPosition()
     if seekPosition > 0 then m.audioPlayer.seek = seekPosition
+    m.audioPlayer.control = "play"
     m.pendingTrackSeekPosition = invalid
     setStatus("Playing")
     updatePlayPauseButton()
