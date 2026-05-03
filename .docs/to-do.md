@@ -48,12 +48,10 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 ## Hit List
 ----------------------------------------------------
 
-- load settings dynamically using overlayhost
 - check if description dialog could do the same
-
-- from settings, only reload if settings were changed
-
 - more playback logging
+- grid top nav, support up event move on first row to header
+- exit confirmation
 
 - end session when playback stops
 - sync progress

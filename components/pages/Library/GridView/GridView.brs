@@ -409,17 +409,34 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if key <> "up" and key <> "back" then return false
     if m.markupGrid = invalid then return false
     if m.markupGrid.isInFocusChain() = false then return false
-    if getValidItemIndex(m.markupGrid.itemFocused) > 0 then return false
+
+    itemIndex = getValidItemIndex(m.markupGrid.itemFocused)
 
     if key = "back" then
+        if itemIndex > 0 then return false
+
         m.backFromFirstItemSelectedCounter = m.backFromFirstItemSelectedCounter + 1
         m.top.backFromFirstItemSelected = m.backFromFirstItemSelectedCounter
         return true
     end if
 
+    if isIndexInFirstRow(itemIndex) = false then return false
+
     m.upFromFirstItemSelectedCounter = m.upFromFirstItemSelectedCounter + 1
     m.top.upFromFirstItemSelected = m.upFromFirstItemSelectedCounter
     return true
+end function
+
+'-------------------------------------------------------------------------------
+' isIndexInFirstRow
+'-------------------------------------------------------------------------------
+function isIndexInFirstRow(index as integer) as boolean
+    columnCount = 1
+    if m.markupGrid <> invalid and m.markupGrid.numColumns <> invalid and m.markupGrid.numColumns > 0 then
+        columnCount = m.markupGrid.numColumns
+    end if
+
+    return index >= 0 and index < columnCount
 end function
 
 '-------------------------------------------------------------------------------
