@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="DescriptionDialogContent" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/controls/Description/DescriptionDialogContent.brs" />
+  <interface>
+    <field id="text" type="string" onChange="onTextChanged" />
+  </interface>
+  <children>
+    <Label
+      id="descriptionText"
+      width="1200"
+      height="600"
+      wrap="true"
+      color="0xF3F7FBFF"
+      font="font:SmallestSystemFont" />
+  </children>
+</component>

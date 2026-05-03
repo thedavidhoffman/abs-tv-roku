@@ -4,6 +4,7 @@
   <script type="text/brightscript" uri="pkg:/components/controls/Description/Description.brs" />
   <interface>
     <field id="text" type="string" onChange="onTextChanged" />
+    <field id="title" type="string" />
     <field id="width" type="float" onChange="onWidthChanged" />
     <field id="numLines" type="integer" onChange="onNumLinesChanged" />
     <field id="isTruncated" type="boolean" />

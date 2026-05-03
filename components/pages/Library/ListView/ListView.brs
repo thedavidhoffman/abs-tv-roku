@@ -320,10 +320,10 @@ sub updateSelectedDetails(item as dynamic)
     setLabelText(m.detailGenres, getItemGenres(metadata))
     setLabelText(m.detailTags, getItemTags(metadata))
     setLabelText(m.detailDuration, getItemDuration(item))
+    if m.detailDescription <> invalid then m.detailDescription.title = getLibraryItemTitle(item)
     setLabelText(m.detailDescription, getItemDescription(metadata))
 end sub
 
-'-------------------------------------------------------------------------------
 ' getItemMetadata
 '-------------------------------------------------------------------------------
 function getItemMetadata(item as dynamic) as dynamic

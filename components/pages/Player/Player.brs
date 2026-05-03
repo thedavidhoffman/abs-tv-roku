@@ -128,6 +128,7 @@ sub onPlayRequestChanged()
 
     if m.cover <> invalid then m.cover.itemContent = getCoverContent(request)
     if m.titleLabel <> invalid then m.titleLabel.text = m.audiobookTitle
+    if m.descriptionLabel <> invalid then m.descriptionLabel.title = m.audiobookTitle
     if m.chapterList <> invalid then m.chapterList.audiobookTitle = m.audiobookTitle
     updateDetails(request.details)
     resetProgress()
@@ -211,6 +212,7 @@ sub updateDetails(details as dynamic)
     setLabelText(m.totalTimeLabel, "0:00")
 end sub
 
+'-------------------------------------------------------------------------------
 ' getMetadataText
 '-------------------------------------------------------------------------------
 function getMetadataText(details as dynamic) as string
@@ -672,7 +674,6 @@ sub focusDescriptionFromTransport()
     end if
 end sub
 
-'-------------------------------------------------------------------------------
 ' focusTransportButton
 '-------------------------------------------------------------------------------
 sub focusTransportButton(index as integer)

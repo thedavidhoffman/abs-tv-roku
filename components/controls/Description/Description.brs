@@ -4,6 +4,7 @@
 sub init()
     m.descriptionFocusRing = m.top.findNode("descriptionFocusRing")
     m.descriptionLabel = m.top.findNode("descriptionLabel")
+    m.descriptionDialog = invalid
     m.top.observeField("focusedChild", "onFocusChanged")
 
     ' padding value for focus ring
@@ -141,3 +142,57 @@ function descriptionNeedsFocus() as boolean
 
     return false
 end function
+
+'-------------------------------------------------------------------------------
+' onKeyEvent
+'-------------------------------------------------------------------------------
+function onKeyEvent(key as string, press as boolean) as boolean
+    if press = false then return false
+    if key <> "OK" and key <> "select" then return false
+    if m.top.canAcceptFocus <> true then return false
+
+    openDescriptionDialog()
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' openDescriptionDialog
+'-------------------------------------------------------------------------------
+sub openDescriptionDialog()
+    closeDescriptionDialog(false)
+
+    scene = m.top.getScene()
+    if scene = invalid then return
+
+    m.descriptionDialog = CreateObject("roSGNode", "DescriptionDialog")
+    if m.descriptionDialog = invalid then return
+
+    m.descriptionDialog.dialogWidth = 1320
+    m.descriptionDialog.dialogHeight = 850
+    m.descriptionDialog.contentComponentName = "DescriptionDialogContent"
+    m.descriptionDialog.title = SafeString(m.top.title, "Description")
+    m.descriptionDialog.text = SafeString(m.top.text)
+    m.descriptionDialog.observeField("closeRequested", "onDescriptionDialogClosed")
+    scene.appendChild(m.descriptionDialog)
+    m.descriptionDialog.callFunc("openDialog")
+end sub
+
+'-------------------------------------------------------------------------------
+' onDescriptionDialogClosed
+'-------------------------------------------------------------------------------
+sub onDescriptionDialogClosed()
+    closeDescriptionDialog(true)
+end sub
+
+'-------------------------------------------------------------------------------
+' closeDescriptionDialog
+'-------------------------------------------------------------------------------
+sub closeDescriptionDialog(returnFocus as boolean)
+    if m.descriptionDialog = invalid then return
+
+    scene = m.top.getScene()
+    if scene <> invalid then scene.removeChild(m.descriptionDialog)
+    m.descriptionDialog = invalid
+
+    if returnFocus then m.top.setFocus(true)
+end sub
