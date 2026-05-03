@@ -42,12 +42,16 @@ This is my first time developing a Roku app, and to be honest, it would not have
 
 Ok, all that being said, if you're interested in being a beta tester hit me up in the comments. And if anyone out there is asking themselves if you can trust some random Roku app from some random guy on the internet, that is most definitely a question you should be asking yourself. I'll say two things in reponse to that. First, I am in no way attempting to exploit or track any of your data. And second, if you're using an ABS client on your iPhone or Android, then you've already extended your trust to those apps.
 
+
+
+
 ## Hit List
-
-
 ----------------------------------------------------
 
-- load diagnostics and settings dynamically
+- load settings dynamically using overlayhost
+- check if description dialog could do the same
+
+- from settings, only reload if settings were changed
 
 - more playback logging
 

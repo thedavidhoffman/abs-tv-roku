@@ -3,6 +3,7 @@
 '-------------------------------------------------------------------------------
 sub init()
     m.activeOverlay = invalid
+    m.activeRequest = invalid
     m.closedCounter = 0
 end sub
 
@@ -27,6 +28,7 @@ function openOverlay(request as dynamic) as dynamic
 
     m.top.appendChild(overlay)
     m.activeOverlay = overlay
+    m.activeRequest = request
 
     openFunction = request.openFunction
     if openFunction <> invalid and openFunction <> "" then overlay.callFunc(openFunction)
@@ -42,13 +44,20 @@ sub closeOverlay()
 
     m.top.removeChild(m.activeOverlay)
     m.activeOverlay = invalid
+    m.activeRequest = invalid
 end sub
 
 '-------------------------------------------------------------------------------
 ' onOverlayClosed
 '-------------------------------------------------------------------------------
 sub onOverlayClosed()
+    closedOverlay = m.activeOverlay
+    closedRequest = m.activeRequest
     closeOverlay()
     m.closedCounter = m.closedCounter + 1
-    m.top.closedCounter = m.closedCounter
+    m.top.closed = {
+        overlay: closedOverlay
+        request: closedRequest
+        counter: m.closedCounter
+    }
 end sub

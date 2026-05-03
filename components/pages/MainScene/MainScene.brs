@@ -29,7 +29,6 @@ sub initReferences()
     m.homePage = m.top.findNode("homePage")
     m.library = m.top.findNode("library")
     m.search = m.top.findNode("search")
-    m.settings = m.top.findNode("settings")
     m.exitConfirmation = m.top.findNode("exitConfirmation")
     m.player = m.top.findNode("player")
     m.overlayHost = m.top.findNode("overlayHost")
@@ -48,7 +47,6 @@ sub initHandlers()
     m.header.observeField("librarySelected", "onLibraryPressed")
     m.header.observeField("searchSelected", "onSearchPressed")
     m.header.observeField("downSelected", "onHeaderDownPressed")
-    m.header.observeField("settingsSelected", "onSettingsPressed")
     m.header.observeField("logoutSelected", "onLogoutPressed")
     m.header.observeField("changeServerSelected", "onChangeServerPressed")
     m.header.observeField("overlayRequested", "onOverlayRequested")
@@ -64,11 +62,9 @@ sub initHandlers()
     m.player.observeField("errorResponse", "onPlayerError")
     m.player.observeField("playbackStartRequested", "onPlaybackStartRequested")
     m.player.observeField("playbackCloseRequested", "onPlaybackCloseRequested")
-    m.settings.observeField("closeRequested", "onSettingsCloseRequested")
-    m.settings.observeField("settingsSaved", "onSettingsSaved")
     m.exitConfirmation.observeField("confirmed", "onExitConfirmationConfirmed")
     m.exitConfirmation.observeField("canceled", "onExitConfirmationCanceled")
-    m.overlayHost.observeField("closedCounter", "onOverlayClosed")
+    m.overlayHost.observeField("closed", "onOverlayClosed")
     m.apiTask.observeField("response", "onApiResponse")
     m.playbackApiTask.observeField("response", "onPlaybackApiResponse")
     m.libraryApiTask.observeField("response", "onLibraryApiResponse")
@@ -508,32 +504,6 @@ sub onLibrarySeriesSelected()
     })
 end sub
 
-'-------------------------------------------------------------------------------
-' onSettingsPressed
-'-------------------------------------------------------------------------------
-sub onSettingsPressed()
-    closeHeaderMenu()
-    if m.settings <> invalid then m.settings.callFunc("openSettings")
-end sub
-
-'-------------------------------------------------------------------------------
-' onSettingsCloseRequested
-'-------------------------------------------------------------------------------
-sub onSettingsCloseRequested()
-end sub
-
-'-------------------------------------------------------------------------------
-' onSettingsSaved
-'-------------------------------------------------------------------------------
-sub onSettingsSaved()
-    if m.library <> invalid and m.settings <> invalid then
-        m.library.displaySettings = m.settings.savedSettings
-    end if
-    m.focusSettingsAfterLibraryReload = true
-    reloadLibraryItems()
-end sub
-
-'-------------------------------------------------------------------------------
 ' reloadLibraryItems
 '-------------------------------------------------------------------------------
 sub reloadLibraryItems()
@@ -607,6 +577,7 @@ sub storeLibraryItems(response as object)
 
     if m.focusSettingsAfterLibraryReload = true then
         m.focusSettingsAfterLibraryReload = false
+        if m.header <> invalid and m.header.visible then m.header.callFunc("focusSettingsButton")
     end if
 end sub
 
@@ -677,7 +648,25 @@ end sub
 ' onOverlayClosed
 '-------------------------------------------------------------------------------
 sub onOverlayClosed()
+    closed = m.overlayHost.closed
+    if closed <> invalid and closed.request <> invalid and closed.request.id = "settings" and closed.overlay <> invalid then
+        onSettingsSaved(closed.overlay.savedSettings)
+        if m.header <> invalid and m.header.visible then m.header.callFunc("focusSettingsButton")
+        return
+    end if
+
     if m.header <> invalid and m.header.visible then m.header.callFunc("focusUserMenuButton")
+end sub
+
+'-------------------------------------------------------------------------------
+' onSettingsSaved
+'-------------------------------------------------------------------------------
+sub onSettingsSaved(savedSettings as dynamic)
+    if savedSettings = invalid then return
+
+    if m.library <> invalid then m.library.displaySettings = savedSettings
+    m.focusSettingsAfterLibraryReload = true
+    reloadLibraryItems()
 end sub
 
 '-------------------------------------------------------------------------------

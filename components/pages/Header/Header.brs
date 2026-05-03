@@ -10,7 +10,6 @@ sub init()
     m.searchSelectedCounter = 0
     m.logoutSelectedCounter = 0
     m.changeServerSelectedCounter = 0
-    m.settingsSelectedCounter = 0
     m.downSelectedCounter = 0
     m.overlayRequestedCounter = 0
     m.usernameUpPressCount = 0
@@ -92,6 +91,17 @@ function focusHeader() as boolean
 end function
 
 '-------------------------------------------------------------------------------
+' focusSettingsButton
+'-------------------------------------------------------------------------------
+function focusSettingsButton() as boolean
+    closeMenu()
+    if m.settingsButton = invalid then return false
+
+    m.settingsButton.setFocus(true)
+    return true
+end function
+
+'-------------------------------------------------------------------------------
 ' focusUserMenuButton
 '-------------------------------------------------------------------------------
 function focusUserMenuButton() as boolean
@@ -114,7 +124,6 @@ end function
 '-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
-
     if key = "left" then
         resetUsernameUpSequence()
         return focusHeaderButtonByOffset(-1)
@@ -150,6 +159,7 @@ function trackUsernameUpSequence() as boolean
         resetUsernameUpSequence()
         m.overlayRequestedCounter = m.overlayRequestedCounter + 1
         m.top.overlayRequested = {
+            id: "diagnostics"
             componentName: "DiagnosticsDialog"
             closeField: "closeRequested"
             openFunction: "openDiagnostics"
@@ -278,8 +288,14 @@ end sub
 '-------------------------------------------------------------------------------
 sub onSettingsPressed()
     closeMenu()
-    m.settingsSelectedCounter = m.settingsSelectedCounter + 1
-    m.top.settingsSelected = m.settingsSelectedCounter
+    m.overlayRequestedCounter = m.overlayRequestedCounter + 1
+    m.top.overlayRequested = {
+        id: "settings"
+        componentName: "SettingsDialog"
+        closeField: "closeRequested"
+        openFunction: "openSettings"
+        counter: m.overlayRequestedCounter
+    }
 end sub
 
 '-------------------------------------------------------------------------------
