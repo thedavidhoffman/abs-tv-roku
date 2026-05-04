@@ -29,7 +29,6 @@ sub initReferences()
     m.homePage = m.top.findNode("homePage")
     m.library = m.top.findNode("library")
     m.search = m.top.findNode("search")
-    m.exitConfirmation = m.top.findNode("exitConfirmation")
     m.player = m.top.findNode("player")
     m.overlayHost = m.top.findNode("overlayHost")
     m.apiTask = m.top.findNode("apiTask")
@@ -63,8 +62,6 @@ sub initHandlers()
     m.player.observeField("errorResponse", "onPlayerError")
     m.player.observeField("playbackStartRequested", "onPlaybackStartRequested")
     m.player.observeField("playbackCloseRequested", "onPlaybackCloseRequested")
-    m.exitConfirmation.observeField("confirmed", "onExitConfirmationConfirmed")
-    m.exitConfirmation.observeField("canceled", "onExitConfirmationCanceled")
     m.overlayHost.observeField("closed", "onOverlayClosed")
     m.apiTask.observeField("response", "onApiResponse")
     m.playbackApiTask.observeField("response", "onPlaybackApiResponse")
@@ -372,7 +369,7 @@ end sub
 ' onHeaderBackPressed
 '-------------------------------------------------------------------------------
 sub onHeaderBackPressed()
-    if m.exitConfirmation <> invalid then m.exitConfirmation.callFunc("openConfirmation")
+    openExitDialog()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -663,6 +660,16 @@ sub onOverlayClosed()
         return
     end if
 
+    if closed <> invalid and closed.request <> invalid and closed.request.id = "exit" and closed.overlay <> invalid then
+        if closed.overlay.confirmed <> invalid and closed.overlay.confirmed > 0 then
+            m.top.closeRequested = true
+            return
+        end if
+
+        if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+        return
+    end if
+
     if m.header <> invalid and m.header.visible then m.header.callFunc("focusUserMenuButton")
 end sub
 
@@ -678,19 +685,20 @@ sub onSettingsSaved(savedSettings as dynamic)
 end sub
 
 '-------------------------------------------------------------------------------
-' onExitConfirmationConfirmed
+' openExitDialog
 '-------------------------------------------------------------------------------
-sub onExitConfirmationConfirmed()
-    m.top.closeRequested = true
+sub openExitDialog()
+    if m.overlayHost = invalid then return
+
+    m.overlayHost.callFunc("openOverlay", {
+        id: "exit"
+        componentName: "ExitDialog"
+        closeFields: ["confirmed", "canceled"]
+        openFunction: "openConfirmation"
+    })
 end sub
 
 '-------------------------------------------------------------------------------
-' onExitConfirmationCanceled
-'-------------------------------------------------------------------------------
-sub onExitConfirmationCanceled()
-    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
-end sub
-
 ' onPlayerCloseRequested
 '-------------------------------------------------------------------------------
 sub onPlayerCloseRequested()
@@ -788,7 +796,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     if key = "back" and isHeaderHomeButtonFocused() then
-        if m.exitConfirmation <> invalid then m.exitConfirmation.callFunc("openConfirmation")
+        openExitDialog()
         return true
     end if
 

@@ -21,10 +21,10 @@ function openOverlay(request as dynamic) as dynamic
     overlay = CreateObject("roSGNode", componentName)
     if overlay = invalid then return invalid
 
-    closeField = request.closeField
-    if closeField <> invalid and closeField <> "" then
-        overlay.observeField(closeField, "onOverlayClosed")
-    end if
+    closeFields = getCloseFields(request)
+    for each closeField in closeFields
+        if closeField <> invalid and closeField <> "" then overlay.observeField(closeField, "onOverlayClosed")
+    end for
 
     m.top.appendChild(overlay)
     m.activeOverlay = overlay
@@ -34,6 +34,16 @@ function openOverlay(request as dynamic) as dynamic
     if openFunction <> invalid and openFunction <> "" then overlay.callFunc(openFunction)
 
     return overlay
+end function
+
+'-------------------------------------------------------------------------------
+' getCloseFields
+'-------------------------------------------------------------------------------
+function getCloseFields(request as dynamic) as object
+    if request <> invalid and request.closeFields <> invalid then return request.closeFields
+    if request <> invalid and request.closeField <> invalid then return [request.closeField]
+
+    return []
 end function
 
 '-------------------------------------------------------------------------------

@@ -48,7 +48,8 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 ## Hit List
 ----------------------------------------------------
 
-- check if description dialog could do the same
+- check if description dialog could lazy load
+- lazy load login screen
 - more playback logging
 - exit confirmation
 
@@ -74,9 +75,7 @@ Continue Listening (home page)
 
 - error modal
 
-- html string function move to helper class
 - search
-- back button at certain level closes the app, see if we can trap this and prompt about exit
 - on playback (https://api.audiobookshelf.org/#play-a-library-item-or-podcast-episode) send the device info
 
 

@@ -20,6 +20,7 @@ sub init()
     updateTitle()
     updateContentComponent()
     updateButtonVisibility()
+    updateButtonText()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -41,6 +42,7 @@ sub closeDialog()
 
     m.closeRequestedCounter = m.closeRequestedCounter + 1
     m.top.closeRequested = m.closeRequestedCounter
+    onCloseRequested()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -129,6 +131,13 @@ sub onShowButtonsChanged()
 end sub
 
 '-------------------------------------------------------------------------------
+' onButtonTextChanged
+'-------------------------------------------------------------------------------
+sub onButtonTextChanged()
+    updateButtonText()
+end sub
+
+'-------------------------------------------------------------------------------
 ' updateContentComponent
 '-------------------------------------------------------------------------------
 sub updateContentComponent()
@@ -163,6 +172,22 @@ sub updateButtonVisibility()
     if m.cancelButton <> invalid then m.cancelButton.visible = isVisible
     if isVisible = false then updateButtonFocus("")
 end sub
+
+'-------------------------------------------------------------------------------
+' updateButtonText
+'-------------------------------------------------------------------------------
+sub updateButtonText()
+    if m.saveButton <> invalid then m.saveButton.text = getButtonText(m.top.saveButtonText, "Save")
+    if m.cancelButton <> invalid then m.cancelButton.text = getButtonText(m.top.cancelButtonText, "Cancel")
+end sub
+
+'-------------------------------------------------------------------------------
+' getButtonText
+'-------------------------------------------------------------------------------
+function getButtonText(value as dynamic, defaultValue as string) as string
+    if value = invalid or value = "" then return defaultValue
+    return value
+end function
 
 '-------------------------------------------------------------------------------
 ' updateButtonFocus
@@ -264,6 +289,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             if key = "OK" or key = "select" then
                 m.saveSelectedCounter = m.saveSelectedCounter + 1
                 m.top.saveSelected = m.saveSelectedCounter
+                onSaveSelected()
                 return true
             end if
         end if
@@ -289,6 +315,18 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
     return true
 end function
+
+'-------------------------------------------------------------------------------
+' onSaveSelected
+'-------------------------------------------------------------------------------
+sub onSaveSelected()
+end sub
+
+'-------------------------------------------------------------------------------
+' onCloseRequested
+'-------------------------------------------------------------------------------
+sub onCloseRequested()
+end sub
 
 '-------------------------------------------------------------------------------
 ' contentCanMoveToButtons
