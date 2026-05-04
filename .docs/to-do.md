@@ -50,7 +50,6 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 
 - check if description dialog could do the same
 - more playback logging
-- grid top nav, support up event move on first row to header
 - exit confirmation
 
 - end session when playback stops

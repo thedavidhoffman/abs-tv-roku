@@ -413,7 +413,11 @@ function onKeyEvent(key as string, press as boolean) as boolean
     itemIndex = getValidItemIndex(m.markupGrid.itemFocused)
 
     if key = "back" then
-        if itemIndex > 0 then return false
+        if itemIndex > 0 then
+            m.markupGrid.jumpToItem = 0
+            m.markupGrid.setFocus(true)
+            return true
+        end if
 
         m.backFromFirstItemSelectedCounter = m.backFromFirstItemSelectedCounter + 1
         m.top.backFromFirstItemSelected = m.backFromFirstItemSelectedCounter

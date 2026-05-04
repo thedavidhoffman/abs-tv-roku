@@ -11,6 +11,7 @@ sub init()
     m.logoutSelectedCounter = 0
     m.changeServerSelectedCounter = 0
     m.downSelectedCounter = 0
+    m.backSelectedCounter = 0
     m.overlayRequestedCounter = 0
     m.usernameUpPressCount = 0
 
@@ -123,20 +124,26 @@ end function
 ' onKeyEvent
 '-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean
+
     if press = false then return false
+    
+    if key = "up" then return trackUsernameUpSequence()
+
+    resetUsernameUpSequence()
+
     if key = "left" then
-        resetUsernameUpSequence()
         return focusHeaderButtonByOffset(-1)
     else if key = "right" then
-        resetUsernameUpSequence()
         return focusHeaderButtonByOffset(1)
-    else if key = "up" then
-        return trackUsernameUpSequence()
     else if key = "down" then
-        resetUsernameUpSequence()
         closeMenu()
         m.downSelectedCounter = m.downSelectedCounter + 1
         m.top.downSelected = m.downSelectedCounter
+        return true
+    else if key = "back" then
+        closeMenu()
+        m.backSelectedCounter = m.backSelectedCounter + 1
+        m.top.backSelected = m.backSelectedCounter
         return true
     end if
 

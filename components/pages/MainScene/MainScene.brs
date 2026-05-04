@@ -47,6 +47,7 @@ sub initHandlers()
     m.header.observeField("librarySelected", "onLibraryPressed")
     m.header.observeField("searchSelected", "onSearchPressed")
     m.header.observeField("downSelected", "onHeaderDownPressed")
+    m.header.observeField("backSelected", "onHeaderBackPressed")
     m.header.observeField("logoutSelected", "onLogoutPressed")
     m.header.observeField("changeServerSelected", "onChangeServerPressed")
     m.header.observeField("overlayRequested", "onOverlayRequested")
@@ -365,6 +366,13 @@ sub onHeaderDownPressed()
     if m.library <> invalid and m.library.visible then
         m.library.callFunc("focusLibraryList")
     end if
+end sub
+
+'-------------------------------------------------------------------------------
+' onHeaderBackPressed
+'-------------------------------------------------------------------------------
+sub onHeaderBackPressed()
+    if m.exitConfirmation <> invalid then m.exitConfirmation.callFunc("openConfirmation")
 end sub
 
 '-------------------------------------------------------------------------------

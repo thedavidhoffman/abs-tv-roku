@@ -11,6 +11,7 @@
     <field id="librarySelected" type="integer" />
     <field id="searchSelected" type="integer" />
     <field id="downSelected" type="integer" />
+    <field id="backSelected" type="integer" />
     <field id="logoutSelected" type="integer" />
     <field id="changeServerSelected" type="integer" />
     <field id="overlayRequested" type="assocarray" />
