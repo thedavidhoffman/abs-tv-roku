@@ -19,7 +19,7 @@
     
     <!-- poster -->
     <ItemPoster
-      id="itemPoster"
+      id="cover"
       translation="[120,180]"
       posterWidth="500"
       showText="false"

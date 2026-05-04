@@ -18,7 +18,7 @@ end sub
 sub initReferences()
     m.log = CreateLogger("Player")
     m.playerBg = m.top.findNode("playerBg")
-    m.cover = m.top.findNode("itemPoster")
+    m.cover = m.top.findNode("cover")
     m.titleLabel = m.top.findNode("titleLabel")
     m.authorLabel = m.top.findNode("authorLabel")
     m.metadataLabel = m.top.findNode("metadataLabel")
@@ -152,6 +152,10 @@ end sub
 ' getCoverContent
 '-------------------------------------------------------------------------------
 function getCoverContent(request as dynamic) as dynamic
+
+    ' ItemPlayer accepts a ContentNode (aka property bag)
+    ' for the cover information (url, title, etc.)
+
     if request = invalid then return invalid
 
     node = CreateObject("roSGNode", "ContentNode")
@@ -162,6 +166,7 @@ function getCoverContent(request as dynamic) as dynamic
         focused: false
     })
     return node
+
 end function
 
 '-------------------------------------------------------------------------------
@@ -461,6 +466,10 @@ sub onAudioStateChanged()
     if m.audioPlayer = invalid then return
 
     state = SafeString(m.audioPlayer.state, "")
+
+    '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    ' playing
+    '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     if state = "playing" then
         m.ignoreNextFinished = false
         m.isPaused = false
@@ -468,10 +477,16 @@ sub onAudioStateChanged()
         setStatus("Playing")
         startProgressTimer()
         updatePlayPauseButton()
+    '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    ' buffering
+    '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     else if state = "buffering" then
         disableScreenSaver()
         setStatus("Buffering...")
         startProgressTimer()
+    '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    ' finished
+    '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     else if state = "finished" then
         if m.ignoreNextFinished = true then
             m.ignoreNextFinished = false

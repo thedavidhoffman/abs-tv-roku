@@ -4,13 +4,40 @@
 function Playback_Start(request as object) as object
     log = CreateLogger("Playback_Start")
 
+    '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    ' parameter validation
+    '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    if request = invalid then
+        log.log("Invalid playback request: request is invalid.")
+        return { ok: false, errorMessage: "Invalid playback request." }
+    end if
+
+    if Type(request) <> "roAssociativeArray" then
+        log.log("Invalid playback request: request type is " + Type(request) + ".")
+        return { ok: false, errorMessage: "Invalid playback request." }
+    end if
+
+    if request.server = invalid or request.server = "" then
+        log.log("Invalid playback request: server is missing.")
+        return { ok: false, errorMessage: "No Audiobookshelf server was provided." }
+    end if
+
+    if request.token = invalid or request.token = "" then
+        log.log("Invalid playback request: token is missing.")
+        return { ok: false, errorMessage: "No authentication token was provided." }
+    end if
+
+    if request.itemId = invalid or request.itemId = "" then
+        log.log("Invalid playback request: itemId is missing.")
+        return { ok: false, errorMessage: "No audiobook was selected." }
+    end if
+
+    if request.title = invalid then request.title = ""
+
+    ' local working vars
     server = NormalizeServerUrl(request.server)
     token = request.token
     itemId = request.itemId
-
-    if itemId = invalid or itemId = "" then
-        return { ok: false, errorMessage: "No audiobook was selected." }
-    end if
 
     ' get the item (so that we have track data)
     itemResult = Item_Load(request)
@@ -18,6 +45,7 @@ function Playback_Start(request as object) as object
     if itemResult.ok = true then itemPayload = itemResult.data
     Item_LogTracks(itemPayload)
 
+    ' abs playback config
     bodyData = {
         deviceInfo: {
             clientName: "ABSTV"
@@ -26,15 +54,17 @@ function Playback_Start(request as object) as object
             model: "Roku"
         }
         forceDirectPlay: false
-        forceTranscode: true
+        forceTranscode: false
         supportedMimeTypes: [
+            "audio/mpeg"
+            "audio/mp4"
+            "audio/aac"
             "application/vnd.apple.mpegurl"
             "application/x-mpegURL"
-            "audio/mpegurl"
-            "audio/x-mpegurl"
         ]
         mediaPlayer: "roku"
     }
+
     body = FormatJson(bodyData)
 
     log.log("forceDirectPlay=" + bodyData.forceDirectPlay.ToStr() + " forceTranscode=" + bodyData.forceTranscode.ToStr() + " supportedMimeTypes=" + ___JoinStringValues(bodyData.supportedMimeTypes))
@@ -52,7 +82,7 @@ function Playback_Start(request as object) as object
         return { ok: false, errorMessage: "No playable audio tracks were returned." }
     end if
 
-    return {
+    result = {
         ok: true
         action: "startPlayback"
         itemId: itemId
@@ -60,7 +90,41 @@ function Playback_Start(request as object) as object
         playbackSession: playbackResult.data
         tracks: tracks
     }
+
+    __LogMappedTracks(log, tracks)
+
+    return result
+
 end function
+
+'-------------------------------------------------------------------------------
+' __LogMappedTracks
+'-------------------------------------------------------------------------------
+sub __LogMappedTracks(log as object, tracks as dynamic)
+    log.log("Mapped tracks:")
+
+    if tracks = invalid or tracks.Count() = 0 then
+        log.log("    none")
+        return
+    end if
+
+    for i = 0 to tracks.Count() - 1
+        track = tracks[i]
+
+        log.log("  track=" + i.ToStr() + "............")
+
+        if track <> invalid then
+            log.log("    title: " + SafeString(track.title, ""))
+            log.log("    durationSeconds: " + SafeString(track.durationSeconds, "invalid"))
+            log.log("    startPositionSeconds: " + SafeString(track.startPositionSeconds, "invalid"))
+            log.log("    mimeType: " + SafeString(track.mimeType, ""))
+            log.log("    url: " + SafeString(track.url, ""))
+        else
+            log.log("    invalid track")
+        end if
+
+    end for
+end sub
 
 '-------------------------------------------------------------------------------
 ' Playback_CloseSession
@@ -332,14 +396,22 @@ end function
 ' ___BuildUrl
 '-------------------------------------------------------------------------------
 function ___BuildUrl(server as string, token as dynamic, sessionId as dynamic, track as dynamic) as string
+
     contentUrl = SafeString(track.contentUrl, "")
     lowerContentUrl = LCase(contentUrl)
 
     isHlsUrl = (Instr(1, lowerContentUrl, "/hls") > 0 or Instr(1, lowerContentUrl, ".m3u8") > 0)
+
+    ' direct play (non hls) media is compatible with Roku as a playback device
     if sessionId <> invalid and sessionId <> "" and isHlsUrl = false then
         return server + "/public/session/" + sessionId + "/track/" + track.index.ToStr()
     end if
 
+    ' roku doesn't support direct play of the media, so using hls to transcode
+    ' HLS streaming, or HTTP Live Streaming, is a video streaming protocol developed by Apple that
+    ' delivers audio and video content over the internet. It works by breaking video files into
+    ' small segments, allowing for adaptive bitrate streaming that adjusts the quality based on 
+    ' the viewer's network conditions.
     url = contentUrl
     if Instr(1, LCase(url), "http://") <> 1 and Instr(1, LCase(url), "https://") <> 1 then
         if Left(url, 1) <> "/" then url = "/" + url
