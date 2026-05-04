@@ -51,13 +51,16 @@ function __Logger_Text() as string
     end for
 
     return output
+
 end function
 
 '-------------------------------------------------------------------------------
 ' __Logger_Format
 '-------------------------------------------------------------------------------
 function __Logger_Format(message as dynamic, label as dynamic) as string
+
     text = SafeString(message, "")
     if label <> invalid and label <> "" then text = "[" + label + "] " + text
     return text
+    
 end function

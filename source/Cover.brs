@@ -36,4 +36,5 @@ function Cover_BuildUrl(server as dynamic, token as dynamic, itemId as dynamic, 
     log.flush()
 
     return url
+    
 end function

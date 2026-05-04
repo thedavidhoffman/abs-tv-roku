@@ -53,12 +53,9 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 
 Playback.brs
 ----------------------------------------------------
-- rename to Playback_StartSession
 - the content type being set in map tracks is off, being set from two different payloads
 - why oh why does this need two payloads: tracks = ___MapTracks(server, token, playbackResult.data, itemPayload, log)
 - continue to dig in on this file
-- ___BuildUrl rename to BuildPlaybackUrl
-- replace ___ReplaceString with StringUtils_Replace
 
 Player.brs
 ----------------------------------------------------

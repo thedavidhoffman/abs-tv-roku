@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="AppTask" extends="Task">
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Array.brs" />
+  <script type="text/brightscript" uri="pkg:/source/StringUtils.brs" />
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/Encode.brs" />
   <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />

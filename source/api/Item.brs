@@ -54,7 +54,7 @@ sub Item_LogTracks(item as dynamic)
 
     audioFiles = item.media.audioFiles
 
-    log.add("Item has " +  __GetArrayCount(audioFiles).ToStr() + " files")
+    log.add("Item has " + Array_GetCount(audioFiles).ToStr() + " files")
 
     log.add("Audio files:")
     for i = 0 to item.media.audioFiles.Count() - 1
@@ -69,11 +69,3 @@ sub Item_LogTracks(item as dynamic)
 
     log.flush()
 end sub
-
-'-------------------------------------------------------------------------------
-' __GetArrayCount
-'-------------------------------------------------------------------------------
-function __GetArrayCount(values as dynamic) as integer
-    if values = invalid then return 0
-    return values.Count()
-end function
