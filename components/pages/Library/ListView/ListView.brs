@@ -80,7 +80,7 @@ sub onLibraryItemsChanged()
         for each item in items
             if item.mediaType = invalid or item.mediaType = "book" then
                 node = CreateObject("roSGNode", "ContentNode")
-                node.title = LibraryItemMetadata_GetTitle(item)
+                node.title = ItemMetadataParser_GetTitle(item)
                 root.appendChild(node)
                 m.libraryItemsByRow.Push(item)
             end if
@@ -143,11 +143,11 @@ function getSelectedPosterContent(item as dynamic) as dynamic
 
     progress = getProgressData(item)
     node = CreateObject("roSGNode", "ContentNode")
-    node.title = LibraryItemMetadata_GetTitle(item)
+    node.title = ItemMetadataParser_GetTitle(item)
     node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, 600)
     node.SDPosterUrl = node.HDPosterUrl
     node.AddFields({
-        author: LibraryItemMetadata_GetAuthor(LibraryItemMetadata_GetMetadata(item))
+        author: ItemMetadataParser_GetAuthor(ItemMetadataParser_GetMetadata(item))
         progressPercent: progress.progress
         progressCurrentTime: progress.currentTime
         progressDuration: progress.duration
@@ -310,18 +310,18 @@ end function
 ' updateSelectedDetails
 '-------------------------------------------------------------------------------
 sub updateSelectedDetails(item as dynamic)
-    metadata = LibraryItemMetadata_GetMetadata(item)
+    metadata = ItemMetadataParser_GetMetadata(item)
 
-    setLabelText(m.detailTitle, LibraryItemMetadata_GetTitle(item))
-    setLabelText(m.detailAuthor, LibraryItemMetadata_GetAuthor(metadata))
-    setLabelText(m.detailNarrators, LibraryItemMetadata_GetNarrators(metadata))
-    setLabelText(m.detailPublishDate, LibraryItemMetadata_GetPublishYear(metadata))
+    setLabelText(m.detailTitle, ItemMetadataParser_GetTitle(item))
+    setLabelText(m.detailAuthor, ItemMetadataParser_GetAuthor(metadata))
+    setLabelText(m.detailNarrators, ItemMetadataParser_GetNarrators(metadata))
+    setLabelText(m.detailPublishDate, ItemMetadataParser_GetPublishYear(metadata))
     setLabelText(m.detailPublisher, FirstNonEmpty([metadata.publisher], "Unknown"))
-    setLabelText(m.detailGenres, LibraryItemMetadata_GetGenres(metadata))
-    setLabelText(m.detailTags, LibraryItemMetadata_GetTags(metadata))
-    setLabelText(m.detailDuration, LibraryItemMetadata_GetDuration(item))
-    if m.detailDescription <> invalid then m.detailDescription.title = LibraryItemMetadata_GetTitle(item)
-    setLabelText(m.detailDescription, LibraryItemMetadata_GetDescription(metadata))
+    setLabelText(m.detailGenres, ItemMetadataParser_GetGenres(metadata))
+    setLabelText(m.detailTags, ItemMetadataParser_GetTags(metadata))
+    setLabelText(m.detailDuration, ItemMetadataParser_GetDuration(item))
+    if m.detailDescription <> invalid then m.detailDescription.title = ItemMetadataParser_GetTitle(item)
+    setLabelText(m.detailDescription, ItemMetadataParser_GetDescription(metadata))
 end sub
 
 ' setLabelText
@@ -377,7 +377,7 @@ sub onPlayPressed()
     m.playSelectedCounter = m.playSelectedCounter + 1
     m.top.playSelected = {
         id: m.selectedItem.id
-        title: LibraryItemMetadata_GetTitle(m.selectedItem)
+        title: ItemMetadataParser_GetTitle(m.selectedItem)
         details: getPlaybackDetails(m.selectedItem)
         startPositionSeconds: getPlaybackStartPosition(m.selectedItem)
         counter: m.playSelectedCounter
@@ -388,18 +388,18 @@ end sub
 ' getPlaybackDetails
 '-------------------------------------------------------------------------------
 function getPlaybackDetails(item as dynamic) as object
-    metadata = LibraryItemMetadata_GetMetadata(item)
+    metadata = ItemMetadataParser_GetMetadata(item)
     return {
-        authors: LibraryItemMetadata_GetAuthor(metadata)
-        authorCount: LibraryItemMetadata_GetNameCount(metadata.authors, LibraryItemMetadata_GetAuthor(metadata))
-        narrators: LibraryItemMetadata_GetNarrators(metadata)
-        narratorCount: LibraryItemMetadata_GetNameCount(metadata.narrators, LibraryItemMetadata_GetNarrators(metadata))
-        description: LibraryItemMetadata_GetDescription(metadata)
+        authors: ItemMetadataParser_GetAuthor(metadata)
+        authorCount: ItemMetadataParser_GetNameCount(metadata.authors, ItemMetadataParser_GetAuthor(metadata))
+        narrators: ItemMetadataParser_GetNarrators(metadata)
+        narratorCount: ItemMetadataParser_GetNameCount(metadata.narrators, ItemMetadataParser_GetNarrators(metadata))
+        description: ItemMetadataParser_GetDescription(metadata)
         publisher: FirstNonEmpty([metadata.publisher], "Unknown")
-        publishDate: LibraryItemMetadata_GetPublishDate(metadata)
-        category: LibraryItemMetadata_GetCategory(metadata)
-        duration: LibraryItemMetadata_GetDuration(item)
-        durationSeconds: LibraryItemMetadata_GetDurationSeconds(item)
+        publishDate: ItemMetadataParser_GetPublishDate(metadata)
+        category: ItemMetadataParser_GetCategory(metadata)
+        duration: ItemMetadataParser_GetDuration(item)
+        durationSeconds: ItemMetadataParser_GetDurationSeconds(item)
     }
 end function
 

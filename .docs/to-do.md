@@ -48,6 +48,15 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 ## Hit List
 ----------------------------------------------------
 
+- investigate passing episode id into play, this might fix our play/advance issue
+- /api/items/${this.libraryItem.id}/play/${this.episodeId}` : `/api/items/${this.libraryItem.id}/play`
+
+- courtship of princess leia playback
+- dune playback
+- meditations playback
+
+- NormalizeServerUrl... call only when setting server address?
+
 - more playback logging
 
 - end session when playback stops
@@ -55,8 +64,7 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 - roku splash screens
 - test description modal with really long title
 
-- investigate passing episode id into play, this might fix our play/advance issue
-- /api/items/${this.libraryItem.id}/play/${this.episodeId}` : `/api/items/${this.libraryItem.id}/play`
+
 
 - cleanup bad color assignments
 - home screen refresh continue listening

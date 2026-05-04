@@ -5,7 +5,7 @@
   <script type="text/brightscript" uri="pkg:/source/Cover.brs" />
   <script type="text/brightscript" uri="pkg:/source/Color.brs" />
   <script type="text/brightscript" uri="pkg:/source/StringUtils.brs" />
-  <script type="text/brightscript" uri="pkg:/source/LibraryItemMetadata.brs" />
+  <script type="text/brightscript" uri="pkg:/source/ItemMetadataParser.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Library/ListView/ListView.brs" />
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />

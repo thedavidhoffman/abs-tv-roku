@@ -2,16 +2,23 @@
 ' NormalizeServerUrl
 '-------------------------------------------------------------------------------
 function NormalizeServerUrl(server as string) as string
+    
     if server = invalid then return ""
+    
     normalized = TrimString(server)
+    
     if normalized = "" then return ""
+    
     if Instr(1, LCase(normalized), "http://") <> 1 and Instr(1, LCase(normalized), "https://") <> 1 then
         normalized = "http://" + normalized
     end if
+    
     while Right(normalized, 1) = "/"
         normalized = Left(normalized, Len(normalized) - 1)
     end while
+    
     return normalized
+    
 end function
 
 '-------------------------------------------------------------------------------

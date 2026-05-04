@@ -1,7 +1,7 @@
 '-------------------------------------------------------------------------------
-' LibraryItemMetadata_GetMetadata
+' ItemMetadataParser_GetMetadata
 '-------------------------------------------------------------------------------
-function LibraryItemMetadata_GetMetadata(item as dynamic) as dynamic
+function ItemMetadataParser_GetMetadata(item as dynamic) as dynamic
     if item <> invalid and item.media <> invalid and item.media.metadata <> invalid then
         return item.media.metadata
     end if
@@ -10,9 +10,9 @@ function LibraryItemMetadata_GetMetadata(item as dynamic) as dynamic
 end function
 
 '-------------------------------------------------------------------------------
-' LibraryItemMetadata_GetTitle
+' ItemMetadataParser_GetTitle
 '-------------------------------------------------------------------------------
-function LibraryItemMetadata_GetTitle(item as dynamic) as string
+function ItemMetadataParser_GetTitle(item as dynamic) as string
     title = "Untitled"
 
     if item <> invalid and item.media <> invalid and item.media.metadata <> invalid then
@@ -25,37 +25,37 @@ function LibraryItemMetadata_GetTitle(item as dynamic) as string
 end function
 
 '-------------------------------------------------------------------------------
-' LibraryItemMetadata_GetAuthor
+' ItemMetadataParser_GetAuthor
 '-------------------------------------------------------------------------------
-function LibraryItemMetadata_GetAuthor(metadata as dynamic) as string
+function ItemMetadataParser_GetAuthor(metadata as dynamic) as string
     return FirstNonEmpty([metadata.authorName, metadata.author], "Unknown")
 end function
 
 '-------------------------------------------------------------------------------
-' LibraryItemMetadata_GetNarrators
+' ItemMetadataParser_GetNarrators
 '-------------------------------------------------------------------------------
-function LibraryItemMetadata_GetNarrators(metadata as dynamic) as string
+function ItemMetadataParser_GetNarrators(metadata as dynamic) as string
     return FirstNonEmpty([metadata.narratorName, metadata.narrator], "Unknown")
 end function
 
 '-------------------------------------------------------------------------------
-' LibraryItemMetadata_GetDescription
+' ItemMetadataParser_GetDescription
 '-------------------------------------------------------------------------------
-function LibraryItemMetadata_GetDescription(metadata as dynamic) as string
+function ItemMetadataParser_GetDescription(metadata as dynamic) as string
     return StringUtils_StripHtmlMarkup(FirstNonEmpty([metadata.description, metadata.subtitle], "No description available."))
 end function
 
 '-------------------------------------------------------------------------------
-' LibraryItemMetadata_GetPublishDate
+' ItemMetadataParser_GetPublishDate
 '-------------------------------------------------------------------------------
-function LibraryItemMetadata_GetPublishDate(metadata as dynamic) as string
+function ItemMetadataParser_GetPublishDate(metadata as dynamic) as string
     return FirstNonEmpty([metadata.publishedYear, metadata.publishedDate, metadata.releaseDate], "Unknown")
 end function
 
 '-------------------------------------------------------------------------------
-' LibraryItemMetadata_GetPublishYear
+' ItemMetadataParser_GetPublishYear
 '-------------------------------------------------------------------------------
-function LibraryItemMetadata_GetPublishYear(metadata as dynamic) as string
+function ItemMetadataParser_GetPublishYear(metadata as dynamic) as string
     year = FirstNonEmpty([metadata.publishedYear], "")
     if year <> "" then return year
 
@@ -69,9 +69,9 @@ function LibraryItemMetadata_GetPublishYear(metadata as dynamic) as string
 end function
 
 '-------------------------------------------------------------------------------
-' LibraryItemMetadata_GetCategory
+' ItemMetadataParser_GetCategory
 '-------------------------------------------------------------------------------
-function LibraryItemMetadata_GetCategory(metadata as dynamic) as string
+function ItemMetadataParser_GetCategory(metadata as dynamic) as string
     category = StringUtils_GetJoinedText(metadata.genres)
     if category <> "" then return category
 
@@ -82,9 +82,9 @@ function LibraryItemMetadata_GetCategory(metadata as dynamic) as string
 end function
 
 '-------------------------------------------------------------------------------
-' LibraryItemMetadata_GetGenres
+' ItemMetadataParser_GetGenres
 '-------------------------------------------------------------------------------
-function LibraryItemMetadata_GetGenres(metadata as dynamic) as string
+function ItemMetadataParser_GetGenres(metadata as dynamic) as string
     genres = StringUtils_GetJoinedText(metadata.genres)
     if genres <> "" then return genres
 
@@ -95,19 +95,19 @@ function LibraryItemMetadata_GetGenres(metadata as dynamic) as string
 end function
 
 '-------------------------------------------------------------------------------
-' LibraryItemMetadata_GetTags
+' ItemMetadataParser_GetTags
 '-------------------------------------------------------------------------------
-function LibraryItemMetadata_GetTags(metadata as dynamic) as string
+function ItemMetadataParser_GetTags(metadata as dynamic) as string
     tags = StringUtils_GetJoinedText(metadata.tags)
     if tags <> "" then return tags
     return FirstNonEmpty([metadata.tag, metadata.keywords], "None")
 end function
 
 '-------------------------------------------------------------------------------
-' LibraryItemMetadata_GetDuration
+' ItemMetadataParser_GetDuration
 '-------------------------------------------------------------------------------
-function LibraryItemMetadata_GetDuration(item as dynamic) as string
-    totalSeconds = LibraryItemMetadata_GetDurationSeconds(item)
+function ItemMetadataParser_GetDuration(item as dynamic) as string
+    totalSeconds = ItemMetadataParser_GetDurationSeconds(item)
     if totalSeconds <= 0 then return "Unknown"
 
     hours = int(totalSeconds / 3600)
@@ -120,9 +120,9 @@ function LibraryItemMetadata_GetDuration(item as dynamic) as string
 end function
 
 '-------------------------------------------------------------------------------
-' LibraryItemMetadata_GetDurationSeconds
+' ItemMetadataParser_GetDurationSeconds
 '-------------------------------------------------------------------------------
-function LibraryItemMetadata_GetDurationSeconds(item as dynamic) as integer
+function ItemMetadataParser_GetDurationSeconds(item as dynamic) as integer
     duration = invalid
     if item <> invalid and item.media <> invalid then duration = item.media.duration
     if duration = invalid and item <> invalid then duration = item.duration
@@ -132,9 +132,9 @@ function LibraryItemMetadata_GetDurationSeconds(item as dynamic) as integer
 end function
 
 '-------------------------------------------------------------------------------
-' LibraryItemMetadata_GetNameCount
+' ItemMetadataParser_GetNameCount
 '-------------------------------------------------------------------------------
-function LibraryItemMetadata_GetNameCount(values as dynamic, fallbackText as string) as integer
+function ItemMetadataParser_GetNameCount(values as dynamic, fallbackText as string) as integer
     if values <> invalid then
         if Type(values) = "roArray" then return values.Count()
         if Type(values) = "roAssociativeArray" then return values.Count()

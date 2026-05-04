@@ -12,6 +12,12 @@ function Playback_Start(request as object) as object
         return { ok: false, errorMessage: "No audiobook was selected." }
     end if
 
+    ' get the item (so that we have track data)
+    itemResult = Item_Load(request)
+    itemPayload = invalid
+    if itemResult.ok = true then itemPayload = itemResult.data
+    Item_LogTracks(itemPayload)
+
     bodyData = {
         deviceInfo: {
             clientName: "ABSTV"
@@ -40,17 +46,6 @@ function Playback_Start(request as object) as object
     log.log("status = " + SafeString(playbackResult.status))
 
     if playbackResult.ok <> true then return playbackResult
-
-    ' get the item so that we can get track information
-    itemUrl = server + "/api/items/" + itemId
-    itemResult = HttpClient_Request(itemUrl, "GET", token, invalid)
-    itemPayload = invalid
-
-    log.log("getting item for track data")
-    log.log(itemUrl)
-    log.log("status = " + SafeString(itemResult.status))
-
-    if itemResult.ok = true then itemPayload = itemResult.data
 
     tracks = ___MapTracks(server, token, playbackResult.data, itemPayload, log)
     if tracks.Count() = 0 then
