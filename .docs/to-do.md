@@ -48,13 +48,12 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 ## Hit List
 ----------------------------------------------------
 
-- check if description dialog could lazy load
-- lazy load login screen
 - more playback logging
-- exit confirmation
 
 - end session when playback stops
 - sync progress
+- roku splash screens
+- test description modal with really long title
 
 - investigate passing episode id into play, this might fix our play/advance issue
 - /api/items/${this.libraryItem.id}/play/${this.episodeId}` : `/api/items/${this.libraryItem.id}/play`
@@ -65,7 +64,6 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 - reduce library info
 - listview support collapsed/expanded
 - loading spinner/indicator
-- make exit confirmation use dialog?
 
 Continue Listening (home page)
     - * key triggers menu
