@@ -58,13 +58,18 @@ function Playback_Start(request as object) as object
     if itemResult.ok = true then itemPayload = itemResult.data
     Item_LogTracks(itemPayload)
 
+    ' Roku device info
+    deviceInfo = CreateObject("roDeviceInfo")
+    model = deviceInfo.GetModel()
+    modelDisplayName = deviceInfo.GetModelDisplayName()
+
     ' abs playback config
     bodyData = {
         deviceInfo: {
             clientName: "ABSTV"
             clientVersion: "0.1.0"
             manufacturer: "Roku"
-            model: "Roku"
+            model: modelDisplayName + " " + model
         }
         forceDirectPlay: false
         forceTranscode: false
