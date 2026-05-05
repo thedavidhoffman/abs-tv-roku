@@ -297,7 +297,7 @@ end function
 '-------------------------------------------------------------------------------
 ' __BuildFileUrl
 '-------------------------------------------------------------------------------
-function __BuildFileUrl(server as string, token as dynamic, sessionId as dynamic, file as dynamic, track as dynamic, fallbackIndex as integer, log as object) as string
+function __BuildFileUrl(server as string, token as dynamic, sessionId as dynamic, file as dynamic, track as dynamic, fallbackIndex as integer) as string
     if track <> invalid and track.contentUrl <> invalid and track.contentUrl <> "" then
         return __BuildPlaybackUrl(server, token, sessionId, track)
     end if

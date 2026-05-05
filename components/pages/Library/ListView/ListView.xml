@@ -18,11 +18,10 @@
   </interface>
   <children>
     <!-- left side -->
-    <Label id="libraryStatus" translation="[64,212]" width="1200" numLines="2" wrap="true" color="F2C879FF" visible="false" />
+    <Label id="libraryStatus" translation="[64,212]" width="1200" numLines="2" wrap="true" color="0xF2C879FF" visible="false" />
     <LabelList
       id="libraryList"
       translation="[64,162]"
-      height="858"
       itemSize="[760,56]"
       numRows="15"
       drawFocusFeedback="true"
@@ -34,8 +33,7 @@
       id="detailTitle"
       translation="[980,171]"
       maxWidth="860"
-      numLines="2"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:LargeBoldSystemFont"
       repeatCount="1"
     />
@@ -57,7 +55,7 @@
       width="430"
       numLines="1"
       text="AUTHOR"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
@@ -65,7 +63,7 @@
       translation="[1430,271]"
       width="430"
       numLines="1"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
@@ -73,7 +71,7 @@
       width="430"
       numLines="1"
       text="NARRATORS"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
@@ -81,7 +79,7 @@
       translation="[1430,347]"
       width="430"
       numLines="1"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
@@ -89,7 +87,7 @@
       width="430"
       numLines="1"
       text="PUBLISH YEAR"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
@@ -97,7 +95,7 @@
       translation="[1430,423]"
       width="430"
       numLines="1"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
@@ -105,7 +103,7 @@
       width="430"
       numLines="1"
       text="PUBLISHER"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
@@ -113,7 +111,7 @@
       translation="[1430,499]"
       width="430"
       numLines="1"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
@@ -121,7 +119,7 @@
       width="430"
       numLines="1"
       text="GENRES"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
@@ -129,7 +127,7 @@
       translation="[1430,575]"
       width="430"
       numLines="1"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
@@ -137,7 +135,7 @@
       width="430"
       numLines="1"
       text="TAGS"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
@@ -145,7 +143,7 @@
       translation="[1430,651]"
       width="430"
       numLines="1"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
@@ -153,7 +151,7 @@
       width="430"
       numLines="1"
       text="DURATION"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:TinySystemFont"
     />
     <Label
@@ -161,7 +159,7 @@
       translation="[1430,727]"
       width="430"
       numLines="1"
-      color="F3F7FBFF"
+      color="0xF3F7FBFF"
       font="font:TinySystemFont"
     />
     <Description

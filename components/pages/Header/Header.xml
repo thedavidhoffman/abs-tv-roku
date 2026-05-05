@@ -13,7 +13,6 @@
     <field id="downSelected" type="integer" />
     <field id="backSelected" type="integer" />
     <field id="logoutSelected" type="integer" />
-    <field id="changeServerSelected" type="integer" />
     <field id="overlayRequested" type="assocarray" />
     <function name="focusHeader" />
     <function name="focusSettingsButton" />
@@ -42,9 +41,8 @@
     <Clock id="clock" translation="[1680,30]" clockWidth="176" clockHeight="40" color="0xF6F7FBFF" />
 
     <Group id="menuPanel" visible="false" translation="[1420,102]">
-      <Rectangle width="260" height="150" color="132235FF" />
+      <Rectangle width="260" height="94" color="0x132235FF" />
       <HeaderButton id="logoutButton" translation="[20,18]" buttonWidth="220" buttonHeight="56" text="Logout" />
-      <HeaderButton id="changeServerButton" translation="[20,78]" buttonWidth="220" buttonHeight="56" text="Change Server" />
     </Group>
 
     <!-- timer for pressing up 5 times on the user menu item to display the diagnostics dialog -->

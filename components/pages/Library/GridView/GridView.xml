@@ -24,7 +24,7 @@
       width="1200"
       numLines="2"
       wrap="true"
-      color="F2C879FF"
+      color="0xF2C879FF"
       visible="false" />
     <MarkupGrid
       id="markupGrid"

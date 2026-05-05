@@ -9,9 +9,9 @@
     <field id="fieldHeight" type="float" onChange="onDimensionsChanged" />
   </interface>
   <children>
-    <Rectangle id="focusFramePlaceholder" translation="[-10,-10]" width="644" height="76" color="16263BFF" />
-    <Rectangle id="focusFrame" translation="[-10,-10]" width="644" height="76" color="FFFFFFFF" />
-    <Rectangle id="bg" width="624" height="56" color="16263BFF" />
-    <Label id="textLabel" translation="[18,12]" width="580" color="FFFFFFFF" />
+    <Rectangle id="focusFramePlaceholder" translation="[-10,-10]" width="644" height="76" color="0x16263BFF" />
+    <Rectangle id="focusFrame" translation="[-10,-10]" width="644" height="76" color="0xFFFFFFFF" />
+    <Rectangle id="bg" width="624" height="56" color="0x16263BFF" />
+    <Label id="textLabel" translation="[18,12]" width="580" color="0xFFFFFFFF" />
   </children>
 </component>

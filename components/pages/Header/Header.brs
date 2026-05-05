@@ -9,7 +9,6 @@ sub init()
     m.librarySelectedCounter = 0
     m.searchSelectedCounter = 0
     m.logoutSelectedCounter = 0
-    m.changeServerSelectedCounter = 0
     m.downSelectedCounter = 0
     m.backSelectedCounter = 0
     m.overlayRequestedCounter = 0
@@ -33,7 +32,6 @@ sub initReferences()
     m.userMenuButton = m.top.findNode("userMenuButton")
     m.menuPanel = m.top.findNode("menuPanel")
     m.logoutButton = m.top.findNode("logoutButton")
-    m.changeServerButton = m.top.findNode("changeServerButton")
     m.usernameUpSequenceTimer = m.top.findNode("usernameUpSequenceTimer")
     m.headerButtons = [
         m.homeButton
@@ -54,7 +52,6 @@ sub initHandlers()
     m.settingsButton.observeField("buttonSelected", "onSettingsPressed")
     m.userMenuButton.observeField("buttonSelected", "onUserMenuPressed")
     m.logoutButton.observeField("buttonSelected", "onLogoutPressed")
-    m.changeServerButton.observeField("buttonSelected", "onChangeServerPressed")
     if m.usernameUpSequenceTimer <> invalid then m.usernameUpSequenceTimer.observeField("fire", "onUsernameUpSequenceTimerFired")
 end sub
 
@@ -72,7 +69,6 @@ sub initStyle()
     if m.settingsButton <> invalid then m.settingsButton.headerBgColor = headerBgColor
     if m.userMenuButton <> invalid then m.userMenuButton.headerBgColor = headerBgColor
     if m.logoutButton <> invalid then m.logoutButton.headerBgColor = headerBgColor
-    if m.changeServerButton <> invalid then m.changeServerButton.headerBgColor = headerBgColor
 end sub
 
 '-------------------------------------------------------------------------------
@@ -141,6 +137,11 @@ function onKeyEvent(key as string, press as boolean) as boolean
         m.top.downSelected = m.downSelectedCounter
         return true
     else if key = "back" then
+        if m.top.menuOpen = true then
+            closeMenu()
+            return true
+        end if
+
         closeMenu()
         m.backSelectedCounter = m.backSelectedCounter + 1
         m.top.backSelected = m.backSelectedCounter
@@ -241,7 +242,6 @@ function getFocusedHeaderButtonIndex() as integer
     if m.settingsButton <> invalid and m.settingsButton.isInFocusChain() then return 3
     if m.userMenuButton <> invalid and m.userMenuButton.isInFocusChain() then return 4
     if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return 4
-    if m.changeServerButton <> invalid and m.changeServerButton.isInFocusChain() then return 4
 
     return -1
 end function
@@ -332,16 +332,6 @@ sub onLogoutPressed()
     m.top.logoutSelected = m.logoutSelectedCounter
 end sub
 
-'-------------------------------------------------------------------------------
-' onChangeServerPressed
-'-------------------------------------------------------------------------------
-sub onChangeServerPressed()
-    closeMenu()
-    m.changeServerSelectedCounter = m.changeServerSelectedCounter + 1
-    m.top.changeServerSelected = m.changeServerSelectedCounter
-end sub
-
-'-------------------------------------------------------------------------------
 ' closeMenu
 '-------------------------------------------------------------------------------
 sub closeMenu()

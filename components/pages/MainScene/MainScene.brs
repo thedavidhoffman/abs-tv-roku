@@ -48,7 +48,6 @@ sub initHandlers()
     m.header.observeField("downSelected", "onHeaderDownPressed")
     m.header.observeField("backSelected", "onHeaderBackPressed")
     m.header.observeField("logoutSelected", "onLogoutPressed")
-    m.header.observeField("changeServerSelected", "onChangeServerPressed")
     m.header.observeField("overlayRequested", "onOverlayRequested")
     m.homePage.observeField("backSelected", "onHomePageBackSelected")
     m.homePage.observeField("upFromFirstRowSelected", "onHomePageUpFromFirstRowSelected")
@@ -767,20 +766,6 @@ sub onLogoutPressed()
     showLogin("Signed out.")
 end sub
 
-'-------------------------------------------------------------------------------
-' onChangeServerPressed
-'-------------------------------------------------------------------------------
-sub onChangeServerPressed()
-
-    m.session = AuthStore_Load()
-    m.login.serverValue = ""
-    m.login.usernameValue = ""
-    m.login.passwordValue = ""
-    closeHeaderMenu()
-    showLogin("Enter a new server address to continue.")
-end sub
-
-'-------------------------------------------------------------------------------
 ' closeHeaderMenu
 '-------------------------------------------------------------------------------
 sub closeHeaderMenu()
