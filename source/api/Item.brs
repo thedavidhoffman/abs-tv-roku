@@ -21,8 +21,8 @@ function Item_Load(request as object) as object
 
     itemUrl = server + "/api/items/" + itemId
     result = HttpClient_Request(itemUrl, "GET", token, invalid)
-    log.add(itemUrl)
-    log.add("status = " + SafeString(result.status, ""))
+    log.write(itemUrl)
+    log.write("status = " + SafeString(result.status, ""))
     log.flush()
 
     return result
@@ -35,28 +35,28 @@ sub Item_LogTracks(item as dynamic)
     log = CreateLogger("(API) Item_LogTracks")
 
     if item = invalid then
-        log.add("No item payload available for track data.")
+        log.write("No item payload available for track data.")
         log.flush()
         return
     end if
 
     if item.media = invalid then
-        log.add("No item.media payload available for track data.")
+        log.write("No item.media payload available for track data.")
         log.flush()
         return
     end if
 
     if item.media.audioFiles = invalid then
-        log.add("No item.media.audioFiles payload available for track data.")
+        log.write("No item.media.audioFiles payload available for track data.")
         log.flush()
         return
     end if
 
     audioFiles = item.media.audioFiles
 
-    log.add("Item has " + Array_GetCount(audioFiles).ToStr() + " files")
+    log.write("Item has " + Array_GetCount(audioFiles).ToStr() + " files")
 
-    log.add("Audio files:")
+    log.write("Audio files:")
     for i = 0 to item.media.audioFiles.Count() - 1
         file = audioFiles[i]
         fileInfo = "  File " + i.ToStr() + ":"
@@ -64,7 +64,7 @@ sub Item_LogTracks(item as dynamic)
         if file.metadata <> invalid and file.metadata.filename <> invalid then fileInfo = fileInfo + " filename=" + SafeString(file.metadata.filename)
         if file.duration <> invalid then fileInfo = fileInfo + " duration=" + file.duration.ToStr()
         if file.mimeType <> invalid then fileInfo = fileInfo + " mimeType=" + SafeString(file.mimeType)
-        log.add(fileInfo)
+        log.write(fileInfo)
     end for
 
     log.flush()

@@ -9,8 +9,8 @@ function InProgress_Load(request as object) as object
 
     inProgressUrl = server + "/api/me/items-in-progress"
     result = HttpClient_Request(inProgressUrl, "GET", token, invalid)
-    log.add(inProgressUrl)
-    log.add("status = " + SafeString(result.status, ""))
+    log.write(inProgressUrl)
+    log.write("status = " + SafeString(result.status, ""))
     if result.ok <> true then
         log.flush()
         return result

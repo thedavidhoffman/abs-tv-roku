@@ -19,8 +19,8 @@ function Personalized_Load(request as object) as object
     if bookLibraryId = invalid or bookLibraryId = "" then
         authorizeUrl = server + "/api/authorize"
         authResult = HttpClient_Request(authorizeUrl, "POST", token, "")
-        log.add(authorizeUrl)
-        log.add("status = " + SafeString(authResult.status, ""))
+        log.write(authorizeUrl)
+        log.write("status = " + SafeString(authResult.status, ""))
         if authResult.ok <> true then
             log.flush()
             return authResult
@@ -35,8 +35,8 @@ function Personalized_Load(request as object) as object
 
     personalizedUrl = server + "/api/libraries/" + bookLibraryId + "/personalized"
     result = HttpClient_Request(personalizedUrl, "GET", token, invalid)
-    log.add(personalizedUrl)
-    log.add("status = " + SafeString(result.status, ""))
+    log.write(personalizedUrl)
+    log.write("status = " + SafeString(result.status, ""))
     if result.ok <> true then
         log.flush()
         return result

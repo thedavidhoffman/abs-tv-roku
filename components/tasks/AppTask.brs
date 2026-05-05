@@ -32,6 +32,8 @@ sub executeRequest()
         m.top.response = Personalized_Load(request)
     else if action = "startPlayback" then
         m.top.response = Playback_Start(request)
+    else if action = "syncPlaybackSession" then
+        m.top.response = Playback_SyncSession(request)
     else if action = "closePlaybackSession" then
         m.top.response = Playback_CloseSession(request)
     else

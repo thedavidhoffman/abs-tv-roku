@@ -16,7 +16,7 @@ end sub
 ' initReferences
 '-------------------------------------------------------------------------------
 sub initReferences()
-    m.log = CreateLogger("Player")
+    m.log = CreateLogger("Player", false)
     m.playerBg = m.top.findNode("playerBg")
     m.cover = m.top.findNode("cover")
     m.titleLabel = m.top.findNode("titleLabel")
@@ -56,6 +56,8 @@ sub initValues()
     m.playbackSession = invalid
     m.playbackSessionId = invalid
     m.playbackStartedAtSeconds = 0
+    m.lastPlaybackSyncAtSeconds = 0
+    m.playbackSyncIntervalSeconds = 30
     m.isPaused = false
     m.totalDurationSeconds = 0
     m.progressBarWidth = 1040
@@ -101,18 +103,18 @@ end sub
 '-------------------------------------------------------------------------------
 sub onPlayRequestChanged()
 
-    m.log.log("onPlayRequestChanged")
+    m.log.write("onPlayRequestChanged")
 
     request = m.top.playRequest
 
     if request = invalid then 
-        m.log.log("invalid request")
+        m.log.write("invalid request")
         return
     end if
 
-    m.log.log("title = " + SafeString(request.title))
-    m.log.log("itemId = " + SafeString(request.itemId))
-    m.log.log("startPosition = " + SafeString(request.startPosition))
+    m.log.write("title = " + SafeString(request.title))
+    m.log.write("itemId = " + SafeString(request.itemId))
+    m.log.write("startPosition = " + SafeString(request.startPosition))
 
     m.isClosing = false
     if m.closeTimer <> invalid then m.closeTimer.control = "stop"
@@ -122,6 +124,7 @@ sub onPlayRequestChanged()
     m.playbackSession = invalid
     m.playbackSessionId = invalid
     m.playbackStartedAtSeconds = 0
+    m.lastPlaybackSyncAtSeconds = 0
     m.audiobookTitle = SafeString(request.title, "Audiobook")
     m.requestedStartPositionSeconds = getRequestStartPosition(request)
     m.pendingTrackSeekPosition = invalid
@@ -174,7 +177,7 @@ end function
 '-------------------------------------------------------------------------------
 sub onPlaybackResponseChanged()
 
-    m.log.log("onPlaybackResponseChanged")
+    m.log.write("onPlaybackResponseChanged")
 
     response = m.top.playbackResponse
     if response = invalid then return
@@ -189,6 +192,7 @@ sub onPlaybackResponseChanged()
     m.playbackSession = response.playbackSession
     m.playbackSessionId = getPlaybackSessionId(response.playbackSession)
     m.playbackStartedAtSeconds = getNowSeconds()
+    m.lastPlaybackSyncAtSeconds = m.playbackStartedAtSeconds
     playTracks(response.tracks)
 end sub
 
@@ -274,7 +278,7 @@ end function
 '-------------------------------------------------------------------------------
 sub playTracks(tracks as dynamic)
 
-    m.log.log("playTracks")
+    m.log.write("playTracks")
 
     if m.audioPlayer = invalid then return
     if tracks = invalid or tracks.Count() = 0 then
@@ -295,7 +299,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub playCurrentTrack()
 
-    m.log.log("playCurrentTrack")
+    m.log.write("playCurrentTrack")
 
     if m.audioPlayer = invalid then return
     if m.tracks = invalid or m.currentTrackIndex < 0 or m.currentTrackIndex >= m.tracks.Count() then return
@@ -307,7 +311,7 @@ sub playCurrentTrack()
     node.streamFormat = getStreamFormat(track.mimeType, track.url)
     node.contentType = "audio"
 
-    m.log.log("track index=" + m.currentTrackIndex.ToStr() + " format=" + SafeString(node.streamFormat) + " url=" + SafeString(node.url))
+    m.log.write("track index=" + m.currentTrackIndex.ToStr() + " format=" + SafeString(node.streamFormat) + " url=" + SafeString(node.url))
 
     m.totalDurationSeconds = getTrackDurationSeconds(track)
     m.currentTrackStartPosition = getTrackStartPosition(track)
@@ -520,6 +524,7 @@ function playNextTrack() as boolean
     nextIndex = m.currentTrackIndex + 1
     if nextIndex >= m.tracks.Count() then return false
 
+    requestSyncPlaybackSession("trackChange")
     m.currentTrackIndex = nextIndex
     playCurrentTrack()
     return true
@@ -592,6 +597,7 @@ sub finalizeClosePlayer()
     m.playbackSession = invalid
     m.playbackSessionId = invalid
     m.playbackStartedAtSeconds = 0
+    m.lastPlaybackSyncAtSeconds = 0
     m.isPaused = false
     resetProgress()
     updateChaptersButtonVisibility()
@@ -603,20 +609,43 @@ end sub
 ' requestClosePlaybackSession
 '-------------------------------------------------------------------------------
 sub requestClosePlaybackSession()
-    if m.playbackSessionId = invalid or m.playbackSessionId = "" then return
-    if m.playbackServer = invalid or m.playbackServer = "" then return
-    if m.playbackToken = invalid or m.playbackToken = "" then return
+    request = buildPlaybackSessionRequest("closePlaybackSession")
+    if request <> invalid then m.top.playbackCloseRequested = request
+end sub
 
-    m.top.playbackCloseRequested = {
-        action: "closePlaybackSession"
+'-------------------------------------------------------------------------------
+' requestSyncPlaybackSession
+'-------------------------------------------------------------------------------
+sub requestSyncPlaybackSession(reason = "" as string, currentTimeOverride = invalid as dynamic)
+    request = buildPlaybackSessionRequest("syncPlaybackSession", currentTimeOverride)
+    if request = invalid then return
+
+    if reason <> "" then request.reason = reason
+    m.lastPlaybackSyncAtSeconds = getNowSeconds()
+    m.top.playbackSyncRequested = request
+end sub
+
+'-------------------------------------------------------------------------------
+' buildPlaybackSessionRequest
+'-------------------------------------------------------------------------------
+function buildPlaybackSessionRequest(action as string, currentTimeOverride = invalid as dynamic) as dynamic
+    if m.playbackSessionId = invalid or m.playbackSessionId = "" then return invalid
+    if m.playbackServer = invalid or m.playbackServer = "" then return invalid
+    if m.playbackToken = invalid or m.playbackToken = "" then return invalid
+
+    currentTime = getPlaybackCurrentTimeSeconds()
+    if currentTimeOverride <> invalid then currentTime = int(val(currentTimeOverride.ToStr()))
+
+    return {
+        action: action
         server: m.playbackServer
         token: m.playbackToken
         sessionId: m.playbackSessionId
-        currentTime: getPlaybackCurrentTimeSeconds()
+        currentTime: currentTime
         timeListened: getPlaybackTimeListenedSeconds()
         duration: getPlaybackDurationSeconds()
     }
-end sub
+end function
 
 '-------------------------------------------------------------------------------
 ' onKeyEvent
@@ -938,6 +967,7 @@ sub finishTransportSeekHold()
     end if
 
     updateProgress(targetPosition)
+    requestSyncPlaybackSession("seek", m.currentTrackStartPosition + targetPosition)
     if m.isPaused = true then
         setStatus("Paused")
     else
@@ -979,6 +1009,7 @@ sub togglePlayPause()
         stopProgressTimer()
         enableScreenSaver()
         updateProgress(getCurrentTrackPlaybackPosition())
+        requestSyncPlaybackSession("pause")
         setStatus("Paused")
     else
         m.isPaused = false
@@ -1030,8 +1061,29 @@ sub onProgressTimerFired()
     if m.seekHoldDirection <> 0 then return
     position = getCurrentPlaybackPosition() - m.currentTrackStartPosition
     updateProgress(position)
+    requestPeriodicPlaybackSync()
     if shouldAdvanceSharedStreamChapter(position) then
         playNextTrack()
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' requestPeriodicPlaybackSync
+'-------------------------------------------------------------------------------
+sub requestPeriodicPlaybackSync()
+    if m.isPaused = true then return
+    if m.isClosing = true then return
+    if m.audioPlayer = invalid then return
+    if SafeString(m.audioPlayer.state, "") <> "playing" then return
+
+    nowSeconds = getNowSeconds()
+    if m.lastPlaybackSyncAtSeconds <= 0 then
+        m.lastPlaybackSyncAtSeconds = nowSeconds
+        return
+    end if
+
+    if nowSeconds - m.lastPlaybackSyncAtSeconds >= m.playbackSyncIntervalSeconds then
+        requestSyncPlaybackSession("periodic")
     end if
 end sub
 

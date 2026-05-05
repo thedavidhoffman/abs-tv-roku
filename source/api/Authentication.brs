@@ -1,7 +1,7 @@
 '-------------------------------------------------------------------------------
 ' Authentication_Login
 '-------------------------------------------------------------------------------
-function Authentication_Login(request as Object) as Object
+function Authentication_Login(request as object) as object
 
     log = CreateLogger("(API) Authentication_Login")
 
@@ -12,8 +12,8 @@ function Authentication_Login(request as Object) as Object
     })
     loginUrl = server + "/login"
     result = HttpClient_Request(loginUrl, "POST", invalid, body)
-    log.add(loginUrl)
-    log.add("status = " + SafeString(result.status, ""))
+    log.write(loginUrl)
+    log.write("status = " + SafeString(result.status, ""))
     if result.ok <> true then
         log.flush()
         return result
@@ -38,22 +38,22 @@ end function
 '-------------------------------------------------------------------------------
 ' Authentication_AuthorizeToken
 '-------------------------------------------------------------------------------
-function Authentication_AuthorizeToken(request as Object) as Object
+function Authentication_AuthorizeToken(request as object) as object
 
     log = CreateLogger("(API) Authentication_AuthorizeToken")
 
     server = NormalizeServerUrl(request.server)
     authorizeUrl = server + "/api/authorize"
     result = HttpClient_Request(authorizeUrl, "POST", request.token, "")
-    log.add(authorizeUrl)
-    log.add("status = " + SafeString(result.status, ""))
+    log.write(authorizeUrl)
+    log.write("status = " + SafeString(result.status, ""))
     if result.ok <> true then
         log.flush()
         return result
     end if
 
     log.flush()
-    
+
     return {
         ok: true
         action: "authorize"
@@ -66,13 +66,13 @@ end function
 '-------------------------------------------------------------------------------
 ' Authentication_Logout
 '-------------------------------------------------------------------------------
-function Authentication_Logout(request as Object) as Object
+function Authentication_Logout(request as object) as object
     log = CreateLogger("(API) Authentication_Logout")
     server = NormalizeServerUrl(request.server)
     logoutUrl = server + "/logout"
     result = HttpClient_Request(logoutUrl, "POST", request.token, "")
-    log.add(logoutUrl)
-    log.add("status = " + SafeString(result.status, ""))
+    log.write(logoutUrl)
+    log.write("status = " + SafeString(result.status, ""))
     if result.ok <> true and result.status <> 401 then
         log.flush()
         return result

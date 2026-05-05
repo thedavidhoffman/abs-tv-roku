@@ -7,6 +7,7 @@
   <interface>
     <field id="playRequest" type="assocarray" onChange="onPlayRequestChanged" />
     <field id="playbackStartRequested" type="assocarray" />
+    <field id="playbackSyncRequested" type="assocarray" />
     <field id="playbackCloseRequested" type="assocarray" />
     <field id="playbackResponse" type="assocarray" onChange="onPlaybackResponseChanged" />
     <field id="closeRequested" type="integer" />

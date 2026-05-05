@@ -4,7 +4,7 @@
 function Series_Load(request as object) as object
 
     log = CreateLogger("(API) Series_Load")
-    
+
     server = NormalizeServerUrl(request.server)
     token = request.token
     bookLibraryId = request.bookLibraryId
@@ -30,8 +30,8 @@ function Series_Load(request as object) as object
         if seriesFilter <> "" then libraryUrl = libraryUrl + seriesFilter
 
         libraryResult = HttpClient_Request(libraryUrl, "GET", token, invalid)
-        log.add(libraryUrl)
-        log.add("status = " + SafeString(libraryResult.status, "unknown"))
+        log.write(libraryUrl)
+        log.write("status = " + SafeString(libraryResult.status, "unknown"))
 
         if libraryResult.ok <> true then return libraryResult
 

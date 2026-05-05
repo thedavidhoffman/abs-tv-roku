@@ -18,8 +18,8 @@ function LibraryItems_Load(request as object) as object
     if bookLibraryId = invalid or bookLibraryId = "" then
         authorizeUrl = server + "/api/authorize"
         authResult = HttpClient_Request(authorizeUrl, "POST", token, "")
-        log.add(authorizeUrl)
-        log.add("status = " + SafeString(authResult.status, ""))
+        log.write(authorizeUrl)
+        log.write("status = " + SafeString(authResult.status, ""))
         if authResult.ok <> true then
             log.flush()
             return authResult
@@ -41,8 +41,8 @@ function LibraryItems_Load(request as object) as object
     while keepLoading
         libraryUrl = server + "/api/libraries/" + bookLibraryId + "/items?limit=" + limit.ToStr() + "&page=" + page.ToStr() + "&sort=media.metadata.title&desc=0&minified=0&collapseseries=" + collapseSeries
         libraryResult = HttpClient_Request(libraryUrl, "GET", token, invalid)
-        log.add(libraryUrl)
-        log.add("status = " + SafeString(libraryResult.status, ""))
+        log.write(libraryUrl)
+        log.write("status = " + SafeString(libraryResult.status, ""))
         if libraryResult.ok <> true then
             log.flush()
             return libraryResult

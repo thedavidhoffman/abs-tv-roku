@@ -61,6 +61,7 @@ sub initHandlers()
     m.player.observeField("closeRequested", "onPlayerCloseRequested")
     m.player.observeField("errorResponse", "onPlayerError")
     m.player.observeField("playbackStartRequested", "onPlaybackStartRequested")
+    m.player.observeField("playbackSyncRequested", "onPlaybackSyncRequested")
     m.player.observeField("playbackCloseRequested", "onPlaybackCloseRequested")
     m.overlayHost.observeField("closed", "onOverlayClosed")
     m.apiTask.observeField("response", "onApiResponse")
@@ -411,6 +412,16 @@ sub onPlaybackStartRequested()
     if request = invalid then return
 
     startApiTask(m.apiTask, request)
+end sub
+
+'-------------------------------------------------------------------------------
+' onPlaybackSyncRequested
+'-------------------------------------------------------------------------------
+sub onPlaybackSyncRequested()
+    request = m.player.playbackSyncRequested
+    if request = invalid then return
+
+    startApiTask(m.playbackApiTask, request)
 end sub
 
 '-------------------------------------------------------------------------------
