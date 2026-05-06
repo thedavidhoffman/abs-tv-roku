@@ -24,6 +24,7 @@ sub initReferences()
     m.selectedPoster = m.top.findNode("selectedPoster")
     m.seriesPosterGroup = m.top.findNode("seriesPosterGroup")
     m.seriesPosterSlots = getSeriesPosterSlots()
+    m.seriesSummaryLabel = m.top.findNode("seriesSummaryLabel")
     m.playButton = m.top.findNode("playButton")
     m.metadataGroup = m.top.findNode("metadataGroup")
     m.detailTitle = m.top.findNode("detailTitle")
@@ -106,6 +107,7 @@ sub applyOverviewMode()
 
     if m.selectedPoster <> invalid then m.selectedPoster.visible = showDetails
     if m.seriesPosterGroup <> invalid then m.seriesPosterGroup.visible = (showDetails = false)
+    if m.seriesSummaryLabel <> invalid then m.seriesSummaryLabel.visible = false
     if m.metadataGroup <> invalid then m.metadataGroup.visible = showDetails
     if m.playButton <> invalid then m.playButton.visible = showDetails
     if m.detailDescription <> invalid then m.detailDescription.visible = showDetails
@@ -122,6 +124,8 @@ sub renderSeriesPosters(item as dynamic)
     itemIds = getCollapsedSeriesLibraryItemIds(item)
     if itemIds = invalid then return
 
+    updateSeriesSummary(itemIds.Count())
+
     posterCount = getSeriesPosterCount(itemIds)
     if posterCount <= 0 then return
 
@@ -129,6 +133,21 @@ sub renderSeriesPosters(item as dynamic)
     for i = 0 to posterCount - 1
         renderSeriesPosterSlot(m.seriesPosterSlots[i], getSeriesPosterContent(itemIds[i]), showShadows)
     end for
+end sub
+
+'-------------------------------------------------------------------------------
+' updateSeriesSummary
+'-------------------------------------------------------------------------------
+sub updateSeriesSummary(seriesCount as integer)
+    if m.seriesSummaryLabel = invalid then return
+
+    if seriesCount = 1 then
+        m.seriesSummaryLabel.text = "Series with 1 book"
+    else
+        m.seriesSummaryLabel.text = "Series with " + seriesCount.ToStr() + " books"
+    end if
+
+    m.seriesSummaryLabel.visible = true
 end sub
 
 '-------------------------------------------------------------------------------

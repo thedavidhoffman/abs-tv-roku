@@ -120,6 +120,16 @@
         showText="false"
         showProgressBar="false" />
     </Group>
+    <Label
+      id="seriesSummaryLabel"
+      translation="[980,685]"
+      width="860"
+      height="40"
+      horizAlign="left"
+      vertAlign="center"
+      color="0xD5E0EAFF"
+      font="font:MediumSystemFont"
+      visible="false" />
     <PrimaryButton
       id="playButton"
       translation="[980,695]"
