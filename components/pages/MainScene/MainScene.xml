@@ -30,6 +30,5 @@
 
     <AppTask id="apiTask" />
     <AppTask id="playbackApiTask" />
-    <AppTask id="personalizedApiTask" />
   </children>
 </component>

@@ -36,7 +36,6 @@ sub coreInitReferences()
     m.overlayHost = m.top.findNode("overlayHost")
     m.apiTask = m.top.findNode("apiTask")
     m.playbackApiTask = m.top.findNode("playbackApiTask")
-    m.personalizedApiTask = m.top.findNode("personalizedApiTask")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -54,6 +53,7 @@ sub coreInitHandlers()
     m.homePage.observeField("backSelected", "homeHandleBackSelected")
     m.homePage.observeField("upFromFirstRowSelected", "homeHandleUpFromFirstRowSelected")
     m.homePage.observeField("playSelected", "homeHandlePlaySelected")
+    m.homePage.observeField("errorResponse", "homeHandleError")
     m.library.observeField("errorResponse", "libraryHandleError")
     m.library.observeField("playSelected", "libraryHandlePlaySelected")
     m.library.observeField("upFromFirstItemSelected", "libraryHandleUpFromFirstItemSelected")
@@ -67,7 +67,6 @@ sub coreInitHandlers()
     m.overlayHost.observeField("closed", "overlayHandleClosed")
     m.apiTask.observeField("response", "taskHandleApiResponse")
     m.playbackApiTask.observeField("response", "taskHandlePlaybackResponse")
-    m.personalizedApiTask.observeField("response", "taskHandlePersonalizedResponse")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -233,23 +232,6 @@ sub taskHandleApiResponse()
 end sub
 
 '-------------------------------------------------------------------------------
-' taskHandlePersonalizedResponse
-'-------------------------------------------------------------------------------
-sub taskHandlePersonalizedResponse()
-    response = m.personalizedApiTask.response
-    if response = invalid then return
-
-    if response.ok <> true then
-        if response.authExpired = true then
-            authHandleExpiredSession(response.errorMessage)
-        end if
-    else if response.action = "loadPersonalized" then
-        homeStorePersonalizedShelves(response)
-    end if
-
-end sub
-
-'-------------------------------------------------------------------------------
 ' taskHandlePlaybackResponse
 '-------------------------------------------------------------------------------
 sub taskHandlePlaybackResponse()
@@ -298,14 +280,16 @@ sub navShowApp()
         m.header.username = m.session.username
     end if
     if m.homePage <> invalid then
-        m.homePage.server = m.session.server
-        m.homePage.token = m.session.token
         m.homePage.mediaProgress = m.mediaProgress
+        m.homePage.loadRequest = {
+            server: m.session.server
+            token: m.session.token
+            bookLibraryId: m.session.bookLibraryId
+        }
     end if
     if m.library <> invalid then m.library.mediaProgress = m.mediaProgress
     navShowHomePage()
     if m.homePage <> invalid then m.homePage.callFunc("focusHomePage")
-    homeLoadPersonalizedShelves()
     if m.library <> invalid then
         m.library.loadRequest = {
             server: m.session.server
@@ -395,7 +379,7 @@ sub homeHandlePressed()
     headerCloseMenu()
     navShowHomePage()
     if m.homePage <> invalid then m.homePage.callFunc("focusHomePage")
-    homeLoadPersonalizedShelves()
+    if m.homePage <> invalid then m.homePage.callFunc("reloadPersonalizedShelves")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -422,32 +406,15 @@ sub homeHandlePlaySelected()
 end sub
 
 '-------------------------------------------------------------------------------
-' homeLoadPersonalizedShelves
+' homeHandleError
 '-------------------------------------------------------------------------------
-sub homeLoadPersonalizedShelves()
-    if m.session = invalid then return
-    if m.session.server = invalid or m.session.server = "" then return
-    if m.session.token = invalid or m.session.token = "" then return
-    if m.personalizedApiTask = invalid then return
+sub homeHandleError()
+    response = m.homePage.errorResponse
+    if response = invalid then return
 
-    taskStartApi(m.personalizedApiTask, {
-        action: "loadPersonalized"
-        server: m.session.server
-        token: m.session.token
-        bookLibraryId: m.session.bookLibraryId
-    })
-end sub
-
-'-------------------------------------------------------------------------------
-' homeStorePersonalizedShelves
-'-------------------------------------------------------------------------------
-sub homeStorePersonalizedShelves(response as object)
-    if response.bookLibraryId <> invalid and response.bookLibraryId <> "" then
-        m.session.bookLibraryId = response.bookLibraryId
+    if response.authExpired = true then
+        authHandleExpiredSession(response.errorMessage)
     end if
-
-    if m.homePage = invalid then return
-    m.homePage.personalizedShelves = response.shelves
 end sub
 
 '===============================================================================

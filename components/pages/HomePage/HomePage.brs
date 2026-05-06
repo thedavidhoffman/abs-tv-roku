@@ -4,19 +4,97 @@
 sub init()
     m.homeRowList = m.top.findNode("homeRowList")
     m.statusLabel = m.top.findNode("statusLabel")
+    m.personalizedApiTask = m.top.findNode("personalizedApiTask")
     m.shelfItemsByRow = []
     m.playSelectedCounter = 0
     m.focusRequested = false
     m.backSelectedCounter = 0
     m.upFromFirstRowSelectedCounter = 0
     m.focusedItemNode = invalid
+    m.loadRequest = invalid
+    m.server = invalid
+    m.token = invalid
 
     if m.homeRowList <> invalid then
         m.homeRowList.observeField("itemSelected", "onItemSelected")
         m.homeRowList.observeField("rowItemFocused", "onRowItemFocused")
     end if
 
+    if m.personalizedApiTask <> invalid then
+        m.personalizedApiTask.observeField("response", "onPersonalizedApiResponse")
+    end if
+
     onPersonalizedShelvesChanged()
+end sub
+
+'-------------------------------------------------------------------------------
+' onLoadRequestChanged
+'-------------------------------------------------------------------------------
+sub onLoadRequestChanged()
+    m.loadRequest = m.top.loadRequest
+    if m.loadRequest <> invalid then
+        m.server = m.loadRequest.server
+        m.token = m.loadRequest.token
+    end if
+
+    reloadPersonalizedShelves()
+end sub
+
+'-------------------------------------------------------------------------------
+' reloadPersonalizedShelves
+'-------------------------------------------------------------------------------
+sub reloadPersonalizedShelves()
+    if hasValidLoadRequest() = false then return
+
+    setStatus("Loading")
+    taskStartApi({
+        action: "loadPersonalized"
+        server: m.loadRequest.server
+        token: m.loadRequest.token
+        bookLibraryId: m.loadRequest.bookLibraryId
+    })
+end sub
+
+'-------------------------------------------------------------------------------
+' hasValidLoadRequest
+'-------------------------------------------------------------------------------
+function hasValidLoadRequest() as boolean
+    if m.loadRequest = invalid then return false
+    if m.loadRequest.server = invalid or m.loadRequest.server = "" then return false
+    if m.loadRequest.token = invalid or m.loadRequest.token = "" then return false
+    if m.personalizedApiTask = invalid then return false
+
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' taskStartApi
+'-------------------------------------------------------------------------------
+sub taskStartApi(request as object)
+    if m.personalizedApiTask = invalid then return
+
+    m.personalizedApiTask.request = request
+    m.personalizedApiTask.control = "run"
+end sub
+
+'-------------------------------------------------------------------------------
+' onPersonalizedApiResponse
+'-------------------------------------------------------------------------------
+sub onPersonalizedApiResponse()
+    response = m.personalizedApiTask.response
+    if response = invalid then return
+
+    if response.ok <> true then
+        setStatus(SafeString(response.errorMessage, "Unable to load home shelves."))
+        m.top.errorResponse = response
+        return
+    end if
+
+    if response.bookLibraryId <> invalid and response.bookLibraryId <> "" and m.loadRequest <> invalid then
+        m.loadRequest.bookLibraryId = response.bookLibraryId
+    end if
+
+    m.top.personalizedShelves = response.shelves
 end sub
 
 '-------------------------------------------------------------------------------
@@ -56,7 +134,7 @@ sub appendShelfRow(root as object, shelfId as string, title as string)
         if item <> invalid and item.id <> invalid then
             node = CreateObject("roSGNode", "ContentNode")
             node.title = getLibraryItemTitle(item)
-            node.HDPosterUrl = Cover_BuildUrl(m.top.server, m.top.token, item.id, 280)
+            node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, 280)
             node.SDPosterUrl = node.HDPosterUrl
             progress = getProgressData(item)
             metadata = getItemMetadata(item)
@@ -107,6 +185,18 @@ sub updateStatus(rowCount as integer)
     else
         m.statusLabel.text = "Loading"
     end if
+end sub
+
+'-------------------------------------------------------------------------------
+' setStatus
+'-------------------------------------------------------------------------------
+sub setStatus(message as dynamic)
+    if m.statusLabel = invalid or m.homeRowList = invalid then return
+
+    text = SafeString(message, "")
+    m.statusLabel.text = text
+    m.statusLabel.visible = (text <> "")
+    m.homeRowList.visible = (text = "")
 end sub
 
 '-------------------------------------------------------------------------------
