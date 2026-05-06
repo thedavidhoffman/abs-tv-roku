@@ -23,6 +23,7 @@ sub initReferences()
     m.overviewBg = m.top.findNode("overviewBg")
     m.selectedPoster = m.top.findNode("selectedPoster")
     m.playButton = m.top.findNode("playButton")
+    m.metadataGroup = m.top.findNode("metadataGroup")
     m.detailTitle = m.top.findNode("detailTitle")
     m.detailAuthor = m.top.findNode("detailAuthor")
     m.detailNarrators = m.top.findNode("detailNarrators")
@@ -66,8 +67,22 @@ end sub
 '-------------------------------------------------------------------------------
 sub showSelectedItem(item as dynamic)
     m.selectedItem = item
+    applyOverviewMode()
     if m.selectedPoster <> invalid then m.selectedPoster.itemContent = getSelectedPosterContent(item)
     updateSelectedDetails(item)
+end sub
+
+'-------------------------------------------------------------------------------
+' applyOverviewMode
+'-------------------------------------------------------------------------------
+sub applyOverviewMode()
+    showDetails = (isSeriesMode() = false)
+
+    if m.metadataGroup <> invalid then m.metadataGroup.visible = showDetails
+    if m.playButton <> invalid then m.playButton.visible = showDetails
+    if m.detailDescription <> invalid then m.detailDescription.visible = showDetails
+
+    if showDetails = false then clearFocusVisual()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -78,7 +93,7 @@ function getSelectedPosterContent(item as dynamic) as dynamic
 
     progress = getProgressData(item)
     node = CreateObject("roSGNode", "ContentNode")
-    node.title = ItemMetadataParser_GetTitle(item)
+    node.title = getOverviewTitle(item)
     node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, getCoverItemId(item), 600)
     node.SDPosterUrl = node.HDPosterUrl
     node.AddFields({
@@ -179,9 +194,14 @@ end function
 ' updateSelectedDetails
 '-------------------------------------------------------------------------------
 sub updateSelectedDetails(item as dynamic)
+    if isSeriesMode() then
+        setLabelText(m.detailTitle, getOverviewTitle(item))
+        return
+    end if
+
     metadata = ItemMetadataParser_GetMetadata(item)
 
-    setLabelText(m.detailTitle, ItemMetadataParser_GetTitle(item))
+    setLabelText(m.detailTitle, getOverviewTitle(item))
     setLabelText(m.detailAuthor, ItemMetadataParser_GetAuthor(metadata))
     setLabelText(m.detailNarrators, ItemMetadataParser_GetNarrators(metadata))
     setLabelText(m.detailPublishDate, ItemMetadataParser_GetPublishYear(metadata))
@@ -192,6 +212,36 @@ sub updateSelectedDetails(item as dynamic)
     if m.detailDescription <> invalid then m.detailDescription.title = ItemMetadataParser_GetTitle(item)
     setLabelText(m.detailDescription, ItemMetadataParser_GetDescription(metadata))
 end sub
+
+'-------------------------------------------------------------------------------
+' getOverviewTitle
+'-------------------------------------------------------------------------------
+function getOverviewTitle(item as dynamic) as string
+    if isSeriesMode() then return getCollapsedSeriesTitle(item)
+    return ItemMetadataParser_GetTitle(item)
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesTitle
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesTitle(item as dynamic) as string
+    if item = invalid or item.collapsedSeries = invalid then return ItemMetadataParser_GetTitle(item)
+
+    collapsedSeries = item.collapsedSeries
+    return FirstNonEmpty([
+        collapsedSeries.nameIgnorePrefix
+        collapsedSeries.name
+        collapsedSeries.title
+        ItemMetadataParser_GetTitle(item)
+    ], "Untitled")
+end function
+
+'-------------------------------------------------------------------------------
+' isSeriesMode
+'-------------------------------------------------------------------------------
+function isSeriesMode() as boolean
+    return m.top.isSeries = true
+end function
 
 '-------------------------------------------------------------------------------
 ' setLabelText
@@ -211,6 +261,7 @@ end sub
 ' focusPlayButton
 '-------------------------------------------------------------------------------
 sub focusPlayButton()
+    if isSeriesMode() then return
     if m.playButton = invalid then return
 
     m.playButton.hasFocusVisual = true
@@ -221,6 +272,7 @@ end sub
 ' focusDescription
 '-------------------------------------------------------------------------------
 function focusDescription() as boolean
+    if isSeriesMode() then return false
     if m.detailDescription = invalid then return false
     if m.detailDescription.canAcceptFocus <> true then return false
 
@@ -233,6 +285,7 @@ end function
 ' isInFocusChain
 '-------------------------------------------------------------------------------
 function isInFocusChain() as boolean
+    if isSeriesMode() then return false
     if m.playButton <> invalid and m.playButton.isInFocusChain() then return true
     if m.detailDescription <> invalid and m.detailDescription.isInFocusChain() then return true
     return false
@@ -242,7 +295,7 @@ end function
 ' onPlayPressed
 '-------------------------------------------------------------------------------
 sub onPlayPressed()
-    if getCollapsedSeriesId(m.selectedItem) <> invalid then
+    if isSeriesMode() then
         m.seriesActionSelectedCounter = m.seriesActionSelectedCounter + 1
         m.top.seriesActionSelected = {
             counter: m.seriesActionSelectedCounter

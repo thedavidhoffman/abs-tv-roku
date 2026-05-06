@@ -128,7 +128,7 @@ sub rebuildLibraryList(focusIndex as dynamic)
         showSelectedRow(getSelectedLibraryRow(selectedIndex))
         if m.top.visible then m.libraryList.setFocus(true)
     else
-        showSelectedItem(invalid)
+        showSelectedItem(invalid, false)
     end if
 end sub
 
@@ -212,18 +212,21 @@ end function
 '-------------------------------------------------------------------------------
 sub showSelectedRow(row as dynamic)
     if row = invalid then
-        showSelectedItem(invalid)
+        showSelectedItem(invalid, false)
         return
     end if
 
-    showSelectedItem(row.item)
+    showSelectedItem(row.item, row.type = "series")
 end sub
 
 '-------------------------------------------------------------------------------
 ' showSelectedItem
 '-------------------------------------------------------------------------------
-sub showSelectedItem(item as dynamic)
-    if m.overview <> invalid then m.overview.item = item
+sub showSelectedItem(item as dynamic, isSeries as boolean)
+    if m.overview = invalid then return
+
+    m.overview.isSeries = isSeries
+    m.overview.item = item
 end sub
 
 '-------------------------------------------------------------------------------
