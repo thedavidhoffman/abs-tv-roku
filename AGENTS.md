@@ -25,6 +25,15 @@
 - For helpers under `/source` that are internal to a single file, use a leading `__` prefix instead of the public module prefix, such as `__GetCollapseSeriesQueryValue`.
 - Do not use module-style prefixes for component-local functions in `components/`; name those functions by their local behavior, such as `initStyle`, `onKeyEvent`, or `colorString`.
 
+## SceneGraph architecture
+
+- Keep `MainScene` focused on app-shell orchestration: top-level visibility, routing between major surfaces, global focus recovery, and app exit handling.
+- Prefer putting feature-specific API tasks, response handling, local loading state, and local navigation state inside the component that owns that feature. For example, Library should own library loading/drilldown, HomePage should own personalized shelf loading, Player should own playback session requests, and auth/session persistence should live in an auth-focused controller rather than in `MainScene`.
+- Component-to-`MainScene` communication should be narrow and event-like: selected item, auth error, close requested, or a completed high-level action. Avoid bubbling low-level task requests through `MainScene` when the originating component can own the task safely.
+- Pass session context down as explicit request data (`server`, `token`, `bookLibraryId`) instead of letting child components read global scene state.
+- Extract shared pure logic into `/source` helpers when it is reused or when keeping it in a component would make the component responsible for unrelated calculations. Avoid abstractions that only replace one clear local boolean or one obvious call site.
+- After each architectural move, run validation before continuing so boundary mistakes are caught while the change is still small.
+
 ## Commenting Style
 
 - Add a three-line comment header immediately above each function definition in `src/config.js`.
