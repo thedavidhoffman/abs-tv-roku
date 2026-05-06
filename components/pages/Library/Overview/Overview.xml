@@ -43,12 +43,13 @@
         uri="pkg:/images/shadows/poster_shadow.png"
         loadDisplayMode="scaleToFill"
         visible="false" />
-      <ItemPoster
+      <Poster
         id="seriesPoster6"
         translation="[1436,241]"
-        posterWidth="420"
-        showText="false"
-        showProgressBar="false" />
+        width="420"
+        height="420"
+        loadDisplayMode="scaleToFit"
+        visible="false" />
       <Poster
         id="seriesPosterShadow5"
         translation="[1329,225]"
@@ -57,12 +58,13 @@
         uri="pkg:/images/shadows/poster_shadow.png"
         loadDisplayMode="scaleToFill"
         visible="false" />
-      <ItemPoster
+      <Poster
         id="seriesPoster5"
         translation="[1345,241]"
-        posterWidth="420"
-        showText="false"
-        showProgressBar="false" />
+        width="420"
+        height="420"
+        loadDisplayMode="scaleToFit"
+        visible="false" />
       <Poster
         id="seriesPosterShadow4"
         translation="[1238,225]"
@@ -71,12 +73,13 @@
         uri="pkg:/images/shadows/poster_shadow.png"
         loadDisplayMode="scaleToFill"
         visible="false" />
-      <ItemPoster
+      <Poster
         id="seriesPoster4"
         translation="[1254,241]"
-        posterWidth="420"
-        showText="false"
-        showProgressBar="false" />
+        width="420"
+        height="420"
+        loadDisplayMode="scaleToFit"
+        visible="false" />
       <Poster
         id="seriesPosterShadow3"
         translation="[1146,225]"
@@ -85,12 +88,13 @@
         uri="pkg:/images/shadows/poster_shadow.png"
         loadDisplayMode="scaleToFill"
         visible="false" />
-      <ItemPoster
+      <Poster
         id="seriesPoster3"
         translation="[1162,241]"
-        posterWidth="420"
-        showText="false"
-        showProgressBar="false" />
+        width="420"
+        height="420"
+        loadDisplayMode="scaleToFit"
+        visible="false" />
       <Poster
         id="seriesPosterShadow2"
         translation="[1055,225]"
@@ -99,12 +103,13 @@
         uri="pkg:/images/shadows/poster_shadow.png"
         loadDisplayMode="scaleToFill"
         visible="false" />
-      <ItemPoster
+      <Poster
         id="seriesPoster2"
         translation="[1071,241]"
-        posterWidth="420"
-        showText="false"
-        showProgressBar="false" />
+        width="420"
+        height="420"
+        loadDisplayMode="scaleToFit"
+        visible="false" />
       <Poster
         id="seriesPosterShadow1"
         translation="[964,225]"
@@ -113,12 +118,13 @@
         uri="pkg:/images/shadows/poster_shadow.png"
         loadDisplayMode="scaleToFill"
         visible="false" />
-      <ItemPoster
+      <Poster
         id="seriesPoster1"
         translation="[980,241]"
-        posterWidth="420"
-        showText="false"
-        showProgressBar="false" />
+        width="420"
+        height="420"
+        loadDisplayMode="scaleToFit"
+        visible="false" />
     </Group>
     <Label
       id="seriesSummaryLabel"

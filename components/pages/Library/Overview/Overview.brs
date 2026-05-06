@@ -131,7 +131,7 @@ sub renderSeriesPosters(item as dynamic)
 
     showShadows = (posterCount > 1)
     for i = 0 to posterCount - 1
-        renderSeriesPosterSlot(m.seriesPosterSlots[i], getSeriesPosterContent(itemIds[i]), showShadows)
+        renderSeriesPosterSlot(m.seriesPosterSlots[i], getSeriesPosterUrl(itemIds[i]), showShadows)
     end for
 end sub
 
@@ -153,12 +153,12 @@ end sub
 '-------------------------------------------------------------------------------
 ' renderSeriesPosterSlot
 '-------------------------------------------------------------------------------
-sub renderSeriesPosterSlot(slot as dynamic, content as dynamic, showShadow as boolean)
+sub renderSeriesPosterSlot(slot as dynamic, posterUrl as string, showShadow as boolean)
     if slot = invalid then return
 
     if slot.poster <> invalid then
-        slot.poster.itemContent = content
-        slot.poster.visible = true
+        slot.poster.uri = posterUrl
+        slot.poster.visible = (posterUrl <> "")
     end if
 
     if slot.shadow <> invalid then slot.shadow.visible = showShadow
@@ -173,7 +173,7 @@ sub clearSeriesPosters()
     for each slot in m.seriesPosterSlots
         if slot <> invalid then
             if slot.poster <> invalid then
-                slot.poster.itemContent = invalid
+                slot.poster.uri = ""
                 slot.poster.visible = false
             end if
 
@@ -203,24 +203,11 @@ function getCollapsedSeriesLibraryItemIds(item as dynamic) as dynamic
 end function
 
 '-------------------------------------------------------------------------------
-' getSeriesPosterContent
+' getSeriesPosterUrl
 '-------------------------------------------------------------------------------
-function getSeriesPosterContent(itemId as dynamic) as dynamic
-    if itemId = invalid then return invalid
-
-    node = CreateObject("roSGNode", "ContentNode")
-    node.title = ""
-    node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, itemId, 600)
-    node.SDPosterUrl = node.HDPosterUrl
-    node.AddFields({
-        author: ""
-        progressPercent: 0
-        progressCurrentTime: 0
-        progressDuration: 0
-        progressIsFinished: false
-        focused: false
-    })
-    return node
+function getSeriesPosterUrl(itemId as dynamic) as string
+    if itemId = invalid then return ""
+    return Cover_BuildUrl(m.server, m.token, itemId, 600)
 end function
 
 '-------------------------------------------------------------------------------
