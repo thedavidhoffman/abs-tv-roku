@@ -73,7 +73,6 @@ Titles with playback problems
 
 - in-progress bar for series
 - reduce library info
-- listview support collapsed/expanded
 - loading spinner/indicator
 
 Continue Listening (home page)

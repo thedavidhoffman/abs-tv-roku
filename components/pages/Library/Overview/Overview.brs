@@ -23,22 +23,7 @@ sub initReferences()
     m.overviewBg = m.top.findNode("overviewBg")
     m.selectedPoster = m.top.findNode("selectedPoster")
     m.seriesPosterGroup = m.top.findNode("seriesPosterGroup")
-    m.seriesPosters = [
-        m.top.findNode("seriesPoster1")
-        m.top.findNode("seriesPoster2")
-        m.top.findNode("seriesPoster3")
-        m.top.findNode("seriesPoster4")
-        m.top.findNode("seriesPoster5")
-        m.top.findNode("seriesPoster6")
-    ]
-    m.seriesPosterShadows = [
-        m.top.findNode("seriesPosterShadow1")
-        m.top.findNode("seriesPosterShadow2")
-        m.top.findNode("seriesPosterShadow3")
-        m.top.findNode("seriesPosterShadow4")
-        m.top.findNode("seriesPosterShadow5")
-        m.top.findNode("seriesPosterShadow6")
-    ]
+    m.seriesPosterSlots = getSeriesPosterSlots()
     m.playButton = m.top.findNode("playButton")
     m.metadataGroup = m.top.findNode("metadataGroup")
     m.detailTitle = m.top.findNode("detailTitle")
@@ -51,6 +36,23 @@ sub initReferences()
     m.detailTags = m.top.findNode("detailTags")
     m.detailDuration = m.top.findNode("detailDuration")
 end sub
+
+'-------------------------------------------------------------------------------
+' getSeriesPosterSlots
+'-------------------------------------------------------------------------------
+function getSeriesPosterSlots() as object
+    slots = []
+
+    for i = 1 to 6
+        indexText = i.ToStr()
+        slots.Push({
+            poster: m.top.findNode("seriesPoster" + indexText)
+            shadow: m.top.findNode("seriesPosterShadow" + indexText)
+        })
+    end for
+
+    return slots
+end function
 
 '-------------------------------------------------------------------------------
 ' initStyle
@@ -125,33 +127,39 @@ sub renderSeriesPosters(item as dynamic)
 
     showShadows = (posterCount > 1)
     for i = 0 to posterCount - 1
-        poster = m.seriesPosters[i]
-        if poster <> invalid then
-            poster.itemContent = getSeriesPosterContent(itemIds[i])
-            poster.visible = true
-        end if
-
-        shadow = m.seriesPosterShadows[i]
-        if shadow <> invalid then shadow.visible = showShadows
+        renderSeriesPosterSlot(m.seriesPosterSlots[i], getSeriesPosterContent(itemIds[i]), showShadows)
     end for
+end sub
+
+'-------------------------------------------------------------------------------
+' renderSeriesPosterSlot
+'-------------------------------------------------------------------------------
+sub renderSeriesPosterSlot(slot as dynamic, content as dynamic, showShadow as boolean)
+    if slot = invalid then return
+
+    if slot.poster <> invalid then
+        slot.poster.itemContent = content
+        slot.poster.visible = true
+    end if
+
+    if slot.shadow <> invalid then slot.shadow.visible = showShadow
 end sub
 
 '-------------------------------------------------------------------------------
 ' clearSeriesPosters
 '-------------------------------------------------------------------------------
 sub clearSeriesPosters()
-    if m.seriesPosters = invalid then return
+    if m.seriesPosterSlots = invalid then return
 
-    for each poster in m.seriesPosters
-        if poster <> invalid then
-            poster.itemContent = invalid
-            poster.visible = false
+    for each slot in m.seriesPosterSlots
+        if slot <> invalid then
+            if slot.poster <> invalid then
+                slot.poster.itemContent = invalid
+                slot.poster.visible = false
+            end if
+
+            if slot.shadow <> invalid then slot.shadow.visible = false
         end if
-    end for
-
-    if m.seriesPosterShadows = invalid then return
-    for each shadow in m.seriesPosterShadows
-        if shadow <> invalid then shadow.visible = false
     end for
 end sub
 
