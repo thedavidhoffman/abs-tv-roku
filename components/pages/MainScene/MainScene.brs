@@ -10,15 +10,16 @@ sub init()
     initHandlers()
     initStyle()
 
-    m.session = AuthStore_Load()
-    m.isResumingSession = false
+    m.session = invalid
     m.loginActivationCounter = 0
+    m.authResumeRequestCounter = 0
+    m.authLogoutRequestCounter = 0
     m.mediaProgress = []
     m.focusSettingsAfterLibraryReload = false
     m.playerReturnTarget = ""
 
     authPreloadSavedFields()
-    authResumeSession()
+    authRequestResumeSession()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -34,7 +35,7 @@ sub initReferences()
     m.search = m.top.findNode("search")
     m.player = m.top.findNode("player")
     m.overlayHost = m.top.findNode("overlayHost")
-    m.apiTask = m.top.findNode("apiTask")
+    m.authController = m.top.findNode("authController")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -61,7 +62,10 @@ sub initHandlers()
     m.player.observeField("closeRequested", "playbackHandlePlayerCloseRequested")
     m.player.observeField("errorResponse", "playbackHandlePlayerError")
     m.overlayHost.observeField("closed", "overlayHandleClosed")
-    m.apiTask.observeField("response", "taskHandleApiResponse")
+    m.authController.observeField("authenticatedSession", "authHandleAuthenticatedSession")
+    m.authController.observeField("loginRequired", "authHandleLoginRequired")
+    m.authController.observeField("loginFailed", "authHandleLoginFailed")
+    m.authController.observeField("sessionExpired", "authHandleSessionExpired")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -80,30 +84,29 @@ end sub
 ' authPreloadSavedFields
 '-------------------------------------------------------------------------------
 sub authPreloadSavedFields()
-    if m.session.server <> invalid and TrimString(m.session.server) <> "" then
-        m.login.serverValue = m.session.server
+    if m.authController = invalid then return
+
+    savedSession = m.authController.savedSession
+    if savedSession = invalid then return
+
+    if savedSession.server <> invalid and savedSession.server <> "" then
+        m.login.serverValue = savedSession.server
     end if
-    if m.session.username <> invalid and TrimString(m.session.username) <> "" then
-        m.login.usernameValue = m.session.username
+    if savedSession.username <> invalid and savedSession.username <> "" then
+        m.login.usernameValue = savedSession.username
     end if
 end sub
 
 '-------------------------------------------------------------------------------
-' authResumeSession
+' authRequestResumeSession
 '-------------------------------------------------------------------------------
-sub authResumeSession()
-    if m.session.token <> invalid and m.session.token <> "" and m.session.server <> invalid and m.session.server <> "" then
-        m.isResumingSession = true
-        m.login.visible = false
-        m.authenticatedContent.visible = false
-        taskStartApi(m.apiTask, {
-            action: "authorize"
-            server: m.session.server
-            token: m.session.token
-        })
-    else
-        authShowLogin("Enter your Audiobookshelf server to begin.")
-    end if
+sub authRequestResumeSession()
+    if m.authController = invalid then return
+
+    m.login.visible = false
+    m.authenticatedContent.visible = false
+    m.authResumeRequestCounter = m.authResumeRequestCounter + 1
+    m.authController.resumeRequested = m.authResumeRequestCounter
 end sub
 
 '-------------------------------------------------------------------------------
@@ -113,7 +116,7 @@ sub authHandleLoginRequested()
     request = m.login.loginRequested
     if request = invalid then return
 
-    taskStartApi(m.apiTask, request)
+    if m.authController <> invalid then m.authController.loginRequest = request
 end sub
 
 '-------------------------------------------------------------------------------
@@ -126,14 +129,6 @@ sub authShowLogin(message as string)
     m.login.statusMessage = message
     m.loginActivationCounter = m.loginActivationCounter + 1
     m.login.activationToken = m.loginActivationCounter
-end sub
-
-'-------------------------------------------------------------------------------
-' authStoreSession
-'-------------------------------------------------------------------------------
-sub authStoreSession(response as object)
-    m.session = Session_BuildAuthenticatedSession(response)
-    Session_SaveAuthenticatedSession(m.session)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -154,7 +149,7 @@ end sub
 ' authHandleExpiredSession
 '-------------------------------------------------------------------------------
 sub authHandleExpiredSession(message as string)
-    AuthStore_Clear(false)
+    if m.authController <> invalid then m.authController.callFunc("clearSavedSession")
     if m.session <> invalid then m.session.token = ""
     m.login.passwordValue = ""
     authShowLogin(message)
@@ -164,82 +159,63 @@ end sub
 ' authHandleLogoutPressed
 '-------------------------------------------------------------------------------
 sub authHandleLogoutPressed()
-    if m.session <> invalid and m.session.server <> invalid and m.session.token <> invalid and m.session.token <> "" then
-        taskStartApi(m.apiTask, {
-            action: "logout"
-            server: m.session.server
-            token: m.session.token
-        })
+    request = {
+        server: ""
+        token: ""
+    }
+    if m.session <> invalid then
+        if m.session.server <> invalid then request.server = m.session.server
+        if m.session.token <> invalid then request.token = m.session.token
+        m.session.token = ""
     end if
+    m.authLogoutRequestCounter = m.authLogoutRequestCounter + 1
+    request.counter = m.authLogoutRequestCounter
+    if m.authController <> invalid then m.authController.logoutRequest = request
 
-    AuthStore_Clear(false)
-    if m.session <> invalid then m.session.token = ""
     m.login.passwordValue = ""
     headerCloseMenu()
-    authShowLogin("Signed out.")
 end sub
 
-'===============================================================================
-' Task Responses
-'===============================================================================
+'-------------------------------------------------------------------------------
+' authHandleAuthenticatedSession
+'-------------------------------------------------------------------------------
+sub authHandleAuthenticatedSession()
+    session = m.authController.authenticatedSession
+    if session = invalid then return
+
+    m.session = session
+    authStoreMediaProgress(m.session.mediaProgress)
+    navShowApp()
+end sub
 
 '-------------------------------------------------------------------------------
-' taskHandleApiResponse
+' authHandleLoginRequired
 '-------------------------------------------------------------------------------
-sub taskHandleApiResponse()
+sub authHandleLoginRequired()
+    request = m.authController.loginRequired
+    if request = invalid then return
 
-    response = m.apiTask.response
+    authShowLogin(request.message)
+end sub
+
+'-------------------------------------------------------------------------------
+' authHandleLoginFailed
+'-------------------------------------------------------------------------------
+sub authHandleLoginFailed()
+    response = m.authController.loginFailed
     if response = invalid then return
-    action = taskGetResponseAction(m.apiTask, response)
 
-    if response.ok <> true then
-
-        if m.isResumingSession then
-            m.isResumingSession = false
-            AuthStore_Clear(false)
-            authShowLogin("Your saved session expired. Please sign in again.")
-        
-        else if response.authExpired = true then
-            authHandleExpiredSession(response.errorMessage)
-        
-        else if action = "login" or m.login.visible then
-            m.login.statusMessage = "Login failed: " + SafeString(response.errorMessage, "Unknown error.")
-        end if
-
-    else if action = "login" then
-        authStoreSession(response)
-        authStoreMediaProgress(m.session.mediaProgress)
-        navShowApp()
-
-    else if action = "authorize" then
-        m.isResumingSession = false
-        authStoreSession(response)
-        authStoreMediaProgress(m.session.mediaProgress)
-        navShowApp()
-
-    end if
-
+    m.login.statusMessage = response.message
 end sub
 
 '-------------------------------------------------------------------------------
-' taskGetResponseAction
+' authHandleSessionExpired
 '-------------------------------------------------------------------------------
-function taskGetResponseAction(task as dynamic, response as dynamic) as string
-    if response <> invalid and response.action <> invalid then return response.action
-    if task <> invalid and task.request <> invalid and task.request.action <> invalid then
-        return task.request.action
-    end if
-    return ""
-end function
+sub authHandleSessionExpired()
+    response = m.authController.sessionExpired
+    if response = invalid then return
 
-'-------------------------------------------------------------------------------
-' taskStartApi
-'-------------------------------------------------------------------------------
-sub taskStartApi(task as dynamic, request as object)
-    if task = invalid then return
-
-    task.request = request
-    task.control = "run"
+    authHandleExpiredSession(response.message)
 end sub
 
 '===============================================================================

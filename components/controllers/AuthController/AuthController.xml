@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="AuthController" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/source/store/AuthStore.brs" />
+  <script type="text/brightscript" uri="pkg:/source/mappers/MediaProgressMapper.brs" />
+  <script type="text/brightscript" uri="pkg:/source/SessionHelpers.brs" />
+  <script type="text/brightscript" uri="pkg:/components/controllers/AuthController/AuthController.brs" />
+  <interface>
+    <field id="loginRequest" type="assocarray" onChange="onLoginRequestChanged" />
+    <field id="logoutRequest" type="assocarray" onChange="onLogoutRequestChanged" />
+    <field id="resumeRequested" type="integer" onChange="onResumeRequested" />
+    <field id="savedSession" type="assocarray" />
+    <field id="authenticatedSession" type="assocarray" />
+    <field id="loginRequired" type="assocarray" />
+    <field id="loginFailed" type="assocarray" />
+    <field id="sessionExpired" type="assocarray" />
+    <function name="clearSavedSession" />
+  </interface>
+  <children>
+    <AppTask id="authApiTask" />
+  </children>
+</component>

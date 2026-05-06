@@ -1,12 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="MainScene" extends="Scene">
-  <script type="text/brightscript" uri="pkg:/source/store/AuthStore.brs" />
   <script type="text/brightscript" uri="pkg:/source/Color.brs" />
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/Cover.brs" />
-  <script type="text/brightscript" uri="pkg:/source/mappers/MediaProgressMapper.brs" />
-  <script type="text/brightscript" uri="pkg:/source/SessionHelpers.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/MainScene/MainScene.brs" />
   <interface>
     <field id="closeRequested" type="boolean" />
@@ -28,6 +25,6 @@
     <Player id="player" visible="false" />
     <OverlayHost id="overlayHost" />
 
-    <AppTask id="apiTask" />
+    <AuthController id="authController" />
   </children>
 </component>

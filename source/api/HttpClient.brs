@@ -17,12 +17,6 @@ function HttpClient_Request(url as String, method as String, token as Dynamic, b
         return { ok: false, errorMessage: message }
     end if
 
-    if token = invalid or token = "" then
-        message = "Invalid http request: token is invalid."
-        log.error(message)
-        return { ok: false, errorMessage: message }
-    end if
-
     transfer = CreateObject("roUrlTransfer")
     port = CreateObject("roMessagePort")
 
