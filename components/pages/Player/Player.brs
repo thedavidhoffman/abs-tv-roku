@@ -38,6 +38,7 @@ sub initReferences()
     m.chaptersButton = m.top.findNode("chaptersButton")
     m.chapterList = m.top.findNode("chapterList")
     m.audioPlayer = m.top.findNode("audioPlayer")
+    m.playbackApiTask = m.top.findNode("playbackApiTask")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -84,6 +85,7 @@ sub initHandlers()
     if m.seekHoldTimer <> invalid then m.seekHoldTimer.observeField("fire", "onSeekHoldTimerFired")
     if m.closeTimer <> invalid then m.closeTimer.observeField("fire", "onCloseTimerFired")
     if m.audioPlayer <> invalid then m.audioPlayer.observeField("state", "onAudioStateChanged")
+    if m.playbackApiTask <> invalid then m.playbackApiTask.observeField("response", "onPlaybackApiResponse")
     if m.chapterList <> invalid then
         m.chapterList.observeField("selectedChapter", "onChapterSelected")
         m.chapterList.observeField("closedCounter", "onChapterListClosed")
@@ -142,14 +144,51 @@ sub onPlayRequestChanged()
     focusTransportButton(1)
     setStatus("Starting playback...")
 
-    m.top.playbackStartRequested = {
+    runPlaybackApiRequest({
         action: "startPlayback"
         server: request.server
         token: request.token
         itemId: request.itemId
         title: request.title
-    }
+    })
 end sub
+
+'-------------------------------------------------------------------------------
+' runPlaybackApiRequest
+'-------------------------------------------------------------------------------
+sub runPlaybackApiRequest(request as object)
+    if m.playbackApiTask = invalid then return
+
+    m.playbackApiTask.request = request
+    m.playbackApiTask.control = "run"
+end sub
+
+'-------------------------------------------------------------------------------
+' onPlaybackApiResponse
+'-------------------------------------------------------------------------------
+sub onPlaybackApiResponse()
+    response = m.playbackApiTask.response
+    if response = invalid then return
+
+    action = getTaskResponseAction(response)
+    if action = "startPlayback" then
+        handleStartPlaybackResponse(response)
+    else if response.ok <> true then
+        m.top.errorResponse = response
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' getTaskResponseAction
+'-------------------------------------------------------------------------------
+function getTaskResponseAction(response as dynamic) as string
+    if response <> invalid and response.action <> invalid then return response.action
+    if m.playbackApiTask <> invalid and m.playbackApiTask.request <> invalid and m.playbackApiTask.request.action <> invalid then
+        return m.playbackApiTask.request.action
+    end if
+
+    return ""
+end function
 
 '-------------------------------------------------------------------------------
 ' getCoverContent
@@ -173,13 +212,12 @@ function getCoverContent(request as dynamic) as dynamic
 end function
 
 '-------------------------------------------------------------------------------
-' onPlaybackResponseChanged
+' handleStartPlaybackResponse
 '-------------------------------------------------------------------------------
-sub onPlaybackResponseChanged()
+sub handleStartPlaybackResponse(response as dynamic)
 
-    m.log.write("onPlaybackResponseChanged")
+    m.log.write("handleStartPlaybackResponse")
 
-    response = m.top.playbackResponse
     if response = invalid then return
     if m.isClosing = true then return
 
@@ -610,7 +648,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub requestClosePlaybackSession()
     request = buildPlaybackSessionRequest("closePlaybackSession")
-    if request <> invalid then m.top.playbackCloseRequested = request
+    if request <> invalid then runPlaybackApiRequest(request)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -622,7 +660,7 @@ sub requestSyncPlaybackSession(reason = "" as string, currentTimeOverride = inva
 
     if reason <> "" then request.reason = reason
     m.lastPlaybackSyncAtSeconds = getNowSeconds()
-    m.top.playbackSyncRequested = request
+    runPlaybackApiRequest(request)
 end sub
 
 '-------------------------------------------------------------------------------

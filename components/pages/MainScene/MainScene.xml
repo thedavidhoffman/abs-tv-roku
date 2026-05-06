@@ -29,6 +29,5 @@
     <OverlayHost id="overlayHost" />
 
     <AppTask id="apiTask" />
-    <AppTask id="playbackApiTask" />
   </children>
 </component>

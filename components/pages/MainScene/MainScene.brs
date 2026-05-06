@@ -6,8 +6,9 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    coreInitReferences()
-    coreInitHandlers()
+    initReferences()
+    initHandlers()
+    initStyle()
 
     m.session = AuthStore_Load()
     m.isResumingSession = false
@@ -17,14 +18,13 @@ sub init()
     m.playerReturnTarget = ""
 
     authPreloadSavedFields()
-    coreInitStyle()
     authResumeSession()
 end sub
 
 '-------------------------------------------------------------------------------
-' coreInitReferences
+' initReferences
 '-------------------------------------------------------------------------------
-sub coreInitReferences()
+sub initReferences()
     m.bg = m.top.findNode("bg")
     m.login = m.top.findNode("login")
     m.authenticatedContent = m.top.findNode("authenticatedContent")
@@ -35,13 +35,12 @@ sub coreInitReferences()
     m.player = m.top.findNode("player")
     m.overlayHost = m.top.findNode("overlayHost")
     m.apiTask = m.top.findNode("apiTask")
-    m.playbackApiTask = m.top.findNode("playbackApiTask")
 end sub
 
 '-------------------------------------------------------------------------------
-' coreInitHandlers
+' initHandlers
 '-------------------------------------------------------------------------------
-sub coreInitHandlers()
+sub initHandlers()
     m.login.observeField("loginRequested", "authHandleLoginRequested")
     m.header.observeField("homeSelected", "homeHandlePressed")
     m.header.observeField("librarySelected", "libraryHandlePressed")
@@ -61,18 +60,14 @@ sub coreInitHandlers()
     m.library.observeField("itemsReloaded", "libraryHandleItemsReloaded")
     m.player.observeField("closeRequested", "playbackHandlePlayerCloseRequested")
     m.player.observeField("errorResponse", "playbackHandlePlayerError")
-    m.player.observeField("playbackStartRequested", "playbackHandleStartRequested")
-    m.player.observeField("playbackSyncRequested", "playbackHandleSyncRequested")
-    m.player.observeField("playbackCloseRequested", "playbackHandleCloseRequested")
     m.overlayHost.observeField("closed", "overlayHandleClosed")
     m.apiTask.observeField("response", "taskHandleApiResponse")
-    m.playbackApiTask.observeField("response", "taskHandlePlaybackResponse")
 end sub
 
 '-------------------------------------------------------------------------------
-' coreInitStyle
+' initStyle
 '-------------------------------------------------------------------------------
-sub coreInitStyle()
+sub initStyle()
     palette = Color()
     if m.bg <> invalid then m.bg.color = palette.background.secondary
 end sub
@@ -207,9 +202,6 @@ sub taskHandleApiResponse()
         else if response.authExpired = true then
             authHandleExpiredSession(response.errorMessage)
         
-        else if action = "startPlayback" then
-            if m.player <> invalid then m.player.playbackResponse = response
-        
         else if action = "login" or m.login.visible then
             m.login.statusMessage = "Login failed: " + SafeString(response.errorMessage, "Unknown error.")
         end if
@@ -225,22 +217,8 @@ sub taskHandleApiResponse()
         authStoreMediaProgress(m.session.mediaProgress)
         navShowApp()
 
-    else if action = "startPlayback" then
-        if m.player <> invalid then m.player.playbackResponse = response
     end if
 
-end sub
-
-'-------------------------------------------------------------------------------
-' taskHandlePlaybackResponse
-'-------------------------------------------------------------------------------
-sub taskHandlePlaybackResponse()
-    response = m.playbackApiTask.response
-    if response = invalid then return
-
-    if response.ok <> true and response.authExpired = true then
-        authHandleExpiredSession(response.errorMessage)
-    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -499,36 +477,6 @@ sub playbackPlayItem(selectedItem as dynamic)
         details: selectedItem.details
         startPositionSeconds: playbackGetStartPosition(selectedItem)
     }
-end sub
-
-'-------------------------------------------------------------------------------
-' playbackHandleStartRequested
-'-------------------------------------------------------------------------------
-sub playbackHandleStartRequested()
-    request = m.player.playbackStartRequested
-    if request = invalid then return
-
-    taskStartApi(m.apiTask, request)
-end sub
-
-'-------------------------------------------------------------------------------
-' playbackHandleSyncRequested
-'-------------------------------------------------------------------------------
-sub playbackHandleSyncRequested()
-    request = m.player.playbackSyncRequested
-    if request = invalid then return
-
-    taskStartApi(m.playbackApiTask, request)
-end sub
-
-'-------------------------------------------------------------------------------
-' playbackHandleCloseRequested
-'-------------------------------------------------------------------------------
-sub playbackHandleCloseRequested()
-    request = m.player.playbackCloseRequested
-    if request = invalid then return
-
-    taskStartApi(m.playbackApiTask, request)
 end sub
 
 '-------------------------------------------------------------------------------

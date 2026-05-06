@@ -6,10 +6,6 @@
   <script type="text/brightscript" uri="pkg:/components/pages/Player/Player.brs" />
   <interface>
     <field id="playRequest" type="assocarray" onChange="onPlayRequestChanged" />
-    <field id="playbackStartRequested" type="assocarray" />
-    <field id="playbackSyncRequested" type="assocarray" />
-    <field id="playbackCloseRequested" type="assocarray" />
-    <field id="playbackResponse" type="assocarray" onChange="onPlaybackResponseChanged" />
     <field id="closeRequested" type="integer" />
     <field id="errorResponse" type="assocarray" />
   </interface>
@@ -67,5 +63,6 @@
 
     <!-- dialog for displaying a chapter list for view/selection -->
     <ChapterListDialog id="chapterList" visible="false" />
+    <AppTask id="playbackApiTask" />
   </children>
 </component>

@@ -56,7 +56,7 @@ end sub
 sub reloadItems()
     if hasValidLoadRequest() = false then return
 
-    taskStartApi({
+    runLibraryApiRequest({
         action: "loadLibrary"
         server: m.loadRequest.server
         token: m.loadRequest.token
@@ -77,9 +77,9 @@ function hasValidLoadRequest() as boolean
 end function
 
 '-------------------------------------------------------------------------------
-' taskStartApi
+' runLibraryApiRequest
 '-------------------------------------------------------------------------------
-sub taskStartApi(request as object)
+sub runLibraryApiRequest(request as object)
     if m.libraryApiTask = invalid then return
 
     m.libraryApiTask.request = request
@@ -231,7 +231,7 @@ sub onGridViewSeriesSelected()
     if selectedSeries = invalid or selectedSeries.seriesId = invalid then return
     if hasValidLoadRequest() = false then return
 
-    taskStartApi({
+    runLibraryApiRequest({
         action: "loadSeries"
         server: m.loadRequest.server
         token: m.loadRequest.token

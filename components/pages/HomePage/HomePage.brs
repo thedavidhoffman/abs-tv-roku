@@ -47,7 +47,7 @@ sub reloadPersonalizedShelves()
     if hasValidLoadRequest() = false then return
 
     setStatus("Loading")
-    taskStartApi({
+    runPersonalizedApiRequest({
         action: "loadPersonalized"
         server: m.loadRequest.server
         token: m.loadRequest.token
@@ -68,9 +68,9 @@ function hasValidLoadRequest() as boolean
 end function
 
 '-------------------------------------------------------------------------------
-' taskStartApi
+' runPersonalizedApiRequest
 '-------------------------------------------------------------------------------
-sub taskStartApi(request as object)
+sub runPersonalizedApiRequest(request as object)
     if m.personalizedApiTask = invalid then return
 
     m.personalizedApiTask.request = request
