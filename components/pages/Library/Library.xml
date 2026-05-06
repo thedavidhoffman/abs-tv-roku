@@ -8,16 +8,20 @@
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
     <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />
     <field id="playSelected" type="assocarray" />
-    <field id="seriesSelected" type="assocarray" />
     <field id="upFromFirstItemSelected" type="integer" />
     <field id="backFromFirstItemSelected" type="integer" />
     <field id="errorResponse" type="assocarray" />
+    <field id="itemsReloaded" type="integer" />
     <function name="focusLibraryList" />
     <function name="focusItemAtIndex" />
+    <function name="handleBackNavigation" />
     <function name="moveFocusToFirstGridItem" />
+    <function name="reloadItems" />
+    <function name="resetDrilldown" />
   </interface>
   <children>
     <ListView id="listView" />
     <GridView id="gridView" visible="false" />
+    <AppTask id="libraryApiTask" />
   </children>
 </component>

@@ -4,8 +4,12 @@
 sub init()
     m.listView = m.top.findNode("listView")
     m.gridView = m.top.findNode("gridView")
+    m.libraryApiTask = m.top.findNode("libraryApiTask")
     m.activeView = "list"
     m.syncingLibraryItems = false
+    m.loadRequest = invalid
+    m.itemBackStack = []
+    m.itemsReloadedCounter = 0
 
     if m.listView <> invalid then
         m.listView.observeField("libraryItems", "onListViewLibraryItemsChanged")
@@ -22,6 +26,10 @@ sub init()
         m.gridView.observeField("errorResponse", "onGridViewError")
     end if
 
+    if m.libraryApiTask <> invalid then
+        m.libraryApiTask.observeField("response", "onLibraryApiResponse")
+    end if
+
     applyDisplaySettings(SettingsStore_Load())
 end sub
 
@@ -29,8 +37,108 @@ end sub
 ' onLoadRequestChanged
 '-------------------------------------------------------------------------------
 sub onLoadRequestChanged()
-    if m.listView <> invalid then m.listView.loadRequest = m.top.loadRequest
-    if m.gridView <> invalid then m.gridView.loadRequest = m.top.loadRequest
+    m.loadRequest = m.top.loadRequest
+    syncLoadRequestToViews()
+    reloadItems()
+end sub
+
+'-------------------------------------------------------------------------------
+' syncLoadRequestToViews
+'-------------------------------------------------------------------------------
+sub syncLoadRequestToViews()
+    if m.listView <> invalid then m.listView.loadRequest = m.loadRequest
+    if m.gridView <> invalid then m.gridView.loadRequest = m.loadRequest
+end sub
+
+'-------------------------------------------------------------------------------
+' reloadItems
+'-------------------------------------------------------------------------------
+sub reloadItems()
+    if hasValidLoadRequest() = false then return
+
+    taskStartApi({
+        action: "loadLibrary"
+        server: m.loadRequest.server
+        token: m.loadRequest.token
+        bookLibraryId: m.loadRequest.bookLibraryId
+    })
+end sub
+
+'-------------------------------------------------------------------------------
+' hasValidLoadRequest
+'-------------------------------------------------------------------------------
+function hasValidLoadRequest() as boolean
+    if m.loadRequest = invalid then return false
+    if m.loadRequest.server = invalid or m.loadRequest.server = "" then return false
+    if m.loadRequest.token = invalid or m.loadRequest.token = "" then return false
+    if m.libraryApiTask = invalid then return false
+
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' taskStartApi
+'-------------------------------------------------------------------------------
+sub taskStartApi(request as object)
+    if m.libraryApiTask = invalid then return
+
+    m.libraryApiTask.request = request
+    m.libraryApiTask.control = "run"
+end sub
+
+'-------------------------------------------------------------------------------
+' onLibraryApiResponse
+'-------------------------------------------------------------------------------
+sub onLibraryApiResponse()
+    response = m.libraryApiTask.response
+    if response = invalid then return
+
+    if response.ok <> true then
+        m.top.errorResponse = response
+    else if response.action = "loadSeries" then
+        storeSeriesItems(response)
+    else
+        storeRootItems(response)
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' storeRootItems
+'-------------------------------------------------------------------------------
+sub storeRootItems(response as object)
+    m.itemBackStack = []
+    m.top.libraryItems = getResponseLibraryItems(response)
+    publishItemsReloaded()
+end sub
+
+'-------------------------------------------------------------------------------
+' storeSeriesItems
+'-------------------------------------------------------------------------------
+sub storeSeriesItems(response as object)
+    if m.top.libraryItems <> invalid then
+        m.itemBackStack.Push({
+            items: m.top.libraryItems
+            focusIndex: response.sourceItemIndex
+        })
+    end if
+
+    m.top.libraryItems = getResponseLibraryItems(response)
+end sub
+
+'-------------------------------------------------------------------------------
+' getResponseLibraryItems
+'-------------------------------------------------------------------------------
+function getResponseLibraryItems(response as dynamic) as object
+    if response <> invalid and response.libraryItems <> invalid then return response.libraryItems
+    return []
+end function
+
+'-------------------------------------------------------------------------------
+' publishItemsReloaded
+'-------------------------------------------------------------------------------
+sub publishItemsReloaded()
+    m.itemsReloadedCounter = m.itemsReloadedCounter + 1
+    m.top.itemsReloaded = m.itemsReloadedCounter
 end sub
 
 '-------------------------------------------------------------------------------
@@ -117,7 +225,20 @@ end sub
 ' onGridViewSeriesSelected
 '-------------------------------------------------------------------------------
 sub onGridViewSeriesSelected()
-    if m.gridView <> invalid then m.top.seriesSelected = m.gridView.seriesSelected
+    if m.gridView = invalid then return
+
+    selectedSeries = m.gridView.seriesSelected
+    if selectedSeries = invalid or selectedSeries.seriesId = invalid then return
+    if hasValidLoadRequest() = false then return
+
+    taskStartApi({
+        action: "loadSeries"
+        server: m.loadRequest.server
+        token: m.loadRequest.token
+        bookLibraryId: m.loadRequest.bookLibraryId
+        seriesId: selectedSeries.seriesId
+        sourceItemIndex: selectedSeries.itemIndex
+    })
 end sub
 
 '-------------------------------------------------------------------------------
@@ -139,6 +260,7 @@ end sub
 ' onGridViewBackFromFirstItemSelected
 '-------------------------------------------------------------------------------
 sub onGridViewBackFromFirstItemSelected()
+    if handleBackNavigation() then return
     if m.gridView <> invalid then m.top.backFromFirstItemSelected = m.gridView.backFromFirstItemSelected
 end sub
 
@@ -186,6 +308,57 @@ sub focusItemAtIndex(index as dynamic)
 
     focusLibraryList()
 end sub
+
+'-------------------------------------------------------------------------------
+' handleBackNavigation
+'-------------------------------------------------------------------------------
+function handleBackNavigation() as boolean
+    if m.top.visible <> true then return false
+
+    if hasBackStack() then
+        if moveFocusToFirstGridItem() then return true
+        if restorePreviousItems() then return true
+    end if
+
+    if moveFocusToFirstGridItem() then return true
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' resetDrilldown
+'-------------------------------------------------------------------------------
+sub resetDrilldown()
+    if hasBackStack() = false then return
+
+    rootState = m.itemBackStack[0]
+    m.itemBackStack = []
+
+    if rootState <> invalid and rootState.items <> invalid then
+        m.top.libraryItems = rootState.items
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' restorePreviousItems
+'-------------------------------------------------------------------------------
+function restorePreviousItems() as boolean
+    if hasBackStack() = false then return false
+
+    lastIndex = m.itemBackStack.Count() - 1
+    previousState = m.itemBackStack[lastIndex]
+    m.itemBackStack.Delete(lastIndex)
+
+    m.top.libraryItems = previousState.items
+    focusItemAtIndex(previousState.focusIndex)
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' hasBackStack
+'-------------------------------------------------------------------------------
+function hasBackStack() as boolean
+    return m.itemBackStack <> invalid and m.itemBackStack.Count() > 0
+end function
 
 '-------------------------------------------------------------------------------
 ' moveFocusToFirstGridItem

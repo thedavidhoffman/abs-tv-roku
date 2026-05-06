@@ -12,7 +12,6 @@ sub init()
     m.session = AuthStore_Load()
     m.isResumingSession = false
     m.loginActivationCounter = 0
-    m.libraryItemBackStack = []
     m.mediaProgress = []
     m.focusSettingsAfterLibraryReload = false
     m.playerReturnTarget = ""
@@ -37,7 +36,6 @@ sub coreInitReferences()
     m.overlayHost = m.top.findNode("overlayHost")
     m.apiTask = m.top.findNode("apiTask")
     m.playbackApiTask = m.top.findNode("playbackApiTask")
-    m.libraryApiTask = m.top.findNode("libraryApiTask")
     m.personalizedApiTask = m.top.findNode("personalizedApiTask")
 end sub
 
@@ -58,9 +56,9 @@ sub coreInitHandlers()
     m.homePage.observeField("playSelected", "homeHandlePlaySelected")
     m.library.observeField("errorResponse", "libraryHandleError")
     m.library.observeField("playSelected", "libraryHandlePlaySelected")
-    m.library.observeField("seriesSelected", "libraryHandleSeriesSelected")
     m.library.observeField("upFromFirstItemSelected", "libraryHandleUpFromFirstItemSelected")
     m.library.observeField("backFromFirstItemSelected", "libraryHandleBackFromFirstItemSelected")
+    m.library.observeField("itemsReloaded", "libraryHandleItemsReloaded")
     m.player.observeField("closeRequested", "playbackHandlePlayerCloseRequested")
     m.player.observeField("errorResponse", "playbackHandlePlayerError")
     m.player.observeField("playbackStartRequested", "playbackHandleStartRequested")
@@ -69,7 +67,6 @@ sub coreInitHandlers()
     m.overlayHost.observeField("closed", "overlayHandleClosed")
     m.apiTask.observeField("response", "taskHandleApiResponse")
     m.playbackApiTask.observeField("response", "taskHandlePlaybackResponse")
-    m.libraryApiTask.observeField("response", "taskHandleLibraryResponse")
     m.personalizedApiTask.observeField("response", "taskHandlePersonalizedResponse")
 end sub
 
@@ -229,35 +226,8 @@ sub taskHandleApiResponse()
         authStoreMediaProgress(m.session.mediaProgress)
         navShowApp()
 
-    else if action = "loadLibrary" then
-        libraryStoreItems(response)
-
-    else if action = "loadSeries" then
-        libraryStoreSeriesItems(response)
-
     else if action = "startPlayback" then
         if m.player <> invalid then m.player.playbackResponse = response
-    end if
-
-end sub
-
-'-------------------------------------------------------------------------------
-' taskHandleLibraryResponse
-'-------------------------------------------------------------------------------
-sub taskHandleLibraryResponse()
-    response = m.libraryApiTask.response
-    if response = invalid then return
-
-    if response.ok <> true then
-        if response.authExpired = true then
-            authHandleExpiredSession(response.errorMessage)
-        else if m.library <> invalid then
-            m.library.errorResponse = response
-        end if
-    else if response.action = "loadLibrary" then
-        libraryStoreItems(response)
-    else if response.action = "loadSeries" then
-        libraryStoreSeriesItems(response)
     end if
 
 end sub
@@ -343,7 +313,6 @@ sub navShowApp()
             bookLibraryId: m.session.bookLibraryId
         }
     end if
-    libraryReloadItems()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -353,7 +322,7 @@ sub navShowHomePage()
     if m.homePage <> invalid then m.homePage.visible = true
     if m.library <> invalid then
         m.library.visible = false
-        libraryResetDrilldown()
+        m.library.callFunc("resetDrilldown")
     end if
 end sub
 
@@ -516,42 +485,6 @@ sub libraryHandlePlaySelected()
 end sub
 
 '-------------------------------------------------------------------------------
-' libraryHandleSeriesSelected
-'-------------------------------------------------------------------------------
-sub libraryHandleSeriesSelected()
-    selectedSeries = m.library.seriesSelected
-    if selectedSeries = invalid or selectedSeries.seriesId = invalid then return
-    if m.session = invalid then return
-    if m.libraryApiTask = invalid then return
-
-    taskStartApi(m.libraryApiTask, {
-        action: "loadSeries"
-        server: m.session.server
-        token: m.session.token
-        bookLibraryId: m.session.bookLibraryId
-        seriesId: selectedSeries.seriesId
-        sourceItemIndex: selectedSeries.itemIndex
-    })
-end sub
-
-'-------------------------------------------------------------------------------
-' libraryReloadItems
-'-------------------------------------------------------------------------------
-sub libraryReloadItems()
-    if m.session = invalid then return
-    if m.session.server = invalid or m.session.server = "" then return
-    if m.session.token = invalid or m.session.token = "" then return
-    if m.libraryApiTask = invalid then return
-
-    taskStartApi(m.libraryApiTask, {
-        action: "loadLibrary"
-        server: m.session.server
-        token: m.session.token
-        bookLibraryId: m.session.bookLibraryId
-    })
-end sub
-
-'-------------------------------------------------------------------------------
 ' libraryHandleUpFromFirstItemSelected
 '-------------------------------------------------------------------------------
 sub libraryHandleUpFromFirstItemSelected()
@@ -562,93 +495,18 @@ end sub
 ' libraryHandleBackFromFirstItemSelected
 '-------------------------------------------------------------------------------
 sub libraryHandleBackFromFirstItemSelected()
-    if libraryRestorePreviousItems() then return
     if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
 end sub
 
 '-------------------------------------------------------------------------------
-' libraryStoreItems
+' libraryHandleItemsReloaded
 '-------------------------------------------------------------------------------
-sub libraryStoreItems(response as object)
-    if response.bookLibraryId <> invalid and response.bookLibraryId <> "" then
-        m.session.bookLibraryId = response.bookLibraryId
-    end if
-
-    m.libraryItemBackStack = []
-    if m.library <> invalid then m.library.libraryItems = response.libraryItems
-
+sub libraryHandleItemsReloaded()
     if m.focusSettingsAfterLibraryReload = true then
         m.focusSettingsAfterLibraryReload = false
         if m.header <> invalid and m.header.visible then m.header.callFunc("focusSettingsButton")
     end if
 end sub
-
-'-------------------------------------------------------------------------------
-' libraryStoreSeriesItems
-'-------------------------------------------------------------------------------
-sub libraryStoreSeriesItems(response as object)
-    if response.bookLibraryId <> invalid and response.bookLibraryId <> "" then
-        m.session.bookLibraryId = response.bookLibraryId
-    end if
-
-    if m.library <> invalid then
-        if m.library.libraryItems <> invalid then
-            m.libraryItemBackStack.Push({
-                items: m.library.libraryItems
-                focusIndex: response.sourceItemIndex
-            })
-        end if
-        m.library.libraryItems = response.libraryItems
-    end if
-end sub
-
-'-------------------------------------------------------------------------------
-' libraryRestorePreviousItems
-'-------------------------------------------------------------------------------
-function libraryRestorePreviousItems() as boolean
-    if m.library = invalid then return false
-    if m.libraryItemBackStack = invalid or m.libraryItemBackStack.Count() = 0 then return false
-
-    lastIndex = m.libraryItemBackStack.Count() - 1
-    previousState = m.libraryItemBackStack[lastIndex]
-    m.libraryItemBackStack.Delete(lastIndex)
-
-    m.library.libraryItems = previousState.items
-    m.library.callFunc("focusItemAtIndex", previousState.focusIndex)
-    return true
-end function
-
-'-------------------------------------------------------------------------------
-' libraryResetDrilldown
-'-------------------------------------------------------------------------------
-sub libraryResetDrilldown()
-    if m.library = invalid then return
-    if m.libraryItemBackStack = invalid or m.libraryItemBackStack.Count() = 0 then return
-
-    rootState = m.libraryItemBackStack[0]
-    m.libraryItemBackStack = []
-
-    if rootState <> invalid and rootState.items <> invalid then
-        m.library.libraryItems = rootState.items
-    end if
-end sub
-
-'-------------------------------------------------------------------------------
-' libraryHasBackStack
-'-------------------------------------------------------------------------------
-function libraryHasBackStack() as boolean
-    return m.libraryItemBackStack <> invalid and m.libraryItemBackStack.Count() > 0
-end function
-
-'-------------------------------------------------------------------------------
-' libraryMoveGridFocusToFirstItem
-'-------------------------------------------------------------------------------
-function libraryMoveGridFocusToFirstItem() as boolean
-    if m.library = invalid or m.library.visible <> true then return false
-
-    handled = m.library.callFunc("moveFocusToFirstGridItem")
-    return handled = true
-end function
 
 '===============================================================================
 ' Playback
@@ -854,7 +712,7 @@ sub overlayHandleSettingsSaved(savedSettings as dynamic)
 
     if m.library <> invalid then m.library.displaySettings = savedSettings
     m.focusSettingsAfterLibraryReload = true
-    libraryReloadItems()
+    if m.library <> invalid then m.library.callFunc("reloadItems")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -896,12 +754,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     if not m.login.visible and key = "back" then
-        if libraryHasBackStack() then
-            if libraryMoveGridFocusToFirstItem() then return true
-            if libraryRestorePreviousItems() then return true
-        end if
-
-        if libraryMoveGridFocusToFirstItem() then return true
+        if m.library <> invalid and m.library.callFunc("handleBackNavigation") then return true
     end if
 
     return false
