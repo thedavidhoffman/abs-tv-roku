@@ -156,6 +156,20 @@ sub authHandleExpiredSession(message as string)
 end sub
 
 '-------------------------------------------------------------------------------
+' handleComponentError
+'-------------------------------------------------------------------------------
+function handleComponentError(response as dynamic) as boolean
+    if response = invalid then return false
+
+    if response.authExpired = true then
+        authHandleExpiredSession(response.errorMessage)
+        return true
+    end if
+
+    return false
+end function
+
+'-------------------------------------------------------------------------------
 ' authHandleLogoutPressed
 '-------------------------------------------------------------------------------
 sub authHandleLogoutPressed()
@@ -404,12 +418,7 @@ end sub
 ' homeHandleError
 '-------------------------------------------------------------------------------
 sub homeHandleError()
-    response = m.homePage.errorResponse
-    if response = invalid then return
-
-    if response.authExpired = true then
-        authHandleExpiredSession(response.errorMessage)
-    end if
+    handleComponentError(m.homePage.errorResponse)
 end sub
 
 '===============================================================================
@@ -429,12 +438,7 @@ end sub
 ' libraryHandleError
 '-------------------------------------------------------------------------------
 sub libraryHandleError()
-    response = m.library.errorResponse
-    if response = invalid then return
-
-    if response.authExpired = true then
-        authHandleExpiredSession(response.errorMessage)
-    end if
+    handleComponentError(m.library.errorResponse)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -520,12 +524,11 @@ end sub
 '-------------------------------------------------------------------------------
 sub playbackHandlePlayerError()
     response = m.player.errorResponse
-    if response = invalid then return
-
-    if response.authExpired = true then
+    if response <> invalid and response.authExpired = true then
         playbackHandlePlayerCloseRequested()
-        authHandleExpiredSession(response.errorMessage)
     end if
+
+    handleComponentError(response)
 end sub
 
 '===============================================================================
