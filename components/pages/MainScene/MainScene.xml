@@ -4,6 +4,7 @@
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/Cover.brs" />
+  <script type="text/brightscript" uri="pkg:/source/MediaProgressLookup.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/MainScene/MainScene.brs" />
   <interface>
     <field id="closeRequested" type="boolean" />
