@@ -22,6 +22,15 @@ end sub
 sub initReferences()
     m.overviewBg = m.top.findNode("overviewBg")
     m.selectedPoster = m.top.findNode("selectedPoster")
+    m.seriesPosterGroup = m.top.findNode("seriesPosterGroup")
+    m.seriesPosters = [
+        m.top.findNode("seriesPoster1")
+        m.top.findNode("seriesPoster2")
+        m.top.findNode("seriesPoster3")
+        m.top.findNode("seriesPoster4")
+        m.top.findNode("seriesPoster5")
+        m.top.findNode("seriesPoster6")
+    ]
     m.playButton = m.top.findNode("playButton")
     m.metadataGroup = m.top.findNode("metadataGroup")
     m.detailTitle = m.top.findNode("detailTitle")
@@ -68,7 +77,14 @@ end sub
 sub showSelectedItem(item as dynamic)
     m.selectedItem = item
     applyOverviewMode()
-    if m.selectedPoster <> invalid then m.selectedPoster.itemContent = getSelectedPosterContent(item)
+
+    if isSeriesMode() then
+        renderSeriesPosters(item)
+    else
+        clearSeriesPosters()
+        if m.selectedPoster <> invalid then m.selectedPoster.itemContent = getSelectedPosterContent(item)
+    end if
+
     updateSelectedDetails(item)
 end sub
 
@@ -78,12 +94,90 @@ end sub
 sub applyOverviewMode()
     showDetails = (isSeriesMode() = false)
 
+    if m.selectedPoster <> invalid then m.selectedPoster.visible = showDetails
+    if m.seriesPosterGroup <> invalid then m.seriesPosterGroup.visible = (showDetails = false)
     if m.metadataGroup <> invalid then m.metadataGroup.visible = showDetails
     if m.playButton <> invalid then m.playButton.visible = showDetails
     if m.detailDescription <> invalid then m.detailDescription.visible = showDetails
 
     if showDetails = false then clearFocusVisual()
 end sub
+
+'-------------------------------------------------------------------------------
+' renderSeriesPosters
+'-------------------------------------------------------------------------------
+sub renderSeriesPosters(item as dynamic)
+    clearSeriesPosters()
+
+    itemIds = getCollapsedSeriesLibraryItemIds(item)
+    if itemIds = invalid then return
+
+    posterCount = getSeriesPosterCount(itemIds)
+    if posterCount <= 0 then return
+
+    for i = 0 to posterCount - 1
+        poster = m.seriesPosters[i]
+        if poster <> invalid then
+            poster.itemContent = getSeriesPosterContent(itemIds[i])
+            poster.visible = true
+        end if
+    end for
+end sub
+
+'-------------------------------------------------------------------------------
+' clearSeriesPosters
+'-------------------------------------------------------------------------------
+sub clearSeriesPosters()
+    if m.seriesPosters = invalid then return
+
+    for each poster in m.seriesPosters
+        if poster <> invalid then
+            poster.itemContent = invalid
+            poster.visible = false
+        end if
+    end for
+end sub
+
+'-------------------------------------------------------------------------------
+' getSeriesPosterCount
+'-------------------------------------------------------------------------------
+function getSeriesPosterCount(itemIds as dynamic) as integer
+    if itemIds = invalid then return 0
+    count = itemIds.Count()
+    if count > 6 then return 6
+    return count
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesLibraryItemIds
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesLibraryItemIds(item as dynamic) as dynamic
+    if item = invalid then return invalid
+    if item.collapsedSeries = invalid then return invalid
+    if item.collapsedSeries.libraryItemIds = invalid then return invalid
+    return item.collapsedSeries.libraryItemIds
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesPosterContent
+'-------------------------------------------------------------------------------
+function getSeriesPosterContent(itemId as dynamic) as dynamic
+    if itemId = invalid then return invalid
+
+    node = CreateObject("roSGNode", "ContentNode")
+    node.title = ""
+    node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, itemId, 600)
+    node.SDPosterUrl = node.HDPosterUrl
+    node.AddFields({
+        author: ""
+        progressPercent: 0
+        progressCurrentTime: 0
+        progressDuration: 0
+        progressIsFinished: false
+        focused: false
+    })
+    return node
+end function
 
 '-------------------------------------------------------------------------------
 ' getSelectedPosterContent

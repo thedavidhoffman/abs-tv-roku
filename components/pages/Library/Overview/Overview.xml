@@ -34,6 +34,44 @@
       translation="[980,241]"
       posterWidth="420"
       showText="false" />
+    <Group id="seriesPosterGroup" visible="false">
+      <ItemPoster
+        id="seriesPoster6"
+        translation="[1436,241]"
+        posterWidth="420"
+        showText="false"
+        showProgressBar="false" />
+      <ItemPoster
+        id="seriesPoster5"
+        translation="[1345,241]"
+        posterWidth="420"
+        showText="false"
+        showProgressBar="false" />
+      <ItemPoster
+        id="seriesPoster4"
+        translation="[1254,241]"
+        posterWidth="420"
+        showText="false"
+        showProgressBar="false" />
+      <ItemPoster
+        id="seriesPoster3"
+        translation="[1162,241]"
+        posterWidth="420"
+        showText="false"
+        showProgressBar="false" />
+      <ItemPoster
+        id="seriesPoster2"
+        translation="[1071,241]"
+        posterWidth="420"
+        showText="false"
+        showProgressBar="false" />
+      <ItemPoster
+        id="seriesPoster1"
+        translation="[980,241]"
+        posterWidth="420"
+        showText="false"
+        showProgressBar="false" />
+    </Group>
     <PrimaryButton
       id="playButton"
       translation="[980,695]"
