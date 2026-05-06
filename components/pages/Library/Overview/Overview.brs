@@ -129,6 +129,8 @@ sub renderSeriesPosters(item as dynamic)
     posterCount = getSeriesPosterCount(itemIds)
     if posterCount <= 0 then return
 
+    positionSeriesPosterSlots(posterCount)
+
     showShadows = (posterCount > 1)
     for i = 0 to posterCount - 1
         renderSeriesPosterSlot(m.seriesPosterSlots[i], getSeriesPosterUrl(itemIds[i]), showShadows)
@@ -149,6 +151,42 @@ sub updateSeriesSummary(seriesCount as integer)
 
     m.seriesSummaryLabel.visible = true
 end sub
+
+'-------------------------------------------------------------------------------
+' positionSeriesPosterSlots
+'-------------------------------------------------------------------------------
+sub positionSeriesPosterSlots(posterCount as integer)
+    if m.seriesPosterSlots = invalid then return
+
+    for i = 0 to posterCount - 1
+        positionSeriesPosterSlot(m.seriesPosterSlots[i], i, posterCount)
+    end for
+end sub
+
+'-------------------------------------------------------------------------------
+' positionSeriesPosterSlot
+'-------------------------------------------------------------------------------
+sub positionSeriesPosterSlot(slot as dynamic, index as integer, posterCount as integer)
+    if slot = invalid then return
+
+    posterX = getSeriesPosterX(index, posterCount)
+    posterY = 241
+
+    if slot.poster <> invalid then slot.poster.translation = [posterX, posterY]
+    if slot.shadow <> invalid then slot.shadow.translation = [posterX - 16, posterY - 16]
+end sub
+
+'-------------------------------------------------------------------------------
+' getSeriesPosterX
+'-------------------------------------------------------------------------------
+function getSeriesPosterX(index as integer, posterCount as integer) as integer
+    leftX = 980
+    rightX = 1920 - 64 - 420
+    if posterCount <= 1 then return leftX
+
+    spread = rightX - leftX
+    return leftX + int(((spread * index) / (posterCount - 1)) + 0.5)
+end function
 
 '-------------------------------------------------------------------------------
 ' renderSeriesPosterSlot
