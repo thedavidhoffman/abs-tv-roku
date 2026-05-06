@@ -18,7 +18,6 @@
   </interface>
   <children>
     <!-- left side -->
-    <Label id="libraryStatus" translation="[64,212]" width="1200" numLines="2" wrap="true" color="0xF2C879FF" visible="false" />
     <LabelList
       id="libraryList"
       translation="[64,162]"
@@ -168,5 +167,6 @@
       width="860"
       numLines="5"
     />
+    <AppTask id="seriesApiTask" />
   </children>
 </component>

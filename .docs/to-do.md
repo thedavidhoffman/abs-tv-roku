@@ -57,32 +57,20 @@ Playback.brs
 - why oh why does this need two payloads: tracks = ___MapTracks(server, token, playbackResult.data, itemPayload, log)
 - continue to dig in on this file
 
-Player.brs
-----------------------------------------------------
-- when track playback completes, or errors, stop the session
-- how does it work
-- ask ai for cleanup
-- more logging
-
 Titles with playback problems
 ----------------------------------------------------
 - courtship of princess leia playback
 - dune playback
 - meditations playback
+- play James Bond, plays correctly, play it again, it rifles through tracks and starts playback at a much later track
 
 - NormalizeServerUrl... call only when setting server address?
-
-- more playback logging
 
 - end session when playback stops
 - sync progress
 - roku splash screens
 - test description modal with really long title
 
-
-
-- cleanup bad color assignments
-- home screen refresh continue listening
 - in-progress bar for series
 - reduce library info
 - listview support collapsed/expanded

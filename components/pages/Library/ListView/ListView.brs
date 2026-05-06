@@ -5,11 +5,16 @@ sub init()
     initReferences()
 
     m.libraryItemsByRow = []
+    m.libraryRows = []
+    m.expandedSeriesIds = {}
+    m.seriesItemsById = {}
+    m.loadingSeriesId = invalid
     m.selectedItem = invalid
     m.playSelectedCounter = 0
     m.upFromFirstItemSelectedCounter = 0
     m.server = invalid
     m.token = invalid
+    m.bookLibraryId = invalid
 
     initHandlers()
     initStyle()
@@ -22,7 +27,6 @@ end sub
 '-------------------------------------------------------------------------------
 sub initReferences()
     m.overviewBg = m.top.findNode("overviewBg")
-    m.libraryStatus = m.top.findNode("libraryStatus")
     m.libraryList = m.top.findNode("libraryList")
     m.selectedPoster = m.top.findNode("selectedPoster")
     m.playButton = m.top.findNode("playButton")
@@ -35,6 +39,7 @@ sub initReferences()
     m.detailGenres = m.top.findNode("detailGenres")
     m.detailTags = m.top.findNode("detailTags")
     m.detailDuration = m.top.findNode("detailDuration")
+    m.seriesApiTask = m.top.findNode("seriesApiTask")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -44,6 +49,10 @@ sub initHandlers()
     if m.libraryList <> invalid then
         m.libraryList.observeField("itemFocused", "onLibraryItemFocused")
         m.libraryList.observeField("itemSelected", "onLibraryItemSelected")
+    end if
+
+    if m.seriesApiTask <> invalid then
+        m.seriesApiTask.observeField("response", "onSeriesApiResponse")
     end if
 end sub
 
@@ -64,6 +73,7 @@ sub onLoadRequestChanged()
 
     m.server = request.server
     m.token = request.token
+    m.bookLibraryId = request.bookLibraryId
 end sub
 
 '-------------------------------------------------------------------------------
@@ -72,17 +82,41 @@ end sub
 sub onLibraryItemsChanged()
     if m.libraryList = invalid then return
 
+    m.expandedSeriesIds = {}
+    m.seriesItemsById = {}
+    m.loadingSeriesId = invalid
+    rebuildLibraryList(0)
+end sub
+
+'-------------------------------------------------------------------------------
+' rebuildLibraryList
+'-------------------------------------------------------------------------------
+sub rebuildLibraryList(focusIndex as dynamic)
+    if m.libraryList = invalid then return
+
     root = CreateObject("roSGNode", "ContentNode")
     items = m.top.libraryItems
     m.libraryItemsByRow = []
+    m.libraryRows = []
 
     if items <> invalid then
         for each item in items
             if item.mediaType = invalid or item.mediaType = "book" then
                 node = CreateObject("roSGNode", "ContentNode")
-                node.title = ItemMetadataParser_GetTitle(item)
+                node.title = getListRowTitle(item, false)
                 root.appendChild(node)
                 m.libraryItemsByRow.Push(item)
+                m.libraryRows.Push({
+                    type: getListRowType(item)
+                    item: item
+                    seriesId: getCollapsedSeriesId(item)
+                    child: false
+                })
+
+                seriesId = getCollapsedSeriesId(item)
+                if seriesId <> invalid and m.expandedSeriesIds[seriesId.ToStr()] = true then
+                    appendExpandedSeriesRows(root, seriesId, item)
+                end if
             end if
         end for
     end if
@@ -95,7 +129,9 @@ sub onLibraryItemsChanged()
 
     m.libraryList.content = root
     if m.libraryItemsByRow.Count() > 0 then
-        showSelectedItem(m.libraryItemsByRow[0])
+        selectedIndex = getValidRowIndex(focusIndex)
+        m.libraryList.jumpToItem = selectedIndex
+        showSelectedRow(getSelectedLibraryRow(selectedIndex))
         if m.top.visible then m.libraryList.setFocus(true)
     else
         showSelectedItem(invalid)
@@ -103,17 +139,43 @@ sub onLibraryItemsChanged()
 end sub
 
 '-------------------------------------------------------------------------------
+' appendExpandedSeriesRows
+'-------------------------------------------------------------------------------
+sub appendExpandedSeriesRows(root as object, seriesId as dynamic, seriesItem as dynamic)
+    if seriesId = invalid then return
+
+    seriesItems = m.seriesItemsById[seriesId.ToStr()]
+    if seriesItems = invalid then return
+
+    for each childItem in seriesItems
+        if childItem <> invalid and (childItem.mediaType = invalid or childItem.mediaType = "book") then
+            node = CreateObject("roSGNode", "ContentNode")
+            node.title = "    " + getBookListTitle(childItem)
+            root.appendChild(node)
+            m.libraryItemsByRow.Push(childItem)
+            m.libraryRows.Push({
+                type: "book"
+                item: childItem
+                seriesId: seriesId
+                parentItem: seriesItem
+                child: true
+            })
+        end if
+    end for
+end sub
+
+'-------------------------------------------------------------------------------
 ' onLibraryItemFocused
 '-------------------------------------------------------------------------------
 sub onLibraryItemFocused()
-    showSelectedItem(getSelectedLibraryItem(m.libraryList.itemFocused))
+    showSelectedRow(getSelectedLibraryRow(m.libraryList.itemFocused))
 end sub
 
 '-------------------------------------------------------------------------------
 ' onLibraryItemSelected
 '-------------------------------------------------------------------------------
 sub onLibraryItemSelected()
-    showSelectedItem(getSelectedLibraryItem(m.libraryList.itemSelected))
+    showSelectedRow(getSelectedLibraryRow(m.libraryList.itemSelected))
 end sub
 
 '-------------------------------------------------------------------------------
@@ -127,12 +189,35 @@ function getSelectedLibraryItem(index as dynamic) as dynamic
 end function
 
 '-------------------------------------------------------------------------------
+' getSelectedLibraryRow
+'-------------------------------------------------------------------------------
+function getSelectedLibraryRow(index as dynamic) as dynamic
+    if index = invalid then return invalid
+    if m.libraryRows = invalid then return invalid
+    if index < 0 or index >= m.libraryRows.Count() then return invalid
+    return m.libraryRows[index]
+end function
+
+'-------------------------------------------------------------------------------
+' showSelectedRow
+'-------------------------------------------------------------------------------
+sub showSelectedRow(row as dynamic)
+    if row = invalid then
+        showSelectedItem(invalid)
+        return
+    end if
+
+    showSelectedItem(row.item)
+end sub
+
+'-------------------------------------------------------------------------------
 ' showSelectedItem
 '-------------------------------------------------------------------------------
 sub showSelectedItem(item as dynamic)
     m.selectedItem = item
     if m.selectedPoster <> invalid then m.selectedPoster.itemContent = getSelectedPosterContent(item)
     updateSelectedDetails(item)
+    updatePrimaryAction(item)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -144,7 +229,7 @@ function getSelectedPosterContent(item as dynamic) as dynamic
     progress = getProgressData(item)
     node = CreateObject("roSGNode", "ContentNode")
     node.title = ItemMetadataParser_GetTitle(item)
-    node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, 600)
+    node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, getCoverItemId(item), 600)
     node.SDPosterUrl = node.HDPosterUrl
     node.AddFields({
         author: ItemMetadataParser_GetAuthor(ItemMetadataParser_GetMetadata(item))
@@ -212,6 +297,16 @@ function getMappedProgressForItem(item as dynamic) as dynamic
         end if
     end for
 
+    return invalid
+end function
+
+'-------------------------------------------------------------------------------
+' getCoverItemId
+'-------------------------------------------------------------------------------
+function getCoverItemId(item as dynamic) as dynamic
+    if item = invalid then return invalid
+    if item.id <> invalid then return item.id
+    if item.collapsedSeries <> invalid and item.collapsedSeries.libraryItemId <> invalid then return item.collapsedSeries.libraryItemId
     return invalid
 end function
 
@@ -324,6 +419,29 @@ sub updateSelectedDetails(item as dynamic)
     setLabelText(m.detailDescription, ItemMetadataParser_GetDescription(metadata))
 end sub
 
+'-------------------------------------------------------------------------------
+' updatePrimaryAction
+'-------------------------------------------------------------------------------
+sub updatePrimaryAction(item as dynamic)
+    if m.playButton = invalid then return
+
+    seriesId = getCollapsedSeriesId(item)
+    if seriesId <> invalid then
+        if isSeriesExpanded(seriesId) then
+            m.playButton.text = "Collapse"
+        else if m.loadingSeriesId <> invalid and m.loadingSeriesId.ToStr() = seriesId.ToStr() then
+            m.playButton.text = "Loading"
+        else
+            m.playButton.text = "Expand"
+        end if
+        m.playButton.iconUri = ""
+        return
+    end if
+
+    m.playButton.text = "Play"
+    m.playButton.iconUri = "pkg:/images/icons/dark/play_dark.png"
+end sub
+
 ' setLabelText
 '-------------------------------------------------------------------------------
 sub setLabelText(label as dynamic, text as string)
@@ -369,8 +487,12 @@ end function
 ' onPlayPressed
 '-------------------------------------------------------------------------------
 sub onPlayPressed()
+    if getCollapsedSeriesId(m.selectedItem) <> invalid then
+        toggleSeriesAtCurrentIndex()
+        return
+    end if
+
     if m.selectedItem = invalid or m.selectedItem.id = invalid then
-        setStatus("Select an audiobook to play.")
         return
     end if
 
@@ -401,6 +523,246 @@ function getPlaybackDetails(item as dynamic) as object
         duration: ItemMetadataParser_GetDuration(item)
         durationSeconds: ItemMetadataParser_GetDurationSeconds(item)
     }
+end function
+
+'-------------------------------------------------------------------------------
+' getListRowType
+'-------------------------------------------------------------------------------
+function getListRowType(item as dynamic) as string
+    if getCollapsedSeriesId(item) <> invalid then return "series"
+    return "book"
+end function
+
+'-------------------------------------------------------------------------------
+' getListRowTitle
+'-------------------------------------------------------------------------------
+function getListRowTitle(item as dynamic, isChild as boolean) as string
+    if getCollapsedSeriesId(item) <> invalid then
+        return getSeriesListTitle(item)
+    end if
+
+    title = getBookListTitle(item)
+    if isChild then return "  " + title
+    return title
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesListTitle
+'-------------------------------------------------------------------------------
+function getSeriesListTitle(item as dynamic) as string
+    title = ItemMetadataParser_GetTitle(item)
+    seriesId = getCollapsedSeriesId(item)
+
+    marker = "[+]"
+    if isSeriesExpanded(seriesId) then marker = "[-]"
+    if m.loadingSeriesId <> invalid and seriesId <> invalid and m.loadingSeriesId.ToStr() = seriesId.ToStr() then marker = "[...]"
+
+    countText = getCollapsedSeriesCountText(item)
+    if countText <> "" then return marker + " " + title + "  " + countText
+    return marker + " " + title
+end function
+
+'-------------------------------------------------------------------------------
+' getBookListTitle
+'-------------------------------------------------------------------------------
+function getBookListTitle(item as dynamic) as string
+    sequence = getSeriesSequence(item)
+    title = ItemMetadataParser_GetTitle(item)
+    if sequence <> "" then return "#" + sequence + "  " + title
+    return title
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesCountText
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesCountText(item as dynamic) as string
+    count = getCollapsedSeriesBookCount(item)
+    if count <= 0 then return ""
+    if count = 1 then return "(1 book)"
+    return "(" + count.ToStr() + " books)"
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesBookCount
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesBookCount(item as dynamic) as integer
+    if item = invalid or item.collapsedSeries = invalid then return 0
+
+    collapsedSeries = item.collapsedSeries
+    countValue = invalid
+    if collapsedSeries.numBooks <> invalid then countValue = collapsedSeries.numBooks
+    if countValue = invalid and collapsedSeries.bookCount <> invalid then countValue = collapsedSeries.bookCount
+    if countValue = invalid and collapsedSeries.count <> invalid then countValue = collapsedSeries.count
+    if countValue = invalid and collapsedSeries.numItems <> invalid then countValue = collapsedSeries.numItems
+    if countValue = invalid then return 0
+
+    return int(val(countValue.ToStr()))
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesId
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesId(item as dynamic) as dynamic
+    if item = invalid then return invalid
+    if item.collapsedSeries = invalid then return invalid
+    if item.collapsedSeries.id = invalid then return invalid
+    return item.collapsedSeries.id
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesSequence
+'-------------------------------------------------------------------------------
+function getSeriesSequence(item as dynamic) as string
+    if item = invalid then return ""
+
+    metadata = ItemMetadataParser_GetMetadata(item)
+    if metadata.seriesSequence <> invalid then return metadata.seriesSequence.ToStr()
+    if metadata.sequence <> invalid then return metadata.sequence.ToStr()
+    if metadata.series <> invalid then return getSequenceFromSeriesValue(metadata.series)
+
+    if item.seriesSequence <> invalid then return item.seriesSequence.ToStr()
+    if item.sequence <> invalid then return item.sequence.ToStr()
+
+    return ""
+end function
+
+'-------------------------------------------------------------------------------
+' getSequenceFromSeriesValue
+'-------------------------------------------------------------------------------
+function getSequenceFromSeriesValue(series as dynamic) as string
+    if series = invalid then return ""
+
+    seriesType = Type(series)
+    if seriesType = "roArray" then
+        if series.Count() = 0 then return ""
+
+        firstSeries = series[0]
+        if firstSeries <> invalid then
+            if firstSeries.sequence <> invalid then return firstSeries.sequence.ToStr()
+            if firstSeries.seriesSequence <> invalid then return firstSeries.seriesSequence.ToStr()
+        end if
+    else if seriesType = "roAssociativeArray" then
+        if series.sequence <> invalid then return series.sequence.ToStr()
+        if series.seriesSequence <> invalid then return series.seriesSequence.ToStr()
+    end if
+
+    if series.sequence <> invalid then return series.sequence.ToStr()
+    if series.seriesSequence <> invalid then return series.seriesSequence.ToStr()
+
+    return ""
+end function
+
+'-------------------------------------------------------------------------------
+' isSeriesExpanded
+'-------------------------------------------------------------------------------
+function isSeriesExpanded(seriesId as dynamic) as boolean
+    if seriesId = invalid then return false
+    return m.expandedSeriesIds <> invalid and m.expandedSeriesIds[seriesId.ToStr()] = true
+end function
+
+'-------------------------------------------------------------------------------
+' getValidRowIndex
+'-------------------------------------------------------------------------------
+function getValidRowIndex(index as dynamic) as integer
+    if index = invalid or index < 0 then return 0
+    if m.libraryRows = invalid or m.libraryRows.Count() = 0 then return 0
+    if index >= m.libraryRows.Count() then return m.libraryRows.Count() - 1
+    return index
+end function
+
+'-------------------------------------------------------------------------------
+' toggleSeriesAtCurrentIndex
+'-------------------------------------------------------------------------------
+function toggleSeriesAtCurrentIndex() as boolean
+    if m.libraryList = invalid then return false
+
+    currentIndex = m.libraryList.itemFocused
+    if currentIndex = invalid or currentIndex < 0 then currentIndex = m.libraryList.itemSelected
+    if currentIndex = invalid then currentIndex = 0
+
+    return toggleSeriesAtIndex(currentIndex)
+end function
+
+'-------------------------------------------------------------------------------
+' toggleSeriesAtIndex
+'-------------------------------------------------------------------------------
+function toggleSeriesAtIndex(index as dynamic) as boolean
+    row = getSelectedLibraryRow(index)
+    if row = invalid or row.type <> "series" then return false
+
+    seriesId = row.seriesId
+    if seriesId = invalid then return false
+    if m.loadingSeriesId <> invalid then return true
+
+    seriesIdText = seriesId.ToStr()
+    if isSeriesExpanded(seriesId) then
+        m.expandedSeriesIds.Delete(seriesIdText)
+        rebuildLibraryList(index)
+        return true
+    end if
+
+    if m.seriesItemsById[seriesIdText] <> invalid then
+        m.expandedSeriesIds[seriesIdText] = true
+        rebuildLibraryList(index)
+        return true
+    end if
+
+    loadSeriesRows(seriesId, index)
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' loadSeriesRows
+'-------------------------------------------------------------------------------
+sub loadSeriesRows(seriesId as dynamic, sourceIndex as dynamic)
+    if seriesId = invalid then return
+
+    m.loadingSeriesId = seriesId
+    rebuildLibraryList(sourceIndex)
+
+    m.seriesApiTask.request = {
+        action: "loadSeries"
+        server: m.server
+        token: m.token
+        bookLibraryId: m.bookLibraryId
+        seriesId: seriesId
+        sourceItemIndex: sourceIndex
+    }
+    m.seriesApiTask.control = "run"
+end sub
+
+'-------------------------------------------------------------------------------
+' onSeriesApiResponse
+'-------------------------------------------------------------------------------
+sub onSeriesApiResponse()
+    if m.seriesApiTask = invalid then return
+
+    response = m.seriesApiTask.response
+    if response = invalid then return
+
+    sourceIndex = getValidRowIndex(response.sourceItemIndex)
+    m.loadingSeriesId = invalid
+
+    if response.ok <> true then
+        rebuildLibraryList(sourceIndex)
+        m.top.errorResponse = response
+        return
+    end if
+
+    if response.action <> "loadSeries" or response.seriesId = invalid then return
+
+    seriesIdText = response.seriesId.ToStr()
+    m.seriesItemsById[seriesIdText] = getResponseLibraryItems(response)
+    m.expandedSeriesIds[seriesIdText] = true
+    rebuildLibraryList(sourceIndex)
+end sub
+
+'-------------------------------------------------------------------------------
+' getResponseLibraryItems
+'-------------------------------------------------------------------------------
+function getResponseLibraryItems(response as dynamic) as object
+    if response <> invalid and response.libraryItems <> invalid then return response.libraryItems
+    return []
 end function
 
 ' focusSelectedLibraryItem
@@ -454,6 +816,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             return focusSelectedLibraryItem()
         end if
 
+        if collapseCurrentSeries() then return true
         if focusFirstLibraryItem() then return true
         if requestHeaderFocusFromFirstItem() then return true
     end if
@@ -486,12 +849,42 @@ function onKeyEvent(key as string, press as boolean) as boolean
             moveLibraryListFocus(-10)
             return true
         else if key = "OK" or key = "select" then
+            if toggleSeriesAtCurrentIndex() then return true
             focusPlayButton()
             return true
         end if
     end if
 
     return false
+end function
+
+'-------------------------------------------------------------------------------
+' collapseCurrentSeries
+'-------------------------------------------------------------------------------
+function collapseCurrentSeries() as boolean
+    if m.libraryList = invalid then return false
+    if m.libraryList.isInFocusChain() = false then return false
+
+    currentIndex = getValidRowIndex(m.libraryList.itemFocused)
+    row = getSelectedLibraryRow(currentIndex)
+    if row = invalid then return false
+
+    seriesId = row.seriesId
+    if seriesId = invalid then return false
+    if isSeriesExpanded(seriesId) = false then return false
+
+    headerIndex = currentIndex
+    for i = currentIndex to 0 step -1
+        candidate = getSelectedLibraryRow(i)
+        if candidate <> invalid and candidate.type = "series" and candidate.seriesId <> invalid and candidate.seriesId.ToStr() = seriesId.ToStr() then
+            headerIndex = i
+            exit for
+        end if
+    end for
+
+    m.expandedSeriesIds.Delete(seriesId.ToStr())
+    rebuildLibraryList(headerIndex)
+    return true
 end function
 
 '-------------------------------------------------------------------------------
@@ -529,12 +922,3 @@ sub moveLibraryListFocus(offset as integer)
     m.libraryList.jumpToItem = nextIndex
     showSelectedItem(getSelectedLibraryItem(nextIndex))
 end sub
-
-'-------------------------------------------------------------------------------
-' setStatus
-'-------------------------------------------------------------------------------
-sub setStatus(message as dynamic)
-    if m.libraryStatus = invalid then return
-    m.libraryStatus.text = SafeString(message, "")
-end sub
-

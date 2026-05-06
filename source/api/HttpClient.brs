@@ -17,6 +17,10 @@ function HttpClient_Request(url as String, method as String, token as Dynamic, b
         return { ok: false, errorMessage: message }
     end if
 
+    ' IMPORTANT...
+    ' do NOT check for invalid token here login requests don't have
+    ' a token, so it's valid in that scenario for the token to be null
+
     transfer = CreateObject("roUrlTransfer")
     port = CreateObject("roMessagePort")
 
