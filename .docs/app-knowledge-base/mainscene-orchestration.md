@@ -1,219 +1,199 @@
-# MainScene Request Orchestration
+# MainScene Orchestration
 
-`MainScene` is the app-level coordinator between UI components and `AppTask`.
-Components do not call API modules directly. Instead, they expose observable
-fields such as `loginRequested`, `playSelected`, or `playbackStartRequested`.
-`MainScene` observes those fields, builds an API request object, runs the
-appropriate `AppTask`, then routes the response back to the component or state
-owner that initiated the work.
+`MainScene` is the app shell. It owns top-level visibility, route changes,
+global focus recovery, and app exit handling. It should not be the central API
+task router for feature work.
 
-## Task Components
+Feature components and controllers own their own `AppTask` instances when they
+can safely own the full request/response loop:
 
-`components/pages/MainScene/MainScene.xml` owns several `AppTask` instances.
-Each is the same `components/tasks/AppTask.xml` component, but each instance is
-used for a different lane of work:
+- `AuthController` owns login, authorize, logout, registry persistence, and
+  authenticated session creation.
+- `HomePage` owns personalized shelf loading.
+- `Library` owns library loading, series drill-in, and library drilldown state.
+- `Player` owns playback start, playback sync, and playback-session close.
 
-```brightscript
-m.apiTask
-m.playbackApiTask
-m.libraryApiTask
-m.personalizedApiTask
-```
+`MainScene` passes session context down, observes high-level component events,
+and coordinates what should be shown or focused next.
 
-`AppTask` has two public fields:
+## MainScene Children
+
+`components/pages/MainScene/MainScene.xml` contains the app surfaces and the
+auth controller:
 
 ```xml
-<field id="request" type="assocarray" />
-<field id="response" type="assocarray" />
+<Login id="login" />
+<HomePage id="homePage" />
+<Library id="library" />
+<Header id="header" />
+<Search id="search" />
+<Player id="player" />
+<OverlayHost id="overlayHost" />
+<AuthController id="authController" />
 ```
 
-`MainScene.startApiTask` starts work by assigning the request and running the
-task:
+There is intentionally no generic `AppTask` lane in `MainScene` for Library,
+HomePage, Player, or Auth. Those tasks live with the components/controllers that
+own their behavior.
 
-```brightscript
-sub startApiTask(task as dynamic, request as object)
-    if task = invalid then return
+## Session Context
 
-    task.request = request
-    task.control = "run"
-end sub
-```
+After auth succeeds, `AuthController` emits `authenticatedSession`.
+`MainScene` stores that session in `m.session`, stores mapped media progress in
+`m.mediaProgress`, shows the app shell, and passes request context down to
+feature components.
 
-Inside `components/tasks/AppTask.brs`, `executeRequest` reads
-`m.top.request.action`, dispatches to the matching API function, and writes the
-result to `m.top.response`.
-
-## Request Shape
-
-Requests are associative arrays with an `action` field. Most authenticated
-requests also include `server`, `token`, and any endpoint-specific ids.
-
-Examples:
+The shared request context shape is:
 
 ```brightscript
 {
-    action: "loadLibrary"
     server: m.session.server
     token: m.session.token
     bookLibraryId: m.session.bookLibraryId
 }
 ```
 
-```brightscript
-{
-    action: "startPlayback"
-    server: request.server
-    token: request.token
-    itemId: request.itemId
-    title: request.title
-}
-```
+`MainScene.buildSessionLoadRequest()` builds this object. `HomePage` and
+`Library` receive it through their `loadRequest` fields. Components should treat
+this as explicit input, not read session state from `MainScene`.
 
-`AppTask.executeRequest` dispatches by action:
+## Auth Flow
 
-```brightscript
-if action = "login" then
-    m.top.response = login(request)
-else if action = "loadLibrary" then
-    m.top.response = LibraryItems_Load(request)
-else if action = "startPlayback" then
-    m.top.response = Playback_Start(request)
-end if
-```
+`Login` owns the login UI and emits `loginRequested`.
 
-## Login And Authorization
+`MainScene` forwards that request to `AuthController.loginRequest`. It also
+signals session restore through `AuthController.resumeRequested` and logout
+through `AuthController.logoutRequest`.
 
-`Login` emits `loginRequested`.
+`AuthController` owns:
 
-`MainScene.onLoginRequested` forwards that request to `m.apiTask`:
+- loading saved auth state from `AuthStore`
+- running auth API requests through its internal `authApiTask`
+- saving and clearing registry auth data
+- building the authenticated session object
+- emitting auth state events
 
-```brightscript
-request = m.login.loginRequested
-startApiTask(m.apiTask, request)
-```
+`MainScene` observes:
 
-When `m.apiTask.response` changes, `onApiResponse` handles `login` and
-`authorize` responses by storing the authenticated session and showing the app:
+- `authenticatedSession` -> store session, pass media progress down, show app
+- `loginRequired` -> show Login with a message
+- `loginFailed` -> show Login status message
+- `sessionExpired` -> clear visible app state and show Login
 
-```brightscript
-storeAuthenticatedSession(response)
-storeMediaProgress(m.session.mediaProgress)
-showApp()
-```
+Auth expiry reported by feature components is routed through
+`MainScene.handleComponentError()`, which clears the saved token through
+`AuthController` and returns the app to Login.
 
-Session restore is initiated by `MainScene` itself in `tryResumeSession`, which
-sends an `authorize` request to `m.apiTask`.
+## HomePage Flow
 
-## Library And Series Loading
-
-Full library reloads are initiated by `MainScene.reloadLibraryItems`.
+`MainScene` sets:
 
 ```brightscript
-startApiTask(m.libraryApiTask, {
-    action: "loadLibrary"
-    server: m.session.server
-    token: m.session.token
-    bookLibraryId: m.session.bookLibraryId
-})
+m.homePage.loadRequest = buildSessionLoadRequest()
+m.homePage.mediaProgress = m.mediaProgress
 ```
 
-Series drill-in starts from a `Library` component event. `Library` emits
-`seriesSelected`; `MainScene.onLibrarySeriesSelected` builds a `loadSeries`
-request and runs `m.libraryApiTask`.
+`HomePage` owns its internal `personalizedApiTask`. When its `loadRequest`
+changes, or when `reloadPersonalizedShelves()` is called, it runs
+`loadPersonalized`, stores the returned shelves in its own
+`personalizedShelves` field, and renders the home rows.
 
-Responses from `m.libraryApiTask` are handled in `onLibraryApiResponse`:
+`HomePage` emits:
+
+- `playSelected` when the user chooses an audiobook
+- `backSelected` or `upFromFirstRowSelected` for focus recovery
+- `errorResponse` for auth/global errors
+
+`MainScene` reacts by starting playback, focusing Header, or handling auth
+errors.
+
+## Library Flow
+
+`MainScene` sets:
 
 ```brightscript
-if response.action = "loadLibrary" then
-    storeLibraryItems(response)
-else if response.action = "loadSeries" then
-    storeSeriesItems(response)
-end if
+m.library.loadRequest = buildSessionLoadRequest()
+m.library.mediaProgress = m.mediaProgress
 ```
 
-Those handlers write the returned items back into `m.library.libraryItems`,
-which updates the original library UI.
+`Library` owns its internal `libraryApiTask`. It loads root library items,
+loads series drill-in items, stores its own drilldown back stack, and updates
+its List/Grid child views.
 
-## Personalized Home Shelves
+`Library` emits:
 
-`MainScene.loadPersonalizedShelves` is triggered by app startup and home
-navigation. It runs `m.personalizedApiTask` with `action: "loadPersonalized"`.
+- `playSelected` when the user chooses an audiobook
+- `upFromFirstItemSelected` or `backFromFirstItemSelected` for focus recovery
+- `itemsReloaded` after a root reload completes
+- `errorResponse` for auth/global errors
 
-`onPersonalizedApiResponse` routes successful responses to
-`storePersonalizedShelves`, which writes the returned shelves into
-`m.homePage.personalizedShelves`.
+`MainScene` uses `itemsReloaded` only for the current settings-save focus
+recovery case. When settings change, MainScene updates `m.library.displaySettings`,
+asks Library to reload, and focuses the Settings button after reload completes.
 
-## Playback
+## Player Flow
 
-Playback starts from either `HomePage` or `Library`.
+Playback can start from `HomePage` or `Library`; both emit `playSelected`.
 
-The child component emits `playSelected`, and `MainScene` calls
-`playLibraryItem(selectedItem)`. This shows the `Player`, gives it focus, and
-sets `m.player.playRequest`.
+`MainScene.playbackPlayItem()` shows `Player`, gives it focus, and sets
+`m.player.playRequest` with session context, cover URL, metadata, and a start
+position.
 
-`Player` reacts to `playRequest` internally and emits
-`playbackStartRequested`.
-
-`MainScene.onPlaybackStartRequested` forwards the request to `m.apiTask`:
+Start position lookup is delegated to `source/MediaProgressLookup.brs`:
 
 ```brightscript
-request = m.player.playbackStartRequested
-startApiTask(m.apiTask, request)
+MediaProgressLookup_GetStartPosition(selectedItem, m.mediaProgress)
 ```
 
-`onApiResponse` handles the `startPlayback` response and writes it back to the
-original caller:
+`Player` owns its internal `playbackApiTask`. It handles:
 
-```brightscript
-if m.player <> invalid then m.player.playbackResponse = response
-```
+- `startPlayback`
+- periodic `syncPlaybackSession`
+- seek/pause sync requests
+- `closePlaybackSession`
 
-The player observes `playbackResponse` and starts playback from the returned
-session and track data.
+`Player` emits:
 
-Playback sync and close requests use a separate task lane:
+- `closeRequested` when the player should be hidden
+- `errorResponse` for auth/global errors
 
-```brightscript
-startApiTask(m.playbackApiTask, request)
-```
+`MainScene` restores the previous app surface and focus when Player closes.
+For auth-expired player errors, MainScene closes Player before returning to
+Login so authenticated content is not left visible.
 
-Those responses are handled by `onPlaybackApiResponse`. At the moment,
-successful sync/close responses do not need to be routed back to `Player`; auth
-errors are routed through `handleExpiredSession`.
+## Overlay Flow
 
-## Response Routing
+`Header` emits `overlayRequested`. `MainScene` forwards the request to
+`OverlayHost.openOverlay`.
 
-Responses are routed by the task instance that produced them:
+When an overlay closes:
 
-- `m.apiTask.response` -> `onApiResponse`
-- `m.libraryApiTask.response` -> `onLibraryApiResponse`
-- `m.personalizedApiTask.response` -> `onPersonalizedApiResponse`
-- `m.playbackApiTask.response` -> `onPlaybackApiResponse`
+- Settings close: MainScene applies saved settings to Library, asks Library to
+  reload, and returns focus to the Settings button after reload.
+- Exit close: MainScene sets `closeRequested = true` when confirmed, otherwise
+  returns focus to Header.
+- Other closes: MainScene returns focus to the user menu button.
 
-`getApiResponseAction` prefers `response.action`, but falls back to the task's
-last request action:
+## MainScene Ownership
 
-```brightscript
-if response <> invalid and response.action <> invalid then return response.action
-if task <> invalid and task.request <> invalid and task.request.action <> invalid then
-    return task.request.action
-end if
-```
+`MainScene` should own:
 
-This lets `MainScene` route responses even when an API helper does not echo the
-action field.
+- app shell visibility
+- major route changes between Home, Library, Search, Player, Login, and overlays
+- global focus recovery
+- the current authenticated session object
+- passing session context and media progress to feature components
+- app exit requests
 
-## Ownership Rule
+`MainScene` should not own:
 
-`MainScene` owns app orchestration and shared runtime state:
+- feature-specific API task instances
+- feature-specific response routing
+- Library drilldown state
+- personalized shelf state
+- playback session sync/close
+- auth registry persistence
 
-- authenticated session
-- media progress
-- active page visibility
-- library back stack
-- which task lane handles each request
-- where each response should be written
-
-Child components own UI interaction. They request work by changing observable
-fields, then receive results through fields that `MainScene` sets after the
-task completes.
+When adding new behavior, prefer placing the `AppTask` and response handling in
+the component/controller that owns the workflow, then expose a narrow event-like
+field back to `MainScene` only when the app shell must react.
