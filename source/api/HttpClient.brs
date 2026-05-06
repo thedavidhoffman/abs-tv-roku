@@ -3,6 +3,26 @@
 '-------------------------------------------------------------------------------
 function HttpClient_Request(url as String, method as String, token as Dynamic, body as Dynamic) as Object
 
+    log = CreateLogger("HttpClient_Request", false)
+
+    if url = invalid or url = "" then
+        message = "Invalid http request: url is invalid."
+        log.error(message)
+        return { ok: false, errorMessage: message }
+    end if
+
+   if method = invalid or method = "" then
+        message = "Invalid http request: method is invalid."
+        log.error(message)
+        return { ok: false, errorMessage: message }
+    end if
+
+    if token = invalid or token = "" then
+        message = "Invalid http request: token is invalid."
+        log.error(message)
+        return { ok: false, errorMessage: message }
+    end if
+
     transfer = CreateObject("roUrlTransfer")
     port = CreateObject("roMessagePort")
 

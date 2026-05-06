@@ -16,33 +16,36 @@ end function
 function Playback_Start(request as object) as object
 
     log = Playback_CreateLogger()
+    log.write("executing...")
 
-    '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    ' parameter validation
-    '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     if request = invalid then
-        log.write("Invalid playback request: request is invalid.")
-        return { ok: false, errorMessage: "Invalid playback request." }
+        message = "Invalid playback request: request is invalid."
+        log.error(message)
+        return { ok: false, errorMessage: message }
     end if
 
     if Type(request) <> "roAssociativeArray" then
-        log.write("Invalid playback request: request type is " + Type(request) + ".")
-        return { ok: false, errorMessage: "Invalid playback request." }
+        message = "Invalid playback request: request type is " + Type(request) + "."
+        log.error(message)
+        return { ok: false, errorMessage: message }
     end if
 
     if request.server = invalid or request.server = "" then
-        log.write("Invalid playback request: server is missing.")
-        return { ok: false, errorMessage: "No Audiobookshelf server was provided." }
+        message = "Invalid playback request: server is missing."
+        log.error(message)
+        return { ok: false, errorMessage: message }
     end if
 
     if request.token = invalid or request.token = "" then
-        log.write("Invalid playback request: token is missing.")
-        return { ok: false, errorMessage: "No authentication token was provided." }
+        message = "Invalid playback request: token is missing."
+        log.error(message)
+        return { ok: false, errorMessage: message }
     end if
 
     if request.itemId = invalid or request.itemId = "" then
-        log.write("Invalid playback request: itemId is missing.")
-        return { ok: false, errorMessage: "No audiobook was selected." }
+        message = "Invalid playback request: itemId is missing."
+        log.error(message)
+        return { ok: false, errorMessage: message }
     end if
 
     if request.title = invalid then request.title = ""
@@ -85,7 +88,7 @@ function Playback_Start(request as object) as object
 
     body = FormatJson(bodyData)
 
-    log.write("forceDirectPlay=" + bodyData.forceDirectPlay.ToStr() + " forceTranscode=" + bodyData.forceTranscode.ToStr() + " supportedMimeTypes=" + Array_JoinStringValues(bodyData.supportedMimeTypes))
+    log.write("ABS post body: forceDirectPlay=" + bodyData.forceDirectPlay.ToStr() + " forceTranscode=" + bodyData.forceTranscode.ToStr() + " supportedMimeTypes=" + Array_JoinStringValues(bodyData.supportedMimeTypes))
 
     playbackUrl = server + "/api/items/" + itemId + "/play"
     playbackResult = HttpClient_Request(playbackUrl, "POST", token, body)
@@ -130,14 +133,21 @@ sub __LogMappedTracks(log as object, tracks as dynamic)
     for i = 0 to tracks.Count() - 1
         track = tracks[i]
 
-        log.write("  track=" + i.ToStr() + "............")
-
         if track <> invalid then
-            log.write("    title: " + SafeString(track.title, ""))
-            log.write("    durationSeconds: " + SafeString(track.durationSeconds, "invalid"))
-            log.write("    startPositionSeconds: " + SafeString(track.startPositionSeconds, "invalid"))
-            log.write("    mimeType: " + SafeString(track.mimeType, ""))
-            log.write("    url: " + SafeString(track.url, ""))
+
+            log.writeBracketed([ 
+                i.ToStr(), 
+                SafeString(track.title), 
+                SafeString(track.durationSeconds),
+                SafeString(track.startPositionSeconds),
+                SafeString(track.mimeType) ])
+            
+            ' log.write("    track=" + i.ToStr())
+            ' log.write("    title: " + SafeString(track.title, ""))
+            ' log.write("    durationSeconds: " + SafeString(track.durationSeconds, "invalid"))
+            ' log.write("    startPositionSeconds: " + SafeString(track.startPositionSeconds, "invalid"))
+            ' log.write("    mimeType: " + SafeString(track.mimeType, ""))
+            ' log.write("    url: " + SafeString(track.url, ""))
         else
             log.write("    invalid track")
         end if
@@ -151,13 +161,18 @@ end sub
 function Playback_CloseSession(request as object) as object
 
     log = CreateLogger("Playback_CloseSession")
+    log.write("executing...")
 
     server = NormalizeServerUrl(request.server)
     token = request.token
     sessionId = request.sessionId
 
     if sessionId = invalid or sessionId = "" then
-        return { ok: false, action: "closePlaybackSession", errorMessage: "No playback session was available to close." }
+        log.error("No playback session was available to close.")
+        return {
+            ok: false,
+            action: "closePlaybackSession",
+        errorMessage: "No playback session was available to close." }
     end if
 
     bodyData = {}
@@ -167,7 +182,8 @@ function Playback_CloseSession(request as object) as object
 
     log.write("sessionId=" + sessionId.ToStr() + " currentTime=" + SafeString(bodyData.currentTime, "invalid") + " timeListened=" + SafeString(bodyData.timeListened, "invalid") + " duration=" + SafeString(bodyData.duration, "invalid"))
 
-    result = HttpClient_Request(server + "/api/session/" + sessionId.ToStr() + "/close", "POST", token, FormatJson(bodyData))
+    closeSessionUrl = server + "/api/session/" + sessionId.ToStr() + "/close"
+    result = HttpClient_Request(closeSessionUrl, "POST", token, FormatJson(bodyData))
     result.action = "closePlaybackSession"
 
     return result
@@ -236,7 +252,7 @@ function __MapTracks(server as string, token as dynamic, payload as dynamic, ite
         for i = 0 to files.Count() - 1
             file = files[i]
             track = __GetTrackForFileIndex(tracks, file, i)
-            url = __BuildFileUrl(server, token, sessionId, file, track, i, log)
+            url = __BuildFileUrl(server, token, sessionId, file, track, i)
             if url <> "" then
                 mappedTracks.Push({
                     url: url
@@ -427,36 +443,20 @@ end function
 function __BuildPlaybackUrl(server as string, token as dynamic, sessionId as dynamic, track as dynamic) as string
 
     log = Playback_CreateLogger("BuildPlaybackUrl")
-    log.writeHead()
-
-    if server = invalid or server = "" then
-        log.write("Invalid playback request: server is missing.")
-        return { ok: false, errorMessage: "No Audiobookshelf server was provided." }
-    end if
-
-    if token = invalid or token = "" then
-        log.write("Invalid playback request: token is missing.")
-        return { ok: false, errorMessage: "No authentication token was provided." }
-    end if
-
-    if sessionId = invalid or sessionId = "" then
-        log.write("Invalid playback request: sessionId is missing.")
-        return { ok: false, errorMessage: "No sessionId was provided." }
-    end if
 
     contentUrl = SafeString(track.contentUrl, "")
     contentUrl = LCase(contentUrl)
 
-    log.write("trackContentUrl = " + contentUrl)
+    log.write(contentUrl)
 
     ' determine if the url is hls
     isHlsUrl = (Instr(1, contentUrl, "/hls") > 0 or Instr(1, contentUrl, ".m3u8") > 0)
-    log.write("isHlsUrl = " + isHlsUrl.ToStr())
 
     ' direct play (non hls) media is compatible with Roku as a playback device
     if sessionId <> invalid and sessionId <> "" and isHlsUrl = false then
-        log.write("determined direct play from abs contentUrl")
-        return server + "/public/session/" + sessionId + "/track/" + track.index.ToStr()
+        directPlayUrl = server + "/public/session/" + sessionId + "/track/" + track.index.ToStr()
+        log.write("direct play: " + directPlayUrl)
+        return directPlayUrl
     end if
 
     ' roku doesn't support direct play of the media, so using hls to transcode
@@ -464,22 +464,19 @@ function __BuildPlaybackUrl(server as string, token as dynamic, sessionId as dyn
     ' delivers audio and video content over the internet. It works by breaking video files into
     ' small segments, allowing for adaptive bitrate streaming that adjusts the quality based on
     ' the viewer's network conditions.
-    log.write("determined hls from abs contentUrl")
-    url = contentUrl
-    if Instr(1, LCase(url), "http://") <> 1 and Instr(1, LCase(url), "https://") <> 1 then
-        if Left(url, 1) <> "/" then url = "/" + url
-        url = server + url
+    if Instr(1, LCase(contentUrl), "http://") <> 1 and Instr(1, LCase(contentUrl), "https://") <> 1 then
+        if Left(contentUrl, 1) <> "/" then contentUrl = "/" + contentUrl
+        contentUrl = server + contentUrl
     end if
 
-    url = StringUtils_Replace(url, " ", "%20")
+    contentUrl = StringUtils_Replace(contentUrl, " ", "%20")
+    log.write("hls: " + contentUrl + "?token...")
+
     separator = "?"
-    if Instr(1, url, "?") > 0 then separator = "&"
-    if token <> invalid and token <> "" then url = url + separator + "token=" + token
+    if Instr(1, contentUrl, "?") > 0 then separator = "&"
+    if token <> invalid and token <> "" then contentUrl = contentUrl + separator + "token=" + token
 
-    log.write("url result = " + url)
-    log.write("")
-
-    return url
+    return contentUrl
 
 end function
 

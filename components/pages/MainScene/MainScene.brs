@@ -121,35 +121,45 @@ end sub
 ' onApiResponse
 '-------------------------------------------------------------------------------
 sub onApiResponse()
+
     response = m.apiTask.response
     if response = invalid then return
     action = getApiResponseAction(m.apiTask, response)
 
     if response.ok <> true then
+
         if m.isResumingSession then
             m.isResumingSession = false
             AuthStore_Clear(false)
             showLogin("Your saved session expired. Please sign in again.")
+        
         else if response.authExpired = true then
             handleExpiredSession(response.errorMessage)
+        
         else if action = "startPlayback" then
             if m.player <> invalid then m.player.playbackResponse = response
+        
         else if action = "login" or m.login.visible then
             m.login.statusMessage = "Login failed: " + SafeString(response.errorMessage, "Unknown error.")
         end if
+
     else if action = "login" then
         storeAuthenticatedSession(response)
         storeMediaProgress(m.session.mediaProgress)
         showApp()
+
     else if action = "authorize" then
         m.isResumingSession = false
         storeAuthenticatedSession(response)
         storeMediaProgress(m.session.mediaProgress)
         showApp()
+
     else if action = "loadLibrary" then
         storeLibraryItems(response)
+
     else if action = "loadSeries" then
         storeSeriesItems(response)
+
     else if action = "startPlayback" then
         if m.player <> invalid then m.player.playbackResponse = response
     end if
@@ -519,6 +529,7 @@ sub onLibrarySeriesSelected()
     })
 end sub
 
+'-------------------------------------------------------------------------------
 ' reloadLibraryItems
 '-------------------------------------------------------------------------------
 sub reloadLibraryItems()
@@ -712,8 +723,10 @@ end sub
 ' onPlayerCloseRequested
 '-------------------------------------------------------------------------------
 sub onPlayerCloseRequested()
+    
     m.player.visible = false
     m.authenticatedContent.visible = true
+
     if m.playerReturnTarget = "home" and m.homePage <> invalid and m.homePage.visible then
         m.homePage.callFunc("focusHomePage")
         return
@@ -722,6 +735,7 @@ sub onPlayerCloseRequested()
     if m.library <> invalid and m.library.visible then
         m.library.callFunc("focusLibraryList")
     end if
+
 end sub
 
 '-------------------------------------------------------------------------------

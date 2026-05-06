@@ -18,6 +18,8 @@ function CreateLogger(label = "" as string, buffered = true as boolean) as objec
         buffer: []
         writeHead: __Logger_WriteHead
         write: __Logger_Write
+        writeBracketed: __Logger_WriteBracketed
+        error: __Logger_Error
         flush: __Logger_Flush
         text: __Logger_Text
     }
@@ -31,9 +33,10 @@ end function
 '-------------------------------------------------------------------------------
 ' __Logger_WriteHead
 '-------------------------------------------------------------------------------
-sub __Logger_WriteHead()
+function __Logger_WriteHead() as object
     m.write("....................................")
-end sub
+    return m
+end function
 
 '-------------------------------------------------------------------------------
 ' __Logger_Write
@@ -49,6 +52,33 @@ function __Logger_Write(message as dynamic) as object
     end if
 
     return m
+
+end function
+
+'-------------------------------------------------------------------------------
+' __Logger_WriteBracketed
+'-------------------------------------------------------------------------------
+function __Logger_WriteBracketed(array as dynamic) as object
+
+    output = ""
+
+    for each line in array
+        output = output + "[" + line + "] "
+    end for
+
+    m.write(output)
+
+    return m
+
+end function
+
+'-------------------------------------------------------------------------------
+' __Logger_Error
+'-------------------------------------------------------------------------------
+function __Logger_Error(message as dynamic) as object
+
+    message = "ERROR: " + message
+    return m.write(message)
 
 end function
 

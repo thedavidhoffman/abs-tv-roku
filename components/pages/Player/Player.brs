@@ -533,8 +533,8 @@ end function
 '-------------------------------------------------------------------------------
 ' setStatus
 '-------------------------------------------------------------------------------
-sub setStatus(message as string)
-    if m.statusLabel <> invalid then m.statusLabel.text = message
+sub setStatus(status as string)
+    if m.statusLabel <> invalid then m.statusLabel.text = status
 end sub
 
 '-------------------------------------------------------------------------------
