@@ -242,7 +242,6 @@ sub showSelectedItem(item as dynamic)
     m.selectedItem = item
     if m.selectedPoster <> invalid then m.selectedPoster.itemContent = getSelectedPosterContent(item)
     updateSelectedDetails(item)
-    updatePrimaryAction(item)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -442,29 +441,6 @@ sub updateSelectedDetails(item as dynamic)
     setLabelText(m.detailDuration, ItemMetadataParser_GetDuration(item))
     if m.detailDescription <> invalid then m.detailDescription.title = ItemMetadataParser_GetTitle(item)
     setLabelText(m.detailDescription, ItemMetadataParser_GetDescription(metadata))
-end sub
-
-'-------------------------------------------------------------------------------
-' updatePrimaryAction
-'-------------------------------------------------------------------------------
-sub updatePrimaryAction(item as dynamic)
-    if m.playButton = invalid then return
-
-    seriesId = getCollapsedSeriesId(item)
-    if seriesId <> invalid then
-        if isSeriesExpanded(seriesId) then
-            m.playButton.text = "Collapse"
-        else if m.loadingSeriesId <> invalid and m.loadingSeriesId.ToStr() = seriesId.ToStr() then
-            m.playButton.text = "Loading"
-        else
-            m.playButton.text = "Expand"
-        end if
-        m.playButton.iconUri = ""
-        return
-    end if
-
-    m.playButton.text = "Play"
-    m.playButton.iconUri = "pkg:/images/icons/dark/play_dark.png"
 end sub
 
 ' setLabelText
