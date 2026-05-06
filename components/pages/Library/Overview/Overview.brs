@@ -31,6 +31,14 @@ sub initReferences()
         m.top.findNode("seriesPoster5")
         m.top.findNode("seriesPoster6")
     ]
+    m.seriesPosterShadows = [
+        m.top.findNode("seriesPosterShadow1")
+        m.top.findNode("seriesPosterShadow2")
+        m.top.findNode("seriesPosterShadow3")
+        m.top.findNode("seriesPosterShadow4")
+        m.top.findNode("seriesPosterShadow5")
+        m.top.findNode("seriesPosterShadow6")
+    ]
     m.playButton = m.top.findNode("playButton")
     m.metadataGroup = m.top.findNode("metadataGroup")
     m.detailTitle = m.top.findNode("detailTitle")
@@ -115,12 +123,16 @@ sub renderSeriesPosters(item as dynamic)
     posterCount = getSeriesPosterCount(itemIds)
     if posterCount <= 0 then return
 
+    showShadows = (posterCount > 1)
     for i = 0 to posterCount - 1
         poster = m.seriesPosters[i]
         if poster <> invalid then
             poster.itemContent = getSeriesPosterContent(itemIds[i])
             poster.visible = true
         end if
+
+        shadow = m.seriesPosterShadows[i]
+        if shadow <> invalid then shadow.visible = showShadows
     end for
 end sub
 
@@ -135,6 +147,11 @@ sub clearSeriesPosters()
             poster.itemContent = invalid
             poster.visible = false
         end if
+    end for
+
+    if m.seriesPosterShadows = invalid then return
+    for each shadow in m.seriesPosterShadows
+        if shadow <> invalid then shadow.visible = false
     end for
 end sub
 
