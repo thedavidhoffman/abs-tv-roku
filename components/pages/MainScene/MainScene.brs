@@ -229,29 +229,35 @@ sub navShowApp()
     m.login.visible = false
     m.authenticatedContent.visible = true
     headerCloseMenu()
+    loadRequest = buildSessionLoadRequest()
     if m.header <> invalid then
         m.header.visible = true
         m.header.username = m.session.username
     end if
     if m.homePage <> invalid then
         m.homePage.mediaProgress = m.mediaProgress
-        m.homePage.loadRequest = {
-            server: m.session.server
-            token: m.session.token
-            bookLibraryId: m.session.bookLibraryId
-        }
+        m.homePage.loadRequest = loadRequest
     end if
     if m.library <> invalid then m.library.mediaProgress = m.mediaProgress
     navShowHomePage()
-    if m.homePage <> invalid then m.homePage.callFunc("focusHomePage")
+    focusHomePage()
     if m.library <> invalid then
-        m.library.loadRequest = {
-            server: m.session.server
-            token: m.session.token
-            bookLibraryId: m.session.bookLibraryId
-        }
+        m.library.loadRequest = loadRequest
     end if
 end sub
+
+'-------------------------------------------------------------------------------
+' buildSessionLoadRequest
+'-------------------------------------------------------------------------------
+function buildSessionLoadRequest() as object
+    if m.session = invalid then return {}
+
+    return {
+        server: m.session.server
+        token: m.session.token
+        bookLibraryId: m.session.bookLibraryId
+    }
+end function
 
 '-------------------------------------------------------------------------------
 ' navShowHomePage
@@ -277,12 +283,12 @@ end sub
 '-------------------------------------------------------------------------------
 sub headerHandleDownPressed()
     if m.homePage <> invalid and m.homePage.visible then
-        m.homePage.callFunc("focusHomePage")
+        focusHomePage()
         return
     end if
 
     if m.library <> invalid and m.library.visible then
-        m.library.callFunc("focusLibraryList")
+        focusLibraryList()
     end if
 end sub
 
@@ -315,6 +321,41 @@ function headerIsHomeButtonFocused() as boolean
 end function
 
 '-------------------------------------------------------------------------------
+' focusHeader
+'-------------------------------------------------------------------------------
+sub focusHeader()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+end sub
+
+'-------------------------------------------------------------------------------
+' focusHomePage
+'-------------------------------------------------------------------------------
+sub focusHomePage()
+    if m.homePage <> invalid then m.homePage.callFunc("focusHomePage")
+end sub
+
+'-------------------------------------------------------------------------------
+' focusLibraryList
+'-------------------------------------------------------------------------------
+sub focusLibraryList()
+    if m.library <> invalid then m.library.callFunc("focusLibraryList")
+end sub
+
+'-------------------------------------------------------------------------------
+' focusSettingsButton
+'-------------------------------------------------------------------------------
+sub focusSettingsButton()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusSettingsButton")
+end sub
+
+'-------------------------------------------------------------------------------
+' focusUserMenuButton
+'-------------------------------------------------------------------------------
+sub focusUserMenuButton()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusUserMenuButton")
+end sub
+
+'-------------------------------------------------------------------------------
 ' searchHandlePressed
 '-------------------------------------------------------------------------------
 sub searchHandlePressed()
@@ -332,7 +373,7 @@ end sub
 sub homeHandlePressed()
     headerCloseMenu()
     navShowHomePage()
-    if m.homePage <> invalid then m.homePage.callFunc("focusHomePage")
+    focusHomePage()
     if m.homePage <> invalid then m.homePage.callFunc("reloadPersonalizedShelves")
 end sub
 
@@ -340,14 +381,14 @@ end sub
 ' homeHandleBackSelected
 '-------------------------------------------------------------------------------
 sub homeHandleBackSelected()
-    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+    focusHeader()
 end sub
 
 '-------------------------------------------------------------------------------
 ' homeHandleUpFromFirstRowSelected
 '-------------------------------------------------------------------------------
 sub homeHandleUpFromFirstRowSelected()
-    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+    focusHeader()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -381,7 +422,7 @@ end sub
 sub libraryHandlePressed()
     headerCloseMenu()
     navShowLibraryPage()
-    if m.library <> invalid then m.library.callFunc("focusLibraryList")
+    focusLibraryList()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -409,14 +450,14 @@ end sub
 ' libraryHandleUpFromFirstItemSelected
 '-------------------------------------------------------------------------------
 sub libraryHandleUpFromFirstItemSelected()
-    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+    focusHeader()
 end sub
 
 '-------------------------------------------------------------------------------
 ' libraryHandleBackFromFirstItemSelected
 '-------------------------------------------------------------------------------
 sub libraryHandleBackFromFirstItemSelected()
-    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+    focusHeader()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -425,7 +466,7 @@ end sub
 sub libraryHandleItemsReloaded()
     if m.focusSettingsAfterLibraryReload = true then
         m.focusSettingsAfterLibraryReload = false
-        if m.header <> invalid and m.header.visible then m.header.callFunc("focusSettingsButton")
+        focusSettingsButton()
     end if
 end sub
 
@@ -464,12 +505,12 @@ sub playbackHandlePlayerCloseRequested()
     m.authenticatedContent.visible = true
 
     if m.playerReturnTarget = "home" and m.homePage <> invalid and m.homePage.visible then
-        m.homePage.callFunc("focusHomePage")
+        focusHomePage()
         return
     end if
 
     if m.library <> invalid and m.library.visible then
-        m.library.callFunc("focusLibraryList")
+        focusLibraryList()
     end if
 
 end sub
@@ -511,7 +552,7 @@ sub overlayHandleClosed()
     closed = m.overlayHost.closed
     if closed <> invalid and closed.request <> invalid and closed.request.id = "settings" and closed.overlay <> invalid then
         overlayHandleSettingsSaved(closed.overlay.savedSettings)
-        if m.header <> invalid and m.header.visible then m.header.callFunc("focusSettingsButton")
+        focusSettingsButton()
         return
     end if
 
@@ -521,11 +562,11 @@ sub overlayHandleClosed()
             return
         end if
 
-        if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+        focusHeader()
         return
     end if
 
-    if m.header <> invalid and m.header.visible then m.header.callFunc("focusUserMenuButton")
+    focusUserMenuButton()
 end sub
 
 '-------------------------------------------------------------------------------
