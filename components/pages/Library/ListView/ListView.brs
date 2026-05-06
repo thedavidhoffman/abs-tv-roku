@@ -576,7 +576,7 @@ end function
 ' getSeriesListTitle
 '-------------------------------------------------------------------------------
 function getSeriesListTitle(item as dynamic) as string
-    title = ItemMetadataParser_GetTitle(item)
+    title = getCollapsedSeriesTitle(item)
     seriesId = getCollapsedSeriesId(item)
 
     marker = "[+]"
@@ -586,6 +586,21 @@ function getSeriesListTitle(item as dynamic) as string
     countText = getCollapsedSeriesCountText(item)
     if countText <> "" then return marker + " " + title + "  " + countText
     return marker + " " + title
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesTitle
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesTitle(item as dynamic) as string
+    if item = invalid or item.collapsedSeries = invalid then return ItemMetadataParser_GetTitle(item)
+
+    collapsedSeries = item.collapsedSeries
+    return FirstNonEmpty([
+        collapsedSeries.nameIgnorePrefix
+        collapsedSeries.name
+        collapsedSeries.title
+        ItemMetadataParser_GetTitle(item)
+    ], "Untitled")
 end function
 
 '-------------------------------------------------------------------------------
