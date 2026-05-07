@@ -143,7 +143,7 @@ end function
 '-------------------------------------------------------------------------------
 ' createLibraryRow
 '-------------------------------------------------------------------------------
-function createLibraryRow(item as dynamic, isChild as boolean, seriesId as dynamic) as object
+function createLibraryRow(item as dynamic, isChild as boolean, seriesId as dynamic, seriesIndex = invalid as dynamic) as object
     if seriesId = invalid then seriesId = getCollapsedSeriesId(item)
 
     rowType = getListRowType(item)
@@ -153,6 +153,7 @@ function createLibraryRow(item as dynamic, isChild as boolean, seriesId as dynam
         type: rowType
         item: item
         seriesId: seriesId
+        seriesIndex: seriesIndex
         child: isChild
     }
 end function
@@ -176,9 +177,11 @@ sub appendExpandedSeriesRows(root as object, seriesId as dynamic, seriesItem as 
     seriesItems = m.seriesItemsById[getSeriesIdText(seriesId)]
     if seriesItems = invalid then return
 
+    seriesIndex = 1
     for each childItem in seriesItems
         if isDisplayableLibraryItem(childItem) then
-            appendLibraryRow(root, createLibraryRow(childItem, true, seriesId))
+            appendLibraryRow(root, createLibraryRow(childItem, true, seriesId, seriesIndex))
+            seriesIndex = seriesIndex + 1
         end if
     end for
 end sub
@@ -282,7 +285,7 @@ function getListRowTitle(row as object) as string
         return getSeriesListTitle(item)
     end if
 
-    title = getBookListTitle(item)
+    title = getBookListTitle(item, row.seriesId, row.seriesIndex)
     if row.child = true then return "    " + title
     return title
 end function
@@ -321,8 +324,9 @@ end function
 '-------------------------------------------------------------------------------
 ' getBookListTitle
 '-------------------------------------------------------------------------------
-function getBookListTitle(item as dynamic) as string
-    sequence = getSeriesSequence(item)
+function getBookListTitle(item as dynamic, seriesId as dynamic, fallbackSequence as dynamic) as string
+    sequence = getSeriesSequence(item, seriesId)
+    if sequence = "" and fallbackSequence <> invalid then sequence = fallbackSequence.ToStr()
     title = ItemMetadataParser_GetTitle(item)
     if sequence <> "" then return "#" + sequence + "  " + title
     return title
@@ -368,13 +372,13 @@ end function
 '-------------------------------------------------------------------------------
 ' getSeriesSequence
 '-------------------------------------------------------------------------------
-function getSeriesSequence(item as dynamic) as string
+function getSeriesSequence(item as dynamic, seriesId as dynamic) as string
     if item = invalid then return ""
 
     metadata = ItemMetadataParser_GetMetadata(item)
     if metadata.seriesSequence <> invalid then return metadata.seriesSequence.ToStr()
     if metadata.sequence <> invalid then return metadata.sequence.ToStr()
-    if metadata.series <> invalid then return getSequenceFromSeriesValue(metadata.series)
+    if metadata.series <> invalid then return getSequenceFromSeriesValue(metadata.series, seriesId)
 
     if item.seriesSequence <> invalid then return item.seriesSequence.ToStr()
     if item.sequence <> invalid then return item.sequence.ToStr()
@@ -385,26 +389,63 @@ end function
 '-------------------------------------------------------------------------------
 ' getSequenceFromSeriesValue
 '-------------------------------------------------------------------------------
-function getSequenceFromSeriesValue(series as dynamic) as string
+function getSequenceFromSeriesValue(series as dynamic, seriesId as dynamic) as string
     if series = invalid then return ""
 
     seriesType = Type(series)
     if seriesType = "roArray" then
         if series.Count() = 0 then return ""
 
-        firstSeries = series[0]
-        if firstSeries <> invalid then
-            if firstSeries.sequence <> invalid then return firstSeries.sequence.ToStr()
-            if firstSeries.seriesSequence <> invalid then return firstSeries.seriesSequence.ToStr()
-        end if
+        for each seriesEntry in series
+            if isMatchingSeriesEntry(seriesEntry, seriesId) then
+                sequence = getSeriesEntrySequence(seriesEntry)
+                if sequence <> "" then return sequence
+            end if
+        end for
+
+        for each seriesEntry in series
+            sequence = getSeriesEntrySequence(seriesEntry)
+            if sequence <> "" then return sequence
+        end for
     else if seriesType = "roAssociativeArray" then
-        if series.sequence <> invalid then return series.sequence.ToStr()
-        if series.seriesSequence <> invalid then return series.seriesSequence.ToStr()
+        sequence = getSeriesEntrySequence(series)
+        if sequence <> "" then return sequence
     end if
 
-    if series.sequence <> invalid then return series.sequence.ToStr()
-    if series.seriesSequence <> invalid then return series.seriesSequence.ToStr()
+    sequence = getSeriesEntrySequence(series)
+    if sequence <> "" then return sequence
 
+    return ""
+end function
+
+'-------------------------------------------------------------------------------
+' isMatchingSeriesEntry
+'-------------------------------------------------------------------------------
+function isMatchingSeriesEntry(seriesEntry as dynamic, seriesId as dynamic) as boolean
+    seriesIdText = getSeriesIdText(seriesId)
+    if seriesIdText = "" then return false
+
+    return getSeriesEntryIdText(seriesEntry) = seriesIdText
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesEntryIdText
+'-------------------------------------------------------------------------------
+function getSeriesEntryIdText(seriesEntry as dynamic) as string
+    if seriesEntry = invalid then return ""
+    if Type(seriesEntry) <> "roAssociativeArray" then return ""
+    if seriesEntry.id = invalid then return ""
+    return seriesEntry.id.ToStr()
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesEntrySequence
+'-------------------------------------------------------------------------------
+function getSeriesEntrySequence(seriesEntry as dynamic) as string
+    if seriesEntry = invalid then return ""
+    if Type(seriesEntry) <> "roAssociativeArray" then return ""
+    if seriesEntry.sequence <> invalid then return seriesEntry.sequence.ToStr()
+    if seriesEntry.seriesSequence <> invalid then return seriesEntry.seriesSequence.ToStr()
     return ""
 end function
 

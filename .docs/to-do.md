@@ -48,6 +48,9 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 ## Hit List
 ----------------------------------------------------
 
+- shorten cover url logging
+- listview use icons for series
+
 - investigate passing episode id into play, this might fix our play/advance issue
 - /api/items/${this.libraryItem.id}/play/${this.episodeId}` : `/api/items/${this.libraryItem.id}/play`
 

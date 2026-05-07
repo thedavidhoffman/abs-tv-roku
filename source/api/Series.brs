@@ -26,7 +26,7 @@ function Series_Load(request as object) as object
     keepLoading = true
 
     while keepLoading
-        libraryUrl = server + "/api/libraries/" + bookLibraryId + "/items?limit=" + limit.ToStr() + "&page=" + page.ToStr()
+        libraryUrl = server + "/api/libraries/" + bookLibraryId + "/items?limit=" + limit.ToStr() + "&page=" + page.ToStr() + "&sort=sequence&desc=0&minified=0"
         if seriesFilter <> "" then libraryUrl = libraryUrl + seriesFilter
 
         libraryResult = HttpClient_Request(libraryUrl, "GET", token, invalid)
