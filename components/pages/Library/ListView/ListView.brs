@@ -143,7 +143,7 @@ end function
 '-------------------------------------------------------------------------------
 ' createLibraryRow
 '-------------------------------------------------------------------------------
-function createLibraryRow(item as dynamic, isChild as boolean, seriesId as dynamic, seriesIndex = invalid as dynamic) as object
+function createLibraryRow(item as dynamic, isChild as boolean, seriesId as dynamic) as object
     if seriesId = invalid then seriesId = getCollapsedSeriesId(item)
 
     rowType = getListRowType(item)
@@ -153,7 +153,6 @@ function createLibraryRow(item as dynamic, isChild as boolean, seriesId as dynam
         type: rowType
         item: item
         seriesId: seriesId
-        seriesIndex: seriesIndex
         child: isChild
     }
 end function
@@ -177,11 +176,9 @@ sub appendExpandedSeriesRows(root as object, seriesId as dynamic, seriesItem as 
     seriesItems = m.seriesItemsById[getSeriesIdText(seriesId)]
     if seriesItems = invalid then return
 
-    seriesIndex = 1
     for each childItem in seriesItems
         if isDisplayableLibraryItem(childItem) then
-            appendLibraryRow(root, createLibraryRow(childItem, true, seriesId, seriesIndex))
-            seriesIndex = seriesIndex + 1
+            appendLibraryRow(root, createLibraryRow(childItem, true, seriesId))
         end if
     end for
 end sub
@@ -285,7 +282,7 @@ function getListRowTitle(row as object) as string
         return getSeriesListTitle(item)
     end if
 
-    title = getBookListTitle(item, row.seriesId, row.seriesIndex)
+    title = getBookListTitle(item, row.seriesId)
     if row.child = true then return "    " + title
     return title
 end function
@@ -324,9 +321,8 @@ end function
 '-------------------------------------------------------------------------------
 ' getBookListTitle
 '-------------------------------------------------------------------------------
-function getBookListTitle(item as dynamic, seriesId as dynamic, fallbackSequence as dynamic) as string
+function getBookListTitle(item as dynamic, seriesId as dynamic) as string
     sequence = getSeriesSequence(item, seriesId)
-    if sequence = "" and fallbackSequence <> invalid then sequence = fallbackSequence.ToStr()
     title = ItemMetadataParser_GetTitle(item)
     if sequence <> "" then return "#" + sequence + "  " + title
     return title
@@ -378,7 +374,10 @@ function getSeriesSequence(item as dynamic, seriesId as dynamic) as string
     metadata = ItemMetadataParser_GetMetadata(item)
     if metadata.seriesSequence <> invalid then return metadata.seriesSequence.ToStr()
     if metadata.sequence <> invalid then return metadata.sequence.ToStr()
-    if metadata.series <> invalid then return getSequenceFromSeriesValue(metadata.series, seriesId)
+    if metadata.series <> invalid then
+        sequence = getSequenceFromSeriesValue(metadata.series, seriesId)
+        if sequence <> "" then return sequence
+    end if
 
     if item.seriesSequence <> invalid then return item.seriesSequence.ToStr()
     if item.sequence <> invalid then return item.sequence.ToStr()

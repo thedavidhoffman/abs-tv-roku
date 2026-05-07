@@ -175,7 +175,10 @@ function getSeriesSequence(item as dynamic) as string
     metadata = getItemMetadata(item)
     if metadata.seriesSequence <> invalid then return metadata.seriesSequence.ToStr()
     if metadata.sequence <> invalid then return metadata.sequence.ToStr()
-    if metadata.series <> invalid then return getSequenceFromSeriesValue(metadata.series)
+    if metadata.series <> invalid then
+        sequence = getSequenceFromSeriesValue(metadata.series)
+        if sequence <> "" then return sequence
+    end if
 
     if item.seriesSequence <> invalid then return item.seriesSequence.ToStr()
     if item.sequence <> invalid then return item.sequence.ToStr()

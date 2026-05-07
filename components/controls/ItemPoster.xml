@@ -9,12 +9,16 @@
     <field id="showProgressBar" type="boolean" value="true" onChange="onShowProgressBarChanged" />
   </interface>
   <children>
+
+    <!-- cover -->
     <Poster
       id="poster"
       width="280"
       height="280"
       uri="pkg:/images/placeholder_cover.png"
       loadDisplayMode="scaleToFit" />
+    
+    <!-- progress -->
     <Rectangle
       id="progressFill"
       translation="[0,270]"
@@ -22,6 +26,8 @@
       height="10"
       color="0xE09B42FF"
       visible="false" />
+
+    <!-- series sequence background -->
     <Rectangle
       id="seriesSequenceBackground"
       translation="[210,10]"
@@ -29,6 +35,8 @@
       height="35"
       color="0x000000DD"
       visible="false" />
+
+    <!-- series sequence label -->
     <Label
       id="seriesSequenceLabel"
       translation="[214,17]"
@@ -41,6 +49,8 @@
       color="0xF6F7FBFF"
       font="font:TinyBoldSystemFont"
       visible="false" />
+
+    <!-- title -->
     <Label
       id="titleLabel"
       translation="[5,292]"
@@ -50,6 +60,8 @@
       text=""
       color="0xF6F7FBFF"
       font="font:TinyBoldSystemFont" />
+
+    <!-- scrolling title -->
     <ScrollingLabel
       id="scrollingTitleLabel"
       translation="[5,292]"
@@ -58,6 +70,8 @@
       color="0xF6F7FBFF"
       font="font:TinyBoldSystemFont"
       visible="false" />
+
+    <!-- author -->
     <Label
       id="authorLabel"
       translation="[5,322]"
@@ -67,5 +81,6 @@
       text=""
       color="0xB7C5D4FF"
       font="font:TinySystemFont" />
+      
   </children>
 </component>
