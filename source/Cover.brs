@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 function Cover_BuildUrl(server as dynamic, token as dynamic, itemId as dynamic, width as integer) as string
 
-    log = CreateLogger("Cover_BuildUrl")
+    log = CreateLogger("Cover_BuildUrl", false)
 
     placeholder = "pkg:/images/placeholder_cover.png"
 
@@ -32,8 +32,7 @@ function Cover_BuildUrl(server as dynamic, token as dynamic, itemId as dynamic, 
 
     url = server + "/api/items/" + itemId.ToStr() + "/cover?width=" + width.ToStr() + "&token=" + token
 
-    log.write(url)
-    log.flush()
+    log.write(server + "/api/items/" + itemId.ToStr() + "/cover?width=" + width.ToStr() + "&token=...")
 
     return url
 

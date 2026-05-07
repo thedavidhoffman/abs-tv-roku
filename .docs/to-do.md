@@ -48,7 +48,6 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 ## Hit List
 ----------------------------------------------------
 
-- shorten cover url logging
 - listview use icons for series
 
 - investigate passing episode id into play, this might fix our play/advance issue
@@ -69,8 +68,8 @@ Titles with playback problems
 
 - NormalizeServerUrl... call only when setting server address?
 
-- end session when playback stops
-- sync progress
+- end session when playback stops - verify, i think this is done
+- sync progress - verify, i think this is done
 - roku splash screens
 - test description modal with really long title
 

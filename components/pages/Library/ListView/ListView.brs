@@ -9,6 +9,7 @@ sub init()
     m.seriesItemsById = {}
     m.loadingSeriesId = invalid
     m.upFromFirstItemSelectedCounter = 0
+    m.activeOverviewKey = ""
     m.server = invalid
     m.token = invalid
     m.bookLibraryId = invalid
@@ -90,6 +91,7 @@ sub resetSeriesExpansionState()
     m.expandedSeriesIds = {}
     m.seriesItemsById = {}
     m.loadingSeriesId = invalid
+    m.activeOverviewKey = ""
 end sub
 
 '-------------------------------------------------------------------------------
@@ -225,9 +227,44 @@ end sub
 sub showSelectedItem(item as dynamic, isSeries as boolean)
     if m.overview = invalid then return
 
+    overviewKey = getOverviewKey(item, isSeries)
+
+    ' Rebuilding the LabelList for expand/collapse can reselect the same logical row.
+    ' Avoid resending that item to Overview so poster stacks do not clear and reload.
+    if overviewKey <> "" and overviewKey = m.activeOverviewKey then return
+
+    m.activeOverviewKey = overviewKey
     m.overview.isSeries = isSeries
     m.overview.item = item
 end sub
+
+'-------------------------------------------------------------------------------
+' getOverviewKey
+'-------------------------------------------------------------------------------
+function getOverviewKey(item as dynamic, isSeries as boolean) as string
+    if item = invalid then return "none"
+    if isSeries then
+        seriesIdText = getSeriesIdText(getCollapsedSeriesId(item))
+        if seriesIdText <> "" then return "series:" + seriesIdText
+    end if
+
+    itemId = getLibraryItemIdText(item)
+    if itemId <> "" then return "book:" + itemId
+
+    return "book-title:" + ItemMetadataParser_GetTitle(item)
+end function
+
+'-------------------------------------------------------------------------------
+' getLibraryItemIdText
+'-------------------------------------------------------------------------------
+function getLibraryItemIdText(item as dynamic) as string
+    if item = invalid then return ""
+    if item.id <> invalid then return item.id.ToStr()
+    if item.libraryItemId <> invalid then return item.libraryItemId.ToStr()
+    if item.mediaItemId <> invalid then return item.mediaItemId.ToStr()
+    if item.media <> invalid and item.media.id <> invalid then return item.media.id.ToStr()
+    return ""
+end function
 
 '-------------------------------------------------------------------------------
 ' onOverviewPlaySelected
