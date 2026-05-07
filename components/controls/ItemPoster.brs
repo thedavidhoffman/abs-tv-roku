@@ -176,11 +176,11 @@ sub updateSeriesSequenceLayout(width as integer, scale as float)
     if badgeMargin < 0 then badgeMargin = 0
 
     labelInsetX = int(4 * scale)
-    labelInsetY = int(9 * scale)
+    labelOffsetY = int(8 * scale)
     labelWidth = badgeWidth - (labelInsetX * 2)
     if labelWidth < 1 then labelWidth = 1
 
-    labelHeight = badgeHeight - (labelInsetY * 2)
+    labelHeight = int(25 * scale)
     if labelHeight < 1 then labelHeight = 1
 
     badgeX = width - badgeWidth - badgeMargin
@@ -193,7 +193,7 @@ sub updateSeriesSequenceLayout(width as integer, scale as float)
     end if
 
     if m.seriesSequenceLabel <> invalid then
-        m.seriesSequenceLabel.translation = [badgeX + labelInsetX, badgeMargin + labelInsetY]
+        m.seriesSequenceLabel.translation = [badgeX + labelInsetX, badgeMargin + labelOffsetY]
         m.seriesSequenceLabel.width = labelWidth
         m.seriesSequenceLabel.height = labelHeight
     end if

@@ -39,7 +39,7 @@
     <!-- series sequence label -->
     <Label
       id="seriesSequenceLabel"
-      translation="[204,19]"
+      translation="[204,18]"
       width="62"
       height="25"
       horizAlign="center"
