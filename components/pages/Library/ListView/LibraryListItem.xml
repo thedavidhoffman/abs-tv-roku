@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<component name="LibraryListItem" extends="Group">
+  <script type="text/brightscript" uri="pkg:/components/pages/Library/ListView/LibraryListItem.brs" />
+  <interface>
+    <field id="itemContent" type="node" onChange="showContent" />
+    <field id="focusPercent" type="float" onChange="focusPercentChanged" />
+  </interface>
+  <children>
+    <Poster
+      id="seriesIcon"
+      translation="[12,16]"
+      width="24"
+      height="24"
+      loadDisplayMode="scaleToFit"
+      visible="false" />
+    <Label
+      id="title"
+      translation="[48,11]"
+      width="696"
+      maxLines="1"
+      color="0xF3F7FBFF" />
+  </children>
+</component>

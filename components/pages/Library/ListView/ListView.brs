@@ -165,6 +165,10 @@ end function
 sub appendLibraryRow(root as object, row as object)
     node = CreateObject("roSGNode", "ContentNode")
     node.title = getListRowTitle(row)
+    node.addFields({
+        isSeries: row.type = "series"
+        isExpanded: row.type = "series" and isSeriesExpanded(row.seriesId)
+    })
     root.appendChild(node)
     m.libraryRows.Push(row)
 end sub
@@ -229,7 +233,7 @@ sub showSelectedItem(item as dynamic, isSeries as boolean)
 
     overviewKey = getOverviewKey(item, isSeries)
 
-    ' Rebuilding the LabelList for expand/collapse can reselect the same logical row.
+    ' Rebuilding the MarkupList for expand/collapse can reselect the same logical row.
     ' Avoid resending that item to Overview so poster stacks do not clear and reload.
     if overviewKey <> "" and overviewKey = m.activeOverviewKey then return
 
@@ -331,13 +335,11 @@ function getSeriesListTitle(item as dynamic) as string
     title = getCollapsedSeriesTitle(item)
     seriesId = getCollapsedSeriesId(item)
 
-    marker = "[+]"
-    if isSeriesExpanded(seriesId) then marker = "[-]"
-    if m.loadingSeriesId <> invalid and seriesId <> invalid and m.loadingSeriesId.ToStr() = seriesId.ToStr() then marker = "[...]"
+    if m.loadingSeriesId <> invalid and seriesId <> invalid and m.loadingSeriesId.ToStr() = seriesId.ToStr() then
+        return title + "  Loading..."
+    end if
 
-    countText = getCollapsedSeriesCountText(item)
-    if countText <> "" then return marker + " " + title + "  " + countText
-    return marker + " " + title
+    return title
 end function
 
 '-------------------------------------------------------------------------------

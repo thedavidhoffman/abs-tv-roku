@@ -15,9 +15,10 @@
   </interface>
   <children>
     <!-- left side -->
-    <LabelList
+    <MarkupList
       id="libraryList"
       translation="[64,162]"
+      itemComponentName="LibraryListItem"
       itemSize="[760,56]"
       numRows="15"
       drawFocusFeedback="true"
