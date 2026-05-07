@@ -166,7 +166,7 @@ end sub
 ' updateSeriesSequenceLayout
 '-------------------------------------------------------------------------------
 sub updateSeriesSequenceLayout(width as integer, scale as float)
-    badgeWidth = int(60 * scale)
+    badgeWidth = int(70 * scale)
     if badgeWidth < 1 then badgeWidth = 1
 
     badgeHeight = int(35 * scale)
@@ -176,7 +176,7 @@ sub updateSeriesSequenceLayout(width as integer, scale as float)
     if badgeMargin < 0 then badgeMargin = 0
 
     labelInsetX = int(4 * scale)
-    labelInsetY = int(7 * scale)
+    labelInsetY = int(9 * scale)
     labelWidth = badgeWidth - (labelInsetX * 2)
     if labelWidth < 1 then labelWidth = 1
 

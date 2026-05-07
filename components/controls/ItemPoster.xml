@@ -30,8 +30,8 @@
     <!-- series sequence background -->
     <Rectangle
       id="seriesSequenceBackground"
-      translation="[210,10]"
-      width="60"
+      translation="[200,10]"
+      width="70"
       height="35"
       color="0x000000DD"
       visible="false" />
@@ -39,8 +39,8 @@
     <!-- series sequence label -->
     <Label
       id="seriesSequenceLabel"
-      translation="[214,17]"
-      width="52"
+      translation="[204,19]"
+      width="62"
       height="25"
       horizAlign="center"
       vertAlign="center"
