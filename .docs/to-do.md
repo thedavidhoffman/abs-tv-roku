@@ -47,9 +47,6 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 
 ## Hit List
 ----------------------------------------------------
-
-- listview use icons for series
-
 - investigate passing episode id into play, this might fix our play/advance issue
 - /api/items/${this.libraryItem.id}/play/${this.episodeId}` : `/api/items/${this.libraryItem.id}/play`
 
@@ -65,8 +62,6 @@ Titles with playback problems
 - dune playback
 - meditations playback
 - play James Bond, plays correctly, play it again, it rifles through tracks and starts playback at a much later track
-
-- NormalizeServerUrl... call only when setting server address?
 
 - end session when playback stops - verify, i think this is done
 - sync progress - verify, i think this is done

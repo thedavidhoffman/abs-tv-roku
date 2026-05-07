@@ -5,7 +5,7 @@ function Authentication_Login(request as object) as object
 
     log = CreateLogger("(API) Authentication_Login")
 
-    server = NormalizeServerUrl(request.server)
+    server = request.server
     body = FormatJson({
         username: request.username
         password: request.password
@@ -42,7 +42,7 @@ function Authentication_AuthorizeToken(request as object) as object
 
     log = CreateLogger("(API) Authentication_AuthorizeToken")
 
-    server = NormalizeServerUrl(request.server)
+    server = request.server
     authorizeUrl = server + "/api/authorize"
     result = HttpClient_Request(authorizeUrl, "POST", request.token, "")
     log.write(authorizeUrl)
@@ -68,7 +68,7 @@ end function
 '-------------------------------------------------------------------------------
 function Authentication_Logout(request as object) as object
     log = CreateLogger("(API) Authentication_Logout")
-    server = NormalizeServerUrl(request.server)
+    server = request.server
     logoutUrl = server + "/logout"
     result = HttpClient_Request(logoutUrl, "POST", request.token, "")
     log.write(logoutUrl)

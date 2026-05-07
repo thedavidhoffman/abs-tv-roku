@@ -51,7 +51,7 @@ function Playback_Start(request as object) as object
     if request.title = invalid then request.title = ""
 
     ' local working vars
-    server = NormalizeServerUrl(request.server)
+    server = request.server
     token = request.token
     itemId = request.itemId
 
@@ -163,7 +163,7 @@ function Playback_CloseSession(request as object) as object
     log = CreateLogger("Playback_CloseSession")
     log.write("executing...")
 
-    server = NormalizeServerUrl(request.server)
+    server = request.server
     token = request.token
     sessionId = request.sessionId
 
@@ -197,7 +197,7 @@ function Playback_SyncSession(request as object) as object
 
     log = CreateLogger("Playback_SyncSession")
 
-    server = NormalizeServerUrl(request.server)
+    server = request.server
     token = request.token
     sessionId = request.sessionId
 

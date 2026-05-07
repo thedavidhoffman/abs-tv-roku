@@ -10,7 +10,7 @@
 function Item_Load(request as object) as object
     log = CreateLogger("(API) Item_Load")
 
-    server = NormalizeServerUrl(request.server)
+    server = request.server
     token = request.token
     itemId = request.itemId
 

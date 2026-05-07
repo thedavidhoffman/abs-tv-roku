@@ -62,7 +62,7 @@ end sub
 ' onLoginPressed
 '-------------------------------------------------------------------------------
 sub onLoginPressed()
-    server = NormalizeServerUrl(m.top.serverValue)
+    server = TrimString(m.top.serverValue)
     username = TrimString(m.top.usernameValue)
     password = m.top.passwordValue
 

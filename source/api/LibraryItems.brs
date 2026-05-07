@@ -11,7 +11,7 @@ function LibraryItems_Load(request as object) as object
 
     log = CreateLogger("(API) LibraryItems_Load")
 
-    server = NormalizeServerUrl(request.server)
+    server = request.server
     token = request.token
     bookLibraryId = request.bookLibraryId
 

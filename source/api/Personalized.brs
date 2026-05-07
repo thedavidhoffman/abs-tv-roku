@@ -12,7 +12,7 @@ function Personalized_Load(request as object) as object
 
     log = CreateLogger("(API) Personalized_Load")
 
-    server = NormalizeServerUrl(request.server)
+    server = request.server
     token = request.token
     bookLibraryId = request.bookLibraryId
 

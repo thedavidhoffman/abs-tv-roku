@@ -4,7 +4,7 @@
 function InProgress_Load(request as object) as object
 
     log = CreateLogger("(API) InProgress_Load")
-    server = NormalizeServerUrl(request.server)
+    server = request.server
     token = request.token
 
     inProgressUrl = server + "/api/me/items-in-progress"
