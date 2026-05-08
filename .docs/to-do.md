@@ -1,26 +1,8 @@
-## titles with playback issues
-- Meditations
-- The Courtship of Princess Leia
-
-# localization
-- https://developer.roku.com/en-au/docs/developer-program/core-concepts/localization.md
-
-# device info (for debugging modal?)
-- https://developer.roku.com/en-au/docs/references/brightscript/interfaces/ifdeviceinfo.md
-
-
-- build out DTOs? https://deepwiki.com/audiobookshelf/audiobookshelf-api-docs/3.1-data-model-and-schemas
-
-
-json formatter for response output to log...
-https://www.npmjs.com/package/brighterscript-formatter
-https://github.com/nikolay-mamaev/BrightScript-Json-Beautifier
-
 
 RELEASE NOTES
 I'm excited to release version 1.0 of ABSTV, an AudioBookshelf (ABS) client for Roku. This is my first time developing a Roku app, and to be honest, it would not have been successful without the help of AI. To be clear, I didn't just "vibe code" this app. I'm an experienced senior software developer and I used AI as a tool to help craft this app. I took the AI output and constantly refined, reorganized, encapsulated, and abstracted it. That being said. This is version 1.0 of this app, and there's still plenty of room for improvement, and I'm still learning about the interesting world that is Roku app development. I'm also positive there is room for improvement with performance.
 
-This app is not availabe in the official Roku channel store. It must be side-loaded onto a Roku device. I'm assuming that most people that run the ABS docker image have some technical ability, so they should be able to side-load this app. Once this app gets to a point that it has several releases under it's belt and it has reached some point of maturity, I may look to get it in the official Roku channel store.
+
 
 If you're a user of Audiobookshelf and looking to use it on your TV, I hope you find this application useful.
 
@@ -42,12 +24,10 @@ This is my first time developing a Roku app, and to be honest, it would not have
 
 Ok, all that being said, if you're interested in being a beta tester hit me up in the comments. And if anyone out there is asking themselves if you can trust some random Roku app from some random guy on the internet, that is most definitely a question you should be asking yourself. I'll say two things in reponse to that. First, I am in no way attempting to exploit or track any of your data. And second, if you're using an ABS client on your iPhone or Android, then you've already extended your trust to those apps.
 
-
-
-
 ## Hit List
 ----------------------------------------------------
-- grid list, can it defer image loading until the row comes into view?
+- roku splash screens
+
 - investigate passing episode id into play, this might fix our play/advance issue
 - /api/items/${this.libraryItem.id}/play/${this.episodeId}` : `/api/items/${this.libraryItem.id}/play`
 
@@ -66,11 +46,9 @@ Titles with playback problems
 
 - end session when playback stops - verify, i think this is done
 - sync progress - verify, i think this is done
-- roku splash screens
 - test description modal with really long title
 
 - in-progress bar for series
-- reduce library info
 - loading spinner/indicator
 
 Continue Listening (home page)

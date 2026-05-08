@@ -9,19 +9,16 @@ function Cover_BuildUrl(server as dynamic, token as dynamic, itemId as dynamic, 
 
     if server = invalid then
         log.write("server invalid, returning placeholder")
-        log.flush()
         return placeholder
     end if
 
     if token = invalid then
         log.write("token invalid, returning placeholder")
-        log.flush()
         return placeholder
     end if
 
     if itemId = invalid then
         log.write("itemId invalid, returning placeholder")
-        log.flush()
         return placeholder
     end if
 
@@ -32,7 +29,8 @@ function Cover_BuildUrl(server as dynamic, token as dynamic, itemId as dynamic, 
 
     url = server + "/api/items/" + itemId.ToStr() + "/cover?width=" + width.ToStr() + "&token=" + token
 
-    log.write(server + "/api/items/" + itemId.ToStr() + "/cover?width=" + width.ToStr() + "&token=...")
+    ' the next line gets real chatty in the log, uncomment if needed
+    'log.write(server + "/api/items/" + itemId.ToStr() + "/cover?width=" + width.ToStr() + "&token=...")
 
     return url
 

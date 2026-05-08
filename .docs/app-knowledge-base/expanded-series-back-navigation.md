@@ -1,15 +1,100 @@
 # Expanded Series Back Navigation
 
-The grid view supports drilling into a collapsed series item and returning to
-the original collapsed grid position with the Roku Back button.
+Library series navigation has two different paths depending on the active
+library view.
 
-## Forward Navigation
+## List View
 
-`GridView` handles MarkupGrid selection in
-`components/pages/Library/GridView/GridView.brs`.
+`ListView` expands collapsed series inline inside its `MarkupList`. It does not
+replace `libraryItems`, and it does not use the library drilldown back stack.
 
-When the selected item has `collapsedSeries.id`, `onPosterSelected` emits
-`seriesSelected` instead of `playSelected`.
+Series expansion state is local to
+`components/pages/Library/ListView/ListView.brs`:
+
+```brightscript
+m.expandedSeriesIds = {}
+m.seriesItemsById = {}
+m.loadingSeriesId = invalid
+```
+
+When the focused row is selected, `toggleSeriesAtCurrentIndex()` calls
+`toggleSeriesAtIndex()`. If the row is a series:
+
+- expanded series are collapsed by removing the series id from
+  `m.expandedSeriesIds`
+- cached series items are expanded immediately
+- uncached series items are loaded by the local `seriesApiTask`
+
+The series load request stays inside `ListView`:
+
+```brightscript
+m.seriesApiTask.request = {
+    action: "loadSeries"
+    server: m.server
+    token: m.token
+    bookLibraryId: m.bookLibraryId
+    seriesId: seriesId
+    sourceItemIndex: sourceIndex
+}
+```
+
+When the response returns, `onSeriesApiResponse()` stores the children in
+`m.seriesItemsById`, marks the series expanded, and rebuilds the MarkupList at
+the original row index.
+
+```brightscript
+m.seriesItemsById[seriesIdText] = getResponseLibraryItems(response)
+setSeriesExpanded(response.seriesId, true)
+rebuildLibraryList(sourceIndex)
+```
+
+`rebuildLibraryList()` renders each root item, then inserts child rows directly
+after any expanded series header:
+
+```brightscript
+appendLibraryRow(root, createLibraryRow(item, false, invalid))
+
+seriesId = getCollapsedSeriesId(item)
+if isSeriesExpanded(seriesId) then
+    appendExpandedSeriesRows(root, seriesId, item)
+end if
+```
+
+## List View Back Button
+
+`ListView.onKeyEvent()` handles Back locally before allowing parent navigation:
+
+```brightscript
+if key = "back" then
+    if isOverviewFocused() then
+        return focusSelectedLibraryItem()
+    end if
+
+    if collapseCurrentSeries() then return true
+    if focusFirstLibraryItem() then return true
+    if requestHeaderFocusFromFirstItem() then return true
+end if
+```
+
+The Back behavior is:
+
+1. If the overview has focus, Back returns focus to the currently selected list
+   row.
+2. If the list has focus and the current row belongs to an expanded series,
+   `collapseCurrentSeries()` collapses that series and focuses the series header.
+3. If focus is below the first row, Back jumps to the first list row.
+4. If focus is already on the first row, `ListView` emits
+   `upFromFirstItemSelected`, which the parent uses to move focus toward the
+   header.
+
+`collapseCurrentSeries()` works from either the series header or one of its child
+rows. It walks upward from the current row until it finds the matching series
+header, collapses the series, then rebuilds the list with focus on that header.
+
+## Grid View
+
+`GridView` still uses a drilldown model for collapsed series. Selecting a series
+tile emits `seriesSelected` instead of `playSelected`:
 
 ```brightscript
 m.top.seriesSelected = {
@@ -20,70 +105,48 @@ m.top.seriesSelected = {
 }
 ```
 
-`Library` observes `gridView.seriesSelected` and forwards it through its own
-`seriesSelected` field.
+`Library` observes `gridView.seriesSelected` in `onGridViewSeriesSelected()` and
+runs its `libraryApiTask` with `action: "loadSeries"`.
 
-`MainScene` observes `m.library.seriesSelected` in `onLibrarySeriesSelected` and
-starts the app task with:
+## Grid View Back Stack
+
+The grid drilldown back stack is owned by
+`components/pages/Library/Library.brs`, not `MainScene`:
 
 ```brightscript
-m.apiTask.request = {
-    action: "loadSeries"
-    server: m.session.server
-    token: m.session.token
-    bookLibraryId: m.session.bookLibraryId
-    seriesId: selectedSeries.seriesId
-    sourceItemIndex: selectedSeries.itemIndex
-}
+m.itemBackStack = []
 ```
 
-`Series_Load` echoes `sourceItemIndex` in its response so the async result can be
-matched back to the selected grid position.
+Full library loads clear the stack in `storeRootItems()`.
 
-## Back Stack
-
-`MainScene` owns the back stack:
+Series loads push the current item list and selected grid index before replacing
+the library items:
 
 ```brightscript
-m.libraryItemBackStack = []
-```
-
-Full library loads clear the stack in `storeLibraryItems`.
-
-Series loads push the current list and selected grid index before replacing the
-library items:
-
-```brightscript
-m.libraryItemBackStack.Push({
-    items: m.library.libraryItems
+m.itemBackStack.Push({
+    items: m.top.libraryItems
     focusIndex: response.sourceItemIndex
 })
-m.library.libraryItems = response.libraryItems
+m.top.libraryItems = getResponseLibraryItems(response)
 ```
 
-## Back Button Restore
+## Grid View Back Button Restore
 
-`MainScene.onKeyEvent` checks `restorePreviousLibraryItems()` before falling back
-to the normal header-focus behavior.
+`MainScene.onKeyEvent()` delegates Back to `Library.handleBackNavigation()` when
+the user is authenticated and not in the player.
 
-`restorePreviousLibraryItems()` pops the previous state, restores the item list,
-and asks `Library` to focus the saved index:
+For grid drilldown, `Library.handleBackNavigation()` first tries to move focus to
+the first grid item. If the grid is already at the first item, it restores the
+previous library item list:
 
 ```brightscript
-m.library.libraryItems = previousState.items
-m.library.callFunc("focusItemAtIndex", previousState.focusIndex)
+m.top.libraryItems = previousState.items
+focusItemAtIndex(previousState.focusIndex)
 ```
 
-`Library.focusItemAtIndex` forwards the call to `GridView` when the active view
-is grid.
+`Library.focusItemAtIndex()` forwards to `GridView.focusItemAtIndex()` when the
+active view is grid. `GridView` clamps the index, sets `jumpToItem`, and focuses
+the `MarkupGrid`.
 
-`GridView.focusItemAtIndex` clamps the index, sets `jumpToItem`, and focuses the
-MarkupGrid:
-
-```brightscript
-m.markupGrid.jumpToItem = itemIndex
-m.markupGrid.setFocus(true)
-```
-
-The result is that Back from an expanded series returns to the full collapsed
-series grid with focus restored to the series tile that opened it.
+The result is that Back from a grid series drilldown returns to the previous
+grid item list with focus restored to the series tile that opened it.

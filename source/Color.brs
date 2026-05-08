@@ -6,7 +6,10 @@
 ' Label.color. Use string hex values, such as "0x292836FF", only for APIs that
 ' explicitly expect color strings. Roku standard dialog palette fields are one
 ' example of that string-based format.
-'
+
+' Note, this is NOT built out to the spec that I want it to be.
+' It's barely a thing in its current state.
+
 '-------------------------------------------------------------------------------
 ' Color
 '-------------------------------------------------------------------------------

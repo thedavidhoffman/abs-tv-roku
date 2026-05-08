@@ -1,14 +1,42 @@
 # ABSTV
 
-This is a Roku app that connects to an [Audiobookshelf](https://www.audiobookshelf.org/) server to play audiobooks.
+This is a Roku app that connects to an [Audiobookshelf](https://www.audiobookshelf.org/) server to play audiobooks on a Roku device, bringing your audiobook library to your television. As far as I'm aware, this is the only Roku app for ABS. *This project is not affiliated with Audiobookshelf.*
 
-## AI Usage
-This is my second app built entirely using AI.
+NOTE: this app currently does not support: podcasts, collections, or playlists.
 
-The first AI-coded app I created, [synology-nut-api](https://github.com/thedavidhoffman/synology-nut-api), was a very successful endeavor. The initial project produced by the AI was a fully functional Node.js application that did exactly what I asked of it. Over the course of two days, I guided the AI to align the app with my own standards and added enhancements as the design evolved. Overall, the AI performed extremely well, and since I was already familiar with Node.js, I could easily understand, evaluate, and manage the code it generated.
+## Sideloading on Roku
 
-This app, however, was a very different story. The AI did a poor job creating the UI for a Roku application and failed to apply SOLID principles. The codebase was far messier than the Node.js app I mentioned earlier. I’ve attempted to write a Roku app before, and it's a feral beast to tame as Roku development has a notably steep learning curve. That said, the AI was generally able to grasp the core Roku functionality, which is something I ultimately gave up on during my first Roku development attempt.
-Even so, bringing the code and UI into an acceptable state required significantly more effort. That was partly due to my limited experience with the Roku development platform, but I also suspect there's far less training material available for building Roku apps than there is for Node.js applications and the HTML widgets they serve. That disparity almost certainly impacted the quality of the AI's output.
+This app is not availabe in the official Roku channel store. It must be side-loaded onto a Roku device. I'm assuming that most people that run the ABS docker image have some technical ability, so they should be able to side-load this app. Once this app gets to a point that it has several releases under it's belt and it has reached some point of maturity, I may look to get it in the official Roku channel store.
 
-All that being said, this app would not have been possible without the help of AI. Technically, it could have been done without AI, but only if I were willing to invest many, many more weeks or even months learning every nuance of Roku development.
+To install this app on a Roku device, first enable Developer Mode on the Roku:
 
+1. On the Roku remote, press `Home` three times, `Up` two times, then `Right`, `Left`, `Right`, `Left`, `Right`.
+2. Follow the on-screen prompts to enable the Developer Application Installer.
+3. Set and save the developer web server password.
+4. Restart the Roku device when prompted.
+
+After the Roku device restarts, upload the ABSTV app:
+
+1. Find the Roku IP address under `Settings > Network > About`.
+2. Download the ABSTV app zip file from the latest GitHub release.
+3. In a browser, open `http://ROKU_IP_ADDRESS`.
+4. Sign in with username `rokudev` and the developer password you set.
+5. Use the upload form to select `abs-tv-roku.zip`, then click `Install`.
+
+After installation, ABSTV will be available from the Roku home screen.
+
+## AI Usage Disclaimer
+
+This app was built with the help of Codex. It wasn't simply "vibe coded." As a senior software engineer, I used AI as a tool to help accelerate development, but the process was highly hands-on. The commit history in this repository shows my active role in guiding and refining the output. I spent a significant amount of time refactoring the AI generated code, making design decisions, and shaping the project to meet a specific standard (as much as you can within the constraints of Roku's BrightScript ecosystem).
+
+## Wishlist
+
+Things I hope to add support to this app for in the future.
+
+- easy switching between multiple logins
+- localization
+- themes
+- usage stat page
+- collections
+- playlists
+- podcasts
