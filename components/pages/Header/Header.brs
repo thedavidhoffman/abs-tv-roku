@@ -110,6 +110,14 @@ function focusUserMenuButton() as boolean
 end function
 
 '-------------------------------------------------------------------------------
+' activateLibraryButton
+'-------------------------------------------------------------------------------
+function activateLibraryButton() as boolean
+    setActiveHeaderButton("library")
+    return true
+end function
+
+'-------------------------------------------------------------------------------
 ' isHomeButtonFocused
 '-------------------------------------------------------------------------------
 function isHomeButtonFocused() as boolean

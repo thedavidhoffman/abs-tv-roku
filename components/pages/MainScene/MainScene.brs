@@ -50,6 +50,7 @@ sub initHandlers()
     m.header.observeField("backSelected", "headerHandleBackPressed")
     m.header.observeField("logoutSelected", "authHandleLogoutPressed")
     m.header.observeField("overlayRequested", "overlayHandleRequested")
+    m.search.observeField("querySelected", "searchHandleQuerySelected")
     m.homePage.observeField("backSelected", "homeHandleBackSelected")
     m.homePage.observeField("upFromFirstRowSelected", "homeHandleUpFromFirstRowSelected")
     m.homePage.observeField("playSelected", "homeHandlePlaySelected")
@@ -59,6 +60,7 @@ sub initHandlers()
     m.library.observeField("upFromFirstItemSelected", "libraryHandleUpFromFirstItemSelected")
     m.library.observeField("backFromFirstItemSelected", "libraryHandleBackFromFirstItemSelected")
     m.library.observeField("itemsReloaded", "libraryHandleItemsReloaded")
+    m.library.observeField("mainListRestored", "libraryHandleMainListRestored")
     m.player.observeField("closeRequested", "playbackHandlePlayerCloseRequested")
     m.player.observeField("errorResponse", "playbackHandlePlayerError")
     m.overlayHost.observeField("closed", "overlayHandleClosed")
@@ -377,6 +379,30 @@ sub searchHandlePressed()
     if m.search <> invalid then m.search.callFunc("openSearch")
 end sub
 
+'-------------------------------------------------------------------------------
+' searchHandleQuerySelected
+'-------------------------------------------------------------------------------
+sub searchHandleQuerySelected()
+    if m.search = invalid then return
+
+    selectedQuery = m.search.querySelected
+    if selectedQuery = invalid then return
+
+    searchTerm = TrimString(selectedQuery.query)
+    if m.session = invalid then return
+
+    navShowLibraryPage()
+    if m.library <> invalid then
+        m.library.searchRequest = {
+            server: m.session.server
+            token: m.session.token
+            bookLibraryId: m.session.bookLibraryId
+            searchTerm: searchTerm
+            counter: selectedQuery.counter
+        }
+    end if
+end sub
+
 '===============================================================================
 ' Home
 '===============================================================================
@@ -386,6 +412,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub homeHandlePressed()
     headerCloseMenu()
+    if m.library <> invalid then m.library.callFunc("resetSearchResults")
     navShowHomePage()
     focusHomePage()
     if m.homePage <> invalid then m.homePage.callFunc("reloadPersonalizedShelves")
@@ -430,6 +457,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub libraryHandlePressed()
     headerCloseMenu()
+    if m.library <> invalid then m.library.callFunc("resetSearchResults")
     navShowLibraryPage()
     focusLibraryList()
 end sub
@@ -472,6 +500,13 @@ sub libraryHandleItemsReloaded()
         m.focusSettingsAfterLibraryReload = false
         focusSettingsButton()
     end if
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleMainListRestored
+'-------------------------------------------------------------------------------
+sub libraryHandleMainListRestored()
+    if m.header <> invalid then m.header.callFunc("activateLibraryButton")
 end sub
 
 '===============================================================================

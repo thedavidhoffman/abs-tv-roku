@@ -18,10 +18,11 @@ sub openSearch()
 
     m.isClosingDialog = false
     m.hasEmittedClose = false
-    m.keyboardDialog = CreateObject("roSGNode", "KeyboardDialog")
+    m.keyboardDialog = CreateObject("roSGNode", "StandardKeyboardDialog")
     if m.keyboardDialog = invalid then return
 
     m.keyboardDialog.title = "Search"
+    m.keyboardDialog.message = ["Enter a search term between 3 and 25 characters to find audiobooks by title.", "If you click the Search button without entering the required minimum number of characters, the dialog will close and no search will be performed."]
     m.keyboardDialog.buttons = ["Search", "Cancel"]
     m.keyboardDialog.observeField("buttonSelected", "onButtonSelected")
     m.keyboardDialog.observeField("wasClosed", "onDialogClosed")
@@ -36,11 +37,14 @@ sub onButtonSelected()
 
     selectedIndex = m.keyboardDialog.buttonSelected
     if selectedIndex = 0 then
-        m.querySelectedCounter = m.querySelectedCounter + 1
-        m.top.querySelected = {
-            query: m.keyboardDialog.text
+        query = TrimString(m.keyboardDialog.text)
+        if Len(query) >= 3 then
+            m.querySelectedCounter = m.querySelectedCounter + 1
+            m.top.querySelected = {
+            query: query
             counter: m.querySelectedCounter
         }
+        end if
     end if
 
     closeSearchDialog()

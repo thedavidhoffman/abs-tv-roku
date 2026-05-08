@@ -28,6 +28,10 @@ function ThemeDefault() as object
     BACKGROUND_SECONDARY = &h313040FF
 
     return {
+        text: {
+            primary: &hF6F7FBFF
+            secondary: &hB7C5D4FF
+        }
         background: {
             header: &h12112BFF
             primary: BACKGROUND_PRIMARY

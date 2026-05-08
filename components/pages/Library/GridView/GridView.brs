@@ -4,6 +4,7 @@
 sub init()
     m.markupGrid = m.top.findNode("markupGrid")
     m.contextTitleLabel = m.top.findNode("contextTitleLabel")
+    m.contextHintLabel = m.top.findNode("contextHintLabel")
     m.gridStatus = m.top.findNode("gridStatus")
     m.libraryItemsByIndex = []
     m.playSelectedCounter = 0
@@ -60,6 +61,7 @@ sub onLibraryItemsChanged()
                     isSeriesItem: isSeriesItem(item)
                     collapsedSeries: item.collapsedSeries
                     seriesSequence: getSeriesSequence(item)
+                    showSeriesSequence: shouldShowSeriesSequence()
                     progressPercent: progress.progress
                     progressCurrentTime: progress.currentTime
                     progressDuration: progress.duration
@@ -79,6 +81,13 @@ sub onLibraryItemsChanged()
         setStatus("No titles found")
     end if
 end sub
+
+'-------------------------------------------------------------------------------
+' shouldShowSeriesSequence
+'-------------------------------------------------------------------------------
+function shouldShowSeriesSequence() as boolean
+    return m.top.contextTitle <> invalid and m.top.contextTitle <> "" and Left(m.top.contextTitle, 17) <> "Search results..."
+end function
 
 '-------------------------------------------------------------------------------
 ' onPosterSelected
@@ -129,9 +138,11 @@ sub onContextTitleChanged()
         m.contextTitleLabel.visible = hasTitle
     end if
 
+    if m.contextHintLabel <> invalid then m.contextHintLabel.visible = hasTitle
+
     if m.markupGrid <> invalid then
         if hasTitle then
-            m.markupGrid.translation = [64,206]
+            m.markupGrid.translation = [64,240]
         else
             m.markupGrid.translation = [64,135]
         end if
@@ -139,7 +150,7 @@ sub onContextTitleChanged()
 
     if m.gridStatus <> invalid then
         if hasTitle then
-            m.gridStatus.translation = [64,216]
+            m.gridStatus.translation = [64,250]
         else
             m.gridStatus.translation = [64,144]
         end if
@@ -251,9 +262,6 @@ function getSequenceFromSeriesValue(series as dynamic) as string
         if series.sequence <> invalid then return series.sequence.ToStr()
         if series.seriesSequence <> invalid then return series.seriesSequence.ToStr()
     end if
-
-    if series.sequence <> invalid then return series.sequence.ToStr()
-    if series.seriesSequence <> invalid then return series.seriesSequence.ToStr()
 
     return ""
 end function

@@ -18,15 +18,16 @@
     <function name="focusSettingsButton" />
     <function name="focusUserMenuButton" />
     <function name="isHomeButtonFocused" />
+    <function name="activateLibraryButton" />
   </interface>
   <children>
     <Rectangle id="headerBg" width="1920" height="100" />
     <Poster
       id="brandLogo"
-      translation="[64,25]"
-      width="191"
-      height="50"
-      uri="pkg:/images/icons/abstv-header-logo.png"
+      translation="[64,30]"
+      width="195"
+      height="38"
+      uri="pkg:/images/abstv-header-logo.png"
       loadDisplayMode="scaleToFit" />
 
     <Group id="navGroup" translation="[600,22]">

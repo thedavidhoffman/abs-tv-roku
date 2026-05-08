@@ -26,7 +26,14 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 
 ## Hit List
 ----------------------------------------------------
-- roku splash screens
+- roku channel screens
+
+- search
+    - search results, when navigate to any other page, clear search results
+    - listview support search results
+    - no titles found, fix back button
+
+- StandardKeyboardDialog on login form
 
 - investigate passing episode id into play, this might fix our play/advance issue
 - /api/items/${this.libraryItem.id}/play/${this.episodeId}` : `/api/items/${this.libraryItem.id}/play`
@@ -56,10 +63,8 @@ Continue Listening (home page)
     - mark as finished
     - removed from continue listening "HideFromContinueListening"
 
-
 - error modal
 
-- search
 - on playback (https://api.audiobookshelf.org/#play-a-library-item-or-podcast-episode) send the device info
 
 

@@ -245,6 +245,7 @@ end sub
 '-------------------------------------------------------------------------------
 function getSeriesBadgeText(item as dynamic) as string
     if isSeriesItem(item) then return getSeriesCount(item)
+    if item <> invalid and item.showSeriesSequence = false then return ""
 
     sequence = getSeriesSequence(item)
     if sequence = "" then return ""

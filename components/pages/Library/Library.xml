@@ -5,11 +5,14 @@
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
+    <field id="searchRequest" type="assocarray" onChange="onSearchRequestChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
+    <field id="searchResults" type="array" />
     <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />
     <field id="playSelected" type="assocarray" />
     <field id="upFromFirstItemSelected" type="integer" />
     <field id="backFromFirstItemSelected" type="integer" />
+    <field id="mainListRestored" type="integer" />
     <field id="errorResponse" type="assocarray" />
     <field id="itemsReloaded" type="integer" />
     <function name="focusLibraryList" />
@@ -18,6 +21,7 @@
     <function name="moveFocusToFirstGridItem" />
     <function name="reloadItems" />
     <function name="resetDrilldown" />
+    <function name="resetSearchResults" />
   </interface>
   <children>
     <ListView id="listView" />

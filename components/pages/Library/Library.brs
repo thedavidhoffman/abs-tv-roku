@@ -9,8 +9,10 @@ sub init()
     m.syncingLibraryItems = false
     m.loadRequest = invalid
     m.itemBackStack = []
+    m.searchResults = []
     m.gridContextTitle = ""
     m.itemsReloadedCounter = 0
+    m.mainListRestoredCounter = 0
 
     if m.listView <> invalid then
         m.listView.observeField("libraryItems", "onListViewLibraryItemsChanged")
@@ -32,6 +34,26 @@ sub init()
     end if
 
     applyDisplaySettings(SettingsStore_Load())
+end sub
+
+'-------------------------------------------------------------------------------
+' onSearchRequestChanged
+'-------------------------------------------------------------------------------
+sub onSearchRequestChanged()
+    request = m.top.searchRequest
+    if request = invalid then return
+    if m.libraryApiTask = invalid then return
+
+    searchTerm = getText(request.searchTerm)
+
+    navRequest = {
+        action: "searchLibrary"
+        server: request.server
+        token: request.token
+        bookLibraryId: request.bookLibraryId
+        searchTerm: searchTerm
+    }
+    runLibraryApiRequest(navRequest)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -96,6 +118,8 @@ sub onLibraryApiResponse()
 
     if response.ok <> true then
         m.top.errorResponse = response
+    else if response.action = "searchLibrary" then
+        storeSearchResults(response)
     else if response.action = "loadSeries" then
         storeSeriesItems(response)
     else
@@ -108,10 +132,24 @@ end sub
 '-------------------------------------------------------------------------------
 sub storeRootItems(response as object)
     m.itemBackStack = []
+    m.searchResults = []
+    m.top.searchResults = m.searchResults
     m.gridContextTitle = ""
     syncGridContextTitle()
     m.top.libraryItems = getResponseLibraryItems(response)
     publishItemsReloaded()
+end sub
+
+'-------------------------------------------------------------------------------
+' storeSearchResults
+'-------------------------------------------------------------------------------
+sub storeSearchResults(response as object)
+    m.itemBackStack = []
+    m.searchResults = getSearchResultLibraryItems(response)
+    m.top.searchResults = m.searchResults
+    m.gridContextTitle = "Search results... " + getText(response.searchTerm)
+    syncGridContextTitle()
+    m.top.libraryItems = m.searchResults
 end sub
 
 '-------------------------------------------------------------------------------
@@ -137,6 +175,26 @@ end sub
 function getResponseLibraryItems(response as dynamic) as object
     if response <> invalid and response.libraryItems <> invalid then return response.libraryItems
     return []
+end function
+
+'-------------------------------------------------------------------------------
+' getSearchResultLibraryItems
+'-------------------------------------------------------------------------------
+function getSearchResultLibraryItems(response as dynamic) as object
+    items = []
+    if response = invalid or response.results = invalid then return items
+
+    bookResults = response.results.book
+    if bookResults = invalid then bookResults = response.results.podcast
+    if bookResults = invalid then return items
+
+    for each result in bookResults
+        if result <> invalid and result.libraryItem <> invalid then
+            items.Push(result.libraryItem)
+        end if
+    end for
+
+    return items
 end function
 
 '-------------------------------------------------------------------------------
@@ -322,6 +380,12 @@ end sub
 function handleBackNavigation() as boolean
     if m.top.visible <> true then return false
 
+    if isShowingSearchResults() then
+        if moveFocusToFirstGridItem() then return true
+        restoreRootItemsFromSearch()
+        return true
+    end if
+
     if hasBackStack() then
         if moveFocusToFirstGridItem() then return true
         if restorePreviousItems() then return true
@@ -346,6 +410,21 @@ sub resetDrilldown()
         m.top.libraryItems = rootState.items
     end if
 end sub
+
+'-------------------------------------------------------------------------------
+' resetSearchResults
+'-------------------------------------------------------------------------------
+function resetSearchResults() as boolean
+    if isShowingSearchResults() = false then return false
+
+    m.itemBackStack = []
+    m.searchResults = []
+    m.top.searchResults = m.searchResults
+    m.gridContextTitle = ""
+    syncGridContextTitle()
+    reloadItems()
+    return true
+end function
 
 '-------------------------------------------------------------------------------
 ' restorePreviousItems
@@ -396,3 +475,30 @@ function moveFocusToFirstGridItem() as boolean
     handled = m.gridView.callFunc("moveFocusToFirstItem")
     return handled = true
 end function
+
+'-------------------------------------------------------------------------------
+' isShowingSearchResults
+'-------------------------------------------------------------------------------
+function isShowingSearchResults() as boolean
+    return m.gridContextTitle <> invalid and Left(m.gridContextTitle, 17) = "Search results..."
+end function
+
+'-------------------------------------------------------------------------------
+' restoreRootItemsFromSearch
+'-------------------------------------------------------------------------------
+sub restoreRootItemsFromSearch()
+    m.searchResults = []
+    m.top.searchResults = m.searchResults
+    m.gridContextTitle = ""
+    syncGridContextTitle()
+    publishMainListRestored()
+    reloadItems()
+end sub
+
+'-------------------------------------------------------------------------------
+' publishMainListRestored
+'-------------------------------------------------------------------------------
+sub publishMainListRestored()
+    m.mainListRestoredCounter = m.mainListRestoredCounter + 1
+    m.top.mainListRestored = m.mainListRestoredCounter
+end sub

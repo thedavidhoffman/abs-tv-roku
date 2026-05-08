@@ -8,19 +8,19 @@
 '-------------------------------------------------------------------------------
 function LibrarySearch_Search(request as object) as object
 
-    log = CreateLogger("(API) LibrarySearch_Search")
+    log = CreateLogger("(API) LibrarySearch_Search", false)
 
     server = request.server
     token = request.token
     bookLibraryId = request.bookLibraryId
     searchTerm = StringUtils_CollapseWhitespace(SafeString(request.searchTerm, ""))
 
-    if Len(searchTerm) < 2 then
-        log.flush()
-        return { ok: false, errorMessage: "Enter at least 2 characters." }
+    if Len(searchTerm) < 3 then
+        log.write("Invalid search term: minimum of 3 characters required")
+        return { ok: false, errorMessage: "Enter at least 3 characters." }
     end if
 
-    if Len(searchTerm) > 50 then searchTerm = Left(searchTerm, 50)
+    if Len(searchTerm) > 25 then searchTerm = Left(searchTerm, 25)
 
     if bookLibraryId = invalid or bookLibraryId = "" then
         authorizeUrl = server + "/api/authorize"
@@ -28,7 +28,6 @@ function LibrarySearch_Search(request as object) as object
         log.write(authorizeUrl)
         log.write("status = " + SafeString(authResult.status, ""))
         if authResult.ok <> true then
-            log.flush()
             return authResult
         end if
         bookLibraryId = ResolveBookLibraryId(authResult.data)
