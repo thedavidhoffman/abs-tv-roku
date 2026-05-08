@@ -9,6 +9,7 @@ sub init()
     m.syncingLibraryItems = false
     m.loadRequest = invalid
     m.itemBackStack = []
+    m.gridContextTitle = ""
     m.itemsReloadedCounter = 0
 
     if m.listView <> invalid then
@@ -107,6 +108,8 @@ end sub
 '-------------------------------------------------------------------------------
 sub storeRootItems(response as object)
     m.itemBackStack = []
+    m.gridContextTitle = ""
+    syncGridContextTitle()
     m.top.libraryItems = getResponseLibraryItems(response)
     publishItemsReloaded()
 end sub
@@ -119,9 +122,12 @@ sub storeSeriesItems(response as object)
         m.itemBackStack.Push({
             items: m.top.libraryItems
             focusIndex: response.sourceItemIndex
+            contextTitle: m.gridContextTitle
         })
     end if
 
+    m.gridContextTitle = getText(response.title)
+    syncGridContextTitle()
     m.top.libraryItems = getResponseLibraryItems(response)
 end sub
 
@@ -238,6 +244,7 @@ sub onGridViewSeriesSelected()
         bookLibraryId: m.loadRequest.bookLibraryId
         seriesId: selectedSeries.seriesId
         sourceItemIndex: selectedSeries.itemIndex
+        title: selectedSeries.title
     })
 end sub
 
@@ -334,6 +341,8 @@ sub resetDrilldown()
     m.itemBackStack = []
 
     if rootState <> invalid and rootState.items <> invalid then
+        m.gridContextTitle = ""
+        syncGridContextTitle()
         m.top.libraryItems = rootState.items
     end if
 end sub
@@ -349,8 +358,25 @@ function restorePreviousItems() as boolean
     m.itemBackStack.Delete(lastIndex)
 
     m.top.libraryItems = previousState.items
+    m.gridContextTitle = getText(previousState.contextTitle)
+    syncGridContextTitle()
     focusItemAtIndex(previousState.focusIndex)
     return true
+end function
+
+'-------------------------------------------------------------------------------
+' syncGridContextTitle
+'-------------------------------------------------------------------------------
+sub syncGridContextTitle()
+    if m.gridView <> invalid then m.gridView.contextTitle = m.gridContextTitle
+end sub
+
+'-------------------------------------------------------------------------------
+' getText
+'-------------------------------------------------------------------------------
+function getText(value as dynamic) as string
+    if value = invalid then return ""
+    return value.ToStr()
 end function
 
 '-------------------------------------------------------------------------------

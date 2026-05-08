@@ -63,6 +63,7 @@ function Series_Load(request as object) as object
         action: "loadSeries"
         bookLibraryId: bookLibraryId
         seriesId: request.seriesId
+        title: request.title
         sourceItemIndex: request.sourceItemIndex
         libraryItems: allItems
     }

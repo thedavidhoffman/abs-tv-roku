@@ -33,6 +33,7 @@ This app was built with the help of Codex. It wasn't simply "vibe coded." As a s
 
 Things I hope to add support to this app for in the future.
 
+- search
 - easy switching between multiple logins
 - localization
 - themes

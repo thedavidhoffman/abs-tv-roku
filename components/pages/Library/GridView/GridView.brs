@@ -3,6 +3,7 @@
 '-------------------------------------------------------------------------------
 sub init()
     m.markupGrid = m.top.findNode("markupGrid")
+    m.contextTitleLabel = m.top.findNode("contextTitleLabel")
     m.gridStatus = m.top.findNode("gridStatus")
     m.libraryItemsByIndex = []
     m.playSelectedCounter = 0
@@ -19,6 +20,7 @@ sub init()
     end if
 
     onLibraryItemsChanged()
+    onContextTitleChanged()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -93,7 +95,7 @@ sub onPosterSelected()
         m.seriesSelectedCounter = m.seriesSelectedCounter + 1
         m.top.seriesSelected = {
             seriesId: seriesId
-            title: getLibraryItemTitle(item)
+            title: getCollapsedSeriesTitle(item)
             itemIndex: m.markupGrid.itemSelected
             counter: m.seriesSelectedCounter
         }
@@ -113,6 +115,35 @@ sub onPosterSelected()
         startPositionSeconds: getPlaybackStartPosition(item)
         counter: m.playSelectedCounter
     }
+end sub
+
+'-------------------------------------------------------------------------------
+' onContextTitleChanged
+'-------------------------------------------------------------------------------
+sub onContextTitleChanged()
+    title = TrimString(m.top.contextTitle)
+    hasTitle = (title <> "")
+
+    if m.contextTitleLabel <> invalid then
+        m.contextTitleLabel.text = title
+        m.contextTitleLabel.visible = hasTitle
+    end if
+
+    if m.markupGrid <> invalid then
+        if hasTitle then
+            m.markupGrid.translation = [64,206]
+        else
+            m.markupGrid.translation = [64,135]
+        end if
+    end if
+
+    if m.gridStatus <> invalid then
+        if hasTitle then
+            m.gridStatus.translation = [64,216]
+        else
+            m.gridStatus.translation = [64,144]
+        end if
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -164,6 +195,21 @@ function getCollapsedSeriesId(item as dynamic) as dynamic
     if item.collapsedSeries = invalid then return invalid
     if item.collapsedSeries.id = invalid then return invalid
     return item.collapsedSeries.id
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesTitle
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesTitle(item as dynamic) as string
+    if item = invalid or item.collapsedSeries = invalid then return getLibraryItemTitle(item)
+
+    collapsedSeries = item.collapsedSeries
+    return FirstNonEmpty([
+        collapsedSeries.nameIgnorePrefix
+        collapsedSeries.name
+        collapsedSeries.title
+        getLibraryItemTitle(item)
+    ], "Untitled")
 end function
 
 '-------------------------------------------------------------------------------
