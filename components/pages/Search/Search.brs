@@ -22,7 +22,7 @@ sub openSearch()
     if m.keyboardDialog = invalid then return
 
     m.keyboardDialog.title = "Search"
-    m.keyboardDialog.message = ["Enter a search term between 3 and 25 characters to find audiobooks by title.", "If you click the Search button without entering the required minimum number of characters, the dialog will close and no search will be performed."]
+    m.keyboardDialog.message = ["Enter a search term between " + SearchRules_MinLength().ToStr() + " and " + SearchRules_MaxLength().ToStr() + " characters to find audiobooks by title.", "If you click the Search button without entering the required minimum number of characters, the dialog will close and no search will be performed."]
     m.keyboardDialog.buttons = ["Search", "Cancel"]
     m.keyboardDialog.observeField("buttonSelected", "onButtonSelected")
     m.keyboardDialog.observeField("wasClosed", "onDialogClosed")
@@ -37,13 +37,13 @@ sub onButtonSelected()
 
     selectedIndex = m.keyboardDialog.buttonSelected
     if selectedIndex = 0 then
-        query = TrimString(m.keyboardDialog.text)
-        if Len(query) >= 3 then
+        query = SearchRules_NormalizeTerm(m.keyboardDialog.text)
+        if Len(query) >= SearchRules_MinLength() then
             m.querySelectedCounter = m.querySelectedCounter + 1
             m.top.querySelected = {
-            query: query
-            counter: m.querySelectedCounter
-        }
+                query: query
+                counter: m.querySelectedCounter
+            }
         end if
     end if
 

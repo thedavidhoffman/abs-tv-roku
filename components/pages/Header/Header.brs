@@ -118,6 +118,14 @@ function activateLibraryButton() as boolean
 end function
 
 '-------------------------------------------------------------------------------
+' activateSearchButton
+'-------------------------------------------------------------------------------
+function activateSearchButton() as boolean
+    setActiveHeaderButton("search")
+    return true
+end function
+
+'-------------------------------------------------------------------------------
 ' isHomeButtonFocused
 '-------------------------------------------------------------------------------
 function isHomeButtonFocused() as boolean
@@ -293,7 +301,6 @@ end sub
 '-------------------------------------------------------------------------------
 sub onSearchPressed()
     closeMenu()
-    setActiveHeaderButton("search")
     m.searchSelectedCounter = m.searchSelectedCounter + 1
     m.top.searchSelected = m.searchSelectedCounter
 end sub

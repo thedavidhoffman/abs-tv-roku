@@ -391,6 +391,7 @@ sub searchHandleQuerySelected()
     searchTerm = TrimString(selectedQuery.query)
     if m.session = invalid then return
 
+    if m.header <> invalid then m.header.callFunc("activateSearchButton")
     navShowLibraryPage()
     if m.library <> invalid then
         m.library.searchRequest = {

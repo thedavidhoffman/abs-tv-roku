@@ -29,9 +29,7 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 - roku channel screens
 
 - search
-    - search results, when navigate to any other page, clear search results
     - listview support search results
-    - no titles found, fix back button
 
 - StandardKeyboardDialog on login form
 

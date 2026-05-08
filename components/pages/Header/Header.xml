@@ -19,6 +19,7 @@
     <function name="focusUserMenuButton" />
     <function name="isHomeButtonFocused" />
     <function name="activateLibraryButton" />
+    <function name="activateSearchButton" />
   </interface>
   <children>
     <Rectangle id="headerBg" width="1920" height="100" />

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="Search" extends="Group">
   <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/source/StringUtils.brs" />
+  <script type="text/brightscript" uri="pkg:/source/SearchRules.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Search/Search.brs" />
   <interface>
     <field id="closeRequested" type="integer" />

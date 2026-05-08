@@ -13,14 +13,14 @@ function LibrarySearch_Search(request as object) as object
     server = request.server
     token = request.token
     bookLibraryId = request.bookLibraryId
-    searchTerm = StringUtils_CollapseWhitespace(SafeString(request.searchTerm, ""))
+    searchTerm = SearchRules_NormalizeTerm(request.searchTerm)
 
-    if Len(searchTerm) < 3 then
-        log.write("Invalid search term: minimum of 3 characters required")
-        return { ok: false, errorMessage: "Enter at least 3 characters." }
+    if Len(searchTerm) < SearchRules_MinLength() then
+        log.write("Invalid search term: minimum of " + SearchRules_MinLength().ToStr() + " characters required")
+        return { ok: false, errorMessage: "Enter at least " + SearchRules_MinLength().ToStr() + " characters." }
     end if
 
-    if Len(searchTerm) > 25 then searchTerm = Left(searchTerm, 25)
+    if Len(searchTerm) > SearchRules_MaxLength() then searchTerm = Left(searchTerm, SearchRules_MaxLength())
 
     if bookLibraryId = invalid or bookLibraryId = "" then
         authorizeUrl = server + "/api/authorize"
@@ -56,6 +56,7 @@ function LibrarySearch_Search(request as object) as object
         action: "searchLibrary"
         bookLibraryId: bookLibraryId
         searchTerm: searchTerm
+        searchRequestCounter: request.searchRequestCounter
         results: result.data
     }
 end function

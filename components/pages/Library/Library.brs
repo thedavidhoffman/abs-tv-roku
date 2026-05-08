@@ -11,6 +11,9 @@ sub init()
     m.itemBackStack = []
     m.searchResults = []
     m.gridContextTitle = ""
+    m.gridContextType = "root"
+    m.searchRequestCounter = 0
+    m.activeSearchRequestCounter = 0
     m.itemsReloadedCounter = 0
     m.mainListRestoredCounter = 0
 
@@ -45,6 +48,8 @@ sub onSearchRequestChanged()
     if m.libraryApiTask = invalid then return
 
     searchTerm = getText(request.searchTerm)
+    m.searchRequestCounter = m.searchRequestCounter + 1
+    m.activeSearchRequestCounter = m.searchRequestCounter
 
     navRequest = {
         action: "searchLibrary"
@@ -52,6 +57,7 @@ sub onSearchRequestChanged()
         token: request.token
         bookLibraryId: request.bookLibraryId
         searchTerm: searchTerm
+        searchRequestCounter: m.activeSearchRequestCounter
     }
     runLibraryApiRequest(navRequest)
 end sub
@@ -135,7 +141,8 @@ sub storeRootItems(response as object)
     m.searchResults = []
     m.top.searchResults = m.searchResults
     m.gridContextTitle = ""
-    syncGridContextTitle()
+    m.gridContextType = "root"
+    syncGridContext()
     m.top.libraryItems = getResponseLibraryItems(response)
     publishItemsReloaded()
 end sub
@@ -144,11 +151,15 @@ end sub
 ' storeSearchResults
 '-------------------------------------------------------------------------------
 sub storeSearchResults(response as object)
+    if response.searchRequestCounter = invalid then return
+    if response.searchRequestCounter <> m.activeSearchRequestCounter then return
+
     m.itemBackStack = []
     m.searchResults = getSearchResultLibraryItems(response)
     m.top.searchResults = m.searchResults
-    m.gridContextTitle = "Search results... " + getText(response.searchTerm)
-    syncGridContextTitle()
+    m.gridContextTitle = SearchRules_BuildContextTitle(response.searchTerm)
+    m.gridContextType = "search"
+    syncGridContext()
     m.top.libraryItems = m.searchResults
 end sub
 
@@ -161,11 +172,13 @@ sub storeSeriesItems(response as object)
             items: m.top.libraryItems
             focusIndex: response.sourceItemIndex
             contextTitle: m.gridContextTitle
+            contextType: m.gridContextType
         })
     end if
 
     m.gridContextTitle = getText(response.title)
-    syncGridContextTitle()
+    m.gridContextType = "series"
+    syncGridContext()
     m.top.libraryItems = getResponseLibraryItems(response)
 end sub
 
@@ -406,7 +419,8 @@ sub resetDrilldown()
 
     if rootState <> invalid and rootState.items <> invalid then
         m.gridContextTitle = ""
-        syncGridContextTitle()
+        m.gridContextType = "root"
+        syncGridContext()
         m.top.libraryItems = rootState.items
     end if
 end sub
@@ -415,13 +429,9 @@ end sub
 ' resetSearchResults
 '-------------------------------------------------------------------------------
 function resetSearchResults() as boolean
-    if isShowingSearchResults() = false then return false
+    if hasSearchContext() = false then return false
 
-    m.itemBackStack = []
-    m.searchResults = []
-    m.top.searchResults = m.searchResults
-    m.gridContextTitle = ""
-    syncGridContextTitle()
+    clearSearchResults(false)
     reloadItems()
     return true
 end function
@@ -438,16 +448,21 @@ function restorePreviousItems() as boolean
 
     m.top.libraryItems = previousState.items
     m.gridContextTitle = getText(previousState.contextTitle)
-    syncGridContextTitle()
+    m.gridContextType = getText(previousState.contextType)
+    if m.gridContextType = "" then m.gridContextType = "root"
+    syncGridContext()
     focusItemAtIndex(previousState.focusIndex)
     return true
 end function
 
 '-------------------------------------------------------------------------------
-' syncGridContextTitle
+' syncGridContext
 '-------------------------------------------------------------------------------
-sub syncGridContextTitle()
-    if m.gridView <> invalid then m.gridView.contextTitle = m.gridContextTitle
+sub syncGridContext()
+    if m.gridView = invalid then return
+
+    m.gridView.contextTitle = m.gridContextTitle
+    m.gridView.contextType = m.gridContextType
 end sub
 
 '-------------------------------------------------------------------------------
@@ -480,19 +495,43 @@ end function
 ' isShowingSearchResults
 '-------------------------------------------------------------------------------
 function isShowingSearchResults() as boolean
-    return m.gridContextTitle <> invalid and Left(m.gridContextTitle, 17) = "Search results..."
+    return m.gridContextType = "search"
+end function
+
+'-------------------------------------------------------------------------------
+' hasSearchContext
+'-------------------------------------------------------------------------------
+function hasSearchContext() as boolean
+    if m.gridContextType = "search" then return true
+    if m.itemBackStack = invalid then return false
+
+    for each state in m.itemBackStack
+        if state <> invalid and state.contextType = "search" then return true
+    end for
+
+    return false
 end function
 
 '-------------------------------------------------------------------------------
 ' restoreRootItemsFromSearch
 '-------------------------------------------------------------------------------
 sub restoreRootItemsFromSearch()
+    clearSearchResults(true)
+    reloadItems()
+end sub
+
+'-------------------------------------------------------------------------------
+' clearSearchResults
+'-------------------------------------------------------------------------------
+sub clearSearchResults(shouldPublishMainListRestored as boolean)
+    m.activeSearchRequestCounter = m.activeSearchRequestCounter + 1
     m.searchResults = []
     m.top.searchResults = m.searchResults
+    m.itemBackStack = []
     m.gridContextTitle = ""
-    syncGridContextTitle()
-    publishMainListRestored()
-    reloadItems()
+    m.gridContextType = "root"
+    syncGridContext()
+    if shouldPublishMainListRestored then publishMainListRestored()
 end sub
 
 '-------------------------------------------------------------------------------

@@ -86,7 +86,7 @@ end sub
 ' shouldShowSeriesSequence
 '-------------------------------------------------------------------------------
 function shouldShowSeriesSequence() as boolean
-    return m.top.contextTitle <> invalid and m.top.contextTitle <> "" and Left(m.top.contextTitle, 17) <> "Search results..."
+    return m.top.contextType = "series"
 end function
 
 '-------------------------------------------------------------------------------
