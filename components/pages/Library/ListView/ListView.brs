@@ -35,6 +35,7 @@ sub initHandlers()
         m.libraryList.observeField("itemFocused", "onLibraryItemFocused")
         m.libraryList.observeField("itemSelected", "onLibraryItemSelected")
     end if
+    m.top.observeField("focusedChild", "onFocusChanged")
 
     if m.seriesApiTask <> invalid then
         m.seriesApiTask.observeField("response", "onSeriesApiResponse")
@@ -128,7 +129,10 @@ sub rebuildLibraryList(focusIndex as dynamic)
         selectedIndex = getValidRowIndex(focusIndex)
         m.libraryList.jumpToItem = selectedIndex
         showSelectedRow(getSelectedLibraryRow(selectedIndex))
-        if m.top.visible then m.libraryList.setFocus(true)
+        if m.top.visible then
+            m.libraryList.setFocus(true)
+            updateLibraryListFocusState()
+        end if
     else
         showSelectedItem(invalid, false)
     end if
@@ -168,6 +172,7 @@ sub appendLibraryRow(root as object, row as object)
     node.addFields({
         isSeries: row.type = "series"
         isExpanded: row.type = "series" and isSeriesExpanded(row.seriesId)
+        listHasFocus: false
     })
     root.appendChild(node)
     m.libraryRows.Push(row)
@@ -194,6 +199,28 @@ end sub
 '-------------------------------------------------------------------------------
 sub onLibraryItemFocused()
     showSelectedRow(getSelectedLibraryRow(m.libraryList.itemFocused))
+end sub
+
+'-------------------------------------------------------------------------------
+' onFocusChanged
+'-------------------------------------------------------------------------------
+sub onFocusChanged()
+    updateLibraryListFocusState()
+end sub
+
+'-------------------------------------------------------------------------------
+' updateLibraryListFocusState
+'-------------------------------------------------------------------------------
+sub updateLibraryListFocusState()
+    if m.libraryList = invalid then return
+    if m.libraryList.content = invalid then return
+
+    hasFocus = m.libraryList.isInFocusChain() = true
+    content = m.libraryList.content
+    for i = 0 to content.getChildCount() - 1
+        node = content.getChild(i)
+        if node <> invalid and node.listHasFocus <> invalid then node.listHasFocus = hasFocus
+    end for
 end sub
 
 '-------------------------------------------------------------------------------
@@ -296,14 +323,20 @@ end sub
 '-------------------------------------------------------------------------------
 sub focusLibraryList()
     clearOverviewFocus()
-    if m.libraryList <> invalid then m.libraryList.setFocus(true)
+    if m.libraryList <> invalid then
+        m.libraryList.setFocus(true)
+        updateLibraryListFocusState()
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
 ' focusPlayButton
 '-------------------------------------------------------------------------------
 sub focusPlayButton()
-    if m.overview <> invalid then m.overview.callFunc("focusPlayButton")
+    if m.overview <> invalid then
+        m.overview.callFunc("focusPlayButton")
+        updateLibraryListFocusState()
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -333,11 +366,6 @@ end function
 '-------------------------------------------------------------------------------
 function getSeriesListTitle(item as dynamic) as string
     title = getCollapsedSeriesTitle(item)
-    seriesId = getCollapsedSeriesId(item)
-
-    if m.loadingSeriesId <> invalid and seriesId <> invalid and m.loadingSeriesId.ToStr() = seriesId.ToStr() then
-        return title + "  Loading..."
-    end if
 
     return title
 end function
@@ -654,6 +682,7 @@ function focusSelectedLibraryItem() as boolean
     m.libraryList.jumpToItem = currentIndex
     showSelectedRow(getSelectedLibraryRow(currentIndex))
     m.libraryList.setFocus(true)
+    updateLibraryListFocusState()
 
     return true
 end function
@@ -672,6 +701,7 @@ function focusFirstLibraryItem() as boolean
     m.libraryList.jumpToItem = 0
     showSelectedRow(getSelectedLibraryRow(0))
     m.libraryList.setFocus(true)
+    updateLibraryListFocusState()
 
     return true
 end function

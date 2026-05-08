@@ -11,12 +11,22 @@ end sub
 ' showContent
 '-------------------------------------------------------------------------------
 sub showContent()
+    if m.content <> invalid and m.content.listHasFocus <> invalid then m.content.unobserveFieldScoped("listHasFocus")
+
     item = m.top.itemContent
     m.content = item
     if item = invalid then return
 
     if m.title <> invalid then m.title.text = item.title
-    updateSeriesIcon()
+    if item.listHasFocus <> invalid then item.observeFieldScoped("listHasFocus", "onListFocusChanged")
+    updateVisualState()
+end sub
+
+'-------------------------------------------------------------------------------
+' onListFocusChanged
+'-------------------------------------------------------------------------------
+sub onListFocusChanged()
+    updateVisualState()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -32,13 +42,13 @@ sub updateSeriesIcon()
     if isSeries = false then return
 
     if item.isExpanded = true then
-        if m.top.focusPercent > 0 then
+        if isActiveHighlight() then
             m.seriesIcon.uri = "pkg:/images/icons/chevron_up_focus.png"
         else
             m.seriesIcon.uri = "pkg:/images/icons/chevron_up_primary.png"
         end if
     else
-        if m.top.focusPercent > 0 then
+        if isActiveHighlight() then
             m.seriesIcon.uri = "pkg:/images/icons/chevron_down_focus.png"
         else
             m.seriesIcon.uri = "pkg:/images/icons/chevron_down_primary.png"
@@ -47,16 +57,33 @@ sub updateSeriesIcon()
 end sub
 
 '-------------------------------------------------------------------------------
-' focusPercentChanged
+' isActiveHighlight
 '-------------------------------------------------------------------------------
-sub focusPercentChanged()
+function isActiveHighlight() as boolean
+    ' MarkupList keeps a lighter inactive highlight on the selected row after the
+    ' list loses focus. Only use dark text/icons while the list itself has focus,
+    ' so that inactive highlight keeps the normal readable row colors.
+    return m.top.focusPercent > 0 and m.content <> invalid and m.content.listHasFocus = true
+end function
+
+'-------------------------------------------------------------------------------
+' updateVisualState
+'-------------------------------------------------------------------------------
+sub updateVisualState()
     if m.title = invalid then return
 
-    if m.top.focusPercent > 0 then
+    if isActiveHighlight() then
         m.title.color = &h0F1A2AFF
     else
         m.title.color = &hF3F7FBFF
     end if
 
     updateSeriesIcon()
+end sub
+
+'-------------------------------------------------------------------------------
+' focusPercentChanged
+'-------------------------------------------------------------------------------
+sub focusPercentChanged()
+    updateVisualState()
 end sub
