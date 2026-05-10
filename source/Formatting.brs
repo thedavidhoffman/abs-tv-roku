@@ -65,33 +65,24 @@ function TrimString(value as dynamic) as string
 end function
 
 '-------------------------------------------------------------------------------
-' ResolveBookLibraryId
+' FormatWithCommas
 '-------------------------------------------------------------------------------
-function ResolveBookLibraryId(payload as dynamic) as dynamic
-    if payload = invalid then return invalid
+function FormatWithCommas(value as dynamic) as string
+    if value = invalid then return ""
 
-    if payload.userDefaultLibraryId <> invalid then
-        defaultId = payload.userDefaultLibraryId.ToStr()
-        if payload.libraries <> invalid then
-            for each library in payload.libraries
-                if library.id = defaultId and library.mediaType = "book" then
-                    return defaultId
-                end if
-            end for
+    text = TrimString(value.ToStr())
+    result = ""
+    groupCount = 0
+
+    for i = Len(text) to 1 step -1
+        result = Mid(text, i, 1) + result
+        groupCount = groupCount + 1
+
+        if groupCount = 3 and i > 1 then
+            result = "," + result
+            groupCount = 0
         end if
-    end if
+    end for
 
-    libraries = invalid
-    if payload.libraries <> invalid then libraries = payload.libraries
-    if libraries = invalid and payload.user <> invalid and payload.user.librariesAccessible <> invalid then
-        libraries = payload.user.librariesAccessible
-    end if
-
-    if libraries <> invalid then
-        for each library in libraries
-            if library.mediaType = "book" then return library.id
-        end for
-    end if
-
-    return invalid
+    return result
 end function

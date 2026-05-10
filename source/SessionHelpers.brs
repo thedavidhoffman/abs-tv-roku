@@ -31,11 +31,43 @@ end sub
 ' Session_GetInitialLibraryId
 '-------------------------------------------------------------------------------
 function Session_GetInitialLibraryId(response as object) as dynamic
-    libraryId = ResolveBookLibraryId(response.payload)
+    libraryId = Session_ResolveBookLibraryId(response.payload)
     if libraryId <> invalid and libraryId <> "" then return libraryId
 
     if response.libraries <> invalid and response.libraries.Count() > 0 then
         return response.libraries[0].id
+    end if
+
+    return invalid
+end function
+
+'-------------------------------------------------------------------------------
+' Session_ResolveBookLibraryId
+'-------------------------------------------------------------------------------
+function Session_ResolveBookLibraryId(payload as dynamic) as dynamic
+    if payload = invalid then return invalid
+
+    if payload.userDefaultLibraryId <> invalid then
+        defaultId = payload.userDefaultLibraryId.ToStr()
+        if payload.libraries <> invalid then
+            for each library in payload.libraries
+                if library.id = defaultId and library.mediaType = "book" then
+                    return defaultId
+                end if
+            end for
+        end if
+    end if
+
+    libraries = invalid
+    if payload.libraries <> invalid then libraries = payload.libraries
+    if libraries = invalid and payload.user <> invalid and payload.user.librariesAccessible <> invalid then
+        libraries = payload.user.librariesAccessible
+    end if
+
+    if libraries <> invalid then
+        for each library in libraries
+            if library.mediaType = "book" then return library.id
+        end for
     end if
 
     return invalid

@@ -24,7 +24,7 @@ function LibraryItems_Load(request as object) as object
             log.flush()
             return __AttachLibraryItemsRequestMetadata(authResult, request)
         end if
-        bookLibraryId = ResolveBookLibraryId(authResult.data)
+        bookLibraryId = Session_ResolveBookLibraryId(authResult.data)
     end if
 
     if bookLibraryId = invalid or bookLibraryId = "" then

@@ -179,10 +179,12 @@ sub handleLibraryItemsResponse(response as dynamic)
     if response.cacheKey = "collapsedSeries" then
         m.collapsedSeriesItems = getResponseLibraryItems(response)
         m.hasCollapsedSeriesItems = true
+        logCacheSize("collapsedSeriesItems", m.collapsedSeriesItems)
     else if response.cacheKey = "allTitles" then
         m.allTitleItems = getResponseLibraryItems(response)
         m.hasAllTitleItems = true
         shouldPublishPendingSeriesItems = true
+        logCacheSize("allTitleItems", m.allTitleItems)
     end if
 
     publishCurrentLibraryItems()
@@ -243,6 +245,36 @@ end function
 function getResponseLibraryItems(response as dynamic) as object
     if response <> invalid and response.libraryItems <> invalid then return response.libraryItems
     return []
+end function
+
+'-------------------------------------------------------------------------------
+' logCacheSize
+'-------------------------------------------------------------------------------
+sub logCacheSize(cacheName as string, items as dynamic)
+    log = CreateLogger("LibraryController", false)
+    bytes = getJsonByteSize(items)
+    itemCount = Array_GetCount(items)
+    log.write(cacheName + " cache stored: [" + itemCount.ToStr() + " items] [" + formatCacheSize(bytes) + "]")
+    log.writeBlankLine()
+end sub
+
+'-------------------------------------------------------------------------------
+' getJsonByteSize
+'-------------------------------------------------------------------------------
+function getJsonByteSize(value as dynamic) as integer
+    json = FormatJson(value)
+    if json = invalid then return 0
+    return Len(json)
+end function
+
+' formatCacheSize
+'-------------------------------------------------------------------------------
+function formatCacheSize(bytes as integer) as string
+    formattedBytes = FormatWithCommas(bytes)
+    if bytes < 1048576 then return formattedBytes + " bytes"
+
+    mb = bytes / 1048576
+    return FormatWithCommas(mb) + " MB (" + formattedBytes + " bytes)"
 end function
 
 '-------------------------------------------------------------------------------

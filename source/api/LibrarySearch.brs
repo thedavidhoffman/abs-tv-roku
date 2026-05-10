@@ -30,7 +30,7 @@ function LibrarySearch_Search(request as object) as object
         if authResult.ok <> true then
             return authResult
         end if
-        bookLibraryId = ResolveBookLibraryId(authResult.data)
+        bookLibraryId = Session_ResolveBookLibraryId(authResult.data)
     end if
 
     if bookLibraryId = invalid or bookLibraryId = "" then

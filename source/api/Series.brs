@@ -13,7 +13,7 @@ function Series_Load(request as object) as object
     if bookLibraryId = invalid or bookLibraryId = "" then
         authResult = HttpClient_Request(server + "/api/authorize", "POST", token, "")
         if authResult.ok <> true then return authResult
-        bookLibraryId = ResolveBookLibraryId(authResult.data)
+        bookLibraryId = Session_ResolveBookLibraryId(authResult.data)
     end if
 
     if bookLibraryId = invalid or bookLibraryId = "" then
