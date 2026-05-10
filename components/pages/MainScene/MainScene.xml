@@ -27,5 +27,6 @@
     <OverlayHost id="overlayHost" />
 
     <AuthController id="authController" />
+    <LibraryController id="libraryController" />
   </children>
 </component>

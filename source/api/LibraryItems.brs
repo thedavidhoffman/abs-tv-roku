@@ -22,21 +22,21 @@ function LibraryItems_Load(request as object) as object
         log.write("status = " + SafeString(authResult.status, ""))
         if authResult.ok <> true then
             log.flush()
-            return authResult
+            return __AttachLibraryItemsRequestMetadata(authResult, request)
         end if
         bookLibraryId = ResolveBookLibraryId(authResult.data)
     end if
 
     if bookLibraryId = invalid or bookLibraryId = "" then
         log.flush()
-        return { ok: false, errorMessage: "No book library was found for this account." }
+        return __AttachLibraryItemsRequestMetadata({ ok: false, errorMessage: "No book library was found for this account." }, request)
     end if
 
     allItems = []
     page = 0
     limit = 100
     keepLoading = true
-    collapseSeries = __GetCollapseSeriesQueryValue()
+    collapseSeries = __GetCollapseSeriesQueryValue(request)
 
     while keepLoading
         libraryUrl = server + "/api/libraries/" + bookLibraryId + "/items?limit=" + limit.ToStr() + "&page=" + page.ToStr() + "&sort=media.metadata.title&desc=0&minified=0&collapseseries=" + collapseSeries
@@ -45,7 +45,7 @@ function LibraryItems_Load(request as object) as object
         log.write("status = " + SafeString(libraryResult.status, ""))
         if libraryResult.ok <> true then
             log.flush()
-            return libraryResult
+            return __AttachLibraryItemsRequestMetadata(libraryResult, request)
         end if
 
         results = invalid
@@ -65,18 +65,34 @@ function LibraryItems_Load(request as object) as object
 
     log.flush()
 
-    return {
+    return __AttachLibraryItemsRequestMetadata({
         ok: true
         action: "loadLibrary"
         bookLibraryId: bookLibraryId
         libraryItems: allItems
-    }
+    }, request)
+end function
+
+'-------------------------------------------------------------------------------
+' __AttachLibraryItemsRequestMetadata
+'-------------------------------------------------------------------------------
+function __AttachLibraryItemsRequestMetadata(response as object, request as object) as object
+    if response = invalid then response = {}
+    response.action = "loadLibrary"
+    response.cacheKey = request.cacheKey
+    response.requestGeneration = request.requestGeneration
+    return response
 end function
 
 '-------------------------------------------------------------------------------
 ' __GetCollapseSeriesQueryValue
 '-------------------------------------------------------------------------------
-function __GetCollapseSeriesQueryValue() as string
+function __GetCollapseSeriesQueryValue(request as object) as string
+    if request <> invalid and request.collapseSeries <> invalid then
+        if request.collapseSeries = true then return "1"
+        return "0"
+    end if
+
     settings = SettingsStore_Load()
     if settings <> invalid and settings["series-display"] = "collapse" then return "1"
     return "0"

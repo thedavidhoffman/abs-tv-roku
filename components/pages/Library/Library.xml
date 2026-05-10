@@ -9,6 +9,7 @@
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
     <field id="searchRequest" type="assocarray" onChange="onSearchRequestChanged" />
+    <field id="rootLibraryItems" type="array" onChange="onRootLibraryItemsChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
     <field id="searchResults" type="array" />
     <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />

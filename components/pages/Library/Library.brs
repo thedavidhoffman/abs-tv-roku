@@ -8,6 +8,7 @@ sub init()
     m.activeView = "list"
     m.syncingLibraryItems = false
     m.loadRequest = invalid
+    m.rootLibraryItems = []
     m.itemBackStack = []
     m.searchResults = []
     m.gridContextTitle = ""
@@ -69,7 +70,6 @@ end sub
 sub onLoadRequestChanged()
     m.loadRequest = m.top.loadRequest
     syncLoadRequestToViews()
-    reloadItems()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -84,14 +84,7 @@ end sub
 ' reloadItems
 '-------------------------------------------------------------------------------
 sub reloadItems()
-    if hasValidLoadRequest() = false then return
-
-    runLibraryApiRequest({
-        action: "loadLibrary"
-        server: m.loadRequest.server
-        token: m.loadRequest.token
-        bookLibraryId: m.loadRequest.bookLibraryId
-    })
+    restoreRootLibraryItems()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -105,6 +98,33 @@ function hasValidLoadRequest() as boolean
 
     return true
 end function
+
+'-------------------------------------------------------------------------------
+' onRootLibraryItemsChanged
+'-------------------------------------------------------------------------------
+sub onRootLibraryItemsChanged()
+    if m.top.rootLibraryItems = invalid then
+        m.rootLibraryItems = []
+    else
+        m.rootLibraryItems = m.top.rootLibraryItems
+    end if
+
+    if m.gridContextType = "root" then restoreRootLibraryItems()
+end sub
+
+'-------------------------------------------------------------------------------
+' restoreRootLibraryItems
+'-------------------------------------------------------------------------------
+sub restoreRootLibraryItems()
+    m.itemBackStack = []
+    m.searchResults = []
+    m.top.searchResults = m.searchResults
+    m.gridContextTitle = ""
+    m.gridContextType = "root"
+    syncGridContext()
+    m.top.libraryItems = m.rootLibraryItems
+    publishItemsReloaded()
+end sub
 
 '-------------------------------------------------------------------------------
 ' runLibraryApiRequest
@@ -129,23 +149,7 @@ sub onLibraryApiResponse()
         storeSearchResults(response)
     else if response.action = "loadSeries" then
         storeSeriesItems(response)
-    else
-        storeRootItems(response)
     end if
-end sub
-
-'-------------------------------------------------------------------------------
-' storeRootItems
-'-------------------------------------------------------------------------------
-sub storeRootItems(response as object)
-    m.itemBackStack = []
-    m.searchResults = []
-    m.top.searchResults = m.searchResults
-    m.gridContextTitle = ""
-    m.gridContextType = "root"
-    syncGridContext()
-    m.top.libraryItems = getResponseLibraryItems(response)
-    publishItemsReloaded()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -437,6 +441,7 @@ sub resetNavigationState()
     m.gridContextTitle = ""
     m.gridContextType = "root"
     syncGridContext()
+    m.top.libraryItems = []
 end sub
 
 '-------------------------------------------------------------------------------
