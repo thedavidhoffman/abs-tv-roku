@@ -5,7 +5,7 @@ function Cover_BuildUrl(server as dynamic, token as dynamic, itemId as dynamic, 
 
     log = CreateLogger("Cover_BuildUrl", false)
 
-    placeholder = "pkg:/images/placeholder_cover.png"
+    placeholder = "pkg:/images/placeholder-cover.png"
 
     if server = invalid then
         log.write("server invalid, returning placeholder")

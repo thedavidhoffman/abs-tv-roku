@@ -44,7 +44,7 @@ sub showContent()
 
     ' safety render if itemContent wasn't set
     if item = invalid then
-        m.poster.uri = "pkg:/images/placeholder_cover.png"
+        m.poster.uri = "pkg:/images/placeholder-cover.png"
         m.titleText = ""
         setLabelText(m.titleLabel, "")
         setLabelText(m.scrollingTitleLabel, "")
@@ -107,7 +107,7 @@ end function
 ' getPosterUrl
 '-------------------------------------------------------------------------------
 function getPosterUrl(item as dynamic) as string
-    return SafeString(item.HDPosterUrl, SafeString(item.SDPosterUrl, "pkg:/images/placeholder_cover.png"))
+    return SafeString(item.HDPosterUrl, SafeString(item.SDPosterUrl, "pkg:/images/placeholder-cover.png"))
 end function
 
 '-------------------------------------------------------------------------------

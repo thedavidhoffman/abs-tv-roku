@@ -15,7 +15,7 @@
       id="poster"
       width="280"
       height="280"
-      uri="pkg:/images/placeholder_cover.png"
+      uri="pkg:/images/placeholder-cover.png"
       loadDisplayMode="scaleToFit" />
     
     <!-- progress -->

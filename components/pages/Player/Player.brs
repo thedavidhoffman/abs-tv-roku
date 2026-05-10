@@ -202,7 +202,7 @@ function getCoverContent(request as dynamic) as dynamic
 
     node = CreateObject("roSGNode", "ContentNode")
     node.title = SafeString(request.title, "")
-    node.HDPosterUrl = SafeString(request.coverUrl, "pkg:/images/placeholder_cover.png")
+    node.HDPosterUrl = SafeString(request.coverUrl, "pkg:/images/placeholder-cover.png")
     node.SDPosterUrl = node.HDPosterUrl
     node.AddFields({
         focused: false
