@@ -15,6 +15,7 @@ sub init()
     m.gridContextType = "root"
     m.searchRequestCounter = 0
     m.activeSearchRequestCounter = 0
+    m.seriesItemsRequestCounter = 0
     m.itemsReloadedCounter = 0
     m.mainListRestoredCounter = 0
 
@@ -23,6 +24,7 @@ sub init()
         m.listView.observeField("playSelected", "onListViewPlaySelected")
         m.listView.observeField("upFromFirstItemSelected", "onListViewUpFromFirstItemSelected")
         m.listView.observeField("errorResponse", "onListViewError")
+        m.listView.observeField("seriesItemsRequest", "onListViewSeriesItemsRequest")
     end if
 
     if m.gridView <> invalid then
@@ -147,8 +149,6 @@ sub onLibraryApiResponse()
         m.top.errorResponse = response
     else if response.action = "searchLibrary" then
         storeSearchResults(response)
-    else if response.action = "loadSeries" then
-        storeSeriesItems(response)
     end if
 end sub
 
@@ -311,17 +311,58 @@ sub onGridViewSeriesSelected()
 
     selectedSeries = m.gridView.seriesSelected
     if selectedSeries = invalid or selectedSeries.seriesId = invalid then return
-    if hasValidLoadRequest() = false then return
 
-    runLibraryApiRequest({
+    requestSeriesItems({
+        sourceView: "grid"
         action: "loadSeries"
-        server: m.loadRequest.server
-        token: m.loadRequest.token
-        bookLibraryId: m.loadRequest.bookLibraryId
         seriesId: selectedSeries.seriesId
+        libraryItemIds: selectedSeries.libraryItemIds
         sourceItemIndex: selectedSeries.itemIndex
         title: selectedSeries.title
     })
+end sub
+
+'-------------------------------------------------------------------------------
+' onListViewSeriesItemsRequest
+'-------------------------------------------------------------------------------
+sub onListViewSeriesItemsRequest()
+    if m.listView = invalid then return
+
+    request = m.listView.seriesItemsRequest
+    if request = invalid then return
+
+    requestSeriesItems(request)
+end sub
+
+'-------------------------------------------------------------------------------
+' requestSeriesItems
+'-------------------------------------------------------------------------------
+sub requestSeriesItems(request as object)
+    if request = invalid then return
+
+    m.seriesItemsRequestCounter = m.seriesItemsRequestCounter + 1
+    request.counter = m.seriesItemsRequestCounter
+    m.top.seriesItemsRequest = request
+end sub
+
+'-------------------------------------------------------------------------------
+' onSeriesItemsResponseChanged
+'-------------------------------------------------------------------------------
+sub onSeriesItemsResponseChanged()
+    response = m.top.seriesItemsResponse
+    if response = invalid then return
+
+    if response.ok <> true then
+        m.top.errorResponse = response
+        return
+    end if
+
+    if response.sourceView = "list" then
+        if m.listView <> invalid then m.listView.seriesItemsResponse = response
+        return
+    end if
+
+    storeSeriesItems(response)
 end sub
 
 '-------------------------------------------------------------------------------

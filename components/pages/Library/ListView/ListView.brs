@@ -24,7 +24,6 @@ end sub
 sub initReferences()
     m.libraryList = m.top.findNode("libraryList")
     m.overview = m.top.findNode("overview")
-    m.seriesApiTask = m.top.findNode("seriesApiTask")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -36,10 +35,6 @@ sub initHandlers()
         m.libraryList.observeField("itemSelected", "onLibraryItemSelected")
     end if
     m.top.observeField("focusedChild", "onFocusChanged")
-
-    if m.seriesApiTask <> invalid then
-        m.seriesApiTask.observeField("response", "onSeriesApiResponse")
-    end if
 
     if m.overview <> invalid then
         m.overview.observeField("playSelected", "onOverviewPlaySelected")
@@ -433,6 +428,16 @@ function getCollapsedSeriesId(item as dynamic) as dynamic
 end function
 
 '-------------------------------------------------------------------------------
+' getCollapsedSeriesLibraryItemIds
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesLibraryItemIds(item as dynamic) as dynamic
+    if item = invalid then return invalid
+    if item.collapsedSeries = invalid then return invalid
+    if item.collapsedSeries.libraryItemIds = invalid then return invalid
+    return item.collapsedSeries.libraryItemIds
+end function
+
+'-------------------------------------------------------------------------------
 ' getSeriesSequence
 '-------------------------------------------------------------------------------
 function getSeriesSequence(item as dynamic, seriesId as dynamic) as string
@@ -608,38 +613,33 @@ function toggleSeriesAtIndex(index as dynamic) as boolean
         return true
     end if
 
-    loadSeriesRows(seriesId, index)
+    loadSeriesRows(seriesId, index, row.item)
     return true
 end function
 
 '-------------------------------------------------------------------------------
 ' loadSeriesRows
 '-------------------------------------------------------------------------------
-sub loadSeriesRows(seriesId as dynamic, sourceIndex as dynamic)
+sub loadSeriesRows(seriesId as dynamic, sourceIndex as dynamic, seriesItem as dynamic)
     if seriesId = invalid then return
-    if m.seriesApiTask = invalid then return
 
     m.loadingSeriesId = seriesId
     rebuildLibraryList(sourceIndex)
 
-    m.seriesApiTask.request = {
+    m.top.seriesItemsRequest = {
         action: "loadSeries"
-        server: m.server
-        token: m.token
-        bookLibraryId: m.bookLibraryId
+        sourceView: "list"
         seriesId: seriesId
+        libraryItemIds: getCollapsedSeriesLibraryItemIds(seriesItem)
         sourceItemIndex: sourceIndex
     }
-    m.seriesApiTask.control = "run"
 end sub
 
 '-------------------------------------------------------------------------------
-' onSeriesApiResponse
+' onSeriesItemsResponseChanged
 '-------------------------------------------------------------------------------
-sub onSeriesApiResponse()
-    if m.seriesApiTask = invalid then return
-
-    response = m.seriesApiTask.response
+sub onSeriesItemsResponseChanged()
+    response = m.top.seriesItemsResponse
     if response = invalid then return
 
     sourceIndex = getValidRowIndex(response.sourceItemIndex)

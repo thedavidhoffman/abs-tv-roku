@@ -59,6 +59,7 @@ sub initHandlers()
     m.library.observeField("backFromFirstItemSelected", "libraryHandleBackFromFirstItemSelected")
     m.library.observeField("itemsReloaded", "libraryHandleItemsReloaded")
     m.library.observeField("mainListRestored", "libraryHandleMainListRestored")
+    m.library.observeField("seriesItemsRequest", "libraryHandleSeriesItemsRequest")
     m.player.observeField("closeRequested", "playbackHandlePlayerCloseRequested")
     m.player.observeField("errorResponse", "playbackHandlePlayerError")
     m.overlayHost.observeField("closed", "overlayHandleClosed")
@@ -67,6 +68,7 @@ sub initHandlers()
     m.authController.observeField("loginFailed", "authHandleLoginFailed")
     m.authController.observeField("sessionExpired", "authHandleSessionExpired")
     m.libraryController.observeField("libraryItemsChanged", "libraryControllerHandleItemsChanged")
+    m.libraryController.observeField("seriesItemsResponse", "libraryControllerHandleSeriesItemsResponse")
     m.libraryController.observeField("errorResponse", "libraryControllerHandleError")
 end sub
 
@@ -499,6 +501,24 @@ end sub
 sub libraryControllerHandleItemsChanged()
     if m.libraryController = invalid then return
     if m.library <> invalid then m.library.rootLibraryItems = m.libraryController.libraryItems
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleSeriesItemsRequest
+'-------------------------------------------------------------------------------
+sub libraryHandleSeriesItemsRequest()
+    if m.library = invalid then return
+    if m.libraryController = invalid then return
+
+    m.libraryController.seriesItemsRequest = m.library.seriesItemsRequest
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryControllerHandleSeriesItemsResponse
+'-------------------------------------------------------------------------------
+sub libraryControllerHandleSeriesItemsResponse()
+    if m.libraryController = invalid then return
+    if m.library <> invalid then m.library.seriesItemsResponse = m.libraryController.seriesItemsResponse
 end sub
 
 '-------------------------------------------------------------------------------

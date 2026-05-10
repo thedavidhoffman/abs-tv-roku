@@ -5,8 +5,10 @@
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
+    <field id="seriesItemsRequest" type="assocarray" onChange="onSeriesItemsRequestChanged" />
     <field id="libraryItems" type="array" />
     <field id="libraryItemsChanged" type="integer" />
+    <field id="seriesItemsResponse" type="assocarray" />
     <field id="loading" type="boolean" />
     <field id="errorResponse" type="assocarray" />
     <function name="reloadActiveLibrary" />

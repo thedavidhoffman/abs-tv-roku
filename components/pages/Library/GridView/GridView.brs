@@ -105,6 +105,7 @@ sub onPosterSelected()
         m.top.seriesSelected = {
             seriesId: seriesId
             title: getCollapsedSeriesTitle(item)
+            libraryItemIds: getCollapsedSeriesLibraryItemIds(item)
             itemIndex: m.markupGrid.itemSelected
             counter: m.seriesSelectedCounter
         }
@@ -206,6 +207,16 @@ function getCollapsedSeriesId(item as dynamic) as dynamic
     if item.collapsedSeries = invalid then return invalid
     if item.collapsedSeries.id = invalid then return invalid
     return item.collapsedSeries.id
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesLibraryItemIds
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesLibraryItemIds(item as dynamic) as dynamic
+    if item = invalid then return invalid
+    if item.collapsedSeries = invalid then return invalid
+    if item.collapsedSeries.libraryItemIds = invalid then return invalid
+    return item.collapsedSeries.libraryItemIds
 end function
 
 '-------------------------------------------------------------------------------

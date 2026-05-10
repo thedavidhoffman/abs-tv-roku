@@ -7,9 +7,11 @@
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
+    <field id="seriesItemsResponse" type="assocarray" onChange="onSeriesItemsResponseChanged" />
     <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />
     <field id="playSelected" type="assocarray" />
     <field id="upFromFirstItemSelected" type="integer" />
+    <field id="seriesItemsRequest" type="assocarray" />
     <field id="errorResponse" type="assocarray" />
     <function name="focusLibraryList" />
   </interface>
@@ -25,6 +27,5 @@
       vertFocusAnimationStyle="fixedFocus"
     />
     <Overview id="overview" />
-    <AppTask id="seriesApiTask" />
   </children>
 </component>
