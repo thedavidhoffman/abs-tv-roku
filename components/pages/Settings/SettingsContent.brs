@@ -19,9 +19,9 @@ sub initSeriesOptions()
 
     content = CreateObject("roSGNode", "ContentNode")
     collapseOption = content.createChild("ContentNode")
-    collapseOption.title = "Collapse Series"
+    collapseOption.title = "Collapsed"
     expandOption = content.createChild("ContentNode")
-    expandOption.title = "Expand Series"
+    expandOption.title = "Expanded"
 
     m.seriesOptions.content = content
 end sub
@@ -81,20 +81,20 @@ end sub
 function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
-    if key = "down" and isFocusedAtLastItem(m.seriesOptions) then
-        if m.displayOptions <> invalid then
+    if key = "down" and isFocusedAtLastItem(m.displayOptions) then
+        if m.seriesOptions <> invalid then
             m.activeGroupIndex = 1
-            m.displayOptions.jumpToItem = 0
-            m.displayOptions.setFocus(true)
+            m.seriesOptions.jumpToItem = 0
+            m.seriesOptions.setFocus(true)
             return true
         end if
     end if
 
-    if key = "up" and isFocusedAtFirstItem(m.displayOptions) then
-        if m.seriesOptions <> invalid then
+    if key = "up" and isFocusedAtFirstItem(m.seriesOptions) then
+        if m.displayOptions <> invalid then
             m.activeGroupIndex = 0
-            m.seriesOptions.jumpToItem = getLastItemIndex(m.seriesOptions)
-            m.seriesOptions.setFocus(true)
+            m.displayOptions.jumpToItem = getLastItemIndex(m.displayOptions)
+            m.displayOptions.setFocus(true)
             return true
         end if
     end if
@@ -106,10 +106,10 @@ end function
 ' focusActiveGroup
 '-------------------------------------------------------------------------------
 sub focusActiveGroup()
-    if m.activeGroupIndex = 1 and m.displayOptions <> invalid then
-        m.displayOptions.setFocus(true)
-    else if m.seriesOptions <> invalid then
+    if m.activeGroupIndex = 1 and m.seriesOptions <> invalid then
         m.seriesOptions.setFocus(true)
+    else if m.displayOptions <> invalid then
+        m.displayOptions.setFocus(true)
     end if
 end sub
 
@@ -118,9 +118,9 @@ end sub
 '-------------------------------------------------------------------------------
 sub focusFirstField()
     m.activeGroupIndex = 0
-    if m.seriesOptions <> invalid then
-        m.seriesOptions.jumpToItem = 0
-        m.seriesOptions.setFocus(true)
+    if m.displayOptions <> invalid then
+        m.displayOptions.jumpToItem = 0
+        m.displayOptions.setFocus(true)
     end if
 end sub
 
@@ -129,9 +129,9 @@ end sub
 '-------------------------------------------------------------------------------
 sub focusLastField()
     m.activeGroupIndex = 1
-    if m.displayOptions <> invalid then
-        m.displayOptions.jumpToItem = getLastItemIndex(m.displayOptions)
-        m.displayOptions.setFocus(true)
+    if m.seriesOptions <> invalid then
+        m.seriesOptions.jumpToItem = getLastItemIndex(m.seriesOptions)
+        m.seriesOptions.setFocus(true)
     end if
 end sub
 
@@ -161,7 +161,7 @@ end function
 ' canMoveFocusToButtons
 '-------------------------------------------------------------------------------
 function canMoveFocusToButtons() as boolean
-    return isFocusedAtLastItem(m.displayOptions)
+    return isFocusedAtLastItem(m.seriesOptions)
 end function
 
 '-------------------------------------------------------------------------------

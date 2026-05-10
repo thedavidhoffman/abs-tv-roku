@@ -23,5 +23,5 @@ end function
 ' SearchRules_BuildContextTitle
 '-------------------------------------------------------------------------------
 function SearchRules_BuildContextTitle(searchTerm as dynamic) as string
-    return "Search results... " + SearchRules_NormalizeTerm(searchTerm)
+    return "Search results... " + Chr(34) + SearchRules_NormalizeTerm(searchTerm) + Chr(34)
 end function

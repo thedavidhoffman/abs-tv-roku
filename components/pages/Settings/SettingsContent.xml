@@ -10,14 +10,16 @@
     <function name="canMoveFocusToButtons" />
   </interface>
   <children>
+
+    <!-- view library as... -->
     <Label
-      id="seriesLabel"
-      text="Series Display"
+      id="displayLabel"
+      text="View libary as..."
       width="560"
       height="36"
       font="font:MediumBoldSystemFont" />
     <RadioButtonList
-      id="seriesOptions"
+      id="displayOptions"
       translation="[20,48]"
       itemSize="[560,48]"
       numRows="2"
@@ -25,15 +27,17 @@
       vertFocusAnimationStyle="floatingFocus"
       fadeFocusFeedbackWhenAutoScrolling="false"
       focusFootprintBitmapUri="pkg:/images/focus/transparent_focus_footprint.9.png" />
+
+    <!-- series display -->
     <Label
-      id="displayLabel"
+      id="seriesLabel"
       translation="[0,172]"
-      text="Items Display"
+      text="Display series as..."
       width="560"
       height="36"
       font="font:MediumBoldSystemFont" />
     <RadioButtonList
-      id="displayOptions"
+      id="seriesOptions"
       translation="[0,220]"
       itemSize="[560,48]"
       numRows="2"

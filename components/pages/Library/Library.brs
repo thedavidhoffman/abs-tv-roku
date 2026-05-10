@@ -57,6 +57,7 @@ sub onSearchRequestChanged()
         token: request.token
         bookLibraryId: request.bookLibraryId
         searchTerm: searchTerm
+        limit: 20
         searchRequestCounter: m.activeSearchRequestCounter
     }
     runLibraryApiRequest(navRequest)
@@ -426,6 +427,19 @@ sub resetDrilldown()
 end sub
 
 '-------------------------------------------------------------------------------
+' resetNavigationState
+'-------------------------------------------------------------------------------
+sub resetNavigationState()
+    m.activeSearchRequestCounter = m.activeSearchRequestCounter + 1
+    m.itemBackStack = []
+    m.searchResults = []
+    m.top.searchResults = m.searchResults
+    m.gridContextTitle = ""
+    m.gridContextType = "root"
+    syncGridContext()
+end sub
+
+'-------------------------------------------------------------------------------
 ' resetSearchResults
 '-------------------------------------------------------------------------------
 function resetSearchResults() as boolean
@@ -524,13 +538,7 @@ end sub
 ' clearSearchResults
 '-------------------------------------------------------------------------------
 sub clearSearchResults(shouldPublishMainListRestored as boolean)
-    m.activeSearchRequestCounter = m.activeSearchRequestCounter + 1
-    m.searchResults = []
-    m.top.searchResults = m.searchResults
-    m.itemBackStack = []
-    m.gridContextTitle = ""
-    m.gridContextType = "root"
-    syncGridContext()
+    resetNavigationState()
     if shouldPublishMainListRestored then publishMainListRestored()
 end sub
 

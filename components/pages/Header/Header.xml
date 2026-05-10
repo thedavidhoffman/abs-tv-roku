@@ -7,9 +7,12 @@
     <field id="menuOpen" type="boolean" />
     <field id="closeMenuToken" type="integer" onChange="onCloseMenuTokenChanged" />
     <field id="username" type="string" onChange="onUsernameChanged" />
+    <field id="libraries" type="array" onChange="onLibrariesChanged" />
+    <field id="currentLibraryId" type="string" onChange="onCurrentLibraryIdChanged" />
     <field id="homeSelected" type="integer" />
     <field id="librarySelected" type="integer" />
     <field id="searchSelected" type="integer" />
+    <field id="currentLibrarySelected" type="assocarray" />
     <field id="downSelected" type="integer" />
     <field id="backSelected" type="integer" />
     <field id="logoutSelected" type="integer" />
@@ -31,11 +34,13 @@
       uri="pkg:/images/abstv-header-logo.png"
       loadDisplayMode="scaleToFit" />
 
-    <Group id="navGroup" translation="[600,22]">
+    <HeaderButton id="currentLibraryButton" translation="[300,22]" buttonWidth="300" buttonHeight="56" />
+
+    <Group id="navGroup" translation="[632,22]">
       <HeaderButton id="homeButton" translation="[0,0]" buttonWidth="150" buttonHeight="56" text="Home" />
-      <HeaderButton id="libraryButton" translation="[170,0]" buttonWidth="170" buttonHeight="56" text="Library" />
-      <HeaderButton id="searchButton" translation="[360,0]" buttonWidth="160" buttonHeight="56" text="Search" />
-      <HeaderButton id="settingsButton" translation="[540,0]" buttonWidth="180" buttonHeight="56" text="Settings" />
+      <HeaderButton id="libraryButton" translation="[174,0]" buttonWidth="170" buttonHeight="56" text="Library" />
+      <HeaderButton id="searchButton" translation="[368,0]" buttonWidth="160" buttonHeight="56" text="Search" />
+      <HeaderButton id="settingsButton" translation="[552,0]" buttonWidth="180" buttonHeight="56" text="Settings" />
     </Group>
 
     <HeaderButton id="userMenuButton" translation="[1520,22]" buttonWidth="160" buttonHeight="56" />
@@ -45,6 +50,11 @@
     <Group id="menuPanel" visible="false" translation="[1420,102]">
       <Rectangle width="260" height="94" color="0x132235FF" />
       <HeaderButton id="logoutButton" translation="[20,18]" buttonWidth="220" buttonHeight="56" text="Logout" />
+    </Group>
+
+    <Group id="libraryMenuPanel" visible="false" translation="[300,102]">
+      <Rectangle id="libraryMenuBg" width="340" height="94" color="0x132235FF" />
+      <Group id="libraryMenuItems" translation="[20,18]" />
     </Group>
 
     <!-- timer for pressing up 5 times on the user menu item to display the diagnostics dialog -->

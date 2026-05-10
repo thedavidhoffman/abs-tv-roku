@@ -27,8 +27,16 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 ## Hit List
 ----------------------------------------------------
 - roku channel screens
+- test on real tv
+
+- sort out header
+- on load get collapsed and uncollapsed data, minify it
+- new series grid view with a row per series (need the above to make this work)
+- grid view detailed - card with cover and info (does not support collapsed)
+
 
 - search
+    - limit?? 200 takes a long ass time
     - listview support search results
 
 - StandardKeyboardDialog on login form

@@ -1,7 +1,3 @@
-'===============================================================================
-' Core
-'===============================================================================
-
 '-------------------------------------------------------------------------------
 ' init
 '-------------------------------------------------------------------------------
@@ -46,6 +42,7 @@ sub initHandlers()
     m.header.observeField("homeSelected", "homeHandlePressed")
     m.header.observeField("librarySelected", "libraryHandlePressed")
     m.header.observeField("searchSelected", "searchHandlePressed")
+    m.header.observeField("currentLibrarySelected", "libraryHandleCurrentLibrarySelected")
     m.header.observeField("downSelected", "headerHandleDownPressed")
     m.header.observeField("backSelected", "headerHandleBackPressed")
     m.header.observeField("logoutSelected", "authHandleLogoutPressed")
@@ -249,6 +246,8 @@ sub navShowApp()
     if m.header <> invalid then
         m.header.visible = true
         m.header.username = m.session.username
+        m.header.libraries = m.session.libraries
+        m.header.currentLibraryId = m.session.bookLibraryId
     end if
     if m.homePage <> invalid then
         m.homePage.mediaProgress = m.mediaProgress
@@ -461,6 +460,28 @@ sub libraryHandlePressed()
     if m.library <> invalid then m.library.callFunc("resetSearchResults")
     navShowLibraryPage()
     focusLibraryList()
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleCurrentLibrarySelected
+'-------------------------------------------------------------------------------
+sub libraryHandleCurrentLibrarySelected()
+    if m.header = invalid then return
+    if m.session = invalid then return
+
+    selectedLibrary = m.header.currentLibrarySelected
+    if selectedLibrary = invalid or selectedLibrary.id = invalid then return
+    if selectedLibrary.id = m.session.bookLibraryId then return
+
+    m.session.bookLibraryId = selectedLibrary.id
+    m.header.currentLibraryId = m.session.bookLibraryId
+
+    loadRequest = buildSessionLoadRequest()
+    if m.library <> invalid then
+        m.library.callFunc("resetNavigationState")
+        m.library.loadRequest = loadRequest
+    end if
+    if m.homePage <> invalid then m.homePage.loadRequest = loadRequest
 end sub
 
 '-------------------------------------------------------------------------------
