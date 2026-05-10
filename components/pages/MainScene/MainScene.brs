@@ -32,7 +32,6 @@ sub initReferences()
     m.player = m.top.findNode("player")
     m.overlayHost = m.top.findNode("overlayHost")
     m.authController = m.top.findNode("authController")
-    m.libraryController = m.top.findNode("libraryController")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -59,7 +58,6 @@ sub initHandlers()
     m.library.observeField("backFromFirstItemSelected", "libraryHandleBackFromFirstItemSelected")
     m.library.observeField("itemsReloaded", "libraryHandleItemsReloaded")
     m.library.observeField("mainListRestored", "libraryHandleMainListRestored")
-    m.library.observeField("seriesItemsRequest", "libraryHandleSeriesItemsRequest")
     m.player.observeField("closeRequested", "playbackHandlePlayerCloseRequested")
     m.player.observeField("errorResponse", "playbackHandlePlayerError")
     m.overlayHost.observeField("closed", "overlayHandleClosed")
@@ -67,9 +65,6 @@ sub initHandlers()
     m.authController.observeField("loginRequired", "authHandleLoginRequired")
     m.authController.observeField("loginFailed", "authHandleLoginFailed")
     m.authController.observeField("sessionExpired", "authHandleSessionExpired")
-    m.libraryController.observeField("libraryItemsChanged", "libraryControllerHandleItemsChanged")
-    m.libraryController.observeField("seriesItemsResponse", "libraryControllerHandleSeriesItemsResponse")
-    m.libraryController.observeField("errorResponse", "libraryControllerHandleError")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -263,9 +258,6 @@ sub navShowApp()
     focusHomePage()
     if m.library <> invalid then
         m.library.loadRequest = loadRequest
-    end if
-    if m.libraryController <> invalid then
-        m.libraryController.loadRequest = loadRequest
     end if
 end sub
 
@@ -489,48 +481,7 @@ sub libraryHandleCurrentLibrarySelected()
         m.library.callFunc("resetNavigationState")
         m.library.loadRequest = loadRequest
     end if
-    if m.libraryController <> invalid then
-        m.libraryController.loadRequest = loadRequest
-    end if
     if m.homePage <> invalid then m.homePage.loadRequest = loadRequest
-end sub
-
-'-------------------------------------------------------------------------------
-' libraryControllerHandleItemsChanged
-'-------------------------------------------------------------------------------
-sub libraryControllerHandleItemsChanged()
-    if m.libraryController = invalid then return
-    if m.library <> invalid then m.library.rootLibraryItems = m.libraryController.libraryItems
-end sub
-
-'-------------------------------------------------------------------------------
-' libraryHandleSeriesItemsRequest
-'-------------------------------------------------------------------------------
-sub libraryHandleSeriesItemsRequest()
-    if m.library = invalid then return
-    if m.libraryController = invalid then return
-
-    m.libraryController.seriesItemsRequest = m.library.seriesItemsRequest
-end sub
-
-'-------------------------------------------------------------------------------
-' libraryControllerHandleSeriesItemsResponse
-'-------------------------------------------------------------------------------
-sub libraryControllerHandleSeriesItemsResponse()
-    if m.libraryController = invalid then return
-    if m.library <> invalid then m.library.seriesItemsResponse = m.libraryController.seriesItemsResponse
-end sub
-
-'-------------------------------------------------------------------------------
-' libraryControllerHandleError
-'-------------------------------------------------------------------------------
-sub libraryControllerHandleError()
-    if m.libraryController = invalid then return
-
-    response = m.libraryController.errorResponse
-    if response = invalid then return
-    if handleComponentError(response) then return
-    if m.library <> invalid then m.library.errorResponse = response
 end sub
 
 '-------------------------------------------------------------------------------
@@ -685,7 +636,6 @@ sub overlayHandleSettingsSaved(savedSettings as dynamic)
     if savedSettings = invalid then return
 
     if m.library <> invalid then m.library.displaySettings = savedSettings
-    if m.libraryController <> invalid then m.libraryController.displaySettings = savedSettings
     m.focusSettingsAfterLibraryReload = true
 end sub
 
