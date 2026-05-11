@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 function Playback_CreateLogger(suffix = "" as string) as object
 
-    label = "Playback_Start"
+    label = "Playback"
     if suffix <> invalid and suffix <> "" then label = label + "::" + suffix
 
     return CreateLogger(label, false)
@@ -15,77 +15,18 @@ end function
 '-------------------------------------------------------------------------------
 function Playback_Start(request as object) as object
 
-    log = Playback_CreateLogger()
+    log = Playback_CreateLogger("Start")
     log.write("executing...")
 
-    if request = invalid then
-        message = "Invalid playback request: request is invalid."
-        log.error(message)
-        return { ok: false, errorMessage: message }
-    end if
+    validationResult = __ValidateStartRequest(request, log)
+    if validationResult.ok <> true then return validationResult
 
-    if Type(request) <> "roAssociativeArray" then
-        message = "Invalid playback request: request type is " + Type(request) + "."
-        log.error(message)
-        return { ok: false, errorMessage: message }
-    end if
-
-    if request.server = invalid or request.server = "" then
-        message = "Invalid playback request: server is missing."
-        log.error(message)
-        return { ok: false, errorMessage: message }
-    end if
-
-    if request.token = invalid or request.token = "" then
-        message = "Invalid playback request: token is missing."
-        log.error(message)
-        return { ok: false, errorMessage: message }
-    end if
-
-    if request.itemId = invalid or request.itemId = "" then
-        message = "Invalid playback request: itemId is missing."
-        log.error(message)
-        return { ok: false, errorMessage: message }
-    end if
-
-    if request.title = invalid then request.title = ""
-
-    ' local working vars
     server = request.server
     token = request.token
     itemId = request.itemId
+    if request.title = invalid then request.title = ""
 
-    ' get the item (so that we have track data)
-    itemResult = Item_Load(request)
-    itemPayload = invalid
-    if itemResult.ok = true then itemPayload = itemResult.data
-    Item_LogTracks(itemPayload)
-
-    ' Roku device info
-    deviceInfo = CreateObject("roDeviceInfo")
-    model = deviceInfo.GetModel()
-    modelDisplayName = deviceInfo.GetModelDisplayName()
-
-    ' abs playback config
-    bodyData = {
-        deviceInfo: {
-            clientName: "ABSTV"
-            clientVersion: "0.1.0"
-            manufacturer: "Roku"
-            model: modelDisplayName + " " + model
-        }
-        forceDirectPlay: false
-        forceTranscode: false
-        supportedMimeTypes: [
-            "audio/mpeg"
-            "audio/mp4"
-            "audio/aac"
-            "application/vnd.apple.mpegurl"
-            "application/x-mpegURL"
-        ]
-        mediaPlayer: "roku"
-    }
-
+    bodyData = __BuildPlaybackStartBody()
     body = FormatJson(bodyData)
 
     log.write("ABS post body: forceDirectPlay=" + bodyData.forceDirectPlay.ToStr() + " forceTranscode=" + bodyData.forceTranscode.ToStr() + " supportedMimeTypes=" + Array_JoinStringValues(bodyData.supportedMimeTypes))
@@ -96,71 +37,45 @@ function Playback_Start(request as object) as object
     log.write(playbackUrl)
     log.write("status = " + SafeString(playbackResult.status))
 
-    if playbackResult.ok <> true then return playbackResult
-
-    tracks = __MapTracks(server, token, playbackResult.data, itemPayload, log)
-    if tracks.Count() = 0 then
-        return { ok: false, errorMessage: "No playable audio tracks were returned." }
+    if playbackResult.ok <> true then
+        playbackResult.action = "startPlayback"
+        playbackResult.requestCounter = request.requestCounter
+        return playbackResult
     end if
 
-    result = {
+    playbackSession = playbackResult.data
+    tracks = __MapTracks(server, token, playbackSession, log)
+    if tracks.Count() = 0 then
+        return { ok: false, action: "startPlayback", errorMessage: "No playable audio tracks were returned." }
+    end if
+
+    chapters = __MapChapters(playbackSession, tracks)
+    __LogMappedTracks(log, tracks)
+
+    return {
         ok: true
         action: "startPlayback"
         itemId: itemId
         title: request.title
-        playbackSession: playbackResult.data
+        playbackSession: playbackSession
+        playbackSessionId: __GetSessionId(playbackSession)
+        currentTime: __GetNumber(playbackSession.currentTime)
+        duration: __GetNumber(playbackSession.duration)
+        playMethod: __GetInteger(playbackSession.playMethod, -1)
+        isHlsTranscode: __IsSessionHlsTranscode(playbackSession, tracks)
+        requestCounter: request.requestCounter
         tracks: tracks
+        chapters: chapters
     }
 
-    __LogMappedTracks(log, tracks)
-
-    return result
-
 end function
-
-'-------------------------------------------------------------------------------
-' __LogMappedTracks
-'-------------------------------------------------------------------------------
-sub __LogMappedTracks(log as object, tracks as dynamic)
-
-    log.write("Mapped tracks:")
-
-    if tracks = invalid or tracks.Count() = 0 then
-        log.write("    none")
-        return
-    end if
-
-    for i = 0 to tracks.Count() - 1
-        track = tracks[i]
-
-        if track <> invalid then
-
-            log.writeBracketed([ 
-                i.ToStr(), 
-                SafeString(track.title), 
-                SafeString(track.durationSeconds),
-                SafeString(track.startPositionSeconds),
-                SafeString(track.mimeType) ])
-            
-            ' log.write("    track=" + i.ToStr())
-            ' log.write("    title: " + SafeString(track.title, ""))
-            ' log.write("    durationSeconds: " + SafeString(track.durationSeconds, "invalid"))
-            ' log.write("    startPositionSeconds: " + SafeString(track.startPositionSeconds, "invalid"))
-            ' log.write("    mimeType: " + SafeString(track.mimeType, ""))
-            ' log.write("    url: " + SafeString(track.url, ""))
-        else
-            log.write("    invalid track")
-        end if
-
-    end for
-end sub
 
 '-------------------------------------------------------------------------------
 ' Playback_CloseSession
 '-------------------------------------------------------------------------------
 function Playback_CloseSession(request as object) as object
 
-    log = CreateLogger("Playback_CloseSession")
+    log = Playback_CreateLogger("CloseSession")
     log.write("executing...")
 
     server = request.server
@@ -170,9 +85,10 @@ function Playback_CloseSession(request as object) as object
     if sessionId = invalid or sessionId = "" then
         log.error("No playback session was available to close.")
         return {
-            ok: false,
-            action: "closePlaybackSession",
-        errorMessage: "No playback session was available to close." }
+            ok: false
+            action: "closePlaybackSession"
+            errorMessage: "No playback session was available to close."
+        }
     end if
 
     bodyData = {}
@@ -182,8 +98,7 @@ function Playback_CloseSession(request as object) as object
 
     log.write("sessionId=" + sessionId.ToStr() + " currentTime=" + SafeString(bodyData.currentTime, "invalid") + " timeListened=" + SafeString(bodyData.timeListened, "invalid") + " duration=" + SafeString(bodyData.duration, "invalid"))
 
-    closeSessionUrl = server + "/api/session/" + sessionId.ToStr() + "/close"
-    result = HttpClient_Request(closeSessionUrl, "POST", token, FormatJson(bodyData))
+    result = HttpClient_Request(server + "/api/session/" + sessionId.ToStr() + "/close", "POST", token, FormatJson(bodyData))
     result.action = "closePlaybackSession"
 
     return result
@@ -195,7 +110,7 @@ end function
 '-------------------------------------------------------------------------------
 function Playback_SyncSession(request as object) as object
 
-    log = CreateLogger("Playback_SyncSession")
+    log = Playback_CreateLogger("SyncSession")
 
     server = request.server
     token = request.token
@@ -220,263 +135,277 @@ function Playback_SyncSession(request as object) as object
 end function
 
 '-------------------------------------------------------------------------------
+' __ValidateStartRequest
+'-------------------------------------------------------------------------------
+function __ValidateStartRequest(request as dynamic, log as object) as object
+    if request = invalid then return __ValidationError(log, "Invalid playback request: request is invalid.")
+    if Type(request) <> "roAssociativeArray" then return __ValidationError(log, "Invalid playback request: request type is " + Type(request) + ".")
+    if request.server = invalid or request.server = "" then return __ValidationError(log, "Invalid playback request: server is missing.")
+    if request.token = invalid or request.token = "" then return __ValidationError(log, "Invalid playback request: token is missing.")
+    if request.itemId = invalid or request.itemId = "" then return __ValidationError(log, "Invalid playback request: itemId is missing.")
+    return { ok: true }
+end function
+
+'-------------------------------------------------------------------------------
+' __ValidationError
+'-------------------------------------------------------------------------------
+function __ValidationError(log as object, message as string) as object
+    log.error(message)
+    return { ok: false, action: "startPlayback", errorMessage: message }
+end function
+
+'-------------------------------------------------------------------------------
+' __BuildPlaybackStartBody
+'-------------------------------------------------------------------------------
+function __BuildPlaybackStartBody() as object
+    deviceInfo = CreateObject("roDeviceInfo")
+    model = deviceInfo.GetModel()
+    modelDisplayName = deviceInfo.GetModelDisplayName()
+
+    return {
+        deviceInfo: {
+            clientName: "ABSTV"
+            clientVersion: "0.1.0"
+            manufacturer: "Roku"
+            model: modelDisplayName + " " + model
+        }
+        forceDirectPlay: false
+        forceTranscode: false
+        supportedMimeTypes: [
+            "audio/mpeg"
+            "audio/mp4"
+            "audio/aac"
+            "application/vnd.apple.mpegurl"
+            "application/x-mpegURL"
+            "application/x-mpegurl"
+            "application/vnd.apple.mpegURL"
+        ]
+        mediaPlayer: "roku"
+    }
+end function
+
+'-------------------------------------------------------------------------------
 ' __MapTracks
 '-------------------------------------------------------------------------------
-function __MapTracks(server as string, token as dynamic, payload as dynamic, itemPayload as dynamic, log as object) as object
-
+function __MapTracks(server as string, token as dynamic, session as dynamic, log as object) as object
     mappedTracks = []
-    tracks = __GetSessionTracks(payload)
-    files = __GetSessionFiles(payload, itemPayload)
-    sessionId = invalid
+    tracks = invalid
+    if session <> invalid then tracks = session.audioTracks
+    sessionId = __GetSessionId(session)
 
-    if payload <> invalid and payload.id <> invalid then sessionId = payload.id
+    log.write("playback mapping audioTracks=" + Array_GetCount(tracks).ToStr())
 
-    log.write("playback mapping audioTracks=" + Array_GetCount(tracks).ToStr() + " files=" + Array_GetCount(files).ToStr())
+    if tracks = invalid then return mappedTracks
 
-    if files <> invalid and files.Count() > 0 and tracks <> invalid and tracks.Count() = 1 then
-        track = tracks[0]
-        startPositionSeconds = 0
-        for i = 0 to files.Count() - 1
-            file = files[i]
-            durationSeconds = __GetTrackDurationSeconds(file, track)
-            mappedTracks.Push({
-                url: __BuildPlaybackUrl(server, token, sessionId, track)
-                title: __GetTrackTitle(file, track, i)
-                durationSeconds: durationSeconds
-                startPositionSeconds: startPositionSeconds
-                mimeType: __GetTrackMimeType(file, track)
-            })
-            startPositionSeconds = startPositionSeconds + durationSeconds
-        end for
-    else if files <> invalid and files.Count() > 0 and (tracks = invalid or files.Count() > tracks.Count()) then
-        for i = 0 to files.Count() - 1
-            file = files[i]
-            track = __GetTrackForFileIndex(tracks, file, i)
-            url = __BuildFileUrl(server, token, sessionId, file, track, i)
+    for i = 0 to tracks.Count() - 1
+        track = tracks[i]
+        if track <> invalid then
+            url = __BuildTrackUrl(server, token, sessionId, track)
             if url <> "" then
                 mappedTracks.Push({
+                    index: __GetTrackIndex(track, i)
                     url: url
-                    title: __GetTrackTitle(file, track, i)
-                    durationSeconds: __GetTrackDurationSeconds(file, track)
-                    mimeType: __GetTrackMimeType(file, track)
+                    title: __GetTrackTitle(track, i)
+                    startOffset: __GetNumber(track.startOffset)
+                    durationSeconds: __GetNumber(track.duration)
+                    contentUrl: SafeString(track.contentUrl, "")
+                    mimeType: __GetTrackMimeType(track)
+                    isHls: __IsHlsTrack(track)
                 })
             end if
-        end for
-    else if tracks <> invalid then
-        for i = 0 to tracks.Count() - 1
-            track = tracks[i]
-            file = __GetFileForTrack(files, track, i)
-            contentUrl = invalid
-            if track.contentUrl <> invalid then contentUrl = track.contentUrl
-            if contentUrl <> invalid and contentUrl <> "" then
-                mappedTracks.Push({
-                    url: __BuildPlaybackUrl(server, token, sessionId, track)
-                    title: __GetTrackTitle(file, track, i)
-                    durationSeconds: __GetTrackDurationSeconds(file, track)
-                    mimeType: __GetTrackMimeType(file, track)
-                })
-            end if
-        end for
-    end if
+        end if
+    end for
 
     return mappedTracks
 end function
 
 '-------------------------------------------------------------------------------
-' __GetTrackForFileIndex
+' __MapChapters
 '-------------------------------------------------------------------------------
-function __GetTrackForFileIndex(tracks as dynamic, file as dynamic, fallbackIndex as integer) as dynamic
-    if tracks = invalid or tracks.Count() = 0 then return invalid
+function __MapChapters(session as dynamic, tracks as object) as object
+    chapters = []
+    if session = invalid or session.chapters = invalid or session.chapters.Count() = 0 then return chapters
 
-    fileIndex = __GetFileIndex(file, fallbackIndex)
-    for each track in tracks
-        if track.index <> invalid and int(val(track.index.ToStr())) = fileIndex then return track
-        if track.trackNum <> invalid and int(val(track.trackNum.ToStr())) = fileIndex then return track
+    for i = 0 to session.chapters.Count() - 1
+        chapter = session.chapters[i]
+        if chapter <> invalid then
+            startTime = __GetChapterStart(chapter)
+            endTime = __GetChapterEnd(chapter, session, i)
+            duration = endTime - startTime
+            if duration < 0 then duration = 0
+            chapters.Push({
+                index: i
+                title: __GetChapterTitle(chapter, i)
+                startOffset: startTime
+                durationSeconds: duration
+                isChapter: true
+            })
+        end if
     end for
 
-    if fallbackIndex >= 0 and fallbackIndex < tracks.Count() then return tracks[fallbackIndex]
-    return invalid
+    return chapters
 end function
 
 '-------------------------------------------------------------------------------
-' __GetFileIndex
+' __BuildTrackUrl
 '-------------------------------------------------------------------------------
-function __GetFileIndex(file as dynamic, fallbackIndex as integer) as integer
-    if file <> invalid then
-        if file.index <> invalid then return int(val(file.index.ToStr()))
-        if file.trackNum <> invalid then return int(val(file.trackNum.ToStr()))
-    end if
-
-    return fallbackIndex
-end function
-
-'-------------------------------------------------------------------------------
-' __BuildFileUrl
-'-------------------------------------------------------------------------------
-function __BuildFileUrl(server as string, token as dynamic, sessionId as dynamic, file as dynamic, track as dynamic, fallbackIndex as integer) as string
-    if track <> invalid and track.contentUrl <> invalid and track.contentUrl <> "" then
-        return __BuildPlaybackUrl(server, token, sessionId, track)
-    end if
-
-    if file <> invalid and file.contentUrl <> invalid and file.contentUrl <> "" then
-        return __BuildPlaybackUrl(server, token, sessionId, file)
-    end if
-
-    if sessionId <> invalid and sessionId <> "" then
-        return server + "/public/session/" + sessionId + "/track/" + __GetFileIndex(file, fallbackIndex).ToStr()
-    end if
-
-    return ""
-end function
-
-'-------------------------------------------------------------------------------
-' __GetSessionTracks
-'-------------------------------------------------------------------------------
-function __GetSessionTracks(payload as dynamic) as dynamic
-    if payload = invalid then return invalid
-
-    if payload.audioTracks <> invalid then return payload.audioTracks
-    if payload.libraryItem <> invalid and payload.libraryItem.media <> invalid then
-        if payload.libraryItem.media.audioTracks <> invalid then return payload.libraryItem.media.audioTracks
-    end if
-
-    return invalid
-end function
-
-'-------------------------------------------------------------------------------
-' __GetSessionFiles
-'-------------------------------------------------------------------------------
-function __GetSessionFiles(payload as dynamic, itemPayload as dynamic) as dynamic
-    files = __GetItemFiles(itemPayload)
-    if files <> invalid then return files
-
-    if payload <> invalid and payload.libraryItem <> invalid then return __GetItemFiles(payload.libraryItem)
-    return __GetItemFiles(payload)
-end function
-
-'-------------------------------------------------------------------------------
-' __GetItemFiles
-'-------------------------------------------------------------------------------
-function __GetItemFiles(item as dynamic) as dynamic
-    if item = invalid or item.media = invalid then return invalid
-
-    if item.media.audioFiles <> invalid then return item.media.audioFiles
-    if item.media.tracks <> invalid then return item.media.tracks
-    return invalid
-end function
-
-'-------------------------------------------------------------------------------
-' __GetFileForTrack
-'-------------------------------------------------------------------------------
-function __GetFileForTrack(files as dynamic, track as dynamic, fallbackIndex as integer) as dynamic
-    if files = invalid or files.Count() = 0 then return invalid
-
-    trackIndex = fallbackIndex
-    if track <> invalid and track.index <> invalid then trackIndex = int(val(track.index.ToStr()))
-
-    for each file in files
-        if file.index <> invalid and int(val(file.index.ToStr())) = trackIndex then return file
-        if file.trackNum <> invalid and int(val(file.trackNum.ToStr())) = trackIndex then return file
-    end for
-
-    if fallbackIndex >= 0 and fallbackIndex < files.Count() then return files[fallbackIndex]
-    return invalid
-end function
-
-'-------------------------------------------------------------------------------
-' __GetTrackTitle
-'-------------------------------------------------------------------------------
-function __GetTrackTitle(file as dynamic, track as dynamic, index as integer) as string
-    title = ""
-
-    if file <> invalid then
-        if file.metaTags <> invalid then
-            title = FirstNonEmpty([file.metaTags.tagTitle], "")
-        end if
-        if file.metadata <> invalid then
-            title = FirstNonEmpty([title, file.metadata.title, file.metadata.trackTitle, file.metadata.name], "")
-        end if
-        title = FirstNonEmpty([title, file.trackTitle], "")
-    end if
-
-    if title = "" and track <> invalid then
-        title = FirstNonEmpty([track.title, track.name], "")
-    end if
-
-    if title = "" or title = "Audiobook" then title = "Track " + (index + 1).ToStr()
-    return title
-end function
-
-'-------------------------------------------------------------------------------
-' __GetTrackMimeType
-'-------------------------------------------------------------------------------
-function __GetTrackMimeType(file as dynamic, track as dynamic) as string
-    if track <> invalid and track.mimeType <> invalid then return SafeString(track.mimeType, "audio/mpeg")
-    if file <> invalid and file.mimeType <> invalid then return SafeString(file.mimeType, "audio/mpeg")
-    if file <> invalid and file.metadata <> invalid and file.metadata.mimeType <> invalid then return SafeString(file.metadata.mimeType, "audio/mpeg")
-    return "audio/mpeg"
-end function
-
-'-------------------------------------------------------------------------------
-' __GetTrackDurationSeconds
-'-------------------------------------------------------------------------------
-function __GetTrackDurationSeconds(file as dynamic, track as dynamic) as integer
-    duration = invalid
-
-    if file <> invalid then
-        if file.duration <> invalid then duration = file.duration
-        if duration = invalid and file.metadata <> invalid and file.metadata.duration <> invalid then duration = file.metadata.duration
-    end if
-
-    if duration = invalid and track <> invalid then
-        if track.duration <> invalid then duration = track.duration
-        if duration = invalid and track.durationSeconds <> invalid then duration = track.durationSeconds
-    end if
-
-    if duration = invalid then return 0
-    return int(val(duration.ToStr()))
-end function
-
-'-------------------------------------------------------------------------------
-' __BuildPlaybackUrl
-'-------------------------------------------------------------------------------
-function __BuildPlaybackUrl(server as string, token as dynamic, sessionId as dynamic, track as dynamic) as string
-
-    log = Playback_CreateLogger("BuildPlaybackUrl")
-
+function __BuildTrackUrl(server as string, token as dynamic, sessionId as dynamic, track as dynamic) as string
     contentUrl = SafeString(track.contentUrl, "")
-    contentUrl = LCase(contentUrl)
+    if contentUrl = "" then return ""
 
-    log.write(contentUrl)
+    if __IsHlsUrl(contentUrl) then return __BuildAuthenticatedContentUrl(server, token, contentUrl)
+    if sessionId <> invalid and sessionId <> "" then return server + "/public/session/" + sessionId.ToStr() + "/track/" + __GetTrackIndex(track, 0).ToStr()
 
-    ' determine if the url is hls
-    isHlsUrl = (Instr(1, contentUrl, "/hls") > 0 or Instr(1, contentUrl, ".m3u8") > 0)
+    return __BuildAuthenticatedContentUrl(server, token, contentUrl)
+end function
 
-    ' direct play (non hls) media is compatible with Roku as a playback device
-    if sessionId <> invalid and sessionId <> "" and isHlsUrl = false then
-        directPlayUrl = server + "/public/session/" + sessionId + "/track/" + track.index.ToStr()
-        log.write("direct play: " + directPlayUrl)
-        return directPlayUrl
-    end if
-
-    ' roku doesn't support direct play of the media, so using hls to transcode
-    ' HLS streaming, or HTTP Live Streaming, is a video streaming protocol developed by Apple that
-    ' delivers audio and video content over the internet. It works by breaking video files into
-    ' small segments, allowing for adaptive bitrate streaming that adjusts the quality based on
-    ' the viewer's network conditions.
+'-------------------------------------------------------------------------------
+' __BuildAuthenticatedContentUrl
+'-------------------------------------------------------------------------------
+function __BuildAuthenticatedContentUrl(server as string, token as dynamic, contentUrl as string) as string
     if Instr(1, LCase(contentUrl), "http://") <> 1 and Instr(1, LCase(contentUrl), "https://") <> 1 then
         if Left(contentUrl, 1) <> "/" then contentUrl = "/" + contentUrl
         contentUrl = server + contentUrl
     end if
 
     contentUrl = StringUtils_Replace(contentUrl, " ", "%20")
-    log.write("hls: " + contentUrl + "?token...")
-
     separator = "?"
     if Instr(1, contentUrl, "?") > 0 then separator = "&"
     if token <> invalid and token <> "" then contentUrl = contentUrl + separator + "token=" + token
 
     return contentUrl
-
 end function
 
+'-------------------------------------------------------------------------------
+' __LogMappedTracks
+'-------------------------------------------------------------------------------
+sub __LogMappedTracks(log as object, tracks as dynamic)
+    log.write("Mapped tracks:")
+
+    if tracks = invalid or tracks.Count() = 0 then
+        log.write("    none")
+        return
+    end if
+
+    for i = 0 to tracks.Count() - 1
+        track = tracks[i]
+        if track <> invalid then
+            log.writeBracketed([
+                i.ToStr()
+                "trackIndex=" + SafeString(track.index)
+                SafeString(track.title)
+                "startOffset=" + SafeString(track.startOffset)
+                "duration=" + SafeString(track.durationSeconds)
+                SafeString(track.mimeType)
+            ])
+        else
+            log.write("    invalid track")
+        end if
+    end for
+end sub
+
+'-------------------------------------------------------------------------------
+' __IsSessionHlsTranscode
+'-------------------------------------------------------------------------------
+function __IsSessionHlsTranscode(session as dynamic, tracks as object) as boolean
+    if session <> invalid and session.playMethod <> invalid and __GetInteger(session.playMethod, -1) <> 0 then return true
+    if tracks <> invalid and tracks.Count() = 1 and tracks[0] <> invalid and tracks[0].isHls = true then return true
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' __IsHlsTrack
+'-------------------------------------------------------------------------------
+function __IsHlsTrack(track as dynamic) as boolean
+    if track = invalid then return false
+    return __IsHlsUrl(SafeString(track.contentUrl, ""))
+end function
+
+'-------------------------------------------------------------------------------
+' __IsHlsUrl
+'-------------------------------------------------------------------------------
+function __IsHlsUrl(url as string) as boolean
+    text = LCase(url)
+    return Instr(1, text, "/hls") > 0 or Instr(1, text, ".m3u8") > 0
+end function
+
+'-------------------------------------------------------------------------------
+' __GetSessionId
+'-------------------------------------------------------------------------------
+function __GetSessionId(session as dynamic) as dynamic
+    if session = invalid then return invalid
+    return session.id
+end function
+
+'-------------------------------------------------------------------------------
+' __GetTrackIndex
+'-------------------------------------------------------------------------------
+function __GetTrackIndex(track as dynamic, fallbackIndex as integer) as integer
+    if track <> invalid and track.index <> invalid then return __GetInteger(track.index, fallbackIndex)
+    return fallbackIndex
+end function
+
+'-------------------------------------------------------------------------------
+' __GetTrackTitle
+'-------------------------------------------------------------------------------
+function __GetTrackTitle(track as dynamic, index as integer) as string
+    if track <> invalid then
+        title = FirstNonEmpty([track.title, track.name], "")
+        if title <> "" and title <> "Audiobook" then return title
+    end if
+
+    return "Track " + (index + 1).ToStr()
+end function
+
+'-------------------------------------------------------------------------------
+' __GetTrackMimeType
+'-------------------------------------------------------------------------------
+function __GetTrackMimeType(track as dynamic) as string
+    if track <> invalid and track.mimeType <> invalid then return SafeString(track.mimeType, "audio/mpeg")
+    return "audio/mpeg"
+end function
+
+'-------------------------------------------------------------------------------
+' __GetChapterStart
+'-------------------------------------------------------------------------------
+function __GetChapterStart(chapter as dynamic) as float
+    if chapter.start <> invalid then return __GetNumber(chapter.start)
+    if chapter.startTime <> invalid then return __GetNumber(chapter.startTime)
+    if chapter.startOffset <> invalid then return __GetNumber(chapter.startOffset)
+    return 0
+end function
+
+'-------------------------------------------------------------------------------
+' __GetChapterEnd
+'-------------------------------------------------------------------------------
+function __GetChapterEnd(chapter as dynamic, session as dynamic, index as integer) as float
+    if chapter.end <> invalid then return __GetNumber(chapter.end)
+    if chapter.endTime <> invalid then return __GetNumber(chapter.endTime)
+    if chapter.duration <> invalid then return __GetChapterStart(chapter) + __GetNumber(chapter.duration)
+    if session <> invalid and session.chapters <> invalid and index + 1 < session.chapters.Count() then return __GetChapterStart(session.chapters[index + 1])
+    if session <> invalid and session.duration <> invalid then return __GetNumber(session.duration)
+    return __GetChapterStart(chapter)
+end function
+
+'-------------------------------------------------------------------------------
+' __GetChapterTitle
+'-------------------------------------------------------------------------------
+function __GetChapterTitle(chapter as dynamic, index as integer) as string
+    return FirstNonEmpty([chapter.title, chapter.name], "Chapter " + (index + 1).ToStr())
+end function
+
+'-------------------------------------------------------------------------------
+' __GetNumber
+'-------------------------------------------------------------------------------
+function __GetNumber(value as dynamic) as float
+    if value = invalid then return 0
+    return val(value.ToStr())
+end function
+
+'-------------------------------------------------------------------------------
+' __GetInteger
+'-------------------------------------------------------------------------------
+function __GetInteger(value as dynamic, fallback as integer) as integer
+    if value = invalid then return fallback
+    return int(val(value.ToStr()))
+end function
