@@ -29,7 +29,10 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 ## Hit List
 ----------------------------------------------------
 
+- lost chapter title during playback
+- when switching libraries load media progress for that library?
 - library... list... expanded... doctor who titles prefixed with a number
+- media progress when playing locallyannual
 
 - roku channel screens
 - sort out header

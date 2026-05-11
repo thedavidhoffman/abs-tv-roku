@@ -26,7 +26,7 @@ function Playback_Start(request as object) as object
     itemId = request.itemId
     if request.title = invalid then request.title = ""
 
-    bodyData = __BuildPlaybackStartBody()
+    bodyData = __BuildPlaybackStartBody(request.forceTranscode = true)
     body = FormatJson(bodyData)
 
     log.write("ABS post body: forceDirectPlay=" + bodyData.forceDirectPlay.ToStr() + " forceTranscode=" + bodyData.forceTranscode.ToStr() + " supportedMimeTypes=" + Array_JoinStringValues(bodyData.supportedMimeTypes))
@@ -157,7 +157,7 @@ end function
 '-------------------------------------------------------------------------------
 ' __BuildPlaybackStartBody
 '-------------------------------------------------------------------------------
-function __BuildPlaybackStartBody() as object
+function __BuildPlaybackStartBody(forceTranscode = false as boolean) as object
     deviceInfo = CreateObject("roDeviceInfo")
     model = deviceInfo.GetModel()
     modelDisplayName = deviceInfo.GetModelDisplayName()
@@ -170,7 +170,7 @@ function __BuildPlaybackStartBody() as object
             model: modelDisplayName + " " + model
         }
         forceDirectPlay: false
-        forceTranscode: false
+        forceTranscode: forceTranscode
         supportedMimeTypes: [
             "audio/mpeg"
             "audio/mp4"
