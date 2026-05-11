@@ -12,7 +12,9 @@ sub init()
     m.hasCollapsedSeriesItems = false
     m.requestGeneration = 0
     m.libraryItemsChangedCounter = 0
+    m.searchResponseCounter = 0
     m.seriesItemsResponseCounter = 0
+    m.pendingSearchRequest = invalid
     m.pendingSeriesItemsRequest = invalid
 
     if m.allItemsTask <> invalid then m.allItemsTask.observeField("response", "onAllItemsResponse")
@@ -20,6 +22,41 @@ sub init()
 
     m.top.libraryItems = []
     m.top.loading = false
+end sub
+
+'-------------------------------------------------------------------------------
+' onSearchRequestChanged
+'-------------------------------------------------------------------------------
+sub onSearchRequestChanged()
+    request = m.top.searchRequest
+    if request = invalid then return
+
+    if m.hasAllTitleItems <> true then
+        m.pendingSearchRequest = request
+        return
+    end if
+
+    publishSearchResponse(request)
+end sub
+
+'-------------------------------------------------------------------------------
+' publishSearchResponse
+'-------------------------------------------------------------------------------
+sub publishSearchResponse(request as object)
+    if request = invalid then return
+
+    m.searchResponseCounter = m.searchResponseCounter + 1
+    searchTerm = SearchRules_NormalizeTerm(request.searchTerm)
+
+    m.top.searchResponse = {
+        ok: true
+        action: "searchLibrary"
+        searchTerm: searchTerm
+        searchRequestCounter: request.searchRequestCounter
+        requestGeneration: m.requestGeneration
+        counter: m.searchResponseCounter
+        libraryItems: getSearchItemsFromCache(searchTerm)
+    }
 end sub
 
 '-------------------------------------------------------------------------------
@@ -110,6 +147,7 @@ sub beginNewCacheGeneration()
     m.collapsedSeriesItems = []
     m.hasAllTitleItems = false
     m.hasCollapsedSeriesItems = false
+    m.pendingSearchRequest = invalid
     m.pendingSeriesItemsRequest = invalid
     m.top.errorResponse = invalid
     publishItems([])
@@ -168,7 +206,7 @@ sub handleLibraryItemsResponse(response as dynamic)
     if response = invalid then return
     if response.requestGeneration <> m.requestGeneration then return
 
-    shouldPublishPendingSeriesItems = false
+    shouldPublishPendingCacheRequests = false
 
     if response.ok <> true then
         m.top.loading = false
@@ -183,14 +221,26 @@ sub handleLibraryItemsResponse(response as dynamic)
     else if response.cacheKey = "allTitles" then
         m.allTitleItems = getResponseLibraryItems(response)
         m.hasAllTitleItems = true
-        shouldPublishPendingSeriesItems = true
+        shouldPublishPendingCacheRequests = true
         logCacheSize("allTitleItems", m.allTitleItems)
     end if
 
     publishCurrentLibraryItems()
     m.top.loading = (m.hasAllTitleItems = false or m.hasCollapsedSeriesItems = false)
 
-    if shouldPublishPendingSeriesItems then publishPendingSeriesItemsResponse()
+    if shouldPublishPendingCacheRequests then publishPendingSearchResponse()
+    if shouldPublishPendingCacheRequests then publishPendingSeriesItemsResponse()
+end sub
+
+'-------------------------------------------------------------------------------
+' publishPendingSearchResponse
+'-------------------------------------------------------------------------------
+sub publishPendingSearchResponse()
+    if m.pendingSearchRequest = invalid then return
+
+    request = m.pendingSearchRequest
+    m.pendingSearchRequest = invalid
+    publishSearchResponse(request)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -275,6 +325,45 @@ function formatCacheSize(bytes as integer) as string
 
     mb = bytes / 1048576
     return FormatWithCommas(mb) + " MB (" + formattedBytes + " bytes)"
+end function
+
+'-------------------------------------------------------------------------------
+' getSearchItemsFromCache
+'-------------------------------------------------------------------------------
+function getSearchItemsFromCache(searchTerm as dynamic) as object
+    items = []
+    normalizedSearchTerm = LCase(SearchRules_NormalizeTerm(searchTerm))
+    if normalizedSearchTerm = "" then return items
+    if m.allTitleItems = invalid then return items
+
+    for each item in m.allTitleItems
+        if isDisplayableLibraryItem(item) and itemMatchesSearch(item, normalizedSearchTerm) then
+            items.Push(item)
+        end if
+    end for
+
+    return items
+end function
+
+'-------------------------------------------------------------------------------
+' itemMatchesSearch
+'-------------------------------------------------------------------------------
+function itemMatchesSearch(item as dynamic, normalizedSearchTerm as string) as boolean
+    metadata = getItemMetadata(item)
+    if textIncludesSearchTerm(metadata.title, normalizedSearchTerm) then return true
+    if textIncludesSearchTerm(metadata.authorName, normalizedSearchTerm) then return true
+
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' textIncludesSearchTerm
+'-------------------------------------------------------------------------------
+function textIncludesSearchTerm(value as dynamic, normalizedSearchTerm as string) as boolean
+    if normalizedSearchTerm = "" then return false
+
+    text = LCase(SafeString(value, ""))
+    return Instr(1, text, normalizedSearchTerm) > 0
 end function
 
 '-------------------------------------------------------------------------------

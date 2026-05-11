@@ -31,6 +31,5 @@
     <ListView id="listView" />
     <GridView id="gridView" visible="false" />
     <LibraryController id="libraryController" />
-    <AppTask id="libraryApiTask" />
   </children>
 </component>

@@ -5,7 +5,6 @@ sub init()
     m.listView = m.top.findNode("listView")
     m.gridView = m.top.findNode("gridView")
     m.libraryController = m.top.findNode("libraryController")
-    m.libraryApiTask = m.top.findNode("libraryApiTask")
     m.activeView = "list"
     m.syncingLibraryItems = false
     m.loadRequest = invalid
@@ -36,12 +35,9 @@ sub init()
         m.gridView.observeField("errorResponse", "onGridViewError")
     end if
 
-    if m.libraryApiTask <> invalid then
-        m.libraryApiTask.observeField("response", "onLibraryApiResponse")
-    end if
-
     if m.libraryController <> invalid then
         m.libraryController.observeField("libraryItemsChanged", "onLibraryControllerItemsChanged")
+        m.libraryController.observeField("searchResponse", "onLibraryControllerSearchResponse")
         m.libraryController.observeField("seriesItemsResponse", "onLibraryControllerSeriesItemsResponse")
         m.libraryController.observeField("errorResponse", "onLibraryControllerError")
     end if
@@ -55,7 +51,6 @@ end sub
 sub onSearchRequestChanged()
     request = m.top.searchRequest
     if request = invalid then return
-    if m.libraryApiTask = invalid then return
 
     searchTerm = getText(request.searchTerm)
     m.searchRequestCounter = m.searchRequestCounter + 1
@@ -63,14 +58,10 @@ sub onSearchRequestChanged()
 
     navRequest = {
         action: "searchLibrary"
-        server: request.server
-        token: request.token
-        bookLibraryId: request.bookLibraryId
         searchTerm: searchTerm
-        limit: 20
         searchRequestCounter: m.activeSearchRequestCounter
     }
-    runLibraryApiRequest(navRequest)
+    if m.libraryController <> invalid then m.libraryController.searchRequest = navRequest
 end sub
 
 '-------------------------------------------------------------------------------
@@ -96,18 +87,6 @@ end sub
 sub reloadItems()
     restoreRootLibraryItems()
 end sub
-
-'-------------------------------------------------------------------------------
-' hasValidLoadRequest
-'-------------------------------------------------------------------------------
-function hasValidLoadRequest() as boolean
-    if m.loadRequest = invalid then return false
-    if m.loadRequest.server = invalid or m.loadRequest.server = "" then return false
-    if m.loadRequest.token = invalid or m.loadRequest.token = "" then return false
-    if m.libraryApiTask = invalid then return false
-
-    return true
-end function
 
 '-------------------------------------------------------------------------------
 ' onLibraryControllerItemsChanged
@@ -137,27 +116,20 @@ sub restoreRootLibraryItems()
 end sub
 
 '-------------------------------------------------------------------------------
-' runLibraryApiRequest
+' onLibraryControllerSearchResponse
 '-------------------------------------------------------------------------------
-sub runLibraryApiRequest(request as object)
-    if m.libraryApiTask = invalid then return
+sub onLibraryControllerSearchResponse()
+    if m.libraryController = invalid then return
 
-    m.libraryApiTask.request = request
-    m.libraryApiTask.control = "run"
-end sub
-
-'-------------------------------------------------------------------------------
-' onLibraryApiResponse
-'-------------------------------------------------------------------------------
-sub onLibraryApiResponse()
-    response = m.libraryApiTask.response
+    response = m.libraryController.searchResponse
     if response = invalid then return
 
     if response.ok <> true then
         m.top.errorResponse = response
-    else if response.action = "searchLibrary" then
-        storeSearchResults(response)
+        return
     end if
+
+    storeSearchResults(response)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -168,7 +140,7 @@ sub storeSearchResults(response as object)
     if response.searchRequestCounter <> m.activeSearchRequestCounter then return
 
     m.itemBackStack = []
-    m.searchResults = getSearchResultLibraryItems(response)
+    m.searchResults = getResponseLibraryItems(response)
     m.top.searchResults = m.searchResults
     m.gridContextTitle = SearchRules_BuildContextTitle(response.searchTerm)
     m.gridContextType = "search"
@@ -201,26 +173,6 @@ end sub
 function getResponseLibraryItems(response as dynamic) as object
     if response <> invalid and response.libraryItems <> invalid then return response.libraryItems
     return []
-end function
-
-'-------------------------------------------------------------------------------
-' getSearchResultLibraryItems
-'-------------------------------------------------------------------------------
-function getSearchResultLibraryItems(response as dynamic) as object
-    items = []
-    if response = invalid or response.results = invalid then return items
-
-    bookResults = response.results.book
-    if bookResults = invalid then bookResults = response.results.podcast
-    if bookResults = invalid then return items
-
-    for each result in bookResults
-        if result <> invalid and result.libraryItem <> invalid then
-            items.Push(result.libraryItem)
-        end if
-    end for
-
-    return items
 end function
 
 '-------------------------------------------------------------------------------

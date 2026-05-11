@@ -22,7 +22,7 @@ sub openSearch()
     if m.keyboardDialog = invalid then return
 
     m.keyboardDialog.title = "Search"
-    m.keyboardDialog.message = ["Enter a search term between " + SearchRules_MinLength().ToStr() + " and " + SearchRules_MaxLength().ToStr() + " characters to find audiobooks by title.", "If you click the Search button without entering the required minimum number of characters, the dialog will close and no search will be performed."]
+    m.keyboardDialog.message = ["Enter a search term between " + SearchRules_MinLength().ToStr() + " and " + SearchRules_MaxLength().ToStr() + " characters to find audiobooks by title or author.", "If you click the Search button without entering the required minimum number of characters, the dialog will close and no search will be performed."]
     m.keyboardDialog.buttons = ["Search", "Cancel"]
     m.keyboardDialog.observeField("buttonSelected", "onButtonSelected")
     m.keyboardDialog.observeField("wasClosed", "onDialogClosed")
