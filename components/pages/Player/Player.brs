@@ -1013,7 +1013,8 @@ end function
 '-------------------------------------------------------------------------------
 function shouldSendPlaybackProgressData(action as string, timeListened as integer) as boolean
     if action <> "closePlaybackSession" then return true
-    return timeListened > m.closeProgressSaveThresholdSeconds
+    if m.lastSyncedCurrentTimeSeconds > 0 then return timeListened >= m.playbackSyncIntervalSeconds
+    return timeListened >= m.closeProgressSaveThresholdSeconds
 end function
 
 '-------------------------------------------------------------------------------

@@ -95,11 +95,13 @@ function Playback_CloseSession(request as object) as object
     if request.currentTime <> invalid then bodyData.currentTime = request.currentTime
     if request.timeListened <> invalid then bodyData.timeListened = request.timeListened
     if request.duration <> invalid then bodyData.duration = request.duration
+    body = __BuildPlaybackProgressBodyJson(request)
 
     log.write("sessionId=" + sessionId.ToStr() + " currentTime=" + SafeString(bodyData.currentTime, "invalid") + " timeListened=" + SafeString(bodyData.timeListened, "invalid") + " duration=" + SafeString(bodyData.duration, "invalid"))
 
-    result = HttpClient_Request(server + "/api/session/" + sessionId.ToStr() + "/close", "POST", token, FormatJson(bodyData))
+    result = HttpClient_Request(server + "/api/session/" + sessionId.ToStr() + "/close", "POST", token, body)
     result.action = "closePlaybackSession"
+    __LogPlaybackSessionResponse(log, "close", sessionId, result)
 
     return result
 
@@ -124,15 +126,48 @@ function Playback_SyncSession(request as object) as object
     if request.currentTime <> invalid then bodyData.currentTime = request.currentTime
     if request.timeListened <> invalid then bodyData.timeListened = request.timeListened
     if request.duration <> invalid then bodyData.duration = request.duration
+    body = __BuildPlaybackProgressBodyJson(request)
 
     log.write("sessionId=" + sessionId.ToStr() + " currentTime=" + SafeString(bodyData.currentTime, "invalid") + " timeListened=" + SafeString(bodyData.timeListened, "invalid") + " duration=" + SafeString(bodyData.duration, "invalid"))
 
-    result = HttpClient_Request(server + "/api/session/" + sessionId.ToStr() + "/sync", "POST", token, FormatJson(bodyData))
+    result = HttpClient_Request(server + "/api/session/" + sessionId.ToStr() + "/sync", "POST", token, body)
     result.action = "syncPlaybackSession"
+    __LogPlaybackSessionResponse(log, "sync", sessionId, result)
 
     return result
 
 end function
+
+'-------------------------------------------------------------------------------
+' __BuildPlaybackProgressBodyJson
+'-------------------------------------------------------------------------------
+function __BuildPlaybackProgressBodyJson(request as dynamic) as string
+    parts = []
+    if request.currentTime <> invalid then parts.Push(Chr(34) + "currentTime" + Chr(34) + ":" + __JsonNumber(request.currentTime))
+    if request.timeListened <> invalid then parts.Push(Chr(34) + "timeListened" + Chr(34) + ":" + __JsonNumber(request.timeListened))
+    if request.duration <> invalid then parts.Push(Chr(34) + "duration" + Chr(34) + ":" + __JsonNumber(request.duration))
+    return "{" + __JoinJsonParts(parts) + "}"
+end function
+
+'-------------------------------------------------------------------------------
+' __LogPlaybackSessionResponse
+'-------------------------------------------------------------------------------
+sub __LogPlaybackSessionResponse(log as object, operation as string, sessionId as dynamic, result as dynamic)
+    if log = invalid then return
+
+    status = "invalid"
+    ok = "invalid"
+    message = ""
+    hasData = false
+    if result <> invalid then
+        status = SafeString(result.status, "invalid")
+        ok = SafeString(result.ok, "invalid")
+        message = SafeString(result.errorMessage, "")
+        hasData = (result.data <> invalid)
+    end if
+
+    log.write(operation + " response sessionId=" + SafeString(sessionId, "invalid") + " status=" + status + " ok=" + ok + " hasData=" + hasData.ToStr() + " errorMessage=" + message)
+end sub
 
 '-------------------------------------------------------------------------------
 ' __ValidateStartRequest
@@ -408,4 +443,30 @@ end function
 function __GetInteger(value as dynamic, fallback as integer) as integer
     if value = invalid then return fallback
     return int(val(value.ToStr()))
+end function
+
+'-------------------------------------------------------------------------------
+' __JoinJsonParts
+'-------------------------------------------------------------------------------
+function __JoinJsonParts(parts as object) as string
+    if parts = invalid or parts.Count() = 0 then return ""
+
+    text = ""
+    for i = 0 to parts.Count() - 1
+        if i > 0 then text = text + ","
+        text = text + parts[i]
+    end for
+
+    return text
+end function
+
+'-------------------------------------------------------------------------------
+' __JsonNumber
+'-------------------------------------------------------------------------------
+function __JsonNumber(value as dynamic) as string
+    if value = invalid then return "0"
+    numberValue = val(value.ToStr())
+    text = numberValue.ToStr()
+    if Instr(1, text, ",") > 0 then text = StringUtils_Replace(text, ",", "")
+    return text
 end function

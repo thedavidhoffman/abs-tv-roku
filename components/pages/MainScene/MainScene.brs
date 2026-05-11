@@ -90,6 +90,13 @@ sub initStyle()
     if m.bg <> invalid then m.bg.color = palette.background.secondary
 end sub
 
+'-------------------------------------------------------------------------------
+' reloadHomeShelvesAfterPlayback
+'-------------------------------------------------------------------------------
+sub reloadHomeShelvesAfterPlayback()
+    if m.homePage <> invalid then m.homePage.callFunc("reloadPersonalizedShelves")
+end sub
+
 '===============================================================================
 ' Auth / Session
 '===============================================================================
@@ -740,6 +747,7 @@ sub playbackHandlePlayerCloseRequested()
     
     m.player.visible = false
     m.authenticatedContent.visible = true
+    reloadHomeShelvesAfterPlayback()
 
     if m.playerReturnTarget = "home" and m.homePage <> invalid and m.homePage.visible then
         focusHomePage()
