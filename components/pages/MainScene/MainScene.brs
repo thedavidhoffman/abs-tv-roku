@@ -10,6 +10,7 @@ sub init()
     m.loginActivationCounter = 0
     m.authResumeRequestCounter = 0
     m.authLogoutRequestCounter = 0
+    m.seriesRowsRequestCounter = 0
     m.mediaProgress = []
     m.focusSettingsAfterLibraryReload = false
     m.playerReturnTarget = ""
@@ -28,10 +29,12 @@ sub initReferences()
     m.header = m.top.findNode("header")
     m.homePage = m.top.findNode("homePage")
     m.library = m.top.findNode("library")
+    m.seriesPage = m.top.findNode("seriesPage")
     m.search = m.top.findNode("search")
     m.player = m.top.findNode("player")
     m.overlayHost = m.top.findNode("overlayHost")
     m.authController = m.top.findNode("authController")
+    m.libraryController = m.top.findNode("libraryController")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -41,6 +44,7 @@ sub initHandlers()
     m.login.observeField("loginRequested", "authHandleLoginRequested")
     m.header.observeField("homeSelected", "homeHandlePressed")
     m.header.observeField("librarySelected", "libraryHandlePressed")
+    m.header.observeField("seriesSelected", "seriesHandlePressed")
     m.header.observeField("searchSelected", "searchHandlePressed")
     m.header.observeField("currentLibrarySelected", "libraryHandleCurrentLibrarySelected")
     m.header.observeField("downSelected", "headerHandleDownPressed")
@@ -58,6 +62,12 @@ sub initHandlers()
     m.library.observeField("backFromFirstItemSelected", "libraryHandleBackFromFirstItemSelected")
     m.library.observeField("itemsReloaded", "libraryHandleItemsReloaded")
     m.library.observeField("mainListRestored", "libraryHandleMainListRestored")
+    m.library.observeField("controllerSearchRequest", "libraryHandleSearchRequest")
+    m.library.observeField("seriesItemsRequest", "libraryHandleSeriesItemsRequest")
+    m.seriesPage.observeField("playSelected", "seriesHandlePlaySelected")
+    m.seriesPage.observeField("upFromFirstRowSelected", "seriesHandleUpFromFirstRowSelected")
+    m.seriesPage.observeField("backSelected", "seriesHandleBackSelected")
+    m.seriesPage.observeField("errorResponse", "seriesHandleError")
     m.player.observeField("closeRequested", "playbackHandlePlayerCloseRequested")
     m.player.observeField("errorResponse", "playbackHandlePlayerError")
     m.overlayHost.observeField("closed", "overlayHandleClosed")
@@ -65,6 +75,11 @@ sub initHandlers()
     m.authController.observeField("loginRequired", "authHandleLoginRequired")
     m.authController.observeField("loginFailed", "authHandleLoginFailed")
     m.authController.observeField("sessionExpired", "authHandleSessionExpired")
+    m.libraryController.observeField("libraryItemsChanged", "libraryControllerHandleItemsChanged")
+    m.libraryController.observeField("searchResponse", "libraryControllerHandleSearchResponse")
+    m.libraryController.observeField("seriesItemsResponse", "libraryControllerHandleSeriesItemsResponse")
+    m.libraryController.observeField("seriesRowsResponse", "libraryControllerHandleSeriesRowsResponse")
+    m.libraryController.observeField("errorResponse", "libraryControllerHandleError")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -142,6 +157,7 @@ sub authStoreMediaProgress(mediaProgress as dynamic)
 
     if m.homePage <> invalid then m.homePage.mediaProgress = m.mediaProgress
     if m.library <> invalid then m.library.mediaProgress = m.mediaProgress
+    if m.seriesPage <> invalid then m.seriesPage.mediaProgress = m.mediaProgress
 end sub
 
 '-------------------------------------------------------------------------------
@@ -254,10 +270,17 @@ sub navShowApp()
         m.homePage.loadRequest = loadRequest
     end if
     if m.library <> invalid then m.library.mediaProgress = m.mediaProgress
+    if m.seriesPage <> invalid then
+        m.seriesPage.mediaProgress = m.mediaProgress
+        m.seriesPage.loadRequest = loadRequest
+    end if
     navShowHomePage()
     focusHomePage()
     if m.library <> invalid then
         m.library.loadRequest = loadRequest
+    end if
+    if m.libraryController <> invalid then
+        m.libraryController.loadRequest = loadRequest
     end if
 end sub
 
@@ -279,6 +302,7 @@ end function
 '-------------------------------------------------------------------------------
 sub navShowHomePage()
     if m.homePage <> invalid then m.homePage.visible = true
+    if m.seriesPage <> invalid then m.seriesPage.visible = false
     if m.library <> invalid then
         m.library.visible = false
         m.library.callFunc("resetDrilldown")
@@ -290,7 +314,20 @@ end sub
 '-------------------------------------------------------------------------------
 sub navShowLibraryPage()
     if m.homePage <> invalid then m.homePage.visible = false
+    if m.seriesPage <> invalid then m.seriesPage.visible = false
     if m.library <> invalid then m.library.visible = true
+end sub
+
+'-------------------------------------------------------------------------------
+' navShowSeriesPage
+'-------------------------------------------------------------------------------
+sub navShowSeriesPage()
+    if m.homePage <> invalid then m.homePage.visible = false
+    if m.library <> invalid then
+        m.library.visible = false
+        m.library.callFunc("resetDrilldown")
+    end if
+    if m.seriesPage <> invalid then m.seriesPage.visible = true
 end sub
 
 '-------------------------------------------------------------------------------
@@ -304,6 +341,11 @@ sub headerHandleDownPressed()
 
     if m.library <> invalid and m.library.visible then
         focusLibraryList()
+        return
+    end if
+
+    if m.seriesPage <> invalid and m.seriesPage.visible then
+        focusSeriesPage()
     end if
 end sub
 
@@ -357,6 +399,13 @@ sub focusLibraryList()
 end sub
 
 '-------------------------------------------------------------------------------
+' focusSeriesPage
+'-------------------------------------------------------------------------------
+sub focusSeriesPage()
+    if m.seriesPage <> invalid then m.seriesPage.callFunc("focusSeriesPage")
+end sub
+
+'-------------------------------------------------------------------------------
 ' focusSettingsButton
 '-------------------------------------------------------------------------------
 sub focusSettingsButton()
@@ -394,9 +443,6 @@ sub searchHandleQuerySelected()
     navShowLibraryPage()
     if m.library <> invalid then
         m.library.searchRequest = {
-            server: m.session.server
-            token: m.session.token
-            bookLibraryId: m.session.bookLibraryId
             searchTerm: searchTerm
             counter: selectedQuery.counter
         }
@@ -482,6 +528,77 @@ sub libraryHandleCurrentLibrarySelected()
         m.library.loadRequest = loadRequest
     end if
     if m.homePage <> invalid then m.homePage.loadRequest = loadRequest
+    if m.seriesPage <> invalid then
+        m.seriesPage.callFunc("resetSeriesRows")
+        m.seriesPage.loadRequest = loadRequest
+    end if
+    if m.libraryController <> invalid then m.libraryController.loadRequest = loadRequest
+    if m.seriesPage <> invalid and m.seriesPage.visible = true then requestSeriesRows()
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleSearchRequest
+'-------------------------------------------------------------------------------
+sub libraryHandleSearchRequest()
+    if m.library = invalid then return
+    if m.libraryController = invalid then return
+
+    m.libraryController.searchRequest = m.library.controllerSearchRequest
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleSeriesItemsRequest
+'-------------------------------------------------------------------------------
+sub libraryHandleSeriesItemsRequest()
+    if m.library = invalid then return
+    if m.libraryController = invalid then return
+
+    m.libraryController.seriesItemsRequest = m.library.seriesItemsRequest
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryControllerHandleItemsChanged
+'-------------------------------------------------------------------------------
+sub libraryControllerHandleItemsChanged()
+    if m.libraryController = invalid then return
+    if m.library <> invalid then m.library.rootLibraryItems = m.libraryController.libraryItems
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryControllerHandleSearchResponse
+'-------------------------------------------------------------------------------
+sub libraryControllerHandleSearchResponse()
+    if m.libraryController = invalid then return
+    if m.library <> invalid then m.library.searchResponse = m.libraryController.searchResponse
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryControllerHandleSeriesItemsResponse
+'-------------------------------------------------------------------------------
+sub libraryControllerHandleSeriesItemsResponse()
+    if m.libraryController = invalid then return
+    if m.library <> invalid then m.library.seriesItemsResponse = m.libraryController.seriesItemsResponse
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryControllerHandleSeriesRowsResponse
+'-------------------------------------------------------------------------------
+sub libraryControllerHandleSeriesRowsResponse()
+    if m.libraryController = invalid then return
+    if m.seriesPage <> invalid then m.seriesPage.seriesRowsResponse = m.libraryController.seriesRowsResponse
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryControllerHandleError
+'-------------------------------------------------------------------------------
+sub libraryControllerHandleError()
+    if m.libraryController = invalid then return
+
+    response = m.libraryController.errorResponse
+    if response = invalid then return
+    if handleComponentError(response) then return
+    if m.library <> invalid and m.library.visible = true then m.library.errorResponse = response
+    if m.seriesPage <> invalid and m.seriesPage.visible = true then m.seriesPage.errorResponse = response
 end sub
 
 '-------------------------------------------------------------------------------
@@ -532,6 +649,65 @@ sub libraryHandleMainListRestored()
 end sub
 
 '===============================================================================
+' Series
+'===============================================================================
+
+'-------------------------------------------------------------------------------
+' seriesHandlePressed
+'-------------------------------------------------------------------------------
+sub seriesHandlePressed()
+    headerCloseMenu()
+    if m.library <> invalid then m.library.callFunc("resetSearchResults")
+    navShowSeriesPage()
+    requestSeriesRows()
+    focusSeriesPage()
+end sub
+
+'-------------------------------------------------------------------------------
+' requestSeriesRows
+'-------------------------------------------------------------------------------
+sub requestSeriesRows()
+    if m.libraryController = invalid then return
+
+    if m.seriesRowsRequestCounter = invalid then m.seriesRowsRequestCounter = 0
+    m.seriesRowsRequestCounter = m.seriesRowsRequestCounter + 1
+    m.libraryController.seriesRowsRequest = {
+        action: "loadSeriesRows"
+        counter: m.seriesRowsRequestCounter
+    }
+end sub
+
+'-------------------------------------------------------------------------------
+' seriesHandlePlaySelected
+'-------------------------------------------------------------------------------
+sub seriesHandlePlaySelected()
+    selectedItem = m.seriesPage.playSelected
+    m.playerReturnTarget = "series"
+    playbackPlayItem(selectedItem)
+end sub
+
+'-------------------------------------------------------------------------------
+' seriesHandleBackSelected
+'-------------------------------------------------------------------------------
+sub seriesHandleBackSelected()
+    focusHeader()
+end sub
+
+'-------------------------------------------------------------------------------
+' seriesHandleUpFromFirstRowSelected
+'-------------------------------------------------------------------------------
+sub seriesHandleUpFromFirstRowSelected()
+    focusHeader()
+end sub
+
+'-------------------------------------------------------------------------------
+' seriesHandleError
+'-------------------------------------------------------------------------------
+sub seriesHandleError()
+    handleComponentError(m.seriesPage.errorResponse)
+end sub
+
+'===============================================================================
 ' Playback
 '===============================================================================
 
@@ -567,6 +743,11 @@ sub playbackHandlePlayerCloseRequested()
 
     if m.playerReturnTarget = "home" and m.homePage <> invalid and m.homePage.visible then
         focusHomePage()
+        return
+    end if
+
+    if m.playerReturnTarget = "series" and m.seriesPage <> invalid and m.seriesPage.visible then
+        focusSeriesPage()
         return
     end if
 
@@ -636,6 +817,7 @@ sub overlayHandleSettingsSaved(savedSettings as dynamic)
     if savedSettings = invalid then return
 
     if m.library <> invalid then m.library.displaySettings = savedSettings
+    if m.libraryController <> invalid then m.libraryController.displaySettings = savedSettings
     m.focusSettingsAfterLibraryReload = true
 end sub
 

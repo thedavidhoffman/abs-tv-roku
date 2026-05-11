@@ -7,6 +7,7 @@ sub init()
 
     m.homeSelectedCounter = 0
     m.librarySelectedCounter = 0
+    m.seriesSelectedCounter = 0
     m.searchSelectedCounter = 0
     m.currentLibrarySelectedCounter = 0
     m.logoutSelectedCounter = 0
@@ -29,6 +30,7 @@ sub initReferences()
     m.headerBg = m.top.findNode("headerBg")
     m.homeButton = m.top.findNode("homeButton")
     m.libraryButton = m.top.findNode("libraryButton")
+    m.seriesButton = m.top.findNode("seriesButton")
     m.searchButton = m.top.findNode("searchButton")
     m.settingsButton = m.top.findNode("settingsButton")
     m.currentLibraryButton = m.top.findNode("currentLibraryButton")
@@ -44,6 +46,7 @@ sub initReferences()
         m.currentLibraryButton    
         m.homeButton
         m.libraryButton
+        m.seriesButton
         m.searchButton
         m.settingsButton
         m.userMenuButton
@@ -56,6 +59,7 @@ end sub
 sub initHandlers()
     m.homeButton.observeField("buttonSelected", "onHomePressed")
     m.libraryButton.observeField("buttonSelected", "onLibraryPressed")
+    m.seriesButton.observeField("buttonSelected", "onSeriesPressed")
     m.searchButton.observeField("buttonSelected", "onSearchPressed")
     m.settingsButton.observeField("buttonSelected", "onSettingsPressed")
     m.currentLibraryButton.observeField("buttonSelected", "onCurrentLibraryPressed")
@@ -74,6 +78,7 @@ sub initStyle()
 
     if m.homeButton <> invalid then m.homeButton.headerBgColor = headerBgColor
     if m.libraryButton <> invalid then m.libraryButton.headerBgColor = headerBgColor
+    if m.seriesButton <> invalid then m.seriesButton.headerBgColor = headerBgColor
     if m.searchButton <> invalid then m.searchButton.headerBgColor = headerBgColor
     if m.settingsButton <> invalid then m.settingsButton.headerBgColor = headerBgColor
     if m.currentLibraryButton <> invalid then m.currentLibraryButton.headerBgColor = headerBgColor
@@ -124,6 +129,14 @@ end function
 '-------------------------------------------------------------------------------
 function activateLibraryButton() as boolean
     setActiveHeaderButton("library")
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' activateSeriesButton
+'-------------------------------------------------------------------------------
+function activateSeriesButton() as boolean
+    setActiveHeaderButton("series")
     return true
 end function
 
@@ -271,10 +284,11 @@ function getFocusedHeaderButtonIndex() as integer
     if isLibraryMenuInFocusChain() then return 0
     if m.homeButton <> invalid and m.homeButton.isInFocusChain() then return 1
     if m.libraryButton <> invalid and m.libraryButton.isInFocusChain() then return 2
-    if m.searchButton <> invalid and m.searchButton.isInFocusChain() then return 3
-    if m.settingsButton <> invalid and m.settingsButton.isInFocusChain() then return 4
-    if m.userMenuButton <> invalid and m.userMenuButton.isInFocusChain() then return 5
-    if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return 5
+    if m.seriesButton <> invalid and m.seriesButton.isInFocusChain() then return 3
+    if m.searchButton <> invalid and m.searchButton.isInFocusChain() then return 4
+    if m.settingsButton <> invalid and m.settingsButton.isInFocusChain() then return 5
+    if m.userMenuButton <> invalid and m.userMenuButton.isInFocusChain() then return 6
+    if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return 6
 
     return -1
 end function
@@ -357,6 +371,16 @@ sub onLibraryPressed()
 end sub
 
 '-------------------------------------------------------------------------------
+' onSeriesPressed
+'-------------------------------------------------------------------------------
+sub onSeriesPressed()
+    closeMenu()
+    setActiveHeaderButton("series")
+    m.seriesSelectedCounter = m.seriesSelectedCounter + 1
+    m.top.seriesSelected = m.seriesSelectedCounter
+end sub
+
+'-------------------------------------------------------------------------------
 ' onSearchPressed
 '-------------------------------------------------------------------------------
 sub onSearchPressed()
@@ -393,6 +417,7 @@ end sub
 sub setActiveHeaderButton(activeButtonName as string)
     if m.homeButton <> invalid then m.homeButton.isActive = (activeButtonName = "home")
     if m.libraryButton <> invalid then m.libraryButton.isActive = (activeButtonName = "library")
+    if m.seriesButton <> invalid then m.seriesButton.isActive = (activeButtonName = "series")
     if m.searchButton <> invalid then m.searchButton.isActive = (activeButtonName = "search")
     if m.settingsButton <> invalid then m.settingsButton.isActive = false
 end sub

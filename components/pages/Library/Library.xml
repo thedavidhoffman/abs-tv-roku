@@ -9,6 +9,9 @@
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
     <field id="searchRequest" type="assocarray" onChange="onSearchRequestChanged" />
+    <field id="searchResponse" type="assocarray" onChange="onSearchResponseChanged" />
+    <field id="seriesItemsResponse" type="assocarray" onChange="onSeriesItemsResponseChanged" />
+    <field id="rootLibraryItems" type="array" onChange="onRootLibraryItemsChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
     <field id="searchResults" type="array" />
     <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />
@@ -16,6 +19,8 @@
     <field id="upFromFirstItemSelected" type="integer" />
     <field id="backFromFirstItemSelected" type="integer" />
     <field id="mainListRestored" type="integer" />
+    <field id="controllerSearchRequest" type="assocarray" />
+    <field id="seriesItemsRequest" type="assocarray" />
     <field id="errorResponse" type="assocarray" />
     <field id="itemsReloaded" type="integer" />
     <function name="focusLibraryList" />
@@ -30,6 +35,5 @@
   <children>
     <ListView id="listView" />
     <GridView id="gridView" visible="false" />
-    <LibraryController id="libraryController" />
   </children>
 </component>

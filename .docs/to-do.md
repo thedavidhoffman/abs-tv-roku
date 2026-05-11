@@ -27,18 +27,23 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 ## Hit List
 ----------------------------------------------------
 
+- new series grid view with a row per series
+    - sequence number
+    - count per row?
+    - hint arrow?
+    - no series found - can't do any navigation
+
+- grid view detailed - card with cover and info (does not support collapsed)
+
 - roku channel screens
-- test on real tv
-- search execute against in memory
 - sort out header
+
+
 
 - default page setting
     - home
     - library
     - series
-
-- new series grid view with a row per series (need the above to make this work)
-- grid view detailed - card with cover and info (does not support collapsed)
 
 - Formatting to Format, use Format_ naming convention
 

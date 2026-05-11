@@ -18,6 +18,7 @@
 
       <HomePage id="homePage" visible="false" />
       <Library id="library" />
+      <Series id="seriesPage" visible="false" />
       <Header id="header" visible="false" />
 
     </Group>
@@ -27,5 +28,6 @@
     <OverlayHost id="overlayHost" />
 
     <AuthController id="authController" />
+    <LibraryController id="libraryController" />
   </children>
 </component>

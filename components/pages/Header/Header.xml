@@ -11,6 +11,7 @@
     <field id="currentLibraryId" type="string" onChange="onCurrentLibraryIdChanged" />
     <field id="homeSelected" type="integer" />
     <field id="librarySelected" type="integer" />
+    <field id="seriesSelected" type="integer" />
     <field id="searchSelected" type="integer" />
     <field id="currentLibrarySelected" type="assocarray" />
     <field id="downSelected" type="integer" />
@@ -22,6 +23,7 @@
     <function name="focusUserMenuButton" />
     <function name="isHomeButtonFocused" />
     <function name="activateLibraryButton" />
+    <function name="activateSeriesButton" />
     <function name="activateSearchButton" />
   </interface>
   <children>
@@ -38,9 +40,10 @@
 
     <Group id="navGroup" translation="[632,22]">
       <HeaderButton id="homeButton" translation="[0,0]" buttonWidth="150" buttonHeight="56" text="Home" />
-      <HeaderButton id="libraryButton" translation="[174,0]" buttonWidth="170" buttonHeight="56" text="Library" />
-      <HeaderButton id="searchButton" translation="[368,0]" buttonWidth="160" buttonHeight="56" text="Search" />
-      <HeaderButton id="settingsButton" translation="[552,0]" buttonWidth="180" buttonHeight="56" text="Settings" />
+      <HeaderButton id="libraryButton" translation="[162,0]" buttonWidth="170" buttonHeight="56" text="Library" />
+      <HeaderButton id="seriesButton" translation="[344,0]" buttonWidth="160" buttonHeight="56" text="Series" />
+      <HeaderButton id="searchButton" translation="[516,0]" buttonWidth="160" buttonHeight="56" text="Search" />
+      <HeaderButton id="settingsButton" translation="[688,0]" buttonWidth="180" buttonHeight="56" text="Settings" />
     </Group>
 
     <HeaderButton id="userMenuButton" translation="[1520,22]" buttonWidth="160" buttonHeight="56" />

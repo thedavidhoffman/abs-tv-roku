@@ -13,8 +13,10 @@ sub init()
     m.requestGeneration = 0
     m.libraryItemsChangedCounter = 0
     m.searchResponseCounter = 0
+    m.seriesRowsResponseCounter = 0
     m.seriesItemsResponseCounter = 0
     m.pendingSearchRequest = invalid
+    m.pendingSeriesRowsRequest = invalid
     m.pendingSeriesItemsRequest = invalid
 
     if m.allItemsTask <> invalid then m.allItemsTask.observeField("response", "onAllItemsResponse")
@@ -56,6 +58,39 @@ sub publishSearchResponse(request as object)
         requestGeneration: m.requestGeneration
         counter: m.searchResponseCounter
         libraryItems: getSearchItemsFromCache(searchTerm)
+    }
+end sub
+
+'-------------------------------------------------------------------------------
+' onSeriesRowsRequestChanged
+'-------------------------------------------------------------------------------
+sub onSeriesRowsRequestChanged()
+    request = m.top.seriesRowsRequest
+    if request = invalid then return
+
+    if hasAllLibraryCaches() = false then
+        m.pendingSeriesRowsRequest = request
+        return
+    end if
+
+    publishSeriesRowsResponse(request)
+end sub
+
+'-------------------------------------------------------------------------------
+' publishSeriesRowsResponse
+'-------------------------------------------------------------------------------
+sub publishSeriesRowsResponse(request as object)
+    if request = invalid then return
+
+    m.seriesRowsResponseCounter = m.seriesRowsResponseCounter + 1
+
+    m.top.seriesRowsResponse = {
+        ok: true
+        action: "loadSeriesRows"
+        requestGeneration: m.requestGeneration
+        counter: m.seriesRowsResponseCounter
+        requestCounter: request.counter
+        seriesRows: getSeriesRowsFromCache()
     }
 end sub
 
@@ -148,6 +183,7 @@ sub beginNewCacheGeneration()
     m.hasAllTitleItems = false
     m.hasCollapsedSeriesItems = false
     m.pendingSearchRequest = invalid
+    m.pendingSeriesRowsRequest = invalid
     m.pendingSeriesItemsRequest = invalid
     m.top.errorResponse = invalid
     publishItems([])
@@ -230,7 +266,15 @@ sub handleLibraryItemsResponse(response as dynamic)
 
     if shouldPublishPendingCacheRequests then publishPendingSearchResponse()
     if shouldPublishPendingCacheRequests then publishPendingSeriesItemsResponse()
+    if hasAllLibraryCaches() then publishPendingSeriesRowsResponse()
 end sub
+
+'-------------------------------------------------------------------------------
+' hasAllLibraryCaches
+'-------------------------------------------------------------------------------
+function hasAllLibraryCaches() as boolean
+    return m.hasAllTitleItems = true and m.hasCollapsedSeriesItems = true
+end function
 
 '-------------------------------------------------------------------------------
 ' publishPendingSearchResponse
@@ -241,6 +285,17 @@ sub publishPendingSearchResponse()
     request = m.pendingSearchRequest
     m.pendingSearchRequest = invalid
     publishSearchResponse(request)
+end sub
+
+'-------------------------------------------------------------------------------
+' publishPendingSeriesRowsResponse
+'-------------------------------------------------------------------------------
+sub publishPendingSeriesRowsResponse()
+    if m.pendingSeriesRowsRequest = invalid then return
+
+    request = m.pendingSeriesRowsRequest
+    m.pendingSeriesRowsRequest = invalid
+    publishSeriesRowsResponse(request)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -328,6 +383,54 @@ function formatCacheSize(bytes as integer) as string
 end function
 
 '-------------------------------------------------------------------------------
+' getSeriesRowsFromCache
+'-------------------------------------------------------------------------------
+function getSeriesRowsFromCache() as object
+    rows = []
+    if m.collapsedSeriesItems = invalid then return rows
+
+    itemLookup = buildLibraryItemLookup()
+    for each seriesItem in m.collapsedSeriesItems
+        if seriesItem <> invalid and seriesItem.collapsedSeries <> invalid then
+            libraryItems = getSeriesItemsByIdsFromLookup(seriesItem.collapsedSeries.libraryItemIds, itemLookup)
+            if libraryItems.Count() > 0 then
+                rows.Push({
+                    title: getCollapsedSeriesTitle(seriesItem)
+                    seriesId: getCollapsedSeriesId(seriesItem)
+                    libraryItems: libraryItems
+                })
+            end if
+        end if
+    end for
+
+    return rows
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesId
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesId(item as dynamic) as dynamic
+    if item = invalid then return invalid
+    if item.collapsedSeries = invalid then return invalid
+    if item.collapsedSeries.id = invalid then return invalid
+    return item.collapsedSeries.id
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesTitle
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesTitle(item as dynamic) as string
+    if item = invalid or item.collapsedSeries = invalid then return "Series"
+
+    collapsedSeries = item.collapsedSeries
+    return FirstNonEmpty([
+        collapsedSeries.nameIgnorePrefix
+        collapsedSeries.name
+        collapsedSeries.title
+    ], "Series")
+end function
+
+'-------------------------------------------------------------------------------
 ' getSearchItemsFromCache
 '-------------------------------------------------------------------------------
 function getSearchItemsFromCache(searchTerm as dynamic) as object
@@ -394,12 +497,18 @@ end function
 ' getSeriesItemsByIds
 '-------------------------------------------------------------------------------
 function getSeriesItemsByIds(libraryItemIds as dynamic) as object
+    return getSeriesItemsByIdsFromLookup(libraryItemIds, buildLibraryItemLookup())
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesItemsByIdsFromLookup
+'-------------------------------------------------------------------------------
+function getSeriesItemsByIdsFromLookup(libraryItemIds as dynamic, itemLookup as object) as object
     items = []
     ids = getLibraryItemIdList(libraryItemIds)
     if ids.Count() = 0 then return items
-    if m.allTitleItems = invalid then return items
+    if itemLookup = invalid then return items
 
-    itemLookup = buildLibraryItemLookup()
     for each id in ids
         item = itemLookup[id]
         if isDisplayableLibraryItem(item) then items.Push(item)

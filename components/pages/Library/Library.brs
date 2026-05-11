@@ -4,7 +4,6 @@
 sub init()
     m.listView = m.top.findNode("listView")
     m.gridView = m.top.findNode("gridView")
-    m.libraryController = m.top.findNode("libraryController")
     m.activeView = "list"
     m.syncingLibraryItems = false
     m.loadRequest = invalid
@@ -35,13 +34,6 @@ sub init()
         m.gridView.observeField("errorResponse", "onGridViewError")
     end if
 
-    if m.libraryController <> invalid then
-        m.libraryController.observeField("libraryItemsChanged", "onLibraryControllerItemsChanged")
-        m.libraryController.observeField("searchResponse", "onLibraryControllerSearchResponse")
-        m.libraryController.observeField("seriesItemsResponse", "onLibraryControllerSeriesItemsResponse")
-        m.libraryController.observeField("errorResponse", "onLibraryControllerError")
-    end if
-
     applyDisplaySettings(SettingsStore_Load())
 end sub
 
@@ -61,7 +53,7 @@ sub onSearchRequestChanged()
         searchTerm: searchTerm
         searchRequestCounter: m.activeSearchRequestCounter
     }
-    if m.libraryController <> invalid then m.libraryController.searchRequest = navRequest
+    m.top.controllerSearchRequest = navRequest
 end sub
 
 '-------------------------------------------------------------------------------
@@ -70,7 +62,6 @@ end sub
 sub onLoadRequestChanged()
     m.loadRequest = m.top.loadRequest
     syncLoadRequestToViews()
-    if m.libraryController <> invalid then m.libraryController.loadRequest = m.loadRequest
 end sub
 
 '-------------------------------------------------------------------------------
@@ -89,13 +80,13 @@ sub reloadItems()
 end sub
 
 '-------------------------------------------------------------------------------
-' onLibraryControllerItemsChanged
+' onRootLibraryItemsChanged
 '-------------------------------------------------------------------------------
-sub onLibraryControllerItemsChanged()
-    if m.libraryController = invalid or m.libraryController.libraryItems = invalid then
+sub onRootLibraryItemsChanged()
+    if m.top.rootLibraryItems = invalid then
         m.rootLibraryItems = []
     else
-        m.rootLibraryItems = m.libraryController.libraryItems
+        m.rootLibraryItems = m.top.rootLibraryItems
     end if
 
     if m.gridContextType = "root" then restoreRootLibraryItems()
@@ -116,12 +107,10 @@ sub restoreRootLibraryItems()
 end sub
 
 '-------------------------------------------------------------------------------
-' onLibraryControllerSearchResponse
+' onSearchResponseChanged
 '-------------------------------------------------------------------------------
-sub onLibraryControllerSearchResponse()
-    if m.libraryController = invalid then return
-
-    response = m.libraryController.searchResponse
+sub onSearchResponseChanged()
+    response = m.top.searchResponse
     if response = invalid then return
 
     if response.ok <> true then
@@ -191,7 +180,6 @@ sub onDisplaySettingsChanged()
     if settings = invalid then return
 
     applyDisplaySettings(settings)
-    if m.libraryController <> invalid then m.libraryController.displaySettings = settings
 end sub
 
 '-------------------------------------------------------------------------------
@@ -303,16 +291,14 @@ sub requestSeriesItems(request as object)
 
     m.seriesItemsRequestCounter = m.seriesItemsRequestCounter + 1
     request.counter = m.seriesItemsRequestCounter
-    if m.libraryController <> invalid then m.libraryController.seriesItemsRequest = request
+    m.top.seriesItemsRequest = request
 end sub
 
 '-------------------------------------------------------------------------------
-' onLibraryControllerSeriesItemsResponse
+' onSeriesItemsResponseChanged
 '-------------------------------------------------------------------------------
-sub onLibraryControllerSeriesItemsResponse()
-    if m.libraryController = invalid then return
-
-    response = m.libraryController.seriesItemsResponse
+sub onSeriesItemsResponseChanged()
+    response = m.top.seriesItemsResponse
     if response = invalid then return
 
     if response.ok <> true then
@@ -326,17 +312,6 @@ sub onLibraryControllerSeriesItemsResponse()
     end if
 
     storeSeriesItems(response)
-end sub
-
-'-------------------------------------------------------------------------------
-' onLibraryControllerError
-'-------------------------------------------------------------------------------
-sub onLibraryControllerError()
-    if m.libraryController = invalid then return
-
-    response = m.libraryController.errorResponse
-    if response = invalid then return
-    m.top.errorResponse = response
 end sub
 
 '-------------------------------------------------------------------------------

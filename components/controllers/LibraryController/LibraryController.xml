@@ -11,10 +11,12 @@
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
     <field id="searchRequest" type="assocarray" onChange="onSearchRequestChanged" />
+    <field id="seriesRowsRequest" type="assocarray" onChange="onSeriesRowsRequestChanged" />
     <field id="seriesItemsRequest" type="assocarray" onChange="onSeriesItemsRequestChanged" />
     <field id="libraryItems" type="array" />
     <field id="libraryItemsChanged" type="integer" />
     <field id="searchResponse" type="assocarray" />
+    <field id="seriesRowsResponse" type="assocarray" />
     <field id="seriesItemsResponse" type="assocarray" />
     <field id="loading" type="boolean" />
     <field id="errorResponse" type="assocarray" />

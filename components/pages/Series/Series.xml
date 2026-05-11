@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="Series" extends="Group" focusable="true">
+  <script type="text/brightscript" uri="pkg:/source/Formatting.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Cover.brs" />
+  <script type="text/brightscript" uri="pkg:/source/MediaProgressLookup.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Series/Series.brs" />
+  <interface>
+    <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
+    <field id="seriesRowsResponse" type="assocarray" onChange="onSeriesRowsResponseChanged" />
+    <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />
+    <field id="playSelected" type="assocarray" />
+    <field id="backSelected" type="integer" />
+    <field id="upFromFirstRowSelected" type="integer" />
+    <field id="errorResponse" type="assocarray" />
+    <function name="focusSeriesPage" />
+    <function name="resetSeriesRows" />
+  </interface>
+  <children>
+    <Label
+      id="statusLabel"
+      translation="[64,144]"
+      width="1200"
+      numLines="2"
+      wrap="true"
+      text=""
+      color="0xF6F7FBFF"
+      font="font:MediumSystemFont"
+      visible="false" />
+    <RowList
+      id="seriesRowList"
+      translation="[64,144]"
+      itemComponentName="ItemPoster"
+      numRows="3"
+      itemSize="[1792,405]"
+      rowItemSize="[[280,360],[280,360],[280,360]]"
+      itemSpacing="[0,34]"
+      rowItemSpacing="[[22,0],[22,0],[22,0]]"
+      showRowLabel="[true]"
+      rowLabelFont="font:SmallSystemFont"
+      rowLabelOffset="[[0,16],[0,16],[0,16]]"
+      drawFocusFeedback="true"
+      vertFocusAnimationStyle="fixedFocus" />
+  </children>
+</component>
