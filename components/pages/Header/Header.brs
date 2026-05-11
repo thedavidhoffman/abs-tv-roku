@@ -544,6 +544,8 @@ sub rebuildLibraryMenu()
             button.translation = [0, index * 66]
             button.buttonWidth = 300
             button.buttonHeight = 56
+            button.textAlign = "left"
+            button.textInset = 18
             button.text = FirstNonEmpty([library.name], "Library")
             button.headerBgColor = m.headerBg.color
             button.observeField("buttonSelected", "onLibraryMenuItemPressed")

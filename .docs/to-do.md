@@ -30,12 +30,8 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 - new series grid view with a row per series
     - no series found - can't do any navigation
 
-- grid view detailed - card with cover and info (does not support collapsed)
-
 - roku channel screens
 - sort out header
-
-
 
 - default page setting
     - home
@@ -44,9 +40,6 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 
 - Formatting to Format, use Format_ naming convention
 
-- search
-    - limit?? 200 takes a long ass time
-    - listview support search results
 
 - StandardKeyboardDialog on login form
 

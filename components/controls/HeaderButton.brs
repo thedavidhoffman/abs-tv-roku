@@ -11,6 +11,7 @@ sub init()
     if m.top.headerBgColor = invalid or m.top.headerBgColor = 0 then m.top.headerBgColor = &h12112BFF
     m.top.observeField("focusedChild", "onFocusChanged")
     onDimensionsChanged()
+    onTextLayoutChanged()
     onTextChanged()
     onFocusVisualChanged()
 end sub
@@ -42,10 +43,45 @@ sub onDimensionsChanged()
     end if
 
     if m.textLabel <> invalid then
-        m.textLabel.width = width
-        m.textLabel.translation = [0, int((height - 32) / 2)]
+        updateTextLayout(width, height)
     end if
 end sub
+
+'-------------------------------------------------------------------------------
+' onTextLayoutChanged
+'-------------------------------------------------------------------------------
+sub onTextLayoutChanged()
+    width = int(m.top.buttonWidth)
+    height = int(m.top.buttonHeight)
+    if width <= 0 then width = 300
+    if height <= 0 then height = 56
+
+    updateTextLayout(width, height)
+end sub
+
+'-------------------------------------------------------------------------------
+' updateTextLayout
+'-------------------------------------------------------------------------------
+sub updateTextLayout(width as integer, height as integer)
+    if m.textLabel = invalid then return
+
+    inset = int(m.top.textInset)
+    if inset < 0 then inset = 0
+    if inset * 2 >= width then inset = 0
+
+    m.textLabel.horizAlign = getTextAlign()
+    m.textLabel.width = width - (inset * 2)
+    m.textLabel.translation = [inset, int((height - 32) / 2)]
+end sub
+
+'-------------------------------------------------------------------------------
+' getTextAlign
+'-------------------------------------------------------------------------------
+function getTextAlign() as string
+    align = LCase(m.top.textAlign)
+    if align = "left" or align = "right" then return align
+    return "center"
+end function
 
 '-------------------------------------------------------------------------------
 ' onFocusVisualChanged
