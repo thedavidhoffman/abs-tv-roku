@@ -115,6 +115,8 @@ sub appendSeriesRow(root as object, seriesRow as dynamic)
             metadata = getItemMetadata(item)
             node.AddFields({
                 author: getItemAuthor(metadata)
+                seriesSequence: getSeriesSequence(item, seriesRow.seriesId)
+                showSeriesSequence: true
                 progressPercent: progress.progress
                 progressCurrentTime: progress.currentTime
                 progressDuration: progress.duration
@@ -477,6 +479,87 @@ function getItemMetadata(item as dynamic) as dynamic
     end if
 
     return {}
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesSequence
+'-------------------------------------------------------------------------------
+function getSeriesSequence(item as dynamic, seriesId as dynamic) as string
+    if item = invalid then return ""
+
+    metadata = getItemMetadata(item)
+    if metadata.seriesSequence <> invalid then return metadata.seriesSequence.ToStr()
+    if metadata.sequence <> invalid then return metadata.sequence.ToStr()
+    if metadata.series <> invalid then
+        sequence = getSequenceFromSeriesValue(metadata.series, seriesId)
+        if sequence <> "" then return sequence
+    end if
+
+    if item.seriesSequence <> invalid then return item.seriesSequence.ToStr()
+    if item.sequence <> invalid then return item.sequence.ToStr()
+
+    return ""
+end function
+
+'-------------------------------------------------------------------------------
+' getSequenceFromSeriesValue
+'-------------------------------------------------------------------------------
+function getSequenceFromSeriesValue(series as dynamic, seriesId as dynamic) as string
+    if series = invalid then return ""
+
+    seriesType = Type(series)
+    if seriesType = "roArray" then
+        if series.Count() = 0 then return ""
+
+        for each seriesEntry in series
+            if isMatchingSeriesEntry(seriesEntry, seriesId) then
+                sequence = getSeriesEntrySequence(seriesEntry)
+                if sequence <> "" then return sequence
+            end if
+        end for
+
+        for each seriesEntry in series
+            sequence = getSeriesEntrySequence(seriesEntry)
+            if sequence <> "" then return sequence
+        end for
+    else if seriesType = "roAssociativeArray" then
+        sequence = getSeriesEntrySequence(series)
+        if sequence <> "" then return sequence
+    end if
+
+    return ""
+end function
+
+'-------------------------------------------------------------------------------
+' isMatchingSeriesEntry
+'-------------------------------------------------------------------------------
+function isMatchingSeriesEntry(seriesEntry as dynamic, seriesId as dynamic) as boolean
+    seriesIdText = getSeriesIdText(seriesId)
+    if seriesIdText = "" then return false
+    if seriesEntry = invalid then return false
+    if Type(seriesEntry) <> "roAssociativeArray" then return false
+    if seriesEntry.id = invalid then return false
+
+    return seriesEntry.id.ToStr() = seriesIdText
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesEntrySequence
+'-------------------------------------------------------------------------------
+function getSeriesEntrySequence(seriesEntry as dynamic) as string
+    if seriesEntry = invalid then return ""
+    if Type(seriesEntry) <> "roAssociativeArray" then return ""
+    if seriesEntry.sequence <> invalid then return seriesEntry.sequence.ToStr()
+    if seriesEntry.seriesSequence <> invalid then return seriesEntry.seriesSequence.ToStr()
+    return ""
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesIdText
+'-------------------------------------------------------------------------------
+function getSeriesIdText(seriesId as dynamic) as string
+    if seriesId = invalid then return ""
+    return seriesId.ToStr()
 end function
 
 '-------------------------------------------------------------------------------

@@ -394,6 +394,7 @@ function getSeriesRowsFromCache() as object
         if seriesItem <> invalid and seriesItem.collapsedSeries <> invalid then
             libraryItems = getSeriesItemsByIdsFromLookup(seriesItem.collapsedSeries.libraryItemIds, itemLookup)
             if libraryItems.Count() > 0 then
+                applyFallbackSeriesSequences(libraryItems)
                 rows.Push({
                     title: getCollapsedSeriesTitle(seriesItem)
                     seriesId: getCollapsedSeriesId(seriesItem)
