@@ -28,9 +28,6 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 ----------------------------------------------------
 
 - new series grid view with a row per series
-    - sequence number
-    - count per row?
-    - hint arrow?
     - no series found - can't do any navigation
 
 - grid view detailed - card with cover and info (does not support collapsed)
