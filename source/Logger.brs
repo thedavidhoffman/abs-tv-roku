@@ -61,9 +61,9 @@ end function
 '-------------------------------------------------------------------------------
 function __Logger_WriteBlankLine() as object
     if m.buffered then
-        m.buffer.Push("")
+        m.buffer.Push()
     else
-        ? ""
+        ?
     end if
 
     return m
@@ -127,6 +127,37 @@ function __Logger_Format(message as dynamic, label as dynamic) as string
 
     text = SafeString(message, "")
     if label <> invalid and label <> "" then text = "[" + label + "] " + text
-    return text
+    return __Logger_TimestampPrefix() + text
 
+end function
+
+'-------------------------------------------------------------------------------
+' __Logger_TimestampPrefix
+'-------------------------------------------------------------------------------
+function __Logger_TimestampPrefix() as string
+    dateTime = CreateObject("roDateTime")
+    dateTime.ToLocalTime()
+
+    return __Logger_Pad2(dateTime.GetMonth()) + "-" + __Logger_Pad2(dateTime.GetDayOfMonth()) + " " + __Logger_Pad2(dateTime.GetHours()) + ":" + __Logger_Pad2(dateTime.GetMinutes()) + ":" + __Logger_Pad2(dateTime.GetSeconds()) + "." + __Logger_Pad3(dateTime.GetMilliseconds()) + " "
+end function
+
+'-------------------------------------------------------------------------------
+' __Logger_Pad2
+'-------------------------------------------------------------------------------
+function __Logger_Pad2(value as dynamic) as string
+    text = int(val(value.ToStr())).ToStr()
+    if Len(text) < 2 then return "0" + text
+    return text
+end function
+
+'-------------------------------------------------------------------------------
+' __Logger_Pad3
+'-------------------------------------------------------------------------------
+function __Logger_Pad3(value as dynamic) as string
+    text = int(val(value.ToStr())).ToStr()
+    while Len(text) < 3
+        text = "0" + text
+    end while
+
+    return text
 end function

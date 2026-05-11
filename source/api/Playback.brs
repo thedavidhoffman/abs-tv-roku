@@ -163,7 +163,6 @@ sub __LogPlaybackSessionResponse(log as object, operation as string, sessionId a
         status = SafeString(result.status, "invalid")
         ok = SafeString(result.ok, "invalid")
         message = SafeString(result.errorMessage, "")
-        hasData = (result.data <> invalid)
     end if
 
     log.write(operation + " response sessionId=" + SafeString(sessionId, "invalid") + " status=" + status + " ok=" + ok + " hasData=" + hasData.ToStr() + " errorMessage=" + message)

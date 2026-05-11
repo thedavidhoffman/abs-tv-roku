@@ -30,7 +30,8 @@
     <Description id="description" translation="[700,389]" width="1040" numLines="5" />
     
     <Label id="trackTitleLabel" translation="[700,664]" width="1040" />
-    <Label id="statusLabel" translation="[700,724]" width="1040" color="0xF2C879FF" />
+    <Label id="statusLabel" translation="[700,724]" width="430" color="0xF2C879FF" />
+    <Label id="chapterStatusLabel" translation="[1020,724]" width="720" horizAlign="right" color="0xB7C5D4FF" />
     
     <!-- progress -->
     <Group id="progressGroup" translation="[700,774]">

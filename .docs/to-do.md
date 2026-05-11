@@ -29,10 +29,13 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 ## Hit List
 ----------------------------------------------------
 
-- lost chapter title during playback
+- add timestamp to log
+- move media progress storage into LibraryController
+- create a cache array with key value pairs
+- log the entire cache size on cache update
+
 - when switching libraries load media progress for that library?
 - library... list... expanded... doctor who titles prefixed with a number
-- media progress when playing locallyannual
 
 - roku channel screens
 - sort out header

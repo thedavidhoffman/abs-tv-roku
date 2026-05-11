@@ -25,6 +25,7 @@ sub initReferences()
     m.descriptionLabel = m.top.findNode("description")
     m.trackTitleLabel = m.top.findNode("trackTitleLabel")
     m.statusLabel = m.top.findNode("statusLabel")
+    m.chapterStatusLabel = m.top.findNode("chapterStatusLabel")
     m.progressFill = m.top.findNode("progressFill")
     m.progressTrack = m.top.findNode("progressTrack")
     m.currentTimeLabel = m.top.findNode("currentTimeLabel")
@@ -86,6 +87,8 @@ sub initValues()
     m.seekHoldTally = 0
     m.seekHoldSeconds = 0
     m.seekHoldStartPosition = 0
+    m.deferChapterStatusUpdates = false
+    m.pendingChapterStatusUpdate = false
     m.transportButtons = [
         m.rewindButton
         m.playPauseButton
@@ -143,22 +146,12 @@ sub onPlayRequestChanged()
 
     m.playbackServer = request.server
     m.playbackToken = request.token
-    m.playbackSession = invalid
-    m.playbackSessionId = invalid
-    m.playbackStartedAtSeconds = 0
-    m.lastPlaybackSyncAtSeconds = 0
-    m.isHlsTranscode = false
-    m.hlsRetryCount = 0
-    m.hlsRetryPending = false
-    m.hlsSessionRefreshTried = false
-    m.forceTranscodeFallbackTried = false
-    m.hasStartedPlayback = false
-    m.visiblePlaybackStatus = ""
-    m.startTimeOverrideSeconds = invalid
+    resetPlaybackSessionState()
+    resetPlaybackRetryState(true)
+    resetPlaybackSyncState()
     m.audiobookTitle = SafeString(request.title, "Audiobook")
     m.requestedStartPositionSeconds = getRequestStartPosition(request)
     m.currentTimeSeconds = m.requestedStartPositionSeconds
-    m.pendingSeekSeconds = invalid
 
     if m.cover <> invalid then m.cover.itemContent = getCoverContent(request)
     if m.titleLabel <> invalid then m.titleLabel.text = m.audiobookTitle
@@ -168,8 +161,6 @@ sub onPlayRequestChanged()
     resetProgress()
     resetSeekHold()
     closeChapterList()
-    m.tracks = []
-    m.chapterItems = []
     updateChaptersButtonVisibility()
     focusTransportButton(1)
     setStatus("Starting playback...")
@@ -209,6 +200,60 @@ sub resetMediaNodeForNewPlayback()
         m.audioPlayer.control = "stop"
         m.audioPlayer.content = invalid
     end if
+end sub
+
+'-------------------------------------------------------------------------------
+' resetPlaybackSessionState
+'-------------------------------------------------------------------------------
+sub resetPlaybackSessionState()
+    m.tracks = []
+    m.chapterItems = []
+    m.currentTrackIndex = 0
+    m.currentTrackStartPosition = 0
+    m.pendingSeekSeconds = invalid
+    m.playbackSession = invalid
+    m.playbackSessionId = invalid
+    m.isHlsTranscode = false
+    updateCurrentChapterStatus()
+end sub
+
+'-------------------------------------------------------------------------------
+' resetPlaybackRetryState
+'-------------------------------------------------------------------------------
+sub resetPlaybackRetryState(resetFallbackAttempts = false as boolean)
+    m.hlsRetryCount = 0
+    m.hlsRetryPending = false
+    m.hasStartedPlayback = false
+    m.visiblePlaybackStatus = ""
+    m.startTimeOverrideSeconds = invalid
+    m.isPaused = false
+
+    if resetFallbackAttempts = true then
+        m.hlsSessionRefreshTried = false
+        m.forceTranscodeFallbackTried = false
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' resetPlaybackSyncState
+'-------------------------------------------------------------------------------
+sub resetPlaybackSyncState()
+    m.playbackStartedAtSeconds = 0
+    m.lastPlaybackSyncAtSeconds = 0
+    m.lastProgressTickAtSeconds = 0
+    m.lastSyncedCurrentTimeSeconds = 0
+    m.listeningTimeSinceSync = 0
+end sub
+
+'-------------------------------------------------------------------------------
+' startPlaybackSyncState
+'-------------------------------------------------------------------------------
+sub startPlaybackSyncState()
+    m.playbackStartedAtSeconds = getNowSeconds()
+    m.lastPlaybackSyncAtSeconds = m.playbackStartedAtSeconds
+    m.lastProgressTickAtSeconds = 0
+    m.lastSyncedCurrentTimeSeconds = 0
+    m.listeningTimeSinceSync = 0
 end sub
 
 '-------------------------------------------------------------------------------
@@ -292,11 +337,7 @@ sub handleStartPlaybackResponse(response as dynamic)
     m.isHlsTranscode = response.isHlsTranscode = true
     m.currentTimeSeconds = getStartPlaybackCurrentTime(response)
     m.totalDurationSeconds = getStartPlaybackDuration(response)
-    m.playbackStartedAtSeconds = getNowSeconds()
-    m.lastPlaybackSyncAtSeconds = m.playbackStartedAtSeconds
-    m.lastProgressTickAtSeconds = 0
-    m.lastSyncedCurrentTimeSeconds = 0
-    m.listeningTimeSinceSync = 0
+    startPlaybackSyncState()
     playTracks(response.tracks, response.chapters)
 end sub
 
@@ -431,6 +472,7 @@ sub playTracks(tracks as dynamic, chapters as dynamic)
     m.pendingSeekSeconds = getTrackSeekPosition(m.currentTrackIndex, m.currentTimeSeconds)
     updateChaptersButtonVisibility()
     updateChapterList()
+    updateCurrentChapterStatus()
     playCurrentTrack()
 end sub
 
@@ -464,6 +506,7 @@ sub playCurrentTrack(playWhenReady = true as boolean)
     end if
     updateProgress(m.currentTimeSeconds)
     updateChapterList()
+    updateCurrentChapterStatus()
 
     m.audioPlayer.control = "stop"
     m.audioPlayer.content = node
@@ -573,6 +616,7 @@ sub seekToGlobalTime(globalTime as dynamic, playWhenReady = true as boolean, sho
 
     updatePlaybackPosition(targetTime)
     updateChapterList()
+    updateCurrentChapterStatus()
     if shouldSync then requestSyncPlaybackSession("seek", targetTime)
 end sub
 
@@ -588,6 +632,7 @@ sub updatePlaybackPosition(globalTime as dynamic)
     m.currentTrackIndex = getTrackIndexForGlobalTime(m.currentTimeSeconds)
     setLabelText(m.trackTitleLabel, getDisplayTrackTitle(m.tracks[m.currentTrackIndex], m.currentTrackIndex))
     updateProgress(m.currentTimeSeconds)
+    updateCurrentChapterStatus()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -739,18 +784,10 @@ sub restartPlaybackSession(forceTranscode as boolean, reason as string)
     m.log.write("Restarting playback session reason=" + reason + " currentTime=" + currentTime.ToStr() + " forceTranscode=" + forceTranscode.ToStr())
 
     resetMediaNodeForNewPlayback()
-    m.playbackSession = invalid
-    m.playbackSessionId = invalid
+    resetPlaybackSessionState()
+    resetPlaybackRetryState(false)
     m.currentTimeSeconds = currentTime
     m.requestedStartPositionSeconds = currentTime
-    m.currentTrackIndex = 0
-    m.currentTrackStartPosition = 0
-    m.pendingSeekSeconds = invalid
-    m.isHlsTranscode = false
-    m.hlsRetryCount = 0
-    m.hlsRetryPending = false
-    m.hasStartedPlayback = false
-    m.isPaused = false
     setStatus("Starting playback...")
     requestStartPlaybackSession(forceTranscode, currentTime)
 end sub
@@ -933,23 +970,10 @@ sub finalizeClosePlayer()
         m.audioPlayer.content = invalid
     end if
 
-    m.tracks = []
-    m.chapterItems = []
-    m.currentTrackIndex = 0
-    m.currentTrackStartPosition = 0
-    m.pendingSeekSeconds = invalid
+    resetPlaybackSessionState()
+    resetPlaybackRetryState(true)
+    resetPlaybackSyncState()
     m.currentTimeSeconds = 0
-    m.playbackSession = invalid
-    m.playbackSessionId = invalid
-    m.isHlsTranscode = false
-    m.hasStartedPlayback = false
-    m.visiblePlaybackStatus = ""
-    m.playbackStartedAtSeconds = 0
-    m.lastPlaybackSyncAtSeconds = 0
-    m.lastProgressTickAtSeconds = 0
-    m.lastSyncedCurrentTimeSeconds = 0
-    m.listeningTimeSinceSync = 0
-    m.isPaused = false
     resetProgress()
     updateChaptersButtonVisibility()
     m.closeRequestedCounter = m.closeRequestedCounter + 1
@@ -1178,6 +1202,48 @@ sub updateChapterList()
     m.chapterList.tracks = m.chapterItems
     m.chapterList.currentTrackIndex = getCurrentChapterIndex()
     m.chapterList.audiobookTitle = m.audiobookTitle
+    updateCurrentChapterStatus()
+end sub
+
+'-------------------------------------------------------------------------------
+' updateCurrentChapterStatus
+'-------------------------------------------------------------------------------
+sub updateCurrentChapterStatus()
+    if m.chapterStatusLabel = invalid then return
+    if m.deferChapterStatusUpdates = true then
+        m.pendingChapterStatusUpdate = true
+        return
+    end if
+
+    title = ""
+    if m.chapterItems <> invalid and m.chapterItems.Count() > 1 then
+        index = getCurrentChapterIndex()
+        if index >= 0 and index < m.chapterItems.Count() then
+            chapter = m.chapterItems[index]
+            if chapter <> invalid then title = SafeString(chapter.title, "")
+        end if
+    end if
+
+    m.chapterStatusLabel.text = title
+end sub
+
+'-------------------------------------------------------------------------------
+' beginChapterStatusUpdateBatch
+'-------------------------------------------------------------------------------
+sub beginChapterStatusUpdateBatch()
+    m.deferChapterStatusUpdates = true
+    m.pendingChapterStatusUpdate = false
+end sub
+
+'-------------------------------------------------------------------------------
+' endChapterStatusUpdateBatch
+'-------------------------------------------------------------------------------
+sub endChapterStatusUpdateBatch()
+    pendingUpdate = (m.pendingChapterStatusUpdate = true)
+    m.deferChapterStatusUpdates = false
+    m.pendingChapterStatusUpdate = false
+
+    if pendingUpdate = true then updateCurrentChapterStatus()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1215,7 +1281,9 @@ sub onChapterSelected()
     resetSeekHold()
     stopProgressTimer()
     chapter = m.chapterItems[index]
+    beginChapterStatusUpdateBatch()
     seekToGlobalTime(getChapterStartPosition(chapter), m.isPaused <> true, true)
+    endChapterStatusUpdateBatch()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1462,6 +1530,7 @@ end function
 function getPlaybackCurrentTimeSeconds() as integer
     if m.audioPlayer = invalid then return clampGlobalTime(m.currentTimeSeconds)
     if m.tracks = invalid or m.tracks.Count() = 0 then return clampGlobalTime(m.currentTimeSeconds)
+    if m.hasStartedPlayback <> true then return clampGlobalTime(m.currentTimeSeconds)
 
     currentPosition = getCurrentPlaybackPosition()
     if m.isHlsTranscode = true then return clampGlobalTime(currentPosition)
