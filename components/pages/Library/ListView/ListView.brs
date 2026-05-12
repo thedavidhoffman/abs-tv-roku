@@ -107,7 +107,7 @@ sub rebuildLibraryList(focusIndex as dynamic)
 
                 seriesId = getCollapsedSeriesId(item)
                 if isSeriesExpanded(seriesId) then
-                    appendExpandedSeriesRows(root, seriesId, item)
+                    appendExpandedSeriesRows(root, seriesId)
                 end if
             end if
         end for
@@ -176,7 +176,7 @@ end sub
 '-------------------------------------------------------------------------------
 ' appendExpandedSeriesRows
 '-------------------------------------------------------------------------------
-sub appendExpandedSeriesRows(root as object, seriesId as dynamic, seriesItem as dynamic)
+sub appendExpandedSeriesRows(root as object, seriesId as dynamic)
     if seriesId = invalid then return
 
     seriesItems = m.seriesItemsById[getSeriesIdText(seriesId)]

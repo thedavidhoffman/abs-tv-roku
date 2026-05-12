@@ -49,7 +49,7 @@ function Playback_Start(request as object) as object
         return { ok: false, action: "startPlayback", errorMessage: "No playable audio tracks were returned." }
     end if
 
-    chapters = __MapChapters(playbackSession, tracks)
+    chapters = __MapChapters(playbackSession)
     __LogMappedTracks(log, tracks)
 
     return {
@@ -256,7 +256,7 @@ end function
 '-------------------------------------------------------------------------------
 ' __MapChapters
 '-------------------------------------------------------------------------------
-function __MapChapters(session as dynamic, tracks as object) as object
+function __MapChapters(session as dynamic) as object
     chapters = []
     if session = invalid or session.chapters = invalid or session.chapters.Count() = 0 then return chapters
 
