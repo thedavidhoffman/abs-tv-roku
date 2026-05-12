@@ -594,10 +594,10 @@ end function
 ' getItemCategory
 '-------------------------------------------------------------------------------
 function getItemCategory(metadata as dynamic) as string
-    category = getJoinedText(metadata.genres)
+    category = String_GetJoinedText(metadata.genres)
     if category <> "" then return category
 
-    category = getJoinedText(metadata.categories)
+    category = String_GetJoinedText(metadata.categories)
     if category <> "" then return category
 
     return FirstNonEmpty([metadata.genre, metadata.category], "")
@@ -644,28 +644,6 @@ function getNameCount(values as dynamic, fallbackText as string) as integer
     if text = "" or text = "Unknown" then return 0
     if Instr(1, text, ",") > 0 or Instr(1, text, " and ") > 0 or Instr(1, text, " & ") > 0 then return 2
     return 1
-end function
-
-'-------------------------------------------------------------------------------
-' getJoinedText
-'-------------------------------------------------------------------------------
-function getJoinedText(values as dynamic) as string
-    if values = invalid then return ""
-
-    if Type(values) <> "roArray" and Type(values) <> "roAssociativeArray" then
-        return String_Trim(values.ToStr())
-    end if
-
-    result = ""
-    for each value in values
-        text = String_Trim(value.ToStr())
-        if text <> "" then
-            if result <> "" then result = result + ", "
-            result = result + text
-        end if
-    end for
-
-    return result
 end function
 
 '-------------------------------------------------------------------------------

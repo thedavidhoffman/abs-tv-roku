@@ -28,9 +28,6 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 
 ## Hit List
 ----------------------------------------------------
-
-String_GetJoinedText to Array?
-
 - move media progress storage into LibraryController
 - when switching libraries load media progress for that library?
 - library... list... expanded... doctor who titles prefixed with a number
@@ -46,6 +43,8 @@ String_GetJoinedText to Array?
 - diagnostic screen
     - add cache info
     - add library names
+
+- listview, collapsed to expanded adds sequence number
 
 - Formatting to Format, use Format_ naming convention
 
