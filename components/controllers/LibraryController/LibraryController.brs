@@ -6,10 +6,7 @@ sub init()
     m.collapsedItemsTask = m.top.findNode("collapsedItemsTask")
     m.loadRequest = invalid
     m.displaySettings = SettingsStore_Load()
-    m.allTitleItems = []
-    m.collapsedSeriesItems = []
-    m.hasAllTitleItems = false
-    m.hasCollapsedSeriesItems = false
+    m.cache = []
     m.requestGeneration = 0
     m.libraryItemsChangedCounter = 0
     m.searchResponseCounter = 0
@@ -33,7 +30,7 @@ sub onSearchRequestChanged()
     request = m.top.searchRequest
     if request = invalid then return
 
-    if m.hasAllTitleItems <> true then
+    if cacheHas(cacheKeyAllTitles()) <> true then
         m.pendingSearchRequest = request
         return
     end if
@@ -101,7 +98,7 @@ sub onSeriesItemsRequestChanged()
     request = m.top.seriesItemsRequest
     if request = invalid then return
 
-    if m.hasAllTitleItems <> true then
+    if cacheHas(cacheKeyAllTitles()) <> true then
         m.pendingSeriesItemsRequest = request
         return
     end if
@@ -159,8 +156,8 @@ function reloadActiveLibrary() as boolean
     beginNewCacheGeneration()
     m.top.loading = true
 
-    runLibraryItemsRequest(m.allItemsTask, "allTitles", false)
-    runLibraryItemsRequest(m.collapsedItemsTask, "collapsedSeries", true)
+    runLibraryItemsRequest(m.allItemsTask, cacheKeyAllTitles(), false)
+    runLibraryItemsRequest(m.collapsedItemsTask, cacheKeyCollapsedSeries(), true)
     return true
 end function
 
@@ -178,10 +175,7 @@ end function
 '-------------------------------------------------------------------------------
 sub beginNewCacheGeneration()
     m.requestGeneration = m.requestGeneration + 1
-    m.allTitleItems = []
-    m.collapsedSeriesItems = []
-    m.hasAllTitleItems = false
-    m.hasCollapsedSeriesItems = false
+    cacheClear()
     m.pendingSearchRequest = invalid
     m.pendingSeriesRowsRequest = invalid
     m.pendingSeriesItemsRequest = invalid
@@ -250,19 +244,19 @@ sub handleLibraryItemsResponse(response as dynamic)
         return
     end if
 
-    if response.cacheKey = "collapsedSeries" then
-        m.collapsedSeriesItems = getResponseLibraryItems(response)
-        m.hasCollapsedSeriesItems = true
-        logCacheSize("collapsedSeriesItems", m.collapsedSeriesItems)
-    else if response.cacheKey = "allTitles" then
-        m.allTitleItems = getResponseLibraryItems(response)
-        m.hasAllTitleItems = true
+    if response.cacheKey = cacheKeyCollapsedSeries() then
+        items = getResponseLibraryItems(response)
+        cacheSet(cacheKeyCollapsedSeries(), items)
+    else if response.cacheKey = cacheKeyAllTitles() then
+        items = getResponseLibraryItems(response)
+        cacheSet(cacheKeyAllTitles(), items)
         shouldPublishPendingCacheRequests = true
-        logCacheSize("allTitleItems", m.allTitleItems)
+    else
+        return
     end if
 
     publishCurrentLibraryItems()
-    m.top.loading = (m.hasAllTitleItems = false or m.hasCollapsedSeriesItems = false)
+    m.top.loading = (hasAllLibraryCaches() = false)
 
     if shouldPublishPendingCacheRequests then publishPendingSearchResponse()
     if shouldPublishPendingCacheRequests then publishPendingSeriesItemsResponse()
@@ -273,7 +267,7 @@ end sub
 ' hasAllLibraryCaches
 '-------------------------------------------------------------------------------
 function hasAllLibraryCaches() as boolean
-    return m.hasAllTitleItems = true and m.hasCollapsedSeriesItems = true
+    return cacheHas(cacheKeyAllTitles()) = true and cacheHas(cacheKeyCollapsedSeries()) = true
 end function
 
 '-------------------------------------------------------------------------------
@@ -314,9 +308,9 @@ end sub
 '-------------------------------------------------------------------------------
 sub publishCurrentLibraryItems()
     if shouldUseCollapsedSeriesItems() then
-        publishItems(m.collapsedSeriesItems)
+        publishItems(cacheGetItems(cacheKeyCollapsedSeries()))
     else
-        publishItems(m.allTitleItems)
+        publishItems(cacheGetItems(cacheKeyAllTitles()))
     end if
 end sub
 
@@ -353,15 +347,160 @@ function getResponseLibraryItems(response as dynamic) as object
 end function
 
 '-------------------------------------------------------------------------------
-' logCacheSize
+' cacheKeyAllTitles
 '-------------------------------------------------------------------------------
-sub logCacheSize(cacheName as string, items as dynamic)
+function cacheKeyAllTitles() as string
+    return "allTitles"
+end function
+
+'-------------------------------------------------------------------------------
+' cacheKeyCollapsedSeries
+'-------------------------------------------------------------------------------
+function cacheKeyCollapsedSeries() as string
+    return "collapsedSeries"
+end function
+
+'-------------------------------------------------------------------------------
+' cacheSet
+'-------------------------------------------------------------------------------
+sub cacheSet(cacheKey as string, value as dynamic)
+    if m.cache = invalid then m.cache = []
+
+    for i = 0 to m.cache.Count() - 1
+        cacheEntry = m.cache[i]
+        if cacheEntry <> invalid and cacheEntry.key = cacheKey then
+            cacheEntry.value = value
+            cacheLog()
+            return
+        end if
+    end for
+
+    m.cache.Push({
+        key: cacheKey
+        value: value
+    })
+    cacheLog()
+end sub
+
+'-------------------------------------------------------------------------------
+' cacheGet
+'-------------------------------------------------------------------------------
+function cacheGet(cacheKey as string) as dynamic
+    if m.cache = invalid then return invalid
+
+    for each cacheEntry in m.cache
+        if cacheEntry <> invalid and cacheEntry.key = cacheKey then return cacheEntry.value
+    end for
+
+    return invalid
+end function
+
+'-------------------------------------------------------------------------------
+' cacheHas
+'-------------------------------------------------------------------------------
+function cacheHas(cacheKey as string) as boolean
+    if m.cache = invalid then return false
+
+    for each cacheEntry in m.cache
+        if cacheEntry <> invalid and cacheEntry.key = cacheKey then return true
+    end for
+
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' cacheClear
+'-------------------------------------------------------------------------------
+sub cacheClear()
+    m.cache = []
+    cacheLog()
+end sub
+
+'-------------------------------------------------------------------------------
+' cacheGetItems
+'-------------------------------------------------------------------------------
+function cacheGetItems(cacheKey as string) as object
+    items = cacheGet(cacheKey)
+    if items = invalid then return []
+    return items
+end function
+
+'-------------------------------------------------------------------------------
+' cacheLog
+'-------------------------------------------------------------------------------
+sub cacheLog()
     log = CreateLogger("LibraryController", false)
-    bytes = getJsonByteSize(items)
-    itemCount = Array_GetCount(items)
-    log.write(cacheName + " cache stored: [" + itemCount.ToStr() + " items] [" + formatCacheSize(bytes) + "]")
+
+    log.write("cache")
+    log.write(cacheTableDivider())
+    log.write(cacheTableRow("key", "items", "size"))
+    log.write(cacheTableDivider())
+
+    if m.cache = invalid or m.cache.Count() = 0 then
+        log.write(cacheTableRow("(empty)", "", ""))
+    else
+        for each cacheEntry in m.cache
+            if cacheEntry <> invalid then
+                itemCount = Array_GetCount(cacheEntry.value)
+                bytes = getJsonByteSize(cacheEntry.value)
+                log.write(cacheTableRow(SafeString(cacheEntry.key), itemCount.ToStr(), formatCacheSize(bytes)))
+            end if
+        end for
+    end if
+
+    log.write(cacheTableDivider())
     log.writeBlankLine()
 end sub
+
+'-------------------------------------------------------------------------------
+' cacheTableDivider
+'-------------------------------------------------------------------------------
+function cacheTableDivider() as string
+    return "+" + cacheRepeat("-", 24) + "+" + cacheRepeat("-", 8) + "+" + cacheRepeat("-", 20) + "+"
+end function
+
+'-------------------------------------------------------------------------------
+' cacheTableRow
+'-------------------------------------------------------------------------------
+function cacheTableRow(key as string, itemCount as string, size as string) as string
+    return "| " + cachePadRight(key, 22) + " | " + cachePadLeft(itemCount, 6) + " | " + cachePadRight(size, 18) + " |"
+end function
+
+'-------------------------------------------------------------------------------
+' cachePadRight
+'-------------------------------------------------------------------------------
+function cachePadRight(value as dynamic, width as integer) as string
+    text = SafeString(value, "")
+    while Len(text) < width
+        text = text + " "
+    end while
+
+    return text
+end function
+
+'-------------------------------------------------------------------------------
+' cachePadLeft
+'-------------------------------------------------------------------------------
+function cachePadLeft(value as dynamic, width as integer) as string
+    text = SafeString(value, "")
+    while Len(text) < width
+        text = " " + text
+    end while
+
+    return text
+end function
+
+'-------------------------------------------------------------------------------
+' cacheRepeat
+'-------------------------------------------------------------------------------
+function cacheRepeat(value as string, count as integer) as string
+    text = ""
+    for i = 1 to count
+        text = text + value
+    end for
+
+    return text
+end function
 
 '-------------------------------------------------------------------------------
 ' getJsonByteSize
@@ -387,10 +526,10 @@ end function
 '-------------------------------------------------------------------------------
 function getSeriesRowsFromCache() as object
     rows = []
-    if m.collapsedSeriesItems = invalid then return rows
+    collapsedSeriesItems = cacheGetItems(cacheKeyCollapsedSeries())
 
     itemLookup = buildLibraryItemLookup()
-    for each seriesItem in m.collapsedSeriesItems
+    for each seriesItem in collapsedSeriesItems
         if seriesItem <> invalid and seriesItem.collapsedSeries <> invalid then
             libraryItems = getSeriesItemsByIdsFromLookup(seriesItem.collapsedSeries.libraryItemIds, itemLookup)
             if libraryItems.Count() > 0 then
@@ -438,9 +577,8 @@ function getSearchItemsFromCache(searchTerm as dynamic) as object
     items = []
     normalizedSearchTerm = LCase(SearchRules_NormalizeTerm(searchTerm))
     if normalizedSearchTerm = "" then return items
-    if m.allTitleItems = invalid then return items
 
-    for each item in m.allTitleItems
+    for each item in cacheGetItems(cacheKeyAllTitles())
         if isDisplayableLibraryItem(item) and itemMatchesSearch(item, normalizedSearchTerm) then
             items.Push(item)
         end if
@@ -481,10 +619,9 @@ function getSeriesItemsFromCache(seriesId as dynamic, libraryItemIds as dynamic)
     end if
 
     items = []
-    if m.allTitleItems = invalid then return items
     if seriesId = invalid then return items
 
-    for each item in m.allTitleItems
+    for each item in cacheGetItems(cacheKeyAllTitles())
         if isDisplayableLibraryItem(item) and itemMatchesSeries(item, seriesId) then
             items = insertSeriesItem(items, item, getSeriesSequenceSortValue(item, seriesId), seriesId)
         end if
@@ -544,9 +681,8 @@ end function
 '-------------------------------------------------------------------------------
 function buildLibraryItemLookup() as object
     lookup = {}
-    if m.allTitleItems = invalid then return lookup
 
-    for each item in m.allTitleItems
+    for each item in cacheGetItems(cacheKeyAllTitles())
         if item <> invalid then
             addLibraryItemLookupCandidate(lookup, item, item.id)
             addLibraryItemLookupCandidate(lookup, item, item.libraryItemId)
