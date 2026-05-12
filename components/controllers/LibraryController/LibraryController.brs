@@ -432,75 +432,20 @@ sub cacheLog()
     log = CreateLogger("LibraryController", false)
 
     log.write("cache")
-    log.write(cacheTableDivider())
-    log.write(cacheTableRow("key", "items", "size"))
-    log.write(cacheTableDivider())
-
     if m.cache = invalid or m.cache.Count() = 0 then
-        log.write(cacheTableRow("(empty)", "", ""))
+        log.write("(empty)")
     else
         for each cacheEntry in m.cache
             if cacheEntry <> invalid then
                 itemCount = Array_GetCount(cacheEntry.value)
                 bytes = getJsonByteSize(cacheEntry.value)
-                log.write(cacheTableRow(SafeString(cacheEntry.key), itemCount.ToStr(), formatCacheSize(bytes)))
+                log.write("..." + SafeString(cacheEntry.key) + " [" + itemCount.ToStr() + " items] [" + formatCacheSize(bytes) + "]")
             end if
         end for
     end if
 
-    log.write(cacheTableDivider())
     log.writeBlankLine()
 end sub
-
-'-------------------------------------------------------------------------------
-' cacheTableDivider
-'-------------------------------------------------------------------------------
-function cacheTableDivider() as string
-    return "+" + cacheRepeat("-", 24) + "+" + cacheRepeat("-", 8) + "+" + cacheRepeat("-", 20) + "+"
-end function
-
-'-------------------------------------------------------------------------------
-' cacheTableRow
-'-------------------------------------------------------------------------------
-function cacheTableRow(key as string, itemCount as string, size as string) as string
-    return "| " + cachePadRight(key, 22) + " | " + cachePadLeft(itemCount, 6) + " | " + cachePadRight(size, 18) + " |"
-end function
-
-'-------------------------------------------------------------------------------
-' cachePadRight
-'-------------------------------------------------------------------------------
-function cachePadRight(value as dynamic, width as integer) as string
-    text = SafeString(value, "")
-    while Len(text) < width
-        text = text + " "
-    end while
-
-    return text
-end function
-
-'-------------------------------------------------------------------------------
-' cachePadLeft
-'-------------------------------------------------------------------------------
-function cachePadLeft(value as dynamic, width as integer) as string
-    text = SafeString(value, "")
-    while Len(text) < width
-        text = " " + text
-    end while
-
-    return text
-end function
-
-'-------------------------------------------------------------------------------
-' cacheRepeat
-'-------------------------------------------------------------------------------
-function cacheRepeat(value as string, count as integer) as string
-    text = ""
-    for i = 1 to count
-        text = text + value
-    end for
-
-    return text
-end function
 
 '-------------------------------------------------------------------------------
 ' getJsonByteSize

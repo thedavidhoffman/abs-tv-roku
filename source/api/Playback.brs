@@ -16,26 +16,39 @@ end function
 function Playback_Start(request as object) as object
 
     log = Playback_CreateLogger("Start")
-    log.write("executing...")
+    log.write("executing............")
 
+    ' validate request parameters
     validationResult = __ValidateStartRequest(request, log)
     if validationResult.ok <> true then return validationResult
 
+    ' local working vars
     server = request.server
     token = request.token
     itemId = request.itemId
-    if request.title = invalid then request.title = ""
+    title = SafeString(request.title, "")
 
+    ' build the POST body
     bodyData = __BuildPlaybackStartBody(request.forceTranscode = true)
     body = FormatJson(bodyData)
 
-    log.write("ABS post body: forceDirectPlay=" + bodyData.forceDirectPlay.ToStr() + " forceTranscode=" + bodyData.forceTranscode.ToStr() + " supportedMimeTypes=" + Array_JoinStringValues(bodyData.supportedMimeTypes))
-
+    ' build the POST url
     playbackUrl = server + "/api/items/" + itemId + "/play"
+
+    ' make the playback request
     playbackResult = HttpClient_Request(playbackUrl, "POST", token, body)
 
-    log.write(playbackUrl)
-    log.write("status = " + SafeString(playbackResult.status))
+  ' request logging
+    log.write("request...")
+    log.write("      url: " + playbackUrl)
+    log.write("      body:")
+    log.write("            forceDirectPlay=" + bodyData.forceDirectPlay.ToStr())
+    log.write("            forceTranscode=" + bodyData.forceTranscode.ToStr())
+    log.write("            supportedMimeTypes:")
+    for each mimeType in bodyData.supportedMimeTypes
+        log.write("                  " + SafeString(mimeType))
+    end for
+    log.write("      response status = " + SafeString(playbackResult.status))
 
     if playbackResult.ok <> true then
         playbackResult.action = "startPlayback"
@@ -44,25 +57,53 @@ function Playback_Start(request as object) as object
     end if
 
     playbackSession = playbackResult.data
+
+    ' tracks are the playable audio units. Player uses them to decide what URL to load, what stream format
+    ' to use, how to map global ABS time to a Roku track seek position, and how to advance between direct-play files.
     tracks = __MapTracks(server, token, playbackSession, log)
     if tracks.Count() = 0 then
         return { ok: false, action: "startPlayback", errorMessage: "No playable audio tracks were returned." }
     end if
 
+    ' chapters are the navigation/display units. Player uses them for the Chapters list and the right-aligned
+    ' chapter title/status. They may not match audio files. A single audio file can have many chapters, and a
+    ' multi-file book can have chapters that cross or differ from track boundaries.
     chapters = __MapChapters(playbackSession)
-    __LogMappedTracks(log, tracks)
+
+    ' playback data
+    action = "startPlayback"
+    playbackSessionId = __GetSessionId(playbackSession)
+    currentTime = __GetNumber(playbackSession.currentTime)
+    duration = __GetNumber(playbackSession.duration)
+    playMethod = __GetInteger(playbackSession.playMethod, -1)
+    isHlsTranscode = __IsSessionHlsTranscode(playbackSession, tracks)
+
+    ' logging
+    log.write("function response...")
+    log.write("      action = " + action)
+    log.write("      itemId = " + itemId)
+    log.write("      title = " + title)
+    log.write("      playbackSessionId = " + playbackSessionId)
+    log.write("      currentTime = " + SafeString(currentTime))
+    log.write("      duration = " + SafeString(duration))
+    log.write("      playMethod = " + SafeString(playMethod))
+    log.write("      isHlsTranscode = " + SafeString(isHlsTranscode))
+    log.write("      requestCounter = " + SafeString(request.requestCounter))
+
+    __LogTracks(log, tracks)
+    __LogChapters(log, chapters)
 
     return {
         ok: true
-        action: "startPlayback"
+        action: action
         itemId: itemId
-        title: request.title
+        title: title
         playbackSession: playbackSession
-        playbackSessionId: __GetSessionId(playbackSession)
-        currentTime: __GetNumber(playbackSession.currentTime)
-        duration: __GetNumber(playbackSession.duration)
-        playMethod: __GetInteger(playbackSession.playMethod, -1)
-        isHlsTranscode: __IsSessionHlsTranscode(playbackSession, tracks)
+        playbackSessionId: playbackSessionId
+        currentTime: currentTime
+        duration: duration
+        playMethod: playMethod
+        isHlsTranscode: isHlsTranscode
         requestCounter: request.requestCounter
         tracks: tracks
         chapters: chapters
@@ -311,9 +352,9 @@ function __BuildAuthenticatedContentUrl(server as string, token as dynamic, cont
 end function
 
 '-------------------------------------------------------------------------------
-' __LogMappedTracks
+' __LogTracks
 '-------------------------------------------------------------------------------
-sub __LogMappedTracks(log as object, tracks as dynamic)
+sub __LogTracks(log as object, tracks as dynamic)
     log.write("Mapped tracks:")
 
     if tracks = invalid or tracks.Count() = 0 then
@@ -334,6 +375,33 @@ sub __LogMappedTracks(log as object, tracks as dynamic)
             ])
         else
             log.write("    invalid track")
+        end if
+    end for
+end sub
+
+'-------------------------------------------------------------------------------
+' __LogChapters
+'-------------------------------------------------------------------------------
+sub __LogChapters(log as object, chapters as dynamic)
+    log.write("Mapped chapters:")
+
+    if chapters = invalid or chapters.Count() = 0 then
+        log.write("    none")
+        return
+    end if
+
+    for i = 0 to chapters.Count() - 1
+        chapter = chapters[i]
+        if chapter <> invalid then
+            log.writeBracketed([
+                i.ToStr()
+                "chapterIndex=" + SafeString(chapter.index)
+                SafeString(chapter.title)
+                "startOffset=" + SafeString(chapter.startOffset)
+                "duration=" + SafeString(chapter.durationSeconds)
+            ])
+        else
+            log.write("    invalid chapter")
         end if
     end for
 end sub
