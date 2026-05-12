@@ -11,9 +11,11 @@ sub init()
     m.authResumeRequestCounter = 0
     m.authLogoutRequestCounter = 0
     m.seriesRowsRequestCounter = 0
+    m.inProgressRequestCounter = 0
     m.mediaProgress = []
     m.focusSettingsAfterLibraryReload = false
     m.playerReturnTarget = ""
+    m.playbackItemId = ""
 
     authPreloadSavedFields()
     authRequestResumeSession()
@@ -35,6 +37,7 @@ sub initReferences()
     m.overlayHost = m.top.findNode("overlayHost")
     m.authController = m.top.findNode("authController")
     m.libraryController = m.top.findNode("libraryController")
+    m.inProgressApiTask = m.top.findNode("inProgressApiTask")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -80,6 +83,7 @@ sub initHandlers()
     m.libraryController.observeField("seriesItemsResponse", "libraryControllerHandleSeriesItemsResponse")
     m.libraryController.observeField("seriesRowsResponse", "libraryControllerHandleSeriesRowsResponse")
     m.libraryController.observeField("errorResponse", "libraryControllerHandleError")
+    if m.inProgressApiTask <> invalid then m.inProgressApiTask.observeField("response", "playbackHandleInProgressResponse")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -729,6 +733,7 @@ sub playbackPlayItem(selectedItem as dynamic)
     m.authenticatedContent.visible = false
     m.player.visible = true
     m.player.setFocus(true)
+    m.playbackItemId = selectedItem.id
     m.player.playRequest = {
         server: m.session.server
         token: m.session.token
@@ -748,6 +753,7 @@ sub playbackHandlePlayerCloseRequested()
     m.player.visible = false
     m.authenticatedContent.visible = true
     reloadHomeShelvesAfterPlayback()
+    playbackRefreshMediaProgress()
 
     if m.playerReturnTarget = "home" and m.homePage <> invalid and m.homePage.visible then
         focusHomePage()
@@ -764,6 +770,107 @@ sub playbackHandlePlayerCloseRequested()
     end if
 
 end sub
+
+'-------------------------------------------------------------------------------
+' playbackRefreshMediaProgress
+'-------------------------------------------------------------------------------
+sub playbackRefreshMediaProgress()
+    if m.inProgressApiTask = invalid then return
+    if m.session = invalid then return
+    if m.session.server = invalid or m.session.server = "" then return
+    if m.session.token = invalid or m.session.token = "" then return
+
+    m.inProgressRequestCounter = m.inProgressRequestCounter + 1
+    m.inProgressApiTask.request = {
+        action: "loadInProgress"
+        server: m.session.server
+        token: m.session.token
+        counter: m.inProgressRequestCounter
+        sourceItemId: m.playbackItemId
+    }
+    m.inProgressApiTask.control = "run"
+end sub
+
+'-------------------------------------------------------------------------------
+' playbackHandleInProgressResponse
+'-------------------------------------------------------------------------------
+sub playbackHandleInProgressResponse()
+    response = m.inProgressApiTask.response
+    if response = invalid then return
+    if response.requestCounter <> invalid and response.requestCounter <> m.inProgressRequestCounter then return
+
+    log = CreateLogger("MainScene playback progress refresh")
+
+    if response.ok <> true then
+        log.write("status = " + SafeString(response.status, ""))
+        log.write("error = " + SafeString(response.errorMessage, "Unable to refresh media progress."))
+        log.flush()
+        handleComponentError(response)
+        return
+    end if
+
+    updatedCount = mergeMediaProgress(response.mediaProgress)
+    authStoreMediaProgress(m.mediaProgress)
+
+    libraryItemCount = 0
+    if response.libraryItems <> invalid then libraryItemCount = response.libraryItems.Count()
+
+    log.write("status = " + SafeString(response.status, ""))
+    log.write("items returned = " + libraryItemCount.ToStr())
+    log.write("progress updated = " + updatedCount.ToStr())
+    log.write("played item found = " + mediaProgressContainsItem(response.mediaProgress, response.sourceItemId).ToStr())
+    log.flush()
+end sub
+
+'-------------------------------------------------------------------------------
+' mergeMediaProgress
+'-------------------------------------------------------------------------------
+function mergeMediaProgress(progressItems as dynamic) as integer
+    if progressItems = invalid then return 0
+    if m.mediaProgress = invalid then m.mediaProgress = []
+
+    updatedCount = 0
+    for each progress in progressItems
+        if progress <> invalid and progress.itemId <> invalid and progress.itemId <> "" then
+            upsertMediaProgress(progress)
+            updatedCount = updatedCount + 1
+        end if
+    end for
+
+    return updatedCount
+end function
+
+'-------------------------------------------------------------------------------
+' upsertMediaProgress
+'-------------------------------------------------------------------------------
+sub upsertMediaProgress(progress as object)
+    itemId = progress.itemId.ToStr()
+
+    for i = 0 to m.mediaProgress.Count() - 1
+        existingProgress = m.mediaProgress[i]
+        if existingProgress <> invalid and existingProgress.itemId <> invalid and existingProgress.itemId.ToStr() = itemId then
+            m.mediaProgress[i] = progress
+            return
+        end if
+    end for
+
+    m.mediaProgress.Push(progress)
+end sub
+
+'-------------------------------------------------------------------------------
+' mediaProgressContainsItem
+'-------------------------------------------------------------------------------
+function mediaProgressContainsItem(progressItems as dynamic, itemId as dynamic) as boolean
+    if progressItems = invalid then return false
+    if itemId = invalid or itemId = "" then return false
+
+    itemIdText = itemId.ToStr()
+    for each progress in progressItems
+        if progress <> invalid and progress.itemId <> invalid and progress.itemId.ToStr() = itemIdText then return true
+    end for
+
+    return false
+end function
 
 '-------------------------------------------------------------------------------
 ' playbackHandlePlayerError

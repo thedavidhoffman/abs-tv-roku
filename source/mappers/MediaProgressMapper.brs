@@ -14,20 +14,60 @@ function MediaProgressMapper_Map(payload as dynamic) as object
 
     for each progress in progressItems
         if progress <> invalid then
-            itemId = __MediaProgressMapper_GetItemId(progress)
-            if itemId = invalid or itemId = "" then itemId = __MediaProgressMapper_GetLegacyItemId(progress)
-
-            mappedProgress.Push({
-                itemId: itemId
-                duration: __MediaProgressMapper_GetNumber(progress.duration)
-                progress: __MediaProgressMapper_GetNumber(progress.progress)
-                currentTime: __MediaProgressMapper_GetNumber(progress.currentTime)
-                isFinished: __MediaProgressMapper_GetBoolean(progress.isFinished)
-            })
+            mappedItem = __MediaProgressMapper_MapProgress(progress, invalid)
+            if mappedItem <> invalid then mappedProgress.Push(mappedItem)
         end if
     end for
 
     return mappedProgress
+end function
+
+'-------------------------------------------------------------------------------
+' MediaProgressMapper_MapInProgressItems
+'-------------------------------------------------------------------------------
+function MediaProgressMapper_MapInProgressItems(libraryItems as dynamic) as object
+    mappedProgress = []
+    progressItems = __MediaProgressMapper_ToArray(libraryItems)
+    if progressItems = invalid then return mappedProgress
+
+    for each item in progressItems
+        if item <> invalid then
+            progress = invalid
+            if item.userMediaProgress <> invalid then
+                progress = item.userMediaProgress
+            else if item.mediaProgress <> invalid then
+                progress = item.mediaProgress
+            else
+                progress = item
+            end if
+
+            mappedItem = __MediaProgressMapper_MapProgress(progress, item)
+            if mappedItem <> invalid then mappedProgress.Push(mappedItem)
+        end if
+    end for
+
+    return mappedProgress
+end function
+
+'-------------------------------------------------------------------------------
+' __MediaProgressMapper_MapProgress
+'-------------------------------------------------------------------------------
+function __MediaProgressMapper_MapProgress(progress as dynamic, item as dynamic) as dynamic
+    itemId = __MediaProgressMapper_GetItemId(progress)
+    if itemId = invalid or itemId = "" then itemId = __MediaProgressMapper_GetLegacyItemId(progress)
+    if itemId = invalid or itemId = "" then itemId = __MediaProgressMapper_GetItemId(item)
+    if itemId = invalid or itemId = "" then return invalid
+
+    duration = __MediaProgressMapper_GetNumber(progress.duration)
+    if duration <= 0 then duration = __MediaProgressMapper_GetItemDuration(item)
+
+    return {
+        itemId: itemId
+        duration: duration
+        progress: __MediaProgressMapper_GetNumber(progress.progress)
+        currentTime: __MediaProgressMapper_GetNumber(progress.currentTime)
+        isFinished: __MediaProgressMapper_GetBoolean(progress.isFinished)
+    }
 end function
 
 '-------------------------------------------------------------------------------
@@ -104,6 +144,17 @@ end function
 function __MediaProgressMapper_GetNumber(value as dynamic) as float
     if value = invalid then return 0
     return val(value.ToStr())
+end function
+
+'-------------------------------------------------------------------------------
+' __MediaProgressMapper_GetItemDuration
+'-------------------------------------------------------------------------------
+function __MediaProgressMapper_GetItemDuration(item as dynamic) as float
+    if item = invalid then return 0
+    if item.duration <> invalid then return __MediaProgressMapper_GetNumber(item.duration)
+    if item.media <> invalid and item.media.duration <> invalid then return __MediaProgressMapper_GetNumber(item.media.duration)
+
+    return 0
 end function
 
 '-------------------------------------------------------------------------------

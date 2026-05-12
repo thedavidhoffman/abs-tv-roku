@@ -30,5 +30,6 @@
 
     <AuthController id="authController" />
     <LibraryController id="libraryController" />
+    <AppTask id="inProgressApiTask" />
   </children>
 </component>

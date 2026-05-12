@@ -8,20 +8,15 @@ build_version=0
 
 # channel icons
 
-# mm_icon_focus_hd=pkg:/images/icon_focus_hd.png
-# mm_icon_focus_sd=pkg:/images/icon_focus_sd.png
-# mm_icon_side_hd=pkg:/images/icon_side_hd.png
-# mm_icon_side_sd=pkg:/images/icon_side_sd.png
-
-mm_icon_focus_fhd=pkg:/images/channel-fhd.png
-#mm_icon_focus_hd=pkg:/images/channel-poster_hd_dev.png
-#mm_icon_focus_sd=pkg:/images/channel-poster_sd_dev.png
+mm_icon_focus_fhd=pkg:/images/channel-fhd.jpg # 540x405
+mm_icon_focus_hd=pkg:/images/channel-hd.jpg #290x218
+mm_icon_focus_sd=pkg:/images/channel-sd.jpg #214x144
 
 # splash/loading screen images
 
-splash_screen_fhd=pkg:/images/splash-fhd.jpg
-splash_screen_hd=pkg:/images/splash-hd.jpg
-splash_screen_sd=pkg:/images/splash-sd.jpg
+splash_screen_fhd=pkg:/images/splash-fhd.jpg #1920x1080
+splash_screen_hd=pkg:/images/splash-hd.jpg #1280x720
+splash_screen_sd=pkg:/images/splash-sd.jpg #720x480
 
 ui_resolutions=fhd,hd
 supports_input_launch=1

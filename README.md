@@ -1,12 +1,62 @@
 # ABSTV
 
-This is a Roku app that connects to an [Audiobookshelf](https://www.audiobookshelf.org/) server to play audiobooks on a Roku device, bringing your audiobook library to your television. As far as I'm aware, this is the only Roku app for ABS. *This project is not affiliated with Audiobookshelf.*
+This is a Roku app that connects to an [Audiobookshelf](https://www.audiobookshelf.org/) server to play audiobooks on a Roku device, bringing your audiobook library to your television. As far as I'm aware, this is the only Roku app for ABS. _This project is not affiliated with Audiobookshelf._
 
 NOTE: this app currently does not support: podcasts, collections, or playlists.
 
+## Table of Contents
+
+- [Privacy Policy](#privacy-policy)
+- [Safety & Responsibility](#safety--responsibility)
+- [Sideloading on Roku](#sideloading-on-roku)
+- [AI Usage Disclaimer](#ai-usage-disclaimer)
+- [Wishlist](#wishlist)
+
+## Privacy Policy
+
+Your privacy is a core design principle of this application.
+
+This app **does not collect, harvest, or track any user data or telemetry in any form**. It operates locally and only communicates with your Audiobookshelf server as required for normal playback functionality.
+
+The app also **does not modify, manage, or alter your Audiobookshelf library** in any way. It does not create, delete, or edit your media or metadata.
+
+The **only data transmitted** by this app is your playback progress (such as position within an audiobook), which is sent directly to your Audiobookshelf server. This ensures your listening progress stays synchronized across devices.
+
+### What This Means for You
+
+- No analytics or tracking services are used.
+- No personal data is collected.
+- The only information stored by the app on your Roku device are:
+    - Your username, user id, and authentication token required to communicate with the ABS server.
+    - The application settings.
+- No data is shared with third parties.
+- All interactions are limited strictly to essential playback functionality.
+
+### Important Note
+
+While this app is intentionally designed to be minimal and privacy-respecting, no software can guarantee absolute security in every environment. You are responsible for reviewing your server configuration, network security, and usage practices to ensure they meet your privacy expectations.
+
+If you have concerns, you are encouraged to inspect the source code (if available) or monitor network activity to verify the app’s behavior.
+
+## Safety & Responsibility
+
+This application is built with safety in mind. The goal is to be transparent, predictable, and minimal in what it touches—doing only what it needs to do to function and nothing more. That said, **no software can be guaranteed to be perfectly safe or error‑free in every environment**. Bugs happen, dependencies change, operating systems behave differently, and unexpected interactions can occur.
+
+By installing or using this app, **you acknowledge and accept that you are using it at your own risk**. You are solely responsible for verifying that it is suitable for your device, your data, and your use case. You are also responsible for maintaining appropriate backups and safeguards for anything you care about.
+
+### No Warranty
+
+This software is provided **“as is”**, without warranty of any kind—express or implied—including but not limited to warranties of merchantability, fitness for a particular purpose, and non‑infringement.
+
+### Limitation of Liability
+
+To the maximum extent permitted by law, the authors and contributors will not be liable for any claim, damages, or other liability arising from, out of, or in connection with the software or its use, including (without limitation) loss of data, loss of profits, business interruption, device failure, or any other direct or indirect damages.
+
+If you do not agree with these terms, do not install or use the app.
+
 ## Sideloading on Roku
 
-This app is not availabe in the official Roku channel store. It must be side-loaded onto a Roku device. I'm assuming that most people that run the ABS docker image have some technical ability, so they should be able to side-load this app. Once this app gets to a point that it has several releases under it's belt and it has reached some point of maturity, I may look to get it in the official Roku channel store.
+This app is not availabe in the official Roku channel store. It must be side-loaded onto a Roku device. I'm assuming that most people that run the ABS docker image have some technical ability, so they should be able to side-load this app.
 
 To install this app on a Roku device, first enable Developer Mode on the Roku:
 
@@ -33,11 +83,9 @@ This app was built with the help of Codex. It wasn't simply "vibe coded." As a s
 
 Things I hope to add support to this app for in the future.
 
-- search
-- easy switching between multiple logins
+- switching between multiple logins
 - localization
 - themes
 - usage stat page
 - collections
 - playlists
-- podcasts
