@@ -131,7 +131,7 @@ end sub
 ' onContextTitleChanged
 '-------------------------------------------------------------------------------
 sub onContextTitleChanged()
-    title = TrimString(m.top.contextTitle)
+    title = String_Trim(m.top.contextTitle)
     hasTitle = (title <> "")
 
     if m.contextTitleLabel <> invalid then
@@ -644,7 +644,7 @@ function getNameCount(values as dynamic, fallbackText as string) as integer
         if Type(values) = "roAssociativeArray" then return values.Count()
     end if
 
-    text = TrimString(fallbackText)
+    text = String_Trim(fallbackText)
     if text = "" or text = "Unknown" then return 0
     if Instr(1, text, ",") > 0 or Instr(1, text, " and ") > 0 or Instr(1, text, " & ") > 0 then return 2
     return 1
@@ -657,12 +657,12 @@ function getJoinedText(values as dynamic) as string
     if values = invalid then return ""
 
     if Type(values) <> "roArray" and Type(values) <> "roAssociativeArray" then
-        return TrimString(values.ToStr())
+        return String_Trim(values.ToStr())
     end if
 
     result = ""
     for each value in values
-        text = TrimString(value.ToStr())
+        text = String_Trim(value.ToStr())
         if text <> "" then
             if result <> "" then result = result + ", "
             result = result + text
@@ -742,5 +742,5 @@ function CollapseWhitespace(value as string) as string
         end if
     end for
 
-    return TrimString(result)
+    return String_Trim(result)
 end function

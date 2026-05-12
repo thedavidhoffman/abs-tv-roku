@@ -42,7 +42,7 @@ end function
 ' ItemMetadataParser_GetDescription
 '-------------------------------------------------------------------------------
 function ItemMetadataParser_GetDescription(metadata as dynamic) as string
-    return StringUtils_StripHtmlMarkup(FirstNonEmpty([metadata.description, metadata.subtitle], "No description available."))
+    return String_StripHtmlMarkup(FirstNonEmpty([metadata.description, metadata.subtitle], "No description available."))
 end function
 
 '-------------------------------------------------------------------------------
@@ -62,7 +62,7 @@ function ItemMetadataParser_GetPublishYear(metadata as dynamic) as string
     publishedDate = FirstNonEmpty([metadata.publishedDate, metadata.releaseDate], "")
     if Len(publishedDate) >= 4 then
         possibleYear = Left(publishedDate, 4)
-        if StringUtils_IsYearText(possibleYear) then return possibleYear
+        if String_IsYearText(possibleYear) then return possibleYear
     end if
 
     return "Unknown"
@@ -72,10 +72,10 @@ end function
 ' ItemMetadataParser_GetCategory
 '-------------------------------------------------------------------------------
 function ItemMetadataParser_GetCategory(metadata as dynamic) as string
-    category = StringUtils_GetJoinedText(metadata.genres)
+    category = String_GetJoinedText(metadata.genres)
     if category <> "" then return category
 
-    category = StringUtils_GetJoinedText(metadata.categories)
+    category = String_GetJoinedText(metadata.categories)
     if category <> "" then return category
 
     return FirstNonEmpty([metadata.genre, metadata.category], "")
@@ -85,10 +85,10 @@ end function
 ' ItemMetadataParser_GetGenres
 '-------------------------------------------------------------------------------
 function ItemMetadataParser_GetGenres(metadata as dynamic) as string
-    genres = StringUtils_GetJoinedText(metadata.genres)
+    genres = String_GetJoinedText(metadata.genres)
     if genres <> "" then return genres
 
-    categories = StringUtils_GetJoinedText(metadata.categories)
+    categories = String_GetJoinedText(metadata.categories)
     if categories <> "" then return categories
 
     return FirstNonEmpty([metadata.genre, metadata.category], "Unknown")
@@ -98,7 +98,7 @@ end function
 ' ItemMetadataParser_GetTags
 '-------------------------------------------------------------------------------
 function ItemMetadataParser_GetTags(metadata as dynamic) as string
-    tags = StringUtils_GetJoinedText(metadata.tags)
+    tags = String_GetJoinedText(metadata.tags)
     if tags <> "" then return tags
     return FirstNonEmpty([metadata.tag, metadata.keywords], "None")
 end function
@@ -140,7 +140,7 @@ function ItemMetadataParser_GetNameCount(values as dynamic, fallbackText as stri
         if Type(values) = "roAssociativeArray" then return values.Count()
     end if
 
-    text = TrimString(fallbackText)
+    text = String_Trim(fallbackText)
     if text = "" or text = "Unknown" then return 0
     if Instr(1, text, ",") > 0 or Instr(1, text, " and ") > 0 or Instr(1, text, " & ") > 0 then return 2
     return 1

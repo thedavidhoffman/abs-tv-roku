@@ -443,7 +443,7 @@ sub searchHandleQuerySelected()
     selectedQuery = m.search.querySelected
     if selectedQuery = invalid then return
 
-    searchTerm = TrimString(selectedQuery.query)
+    searchTerm = String_Trim(selectedQuery.query)
     if m.session = invalid then return
 
     if m.header <> invalid then m.header.callFunc("activateSearchButton")

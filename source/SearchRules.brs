@@ -16,7 +16,7 @@ end function
 ' SearchRules_NormalizeTerm
 '-------------------------------------------------------------------------------
 function SearchRules_NormalizeTerm(value as dynamic) as string
-    return StringUtils_CollapseWhitespace(SafeString(value, ""))
+    return String_CollapseWhitespace(SafeString(value, ""))
 end function
 
 '-------------------------------------------------------------------------------

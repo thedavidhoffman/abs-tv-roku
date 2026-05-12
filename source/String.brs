@@ -1,7 +1,29 @@
 '-------------------------------------------------------------------------------
-' StringUtils_Replace
+' String_Trim
 '-------------------------------------------------------------------------------
-function StringUtils_Replace(value as string, oldValue as string, newValue as string) as string
+function String_Trim(value as dynamic) as string
+    if value = invalid then return ""
+
+    text = value.ToStr()
+    startIndex = 0
+    endIndex = Len(text) - 1
+
+    while startIndex <= endIndex and Mid(text, startIndex + 1, 1) = " "
+        startIndex = startIndex + 1
+    end while
+
+    while endIndex >= startIndex and Mid(text, endIndex + 1, 1) = " "
+        endIndex = endIndex - 1
+    end while
+
+    if startIndex > endIndex then return ""
+    return Mid(text, startIndex + 1, endIndex - startIndex + 1)
+end function
+
+'-------------------------------------------------------------------------------
+' String_Replace
+'-------------------------------------------------------------------------------
+function String_Replace(value as string, oldValue as string, newValue as string) as string
     result = ""
     remaining = value
     index = Instr(1, remaining, oldValue)
@@ -16,9 +38,9 @@ function StringUtils_Replace(value as string, oldValue as string, newValue as st
 end function
 
 '-------------------------------------------------------------------------------
-' StringUtils_CollapseWhitespace
+' String_CollapseWhitespace
 '-------------------------------------------------------------------------------
-function StringUtils_CollapseWhitespace(value as string) as string
+function String_CollapseWhitespace(value as string) as string
     result = ""
     previousWasSpace = false
 
@@ -35,16 +57,16 @@ function StringUtils_CollapseWhitespace(value as string) as string
         end if
     end for
 
-    return TrimString(result)
+    return String_Trim(result)
 end function
 
 '-------------------------------------------------------------------------------
-' StringUtils_StripHtmlMarkup
+' String_StripHtmlMarkup
 '-------------------------------------------------------------------------------
-function StringUtils_StripHtmlMarkup(value as dynamic) as string
+function String_StripHtmlMarkup(value as dynamic) as string
     text = SafeString(value, "")
-    text = StringUtils_Replace(text, "</p> <p>", Chr(10))
-    text = StringUtils_Replace(text, "</p><p>", Chr(10))
+    text = String_Replace(text, "</p> <p>", Chr(10))
+    text = String_Replace(text, "</p><p>", Chr(10))
     result = ""
     insideTag = false
 
@@ -60,21 +82,21 @@ function StringUtils_StripHtmlMarkup(value as dynamic) as string
         end if
     end for
 
-    result = StringUtils_Replace(result, "&nbsp;", " ")
-    result = StringUtils_Replace(result, "&amp;", "&")
-    result = StringUtils_Replace(result, "&quot;", Chr(34))
-    result = StringUtils_Replace(result, "&#39;", "'")
-    result = StringUtils_Replace(result, "&apos;", "'")
-    result = StringUtils_Replace(result, "&lt;", "<")
-    result = StringUtils_Replace(result, "&gt;", ">")
+    result = String_Replace(result, "&nbsp;", " ")
+    result = String_Replace(result, "&amp;", "&")
+    result = String_Replace(result, "&quot;", Chr(34))
+    result = String_Replace(result, "&#39;", "'")
+    result = String_Replace(result, "&apos;", "'")
+    result = String_Replace(result, "&lt;", "<")
+    result = String_Replace(result, "&gt;", ">")
 
-    return StringUtils_CollapseWhitespace(result)
+    return String_CollapseWhitespace(result)
 end function
 
 '-------------------------------------------------------------------------------
-' StringUtils_IsYearText
+' String_IsYearText
 '-------------------------------------------------------------------------------
-function StringUtils_IsYearText(value as string) as boolean
+function String_IsYearText(value as string) as boolean
     if Len(value) <> 4 then return false
     year = int(val(value))
     if year < 1000 or year > 9999 then return false
@@ -82,18 +104,18 @@ function StringUtils_IsYearText(value as string) as boolean
 end function
 
 '-------------------------------------------------------------------------------
-' StringUtils_GetJoinedText
+' String_GetJoinedText
 '-------------------------------------------------------------------------------
-function StringUtils_GetJoinedText(values as dynamic) as string
+function String_GetJoinedText(values as dynamic) as string
     if values = invalid then return ""
 
     if Type(values) <> "roArray" and Type(values) <> "roAssociativeArray" then
-        return TrimString(values.ToStr())
+        return String_Trim(values.ToStr())
     end if
 
     result = ""
     for each value in values
-        text = TrimString(value.ToStr())
+        text = String_Trim(value.ToStr())
         if text <> "" then
             if result <> "" then result = result + ", "
             result = result + text

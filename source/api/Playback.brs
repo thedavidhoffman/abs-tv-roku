@@ -302,7 +302,7 @@ function __BuildAuthenticatedContentUrl(server as string, token as dynamic, cont
         contentUrl = server + contentUrl
     end if
 
-    contentUrl = StringUtils_Replace(contentUrl, " ", "%20")
+    contentUrl = String_Replace(contentUrl, " ", "%20")
     separator = "?"
     if Instr(1, contentUrl, "?") > 0 then separator = "&"
     if token <> invalid and token <> "" then contentUrl = contentUrl + separator + "token=" + token
@@ -466,6 +466,6 @@ function __JsonNumber(value as dynamic) as string
     if value = invalid then return "0"
     numberValue = val(value.ToStr())
     text = numberValue.ToStr()
-    if Instr(1, text, ",") > 0 then text = StringUtils_Replace(text, ",", "")
+    if Instr(1, text, ",") > 0 then text = String_Replace(text, ",", "")
     return text
 end function

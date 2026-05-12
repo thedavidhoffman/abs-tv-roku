@@ -15,9 +15,9 @@ sub init()
         m.loginButton
     ]
 
-    if m.top.serverValue = invalid or TrimString(m.top.serverValue) = "" then m.top.serverValue = "192.168.0.178:8098"
-    if m.top.usernameValue = invalid or TrimString(m.top.usernameValue) = "" then m.top.usernameValue = "David"
-    if m.top.passwordValue = invalid or TrimString(m.top.passwordValue) = "" then m.top.passwordValue = "Reading15Fundamental"
+    if m.top.serverValue = invalid or String_Trim(m.top.serverValue) = "" then m.top.serverValue = "192.168.0.178:8098"
+    if m.top.usernameValue = invalid or String_Trim(m.top.usernameValue) = "" then m.top.usernameValue = "David"
+    if m.top.passwordValue = invalid or String_Trim(m.top.passwordValue) = "" then m.top.passwordValue = "Reading15Fundamental"
     m.activeKeyboardField = invalid
     syncFieldsFromState()
 end sub
@@ -62,8 +62,8 @@ end sub
 ' onLoginPressed
 '-------------------------------------------------------------------------------
 sub onLoginPressed()
-    server = TrimString(m.top.serverValue)
-    username = TrimString(m.top.usernameValue)
+    server = String_Trim(m.top.serverValue)
+    username = String_Trim(m.top.usernameValue)
     password = m.top.passwordValue
 
     if server = "" or username = "" or password = "" then

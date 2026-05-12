@@ -81,10 +81,10 @@ function HttpClient_Request(url as String, method as String, token as Dynamic, b
         if data <> invalid then
             if data.error <> invalid then message = SafeString(data.error, message)
             if data.message <> invalid then message = SafeString(data.message, message)
-        else if responseText <> invalid and TrimString(responseText) <> "" then
-            message = TrimString(responseText)
-        else if msg.GetFailureReason() <> invalid and TrimString(msg.GetFailureReason()) <> "" then
-            message = TrimString(msg.GetFailureReason())
+        else if responseText <> invalid and String_Trim(responseText) <> "" then
+            message = String_Trim(responseText)
+        else if msg.GetFailureReason() <> invalid and String_Trim(msg.GetFailureReason()) <> "" then
+            message = String_Trim(msg.GetFailureReason())
         end if
         return { ok: false, status: status, errorMessage: message }
     end if

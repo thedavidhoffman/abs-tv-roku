@@ -5,7 +5,7 @@ function NormalizeServerUrl(server as string) as string
     
     if server = invalid then return ""
     
-    normalized = TrimString(server)
+    normalized = String_Trim(server)
     
     if normalized = "" then return ""
     
@@ -35,42 +35,19 @@ end function
 function FirstNonEmpty(values as object, fallback as string) as string
     for each value in values
         if value <> invalid then
-            text = TrimString(value.ToStr())
+            text = String_Trim(value.ToStr())
             if text <> "" then return text
         end if
     end for
     return fallback
 end function
 
-'-------------------------------------------------------------------------------
-' TrimString
-'-------------------------------------------------------------------------------
-function TrimString(value as dynamic) as string
-    if value = invalid then return ""
-
-    text = value.ToStr()
-    startIndex = 0
-    endIndex = Len(text) - 1
-
-    while startIndex <= endIndex and Mid(text, startIndex + 1, 1) = " "
-        startIndex = startIndex + 1
-    end while
-
-    while endIndex >= startIndex and Mid(text, endIndex + 1, 1) = " "
-        endIndex = endIndex - 1
-    end while
-
-    if startIndex > endIndex then return ""
-    return Mid(text, startIndex + 1, endIndex - startIndex + 1)
-end function
-
-'-------------------------------------------------------------------------------
 ' FormatWithCommas
 '-------------------------------------------------------------------------------
 function FormatWithCommas(value as dynamic) as string
     if value = invalid then return ""
 
-    text = TrimString(value.ToStr())
+    text = String_Trim(value.ToStr())
     result = ""
     groupCount = 0
 

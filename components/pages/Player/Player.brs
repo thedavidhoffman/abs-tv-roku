@@ -448,7 +448,7 @@ end sub
 '-------------------------------------------------------------------------------
 function getDisplayTrackTitle(track as dynamic, index as integer) as string
     title = SafeString(track.title, "Track " + (index + 1).ToStr())
-    if LCase(TrimString(title)) = LCase(TrimString(m.audiobookTitle)) then return ""
+    if LCase(String_Trim(title)) = LCase(String_Trim(m.audiobookTitle)) then return ""
     return title
 end function
 

@@ -29,11 +29,9 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
 ## Hit List
 ----------------------------------------------------
 
-- add timestamp to log
-- move media progress storage into LibraryController
-- create a cache array with key value pairs
-- log the entire cache size on cache update
+String_GetJoinedText to Array?
 
+- move media progress storage into LibraryController
 - when switching libraries load media progress for that library?
 - library... list... expanded... doctor who titles prefixed with a number
 
@@ -45,19 +43,16 @@ Ok, all that being said, if you're interested in being a beta tester hit me up i
     - library
     - series
 
+- diagnostic screen
+    - add cache info
+    - add library names
+
 - Formatting to Format, use Format_ naming convention
 
-
-- StandardKeyboardDialog on login form
-
-- investigate passing episode id into play, this might fix our play/advance issue
-- /api/items/${this.libraryItem.id}/play/${this.episodeId}` : `/api/items/${this.libraryItem.id}/play`
-
-Playback.brs
-----------------------------------------------------
-- the content type being set in map tracks is off, being set from two different payloads
-- why oh why does this need two payloads: tracks = ___MapTracks(server, token, playbackResult.data, itemPayload, log)
-- continue to dig in on this file
+- login form
+    - use StandardKeyboardDialog
+    - branding
+    - review UI
 
 Titles with playback problems
 ----------------------------------------------------
@@ -65,10 +60,6 @@ Titles with playback problems
 - dune playback
 - meditations playback
 - play James Bond, plays correctly, play it again, it rifles through tracks and starts playback at a much later track
-
-- end session when playback stops - verify, i think this is done
-- sync progress - verify, i think this is done
-- test description modal with really long title
 
 - in-progress bar for series
 - loading spinner/indicator
