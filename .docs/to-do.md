@@ -2,13 +2,14 @@
 ## Hit List
 ----------------------------------------------------
 
-- compare playback on ABS client vs this client
-- 05-12 19:10:52.416 [Playback::CloseSession] sessionId=3da16aed-3e69-4af5-9905-daa6fc783c05 currentTime=invalid timeListened=invalid duration=invalid
-- courtship of princess leia - static on playback
-- library... list... expanded... doctor who titles prefixed with a number
-- media progress on library titles not displaying
 
-- roku channel screens
+- courtship of princess leia - static on playback
+- to the manor born track switching
+- library... list... expanded... doctor who titles prefixed with a number
+- media progress on library titles not displaying after playback
+- compare playback on ABS client vs this client
+
+FormatJson
 
 - default page setting
     - home

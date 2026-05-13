@@ -371,7 +371,7 @@ sub handleStartPlaybackResponse(response as dynamic)
 
     if response.ok <> true then
         if m.activeForceDirectPlay = true then
-            m.log.write("Direct play resume request failed; retrying default playback selection.")
+            m.log.write("Direct play request failed; retrying default playback selection.")
             m.activeForceDirectPlay = false
             requestStartPlaybackSession(false, m.requestedStartPositionSeconds, false)
             return
@@ -405,11 +405,6 @@ end sub
 function getStartPlaybackCurrentTime(response as dynamic) as integer
     if m.startTimeOverrideSeconds <> invalid then
         return clampStartPlaybackTime(m.startTimeOverrideSeconds)
-    end if
-
-    if response <> invalid and response.currentTime <> invalid then
-        currentTime = int(val(response.currentTime.ToStr()))
-        if currentTime > 0 then return currentTime
     end if
 
     return m.requestedStartPositionSeconds
@@ -828,13 +823,13 @@ sub onAudioStateChanged()
         m.isPaused = false
         updatePlayPauseButton()
     else if state = "error" then
+        logPlaybackError("Roku media node entered error state.")
         if restartWithTranscodeFallback("media-error") then return
         if scheduleHlsStartupRetry("media-error") then return
         if refreshHlsPlaybackSession("media-error") then return
 
         stopProgressTimer()
         enableScreenSaver()
-        logPlaybackError("Roku media node entered error state.")
         setStatus("Playback error.")
         m.isPaused = false
         updatePlayPauseButton()

@@ -33,7 +33,7 @@ function Playback_Start(request as object) as object
     forceDirectPlay = request.forceDirectPlay = true
     if forceTranscode = true then forceDirectPlay = false
     bodyData = __BuildPlaybackStartBody(forceTranscode, forceDirectPlay)
-    body = FormatJson(bodyData)
+    body = __BuildPlaybackStartBodyJson(bodyData)
 
     ' build the POST url
     playbackUrl = server + "/api/items/" + itemId + "/play"
@@ -44,6 +44,7 @@ function Playback_Start(request as object) as object
   ' request logging
     log.write("request...")
     log.write("      url: " + playbackUrl)
+    log.write("      rawBody: " + body)
     log.write("      body:")
     log.write("            forceDirectPlay=" + bodyData.forceDirectPlay.ToStr())
     log.write("            forceTranscode=" + bodyData.forceTranscode.ToStr())
@@ -95,6 +96,8 @@ function Playback_Start(request as object) as object
     log.write("      requestCounter = " + SafeString(request.requestCounter))
 
     __LogTracks(log, tracks)
+    __LogAudioTrackDetails(log, playbackSession)
+    __LogSourceAudioFiles(log, playbackSession)
     __LogChapters(log, chapters)
 
     return {
@@ -254,15 +257,38 @@ function __BuildPlaybackStartBody(forceTranscode = false as boolean, forceDirect
         }
         forceDirectPlay: forceDirectPlay
         forceTranscode: forceTranscode
-        supportedMimeTypes: __GetSupportedMimeTypes(forceDirectPlay)
+        supportedMimeTypes: __GetSupportedMimeTypes(forceTranscode)
         mediaPlayer: "roku"
     }
 end function
 
 '-------------------------------------------------------------------------------
+' __BuildPlaybackStartBodyJson
+'-------------------------------------------------------------------------------
+function __BuildPlaybackStartBodyJson(bodyData as object) as string
+    deviceInfo = bodyData.deviceInfo
+    deviceInfoParts = [
+        __JsonPair("clientName", deviceInfo.clientName)
+        __JsonPair("clientVersion", deviceInfo.clientVersion)
+        __JsonPair("manufacturer", deviceInfo.manufacturer)
+        __JsonPair("model", deviceInfo.model)
+    ]
+
+    parts = [
+        __JsonObjectPair("deviceInfo", deviceInfoParts)
+        __JsonBooleanPair("forceDirectPlay", bodyData.forceDirectPlay)
+        __JsonBooleanPair("forceTranscode", bodyData.forceTranscode)
+        __JsonArrayPair("supportedMimeTypes", bodyData.supportedMimeTypes)
+        __JsonPair("mediaPlayer", bodyData.mediaPlayer)
+    ]
+
+    return "{" + __JoinJsonParts(parts) + "}"
+end function
+
+'-------------------------------------------------------------------------------
 ' __GetSupportedMimeTypes
 '-------------------------------------------------------------------------------
-function __GetSupportedMimeTypes(forceDirectPlay as boolean) as object
+function __GetSupportedMimeTypes(includeHls as boolean) as object
     mimeTypes = [
         "audio/mpeg"
         "audio/mp3"
@@ -275,7 +301,7 @@ function __GetSupportedMimeTypes(forceDirectPlay as boolean) as object
         "audio/x-mpeg"
     ]
 
-    if forceDirectPlay = true then return mimeTypes
+    if includeHls <> true then return mimeTypes
 
     mimeTypes.Push("application/vnd.apple.mpegurl")
     mimeTypes.Push("application/x-mpegURL")
@@ -403,6 +429,100 @@ sub __LogTracks(log as object, tracks as dynamic)
             log.write("    invalid track")
         end if
     end for
+end sub
+
+'-------------------------------------------------------------------------------
+' __LogAudioTrackDetails
+'-------------------------------------------------------------------------------
+sub __LogAudioTrackDetails(log as object, session as dynamic)
+    log.write("Audio track details:")
+
+    tracks = invalid
+    if session <> invalid then tracks = session.audioTracks
+    if tracks = invalid or tracks.Count() = 0 then
+        log.write("    none")
+        return
+    end if
+
+    for i = 0 to tracks.Count() - 1
+        track = tracks[i]
+        if track <> invalid then
+            parts = [i.ToStr()]
+            __PushLogField(parts, "index", track.index)
+            __PushLogField(parts, "contentUrl", track.contentUrl)
+            __PushLogField(parts, "mimeType", track.mimeType)
+            __PushLogField(parts, "duration", track.duration)
+            __PushTrackMetadataFields(parts, track.metadata)
+            log.writeBracketed(parts)
+        else
+            log.write("    invalid track")
+        end if
+    end for
+end sub
+
+'-------------------------------------------------------------------------------
+' __LogSourceAudioFiles
+'-------------------------------------------------------------------------------
+sub __LogSourceAudioFiles(log as object, session as dynamic)
+    log.write("Source audio files:")
+
+    audioFiles = invalid
+    if session <> invalid and session.libraryItem <> invalid and session.libraryItem.media <> invalid then
+        audioFiles = session.libraryItem.media.audioFiles
+    end if
+
+    if audioFiles = invalid or audioFiles.Count() = 0 then
+        log.write("    none")
+        return
+    end if
+
+    for i = 0 to audioFiles.Count() - 1
+        file = audioFiles[i]
+        if file <> invalid then
+            parts = [i.ToStr()]
+            __PushLogField(parts, "index", file.index)
+            __PushLogField(parts, "title", file.title)
+            __PushLogField(parts, "contentUrl", file.contentUrl)
+            __PushLogField(parts, "mimeType", file.mimeType)
+            __PushLogField(parts, "startOffset", file.startOffset)
+            __PushLogField(parts, "duration", file.duration)
+            __PushLogField(parts, "format", file.format)
+            __PushLogField(parts, "bitRate", file.bitRate)
+            __PushLogField(parts, "sampleRate", file.sampleRate)
+            __PushLogField(parts, "channels", file.channels)
+            __PushLogField(parts, "channelLayout", file.channelLayout)
+            __PushLogField(parts, "codec", file.codec)
+            __PushLogField(parts, "timeBase", file.timeBase)
+            __PushTrackMetadataFields(parts, file.metadata)
+            log.writeBracketed(parts)
+        else
+            log.write("    invalid file")
+        end if
+    end for
+end sub
+
+'-------------------------------------------------------------------------------
+' __PushTrackMetadataFields
+'-------------------------------------------------------------------------------
+sub __PushTrackMetadataFields(parts as object, metadata as dynamic)
+    if metadata = invalid then return
+
+    __PushLogField(parts, "filename", metadata.filename)
+    __PushLogField(parts, "ext", metadata.ext)
+    __PushLogField(parts, "size", metadata.size)
+    __PushLogField(parts, "bitRate", metadata.bitRate)
+    __PushLogField(parts, "sampleRate", metadata.sampleRate)
+    __PushLogField(parts, "channels", metadata.channels)
+    __PushLogField(parts, "codec", metadata.codec)
+    __PushLogField(parts, "format", metadata.format)
+end sub
+
+'-------------------------------------------------------------------------------
+' __PushLogField
+'-------------------------------------------------------------------------------
+sub __PushLogField(parts as object, name as string, value as dynamic)
+    if value = invalid then return
+    parts.Push(name + "=" + SafeString(value))
 end sub
 
 '-------------------------------------------------------------------------------
@@ -562,4 +682,51 @@ function __JsonNumber(value as dynamic) as string
     text = numberValue.ToStr()
     if Instr(1, text, ",") > 0 then text = String_Replace(text, ",", "")
     return text
+end function
+
+'-------------------------------------------------------------------------------
+' __JsonPair
+'-------------------------------------------------------------------------------
+function __JsonPair(name as string, value as dynamic) as string
+    return __JsonString(name) + ":" + __JsonString(value)
+end function
+
+'-------------------------------------------------------------------------------
+' __JsonBooleanPair
+'-------------------------------------------------------------------------------
+function __JsonBooleanPair(name as string, value as dynamic) as string
+    text = "false"
+    if value = true then text = "true"
+    return __JsonString(name) + ":" + text
+end function
+
+'-------------------------------------------------------------------------------
+' __JsonObjectPair
+'-------------------------------------------------------------------------------
+function __JsonObjectPair(name as string, parts as object) as string
+    return __JsonString(name) + ":{" + __JoinJsonParts(parts) + "}"
+end function
+
+'-------------------------------------------------------------------------------
+' __JsonArrayPair
+'-------------------------------------------------------------------------------
+function __JsonArrayPair(name as string, values as dynamic) as string
+    parts = []
+    if values <> invalid then
+        for each value in values
+            parts.Push(__JsonString(value))
+        end for
+    end if
+
+    return __JsonString(name) + ":[" + __JoinJsonParts(parts) + "]"
+end function
+
+'-------------------------------------------------------------------------------
+' __JsonString
+'-------------------------------------------------------------------------------
+function __JsonString(value as dynamic) as string
+    text = SafeString(value, "")
+    text = String_Replace(text, "\", "\\")
+    text = String_Replace(text, Chr(34), "\" + Chr(34))
+    return Chr(34) + text + Chr(34)
 end function

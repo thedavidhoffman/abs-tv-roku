@@ -8,27 +8,7 @@ For Roku, direct play can be risky with large progressive MP3 files. Small MP3 f
 
 `forceTranscode` tells Audiobookshelf to generate a transcoded playback stream. In this app we currently prefer transcoding for Roku playback so large files are delivered as HLS-style segmented media instead of one huge progressive MP3 stream.
 
-Current playback request shape:
-
-```brightscript
-body = FormatJson({
-    deviceInfo: {
-        clientName: "ABSTV"
-        clientVersion: "0.1.0"
-        manufacturer: "Roku"
-        model: "Roku"
-    }
-    forceDirectPlay: false
-    forceTranscode: true
-    supportedMimeTypes: [
-        "application/vnd.apple.mpegurl"
-        "application/x-mpegURL"
-        "audio/mpegurl"
-        "audio/x-mpegurl"
-    ]
-    mediaPlayer: "roku"
-})
-```
+Build playback request JSON explicitly instead of with `FormatJson()`, because Roku can lowercase JSON keys during serialization. See `formatjson-key-casing.md`.
 
 ## Roku stability notes
 

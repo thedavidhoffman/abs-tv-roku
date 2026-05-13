@@ -18,6 +18,7 @@
 ## BrightScript style
 
 - Assign color fields with integer hex literals, such as `m.title.color = &h0F1A2AFF`, not string values like `"0x0F1A2AFF"`.
+- Do not use `FormatJson()` for outbound API request bodies. Roku lowercases JSON object keys during serialization, which breaks case-sensitive API fields such as Audiobookshelf `supportedMimeTypes`; build request JSON explicitly when key casing matters.
 
 ## BrightScript naming
 
