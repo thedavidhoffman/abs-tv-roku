@@ -34,16 +34,17 @@
     <Label id="statusLabel" translation="[700,724]" width="430" color="0xF2C879FF" />
     <Label id="chapterStatusLabel" translation="[1020,724]" width="720" horizAlign="right" color="0xB7C5D4FF" />
     
-    <!-- progress -->
+    <!-- progress/play head -->
     <Group id="progressGroup" translation="[700,774]">
       <Rectangle id="progressTrack" width="1040" height="12" color="0x555555FF" />
       <Rectangle id="progressFill" width="1" height="12" color="0xE09B42FF" visible="false" />
+      <Group id="chapterMarkersGroup" />
       <Rectangle id="progressCrossbar" translation="[0,-10]" width="8" height="32" color="0xF3F7FBFF" visible="false" />
       <Label id="currentTimeLabel" translation="[0,26]" width="220" text="0:00" />
       <Label id="totalTimeLabel" translation="[820,26]" width="220" horizAlign="right" text="0:00" />
     </Group>
 
-    <!-- transport -->
+    <!-- play/chapters -->
     <Group id="transportControls" translation="[700,849]">
       <PrimaryButton id="playPauseButton" translation="[0,0]" buttonWidth="188" buttonHeight="56" text="Pause" />
       <PrimaryButton id="chaptersButton" translation="[850,0]" buttonWidth="190" buttonHeight="56" text="Chapters" visible="false" />

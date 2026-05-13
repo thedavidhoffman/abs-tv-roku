@@ -29,6 +29,7 @@ sub initReferences()
     m.progressGroup = m.top.findNode("progressGroup")
     m.progressFill = m.top.findNode("progressFill")
     m.progressTrack = m.top.findNode("progressTrack")
+    m.chapterMarkersGroup = m.top.findNode("chapterMarkersGroup")
     m.progressCrossbar = m.top.findNode("progressCrossbar")
     m.currentTimeLabel = m.top.findNode("currentTimeLabel")
     m.totalTimeLabel = m.top.findNode("totalTimeLabel")
@@ -213,6 +214,7 @@ sub resetPlaybackSessionState()
     m.playbackSessionId = invalid
     m.isHlsTranscode = false
     m.hlsStartupSeekTargetSeconds = invalid
+    updateChapterMarkers()
     updateCurrentChapterStatus()
 end sub
 
@@ -402,6 +404,7 @@ sub updateDetails(details as dynamic)
 
     m.totalDurationSeconds = 0
     setLabelText(m.totalTimeLabel, "0:00")
+    updateChapterMarkers()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -475,6 +478,7 @@ sub playTracks(tracks as dynamic, chapters as dynamic)
     m.currentTrackIndex = getTrackIndexForGlobalTime(m.currentTimeSeconds)
     m.pendingSeekSeconds = getTrackSeekPosition(m.currentTrackIndex, m.currentTimeSeconds)
     updateChaptersButtonVisibility()
+    updateChapterMarkers()
     updateChapterList()
     updateCurrentChapterStatus()
     playCurrentTrack()
@@ -1331,6 +1335,48 @@ sub updateChaptersButtonVisibility()
     end if
 
     if hasMultipleTracks = false and m.transportFocusIndex > 0 then updateTransportFocus(0)
+end sub
+
+'-------------------------------------------------------------------------------
+' updateChapterMarkers
+'-------------------------------------------------------------------------------
+sub updateChapterMarkers()
+    if m.chapterMarkersGroup = invalid then return
+
+    while m.chapterMarkersGroup.getChildCount() > 0
+        child = m.chapterMarkersGroup.getChild(0)
+        if child = invalid then exit while
+        m.chapterMarkersGroup.removeChild(child)
+    end while
+
+    if m.chapterItems = invalid or m.chapterItems.Count() <= 1 then return
+    if m.totalDurationSeconds <= 0 then return
+
+    markerWidth = 2
+    markerTop = 13
+    markerBottom = 22
+    markerHeight = markerBottom - markerTop
+    halfMarkerWidth = int(markerWidth / 2)
+    if halfMarkerWidth < 1 then halfMarkerWidth = 1
+
+    for each chapter in m.chapterItems
+        chapterPosition = getChapterStartPosition(chapter)
+        if chapterPosition < 0 then chapterPosition = 0
+        if chapterPosition > m.totalDurationSeconds then chapterPosition = m.totalDurationSeconds
+
+        markerX = int((chapterPosition / m.totalDurationSeconds) * m.progressBarWidth)
+        if markerX < halfMarkerWidth then markerX = halfMarkerWidth
+        if markerX > m.progressBarWidth - halfMarkerWidth then markerX = m.progressBarWidth - halfMarkerWidth
+
+        marker = CreateObject("roSGNode", "Rectangle")
+        if marker <> invalid then
+            marker.width = markerWidth
+            marker.height = markerHeight
+            marker.translation = [markerX - halfMarkerWidth, markerTop]
+            marker.color = &hF3F7FB80
+            m.chapterMarkersGroup.appendChild(marker)
+        end if
+    end for
 end sub
 
 '-------------------------------------------------------------------------------
