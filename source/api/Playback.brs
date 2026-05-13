@@ -33,13 +33,9 @@ function Playback_Start(request as object) as object
     forceDirectPlay = request.forceDirectPlay = true
     if forceTranscode = true then forceDirectPlay = false
 
-    ' this is IMPORTANT... we CANNOT use/trust the built-in Roku FormatJson() function
-    ' because it will lowercase json keys. So a key such as "supportedMimeTypes" will
-    ' be changed to "supportedmimetypes". The ABS API is CASE SENSITIVE and so the
-    ' lowercased value is ignored with the ABS logs reporting this error...
-    ' "ERROR: [Book] checkCanDirectPlay: supportedMimeTypes is not an array undefined".
-    ' This caused all sorts of chaos, pain and suffering until we uncovered FormatJson() 
-    ' being the cause of that pain and suffering.
+    ' Build request JSON with Json.brs helpers instead of FormatJson(), because Roku
+    ' lowercases object keys during serialization and ABS requires exact key casing
+    ' for fields such as supportedMimeTypes.
     bodyData = __BuildPlaybackStartBody(forceTranscode, forceDirectPlay)
     body = __BuildPlaybackStartBodyJson(bodyData)
 
@@ -52,14 +48,8 @@ function Playback_Start(request as object) as object
   ' request logging
     log.write("request...")
     log.write("      url: " + playbackUrl)
-    log.write("      rawBody: " + body)
     log.write("      body:")
-    log.write("            forceDirectPlay=" + bodyData.forceDirectPlay.ToStr())
-    log.write("            forceTranscode=" + bodyData.forceTranscode.ToStr())
-    log.write("            supportedMimeTypes:")
-    for each mimeType in bodyData.supportedMimeTypes
-        log.write("                  " + SafeString(mimeType))
-    end for
+    log.writeJson(body, 6)
     log.write("      response status = " + SafeString(playbackResult.status))
 
     if playbackResult.ok <> true then
@@ -180,7 +170,7 @@ function Playback_SyncSession(request as object) as object
 
     result = HttpClient_Request(server + "/api/session/" + sessionId.ToStr() + "/sync", "POST", token, body)
     result.action = "syncPlaybackSession"
-    __LogPlaybackSessionResponse(log, "sync", sessionId, result)
+    '__LogPlaybackSessionResponse(log, "sync", sessionId, result)
 
     return result
 

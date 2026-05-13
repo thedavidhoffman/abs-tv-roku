@@ -2,14 +2,16 @@
 ## Hit List
 ----------------------------------------------------
 
+- player transport
+    - replace chapter display with time remaining
+    - label above playing should be the current chapter name
+    - progress bar have interactive UI for jogging forward/backward
+        - playback pauses on first interaction
+        - ok, or navigation away resumes playback
+    - kill -30/+30
 
-- courtship of princess leia - static on playback
-- to the manor born track switching
 - library... list... expanded... doctor who titles prefixed with a number
-- media progress on library titles not displaying after playback
-- compare playback on ABS client vs this client
-
-FormatJson
+- support screen saver
 
 - default page setting
     - home
@@ -26,14 +28,9 @@ FormatJson
     - review UI
 
 
-The promising bit to remember for tomorrow: the working direction appears to be HLS PlayStart at the ABS global resume time, plus the larger resume retry window. No more “unable to resume” path, no post-start HLS seek, no final-output.m3u8 detour.
-
 Titles with playback problems
 ----------------------------------------------------
-- courtship of princess leia
-- the hutt gambit
 - meditations playback
-- play James Bond, plays correctly, play it again, it rifles through tracks and starts playback at a much later track
 
 - in-progress bar for series
 - loading spinner/indicator

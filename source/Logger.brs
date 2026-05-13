@@ -20,6 +20,7 @@ function CreateLogger(label = "" as string, buffered = true as boolean) as objec
         write: __Logger_Write
         writeBlankLine: __Logger_WriteBlankLine
         writeBracketed: __Logger_WriteBracketed
+        writeJson: __Logger_WriteJson
         error: __Logger_Error
         flush: __Logger_Flush
         text: __Logger_Text
@@ -87,6 +88,20 @@ function __Logger_WriteBracketed(array as dynamic) as object
 end function
 
 '-------------------------------------------------------------------------------
+' __Logger_WriteJson
+'-------------------------------------------------------------------------------
+function __Logger_WriteJson(jsonText as dynamic, indent = 0 as integer) as object
+    lines = __Logger_FormatJsonText(jsonText)
+    prefix = __Logger_Indent(indent)
+
+    for each line in lines
+        m.write(prefix + line)
+    end for
+
+    return m
+end function
+
+'-------------------------------------------------------------------------------
 ' __Logger_Error
 '-------------------------------------------------------------------------------
 function __Logger_Error(message as dynamic) as object
@@ -129,6 +144,113 @@ function __Logger_Format(message as dynamic, label as dynamic) as string
     if label <> invalid and label <> "" then text = "[" + label + "] " + text
     return __Logger_TimestampPrefix() + text
 
+end function
+
+'-------------------------------------------------------------------------------
+' __Logger_FormatJsonText
+'-------------------------------------------------------------------------------
+function __Logger_FormatJsonText(jsonText as dynamic) as object
+    text = SafeString(jsonText, "")
+    lines = []
+    if text = "" then
+        lines.Push("")
+        return lines
+    end if
+
+    indentLevel = 0
+    currentLine = ""
+    inString = false
+    escapeNext = false
+    quote = Chr(34)
+
+    for i = 1 to Len(text)
+        char = Mid(text, i, 1)
+
+        if inString = true then
+            currentLine = currentLine + char
+
+            if escapeNext = true then
+                escapeNext = false
+            else if char = "\" then
+                escapeNext = true
+            else if char = quote then
+                inString = false
+            end if
+        else if char = quote then
+            inString = true
+            currentLine = currentLine + char
+        else if char = "{" or char = "[" then
+            currentLine = __Logger_TrimRight(currentLine) + char
+            lines.Push(currentLine)
+            indentLevel = indentLevel + 1
+            currentLine = __Logger_Indent(indentLevel)
+        else if char = "}" or char = "]" then
+            if __Logger_Trim(currentLine) <> "" then lines.Push(__Logger_TrimRight(currentLine))
+            indentLevel = indentLevel - 1
+            if indentLevel < 0 then indentLevel = 0
+            currentLine = __Logger_Indent(indentLevel) + char
+        else if char = "," then
+            currentLine = __Logger_TrimRight(currentLine) + char
+            lines.Push(currentLine)
+            currentLine = __Logger_Indent(indentLevel)
+        else if char = ":" then
+            currentLine = __Logger_TrimRight(currentLine) + ": "
+        else if __Logger_IsWhitespace(char) <> true then
+            currentLine = currentLine + char
+        end if
+    end for
+
+    if __Logger_Trim(currentLine) <> "" then lines.Push(__Logger_TrimRight(currentLine))
+
+    return lines
+end function
+
+'-------------------------------------------------------------------------------
+' __Logger_Indent
+'-------------------------------------------------------------------------------
+function __Logger_Indent(level as integer) as string
+    text = ""
+    for i = 1 to level
+        text = text + "  "
+    end for
+
+    return text
+end function
+
+'-------------------------------------------------------------------------------
+' __Logger_IsWhitespace
+'-------------------------------------------------------------------------------
+function __Logger_IsWhitespace(char as string) as boolean
+    return char = " " or char = Chr(9) or char = Chr(10) or char = Chr(13)
+end function
+
+'-------------------------------------------------------------------------------
+' __Logger_Trim
+'-------------------------------------------------------------------------------
+function __Logger_Trim(text as string) as string
+    return __Logger_TrimLeft(__Logger_TrimRight(text))
+end function
+
+'-------------------------------------------------------------------------------
+' __Logger_TrimLeft
+'-------------------------------------------------------------------------------
+function __Logger_TrimLeft(text as string) as string
+    while Len(text) > 0 and __Logger_IsWhitespace(Left(text, 1)) = true
+        text = Mid(text, 2)
+    end while
+
+    return text
+end function
+
+'-------------------------------------------------------------------------------
+' __Logger_TrimRight
+'-------------------------------------------------------------------------------
+function __Logger_TrimRight(text as string) as string
+    while Len(text) > 0 and __Logger_IsWhitespace(Right(text, 1)) = true
+        text = Left(text, Len(text) - 1)
+    end while
+
+    return text
 end function
 
 '-------------------------------------------------------------------------------

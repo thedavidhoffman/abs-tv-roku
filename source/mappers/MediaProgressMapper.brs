@@ -23,6 +23,13 @@ function MediaProgressMapper_Map(payload as dynamic) as object
 end function
 
 '-------------------------------------------------------------------------------
+' MediaProgressMapper_MapProgressItem
+'-------------------------------------------------------------------------------
+function MediaProgressMapper_MapProgressItem(progress as dynamic) as dynamic
+    return __MediaProgressMapper_MapProgress(progress, invalid)
+end function
+
+'-------------------------------------------------------------------------------
 ' MediaProgressMapper_MapInProgressItems
 '-------------------------------------------------------------------------------
 function MediaProgressMapper_MapInProgressItems(libraryItems as dynamic) as object
@@ -37,12 +44,14 @@ function MediaProgressMapper_MapInProgressItems(libraryItems as dynamic) as obje
                 progress = item.userMediaProgress
             else if item.mediaProgress <> invalid then
                 progress = item.mediaProgress
-            else
+            else if __MediaProgressMapper_HasProgressFields(item) then
                 progress = item
             end if
 
-            mappedItem = __MediaProgressMapper_MapProgress(progress, item)
-            if mappedItem <> invalid then mappedProgress.Push(mappedItem)
+            if progress <> invalid then
+                mappedItem = __MediaProgressMapper_MapProgress(progress, item)
+                if mappedItem <> invalid then mappedProgress.Push(mappedItem)
+            end if
         end if
     end for
 
@@ -135,6 +144,18 @@ function __MediaProgressMapper_HasAnyId(progress as dynamic) as boolean
     if progress.libraryItemId <> invalid and progress.libraryItemId <> "" then return true
     if progress.mediaItemId <> invalid and progress.mediaItemId <> "" then return true
     if progress.id <> invalid and progress.id <> "" then return true
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' __MediaProgressMapper_HasProgressFields
+'-------------------------------------------------------------------------------
+function __MediaProgressMapper_HasProgressFields(progress as dynamic) as boolean
+    if progress = invalid then return false
+    if progress.currentTime <> invalid then return true
+    if progress.progress <> invalid then return true
+    if progress.isFinished <> invalid then return true
+    if progress.hideFromContinueListening <> invalid then return true
     return false
 end function
 

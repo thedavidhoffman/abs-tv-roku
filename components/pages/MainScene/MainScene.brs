@@ -810,7 +810,7 @@ sub playbackHandleInProgressResponse()
     end if
 
     updatedCount = mergeMediaProgress(response.mediaProgress)
-    authStoreMediaProgress(m.mediaProgress)
+    authStoreMediaProgress(copyMediaProgress(m.mediaProgress))
 
     libraryItemCount = 0
     if response.libraryItems <> invalid then libraryItemCount = response.libraryItems.Count()
@@ -838,6 +838,20 @@ function mergeMediaProgress(progressItems as dynamic) as integer
     end for
 
     return updatedCount
+end function
+
+'-------------------------------------------------------------------------------
+' copyMediaProgress
+'-------------------------------------------------------------------------------
+function copyMediaProgress(progressItems as dynamic) as object
+    copiedItems = []
+    if progressItems = invalid then return copiedItems
+
+    for each progress in progressItems
+        if progress <> invalid then copiedItems.Push(progress)
+    end for
+
+    return copiedItems
 end function
 
 '-------------------------------------------------------------------------------

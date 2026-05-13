@@ -19,6 +19,8 @@ function InProgress_Load(request as object) as object
     libraryItems = []
     if result.data <> invalid and result.data.libraryItems <> invalid then libraryItems = result.data.libraryItems
     mediaProgress = MediaProgressMapper_MapInProgressItems(libraryItems)
+    sourceProgress = __InProgress_LoadSourceProgress(server, token, request.sourceItemId, log)
+    if sourceProgress <> invalid then mediaProgress.Push(sourceProgress)
 
     log.flush()
 
@@ -31,4 +33,20 @@ function InProgress_Load(request as object) as object
         requestCounter: request.counter
         sourceItemId: request.sourceItemId
     }
+end function
+
+'-------------------------------------------------------------------------------
+' __InProgress_LoadSourceProgress
+'-------------------------------------------------------------------------------
+function __InProgress_LoadSourceProgress(server as string, token as dynamic, sourceItemId as dynamic, log as object) as dynamic
+    if sourceItemId = invalid or sourceItemId = "" then return invalid
+
+    progressUrl = server + "/api/me/progress/" + sourceItemId.ToStr()
+    result = HttpClient_Request(progressUrl, "GET", token, invalid)
+    log.write(progressUrl)
+    log.write("source progress status = " + SafeString(result.status, ""))
+
+    if result.ok <> true then return invalid
+
+    return MediaProgressMapper_MapProgressItem(result.data)
 end function

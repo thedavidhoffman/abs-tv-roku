@@ -68,11 +68,7 @@ sub initValues()
     m.hlsResumeRetryMax = 8
     m.hlsRetryPending = false
     m.hlsStartupSeekTargetSeconds = invalid
-    m.hlsGlobalStartOffsetSeconds = invalid
     m.hlsSessionRefreshTried = false
-    m.forceDirectPlayResumeTried = false
-    m.activeForceDirectPlay = false
-    m.refusedResumeClosePending = false
     m.forceTranscodeFallbackTried = false
     m.hasStartedPlayback = false
     m.visiblePlaybackStatus = ""
@@ -177,12 +173,10 @@ end sub
 '-------------------------------------------------------------------------------
 ' requestStartPlaybackSession
 '-------------------------------------------------------------------------------
-sub requestStartPlaybackSession(forceTranscode = false as boolean, startTimeOverride = invalid as dynamic, forceDirectPlay = false as boolean)
+sub requestStartPlaybackSession(forceTranscode = false as boolean, startTimeOverride = invalid as dynamic)
     request = m.top.playRequest
     if request = invalid then return
 
-    if forceTranscode = true then forceDirectPlay = false
-    m.activeForceDirectPlay = forceDirectPlay
     m.startTimeOverrideSeconds = startTimeOverride
     m.playbackRequestCounter = m.playbackRequestCounter + 1
     m.activeStartRequestCounter = m.playbackRequestCounter
@@ -192,23 +186,11 @@ sub requestStartPlaybackSession(forceTranscode = false as boolean, startTimeOver
         token: request.token
         itemId: request.itemId
         title: request.title
-        forceDirectPlay: forceDirectPlay
+        forceDirectPlay: false
         forceTranscode: forceTranscode
         requestCounter: m.activeStartRequestCounter
     })
 end sub
-
-'-------------------------------------------------------------------------------
-' shouldForceDirectPlayResume
-'-------------------------------------------------------------------------------
-function shouldForceDirectPlayResume() as boolean
-    if m.forceDirectPlayResumeTried = true then return false
-    if m.requestedStartPositionSeconds <= 0 then return false
-
-    m.forceDirectPlayResumeTried = true
-    m.log.write("Requesting direct play for resumed playback startPosition=" + m.requestedStartPositionSeconds.ToStr())
-    return true
-end function
 
 '-------------------------------------------------------------------------------
 ' resetMediaNodeForNewPlayback
@@ -236,7 +218,6 @@ sub resetPlaybackSessionState()
     m.playbackSessionId = invalid
     m.isHlsTranscode = false
     m.hlsStartupSeekTargetSeconds = invalid
-    m.hlsGlobalStartOffsetSeconds = invalid
     updateCurrentChapterStatus()
 end sub
 
@@ -253,9 +234,6 @@ sub resetPlaybackRetryState(resetFallbackAttempts = false as boolean)
 
     if resetFallbackAttempts = true then
         m.hlsSessionRefreshTried = false
-        m.forceDirectPlayResumeTried = false
-        m.activeForceDirectPlay = false
-        m.refusedResumeClosePending = false
         m.forceTranscodeFallbackTried = false
     end if
 end sub
@@ -314,16 +292,7 @@ end sub
 ' handleClosePlaybackSessionResponse
 '-------------------------------------------------------------------------------
 sub handleClosePlaybackSessionResponse(response as dynamic)
-    if m.refusedResumeClosePending <> true then
-        if response <> invalid and response.ok <> true then m.top.errorResponse = response
-        return
-    end if
-
-    if response <> invalid and response.ok = true then
-        m.playbackSession = invalid
-        m.playbackSessionId = invalid
-    end if
-    m.refusedResumeClosePending = false
+    if response <> invalid and response.ok <> true then m.top.errorResponse = response
 end sub
 
 '-------------------------------------------------------------------------------
@@ -370,30 +339,17 @@ sub handleStartPlaybackResponse(response as dynamic)
     if m.isClosing = true then return
 
     if response.ok <> true then
-        if m.activeForceDirectPlay = true then
-            m.log.write("Direct play request failed; retrying default playback selection.")
-            m.activeForceDirectPlay = false
-            requestStartPlaybackSession(false, m.requestedStartPositionSeconds, false)
-            return
-        end if
-
         m.top.errorResponse = response
         setStatus(SafeString(response.errorMessage, "Unable to start playback."))
         return
     end if
 
-    m.activeForceDirectPlay = false
     m.playbackSession = response.playbackSession
     m.playbackSessionId = getPlaybackSessionId(response.playbackSession)
     if response.playbackSessionId <> invalid then m.playbackSessionId = response.playbackSessionId
     m.isHlsTranscode = response.isHlsTranscode = true
     m.currentTimeSeconds = getStartPlaybackCurrentTime(response)
-    if m.isHlsTranscode = true then
-        m.hlsGlobalStartOffsetSeconds = invalid
-        m.log.write("HLS stream global start offset=0")
-    else
-        m.hlsGlobalStartOffsetSeconds = invalid
-    end if
+    if m.isHlsTranscode = true then m.log.write("HLS stream global start offset=0")
     m.totalDurationSeconds = getStartPlaybackDuration(response)
     startPlaybackSyncState()
     playTracks(response.tracks, response.chapters)
@@ -408,15 +364,6 @@ function getStartPlaybackCurrentTime(response as dynamic) as integer
     end if
 
     return m.requestedStartPositionSeconds
-end function
-
-'-------------------------------------------------------------------------------
-' getHlsStreamStartOffset
-'-------------------------------------------------------------------------------
-function getHlsStreamStartOffset(currentTime as dynamic) as integer
-    startOffset = clampGlobalTime(currentTime) - 30
-    if startOffset < 0 then return 0
-    return startOffset
 end function
 
 '-------------------------------------------------------------------------------
@@ -654,11 +601,7 @@ end function
 '-------------------------------------------------------------------------------
 function getTrackSeekPosition(trackIndex as integer, globalTime as dynamic) as integer
     seekTime = clampGlobalTime(globalTime)
-    if m.isHlsTranscode = true then
-        seekTime = seekTime - getHlsGlobalStartOffsetSeconds()
-        if seekTime < 0 then seekTime = 0
-        return seekTime
-    end if
+    if m.isHlsTranscode = true then return seekTime
     if m.tracks = invalid or trackIndex < 0 or trackIndex >= m.tracks.Count() then return seekTime
 
     seekTime = seekTime - getTrackStartPosition(m.tracks[trackIndex])
@@ -668,14 +611,6 @@ function getTrackSeekPosition(trackIndex as integer, globalTime as dynamic) as i
     if trackDuration > 0 and seekTime > trackDuration then seekTime = trackDuration
 
     return seekTime
-end function
-
-'-------------------------------------------------------------------------------
-' getHlsGlobalStartOffsetSeconds
-'-------------------------------------------------------------------------------
-function getHlsGlobalStartOffsetSeconds() as integer
-    if m.hlsGlobalStartOffsetSeconds = invalid then return 0
-    return clampGlobalTime(m.hlsGlobalStartOffsetSeconds)
 end function
 
 '-------------------------------------------------------------------------------
@@ -1638,7 +1573,7 @@ end function
 ' getHlsPlaybackCurrentTime
 '-------------------------------------------------------------------------------
 function getHlsPlaybackCurrentTime(currentPosition as integer) as integer
-    currentTime = getHlsGlobalStartOffsetSeconds() + currentPosition
+    currentTime = currentPosition
     if m.hlsStartupSeekTargetSeconds = invalid then return clampGlobalTime(currentTime)
 
     targetTime = clampGlobalTime(m.hlsStartupSeekTargetSeconds)
