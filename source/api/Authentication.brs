@@ -36,42 +36,10 @@ end function
 ' __BuildLoginBodyJson
 '-------------------------------------------------------------------------------
 function __BuildLoginBodyJson(request as object) as string
-    return "{" + __JoinLoginJsonParts([
-        __LoginJsonPair("username", request.username)
-        __LoginJsonPair("password", request.password)
-    ]) + "}"
-end function
-
-'-------------------------------------------------------------------------------
-' __LoginJsonPair
-'-------------------------------------------------------------------------------
-function __LoginJsonPair(name as string, value as dynamic) as string
-    return __LoginJsonString(name) + ":" + __LoginJsonString(value)
-end function
-
-'-------------------------------------------------------------------------------
-' __LoginJsonString
-'-------------------------------------------------------------------------------
-function __LoginJsonString(value as dynamic) as string
-    text = SafeString(value, "")
-    text = String_Replace(text, "\", "\\")
-    text = String_Replace(text, Chr(34), "\" + Chr(34))
-    return Chr(34) + text + Chr(34)
-end function
-
-'-------------------------------------------------------------------------------
-' __JoinLoginJsonParts
-'-------------------------------------------------------------------------------
-function __JoinLoginJsonParts(parts as object) as string
-    text = ""
-    if parts = invalid then return text
-
-    for i = 0 to parts.Count() - 1
-        if i > 0 then text = text + ","
-        text = text + parts[i]
-    end for
-
-    return text
+    return Json_Object([
+        Json_Pair("username", request.username)
+        Json_Pair("password", request.password)
+    ])
 end function
 
 '-------------------------------------------------------------------------------

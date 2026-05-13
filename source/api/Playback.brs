@@ -32,6 +32,14 @@ function Playback_Start(request as object) as object
     forceTranscode = request.forceTranscode = true
     forceDirectPlay = request.forceDirectPlay = true
     if forceTranscode = true then forceDirectPlay = false
+
+    ' this is IMPORTANT... we CANNOT use/trust the built-in Roku FormatJson() function
+    ' because it will lowercase json keys. So a key such as "supportedMimeTypes" will
+    ' be changed to "supportedmimetypes". The ABS API is CASE SENSITIVE and so the
+    ' lowercased value is ignored with the ABS logs reporting this error...
+    ' "ERROR: [Book] checkCanDirectPlay: supportedMimeTypes is not an array undefined".
+    ' This caused all sorts of chaos, pain and suffering until we uncovered FormatJson() 
+    ' being the cause of that pain and suffering.
     bodyData = __BuildPlaybackStartBody(forceTranscode, forceDirectPlay)
     body = __BuildPlaybackStartBodyJson(bodyData)
 
@@ -183,10 +191,10 @@ end function
 '-------------------------------------------------------------------------------
 function __BuildPlaybackProgressBodyJson(request as dynamic) as string
     parts = []
-    if request.currentTime <> invalid then parts.Push(Chr(34) + "currentTime" + Chr(34) + ":" + __JsonNumber(request.currentTime))
-    if request.timeListened <> invalid then parts.Push(Chr(34) + "timeListened" + Chr(34) + ":" + __JsonNumber(request.timeListened))
-    if request.duration <> invalid then parts.Push(Chr(34) + "duration" + Chr(34) + ":" + __JsonNumber(request.duration))
-    return "{" + __JoinJsonParts(parts) + "}"
+    if request.currentTime <> invalid then parts.Push(Json_NumberPair("currentTime", request.currentTime))
+    if request.timeListened <> invalid then parts.Push(Json_NumberPair("timeListened", request.timeListened))
+    if request.duration <> invalid then parts.Push(Json_NumberPair("duration", request.duration))
+    return Json_Object(parts)
 end function
 
 '-------------------------------------------------------------------------------
@@ -268,21 +276,21 @@ end function
 function __BuildPlaybackStartBodyJson(bodyData as object) as string
     deviceInfo = bodyData.deviceInfo
     deviceInfoParts = [
-        __JsonPair("clientName", deviceInfo.clientName)
-        __JsonPair("clientVersion", deviceInfo.clientVersion)
-        __JsonPair("manufacturer", deviceInfo.manufacturer)
-        __JsonPair("model", deviceInfo.model)
+        Json_Pair("clientName", deviceInfo.clientName)
+        Json_Pair("clientVersion", deviceInfo.clientVersion)
+        Json_Pair("manufacturer", deviceInfo.manufacturer)
+        Json_Pair("model", deviceInfo.model)
     ]
 
     parts = [
-        __JsonObjectPair("deviceInfo", deviceInfoParts)
-        __JsonBooleanPair("forceDirectPlay", bodyData.forceDirectPlay)
-        __JsonBooleanPair("forceTranscode", bodyData.forceTranscode)
-        __JsonArrayPair("supportedMimeTypes", bodyData.supportedMimeTypes)
-        __JsonPair("mediaPlayer", bodyData.mediaPlayer)
+        Json_ObjectPair("deviceInfo", deviceInfoParts)
+        Json_BooleanPair("forceDirectPlay", bodyData.forceDirectPlay)
+        Json_BooleanPair("forceTranscode", bodyData.forceTranscode)
+        Json_ArrayPair("supportedMimeTypes", bodyData.supportedMimeTypes)
+        Json_Pair("mediaPlayer", bodyData.mediaPlayer)
     ]
 
-    return "{" + __JoinJsonParts(parts) + "}"
+    return Json_Object(parts)
 end function
 
 '-------------------------------------------------------------------------------
@@ -658,75 +666,3 @@ function __GetInteger(value as dynamic, fallback as integer) as integer
     return int(val(value.ToStr()))
 end function
 
-'-------------------------------------------------------------------------------
-' __JoinJsonParts
-'-------------------------------------------------------------------------------
-function __JoinJsonParts(parts as object) as string
-    if parts = invalid or parts.Count() = 0 then return ""
-
-    text = ""
-    for i = 0 to parts.Count() - 1
-        if i > 0 then text = text + ","
-        text = text + parts[i]
-    end for
-
-    return text
-end function
-
-'-------------------------------------------------------------------------------
-' __JsonNumber
-'-------------------------------------------------------------------------------
-function __JsonNumber(value as dynamic) as string
-    if value = invalid then return "0"
-    numberValue = val(value.ToStr())
-    text = numberValue.ToStr()
-    if Instr(1, text, ",") > 0 then text = String_Replace(text, ",", "")
-    return text
-end function
-
-'-------------------------------------------------------------------------------
-' __JsonPair
-'-------------------------------------------------------------------------------
-function __JsonPair(name as string, value as dynamic) as string
-    return __JsonString(name) + ":" + __JsonString(value)
-end function
-
-'-------------------------------------------------------------------------------
-' __JsonBooleanPair
-'-------------------------------------------------------------------------------
-function __JsonBooleanPair(name as string, value as dynamic) as string
-    text = "false"
-    if value = true then text = "true"
-    return __JsonString(name) + ":" + text
-end function
-
-'-------------------------------------------------------------------------------
-' __JsonObjectPair
-'-------------------------------------------------------------------------------
-function __JsonObjectPair(name as string, parts as object) as string
-    return __JsonString(name) + ":{" + __JoinJsonParts(parts) + "}"
-end function
-
-'-------------------------------------------------------------------------------
-' __JsonArrayPair
-'-------------------------------------------------------------------------------
-function __JsonArrayPair(name as string, values as dynamic) as string
-    parts = []
-    if values <> invalid then
-        for each value in values
-            parts.Push(__JsonString(value))
-        end for
-    end if
-
-    return __JsonString(name) + ":[" + __JoinJsonParts(parts) + "]"
-end function
-
-'-------------------------------------------------------------------------------
-' __JsonString
-'-------------------------------------------------------------------------------
-function __JsonString(value as dynamic) as string
-    text = SafeString(value, "")
-    text = String_Replace(text, "\", "\\")
-    text = String_Replace(text, Chr(34), "\" + Chr(34))
-    return Chr(34) + text + Chr(34)
-end function
