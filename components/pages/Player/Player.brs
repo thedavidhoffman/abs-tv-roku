@@ -26,17 +26,16 @@ sub initReferences()
     m.trackTitleLabel = m.top.findNode("trackTitleLabel")
     m.statusLabel = m.top.findNode("statusLabel")
     m.chapterStatusLabel = m.top.findNode("chapterStatusLabel")
+    m.progressGroup = m.top.findNode("progressGroup")
     m.progressFill = m.top.findNode("progressFill")
     m.progressTrack = m.top.findNode("progressTrack")
+    m.progressCrossbar = m.top.findNode("progressCrossbar")
     m.currentTimeLabel = m.top.findNode("currentTimeLabel")
     m.totalTimeLabel = m.top.findNode("totalTimeLabel")
     m.progressTimer = m.top.findNode("progressTimer")
-    m.seekHoldTimer = m.top.findNode("seekHoldTimer")
     m.closeTimer = m.top.findNode("closeTimer")
     m.hlsRetryTimer = m.top.findNode("hlsRetryTimer")
-    m.rewindButton = m.top.findNode("rewindButton")
     m.playPauseButton = m.top.findNode("playPauseButton")
-    m.forwardButton = m.top.findNode("forwardButton")
     m.chaptersButton = m.top.findNode("chaptersButton")
     m.chapterList = m.top.findNode("chapterList")
     m.audioPlayer = m.top.findNode("audioPlayer")
@@ -84,17 +83,14 @@ sub initValues()
     m.isPaused = false
     m.totalDurationSeconds = 0
     m.progressBarWidth = 1040
+    m.isProgressScrubbing = false
+    m.progressScrubTargetSeconds = 0
+    m.progressScrubReturnFocusIndex = 0
     m.transportFocusIndex = -1
-    m.seekHoldDirection = 0
-    m.seekHoldTally = 0
-    m.seekHoldSeconds = 0
-    m.seekHoldStartPosition = 0
     m.deferChapterStatusUpdates = false
     m.pendingChapterStatusUpdate = false
     m.transportButtons = [
-        m.rewindButton
         m.playPauseButton
-        m.forwardButton
         m.chaptersButton
     ]
     m.isClosing = false
@@ -105,7 +101,6 @@ end sub
 '-------------------------------------------------------------------------------
 sub initHandlers()
     if m.progressTimer <> invalid then m.progressTimer.observeField("fire", "onProgressTimerFired")
-    if m.seekHoldTimer <> invalid then m.seekHoldTimer.observeField("fire", "onSeekHoldTimerFired")
     if m.closeTimer <> invalid then m.closeTimer.observeField("fire", "onCloseTimerFired")
     if m.hlsRetryTimer <> invalid then m.hlsRetryTimer.observeField("fire", "onHlsRetryTimerFired")
     if m.audioPlayer <> invalid then m.audioPlayer.observeField("state", "onAudioStateChanged")
@@ -161,10 +156,9 @@ sub onPlayRequestChanged()
     if m.chapterList <> invalid then m.chapterList.audiobookTitle = m.audiobookTitle
     updateDetails(request.details)
     resetProgress()
-    resetSeekHold()
     closeChapterList()
     updateChaptersButtonVisibility()
-    focusTransportButton(1)
+    focusTransportButton(0)
     setStatus("Starting playback...")
 
     requestStartPlaybackSession(false)
@@ -197,7 +191,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub resetMediaNodeForNewPlayback()
     stopProgressTimer()
-    resetSeekHold()
+    cancelProgressScrub()
     if m.hlsRetryTimer <> invalid then m.hlsRetryTimer.control = "stop"
     if m.audioPlayer <> invalid then
         m.audioPlayer.control = "stop"
@@ -711,6 +705,13 @@ sub onAudioStateChanged()
         if hasUnsettledHlsStartupSeek <> true then m.hlsRetryCount = 0
         m.hlsRetryPending = false
         m.hasStartedPlayback = true
+        if m.isProgressScrubbing = true then
+            m.audioPlayer.control = "pause"
+            m.isPaused = true
+            stopProgressTimer()
+            updatePlayPauseButton()
+            return
+        end if
         m.isPaused = false
         disableScreenSaver()
         applyPendingInitialSeek()
@@ -969,7 +970,7 @@ sub closePlayer()
 
     accumulatePlaybackListeningTime()
     requestClosePlaybackSession()
-    resetSeekHold()
+    cancelProgressScrub()
     stopProgressTimer()
     enableScreenSaver()
     closeChapterList()
@@ -1075,15 +1076,29 @@ end function
 ' onKeyEvent
 '-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean
-    if press = false then
-        if key = "OK" or key = "select" then
-            if m.seekHoldDirection <> 0 then
-                finishTransportSeekHold()
-                return true
-            end if
-        end if
+    if press = false then return false
 
-        return false
+    if m.isProgressScrubbing = true then
+        if key = "back" then
+            cancelProgressScrub()
+            closePlayer()
+            return true
+        else if key = "left" then
+            jogProgressScrub(-30)
+            return true
+        else if key = "right" then
+            jogProgressScrub(30)
+            return true
+        else if key = "OK" or key = "select" or key = "play" then
+            commitProgressScrub("transport")
+            return true
+        else if key = "down" then
+            commitProgressScrub("transport")
+            return true
+        else if key = "up" then
+            commitProgressScrub("description")
+            return true
+        end if
     end if
 
     if key = "back" then
@@ -1099,17 +1114,12 @@ function onKeyEvent(key as string, press as boolean) as boolean
             focusTransportButton(m.transportFocusIndex + 1)
             return true
         else if key = "up" then
-            return focusDescriptionFromTransport()
+            focusProgressBar(m.transportFocusIndex)
+            return true
         else if key = "down" then
             return true
         else if key = "OK" or key = "select" then
-            if m.seekHoldDirection <> 0 then return true
-
-            if m.transportFocusIndex = 0 then
-                beginTransportSeekHold(-1)
-            else if m.transportFocusIndex = 2 then
-                beginTransportSeekHold(1)
-            else if m.transportFocusIndex = 3 then
+            if m.transportFocusIndex = 1 then
                 openChapterList()
             else
                 activateTransportButton()
@@ -1119,7 +1129,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     if key = "down" then
-        focusTransportButton(1)
+        focusTransportButton(0)
         return true
     end if
 
@@ -1142,6 +1152,98 @@ function focusDescriptionFromTransport() as boolean
     m.descriptionLabel.setFocus(true)
     return true
 end function
+
+'-------------------------------------------------------------------------------
+' focusProgressBar
+'-------------------------------------------------------------------------------
+sub focusProgressBar(returnFocusIndex as integer)
+    if m.progressGroup = invalid then return
+
+    if returnFocusIndex < 0 then returnFocusIndex = 0
+    transportButtonCount = getTransportButtonCount()
+    if returnFocusIndex >= transportButtonCount then returnFocusIndex = transportButtonCount - 1
+    if returnFocusIndex < 0 then returnFocusIndex = 0
+
+    m.isProgressScrubbing = true
+    m.progressScrubReturnFocusIndex = returnFocusIndex
+    m.progressScrubTargetSeconds = getPlaybackCurrentTimeSeconds()
+
+    if m.audioPlayer <> invalid and SafeString(m.audioPlayer.state, "") = "playing" then m.audioPlayer.control = "pause"
+    m.isPaused = true
+    stopProgressTimer()
+    enableScreenSaver()
+    requestSyncPlaybackSession("pause")
+    updatePlayPauseButton()
+    updateTransportFocus(-1)
+    updateProgressScrubPreview()
+    setStatus("Paused")
+    m.progressGroup.setFocus(true)
+end sub
+
+'-------------------------------------------------------------------------------
+' jogProgressScrub
+'-------------------------------------------------------------------------------
+sub jogProgressScrub(offsetSeconds as integer)
+    if m.isProgressScrubbing <> true then return
+
+    m.progressScrubTargetSeconds = m.progressScrubTargetSeconds + offsetSeconds
+    updateProgressScrubPreview()
+end sub
+
+'-------------------------------------------------------------------------------
+' updateProgressScrubPreview
+'-------------------------------------------------------------------------------
+sub updateProgressScrubPreview()
+    targetPosition = clampGlobalTime(m.progressScrubTargetSeconds)
+    m.progressScrubTargetSeconds = targetPosition
+
+    updateProgress(targetPosition, true)
+
+    crossbarX = 0
+    if m.totalDurationSeconds > 0 then
+        crossbarX = int((targetPosition / m.totalDurationSeconds) * m.progressBarWidth)
+    end if
+
+    if crossbarX < 2 then crossbarX = 2
+    if crossbarX > m.progressBarWidth - 2 then crossbarX = m.progressBarWidth - 2
+    if m.progressCrossbar <> invalid then
+        m.progressCrossbar.translation = [crossbarX - 2, -10]
+        m.progressCrossbar.visible = true
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' commitProgressScrub
+'-------------------------------------------------------------------------------
+sub commitProgressScrub(nextFocus as string)
+    if m.isProgressScrubbing <> true then return
+
+    targetPosition = clampGlobalTime(m.progressScrubTargetSeconds)
+    m.isProgressScrubbing = false
+    if m.progressCrossbar <> invalid then m.progressCrossbar.visible = false
+
+    seekToGlobalTime(targetPosition, true, true)
+    m.isPaused = false
+    disableScreenSaver()
+    startProgressTimer()
+    setStatus("Playing")
+    updatePlayPauseButton()
+
+    if nextFocus = "description" and focusDescriptionFromTransport() then return
+    focusTransportButton(m.progressScrubReturnFocusIndex)
+end sub
+
+'-------------------------------------------------------------------------------
+' cancelProgressScrub
+'-------------------------------------------------------------------------------
+sub cancelProgressScrub()
+    if m.isProgressScrubbing <> true then return
+
+    m.isProgressScrubbing = false
+    if m.progressCrossbar <> invalid then m.progressCrossbar.visible = false
+    updateProgress(getPlaybackCurrentTimeSeconds(), true)
+    updatePlayPauseButton()
+end sub
 
 ' focusTransportButton
 '-------------------------------------------------------------------------------
@@ -1173,8 +1275,8 @@ end sub
 ' getTransportButtonCount
 '-------------------------------------------------------------------------------
 function getTransportButtonCount() as integer
-    if m.chaptersButton <> invalid and m.chaptersButton.visible = true then return 4
-    return 3
+    if m.chaptersButton <> invalid and m.chaptersButton.visible = true then return 2
+    return 1
 end function
 
 '-------------------------------------------------------------------------------
@@ -1182,12 +1284,8 @@ end function
 '-------------------------------------------------------------------------------
 sub activateTransportButton()
     if m.transportFocusIndex = 0 then
-        beginTransportSeekHold(-1)
-    else if m.transportFocusIndex = 1 then
         togglePlayPause()
-    else if m.transportFocusIndex = 2 then
-        beginTransportSeekHold(1)
-    else if m.transportFocusIndex = 3 then
+    else if m.transportFocusIndex = 1 then
         openChapterList()
     end if
 end sub
@@ -1202,7 +1300,7 @@ sub updateChaptersButtonVisibility()
         if hasMultipleTracks = false then m.chaptersButton.hasFocusVisual = false
     end if
 
-    if hasMultipleTracks = false and m.transportFocusIndex > 2 then updateTransportFocus(2)
+    if hasMultipleTracks = false and m.transportFocusIndex > 0 then updateTransportFocus(0)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1289,7 +1387,7 @@ end sub
 sub focusChaptersButton()
     if m.chaptersButton <> invalid and m.chaptersButton.visible = true then
         m.chaptersButton.setFocus(true)
-        updateTransportFocus(3)
+        updateTransportFocus(1)
     end if
 end sub
 
@@ -1308,7 +1406,6 @@ sub onChapterSelected()
 
     focusChaptersButton()
 
-    resetSeekHold()
     stopProgressTimer()
     chapter = m.chapterItems[index]
     beginChapterStatusUpdateBatch()
@@ -1339,100 +1436,6 @@ function getChapterStartPosition(chapter as dynamic) as integer
     if chapter = invalid then return 0
     if chapter.startOffset <> invalid then return int(val(chapter.startOffset.ToStr()))
     return 0
-end function
-
-'-------------------------------------------------------------------------------
-' beginTransportSeekHold
-'-------------------------------------------------------------------------------
-sub beginTransportSeekHold(direction as integer)
-    if m.audioPlayer = invalid then return
-    if direction = 0 then return
-
-    m.seekHoldDirection = direction
-    m.seekHoldTally = 1
-    m.seekHoldSeconds = 0
-    m.seekHoldStartPosition = getPlaybackCurrentTimeSeconds()
-
-    stopProgressTimer()
-    if m.seekHoldTimer <> invalid then m.seekHoldTimer.control = "start"
-    updateSeekHoldPreview()
-end sub
-
-'-------------------------------------------------------------------------------
-' onSeekHoldTimerFired
-'-------------------------------------------------------------------------------
-sub onSeekHoldTimerFired()
-    if m.seekHoldDirection = 0 then
-        if m.seekHoldTimer <> invalid then m.seekHoldTimer.control = "stop"
-        return
-    end if
-
-    m.seekHoldSeconds = m.seekHoldSeconds + 1
-    if m.seekHoldSeconds > 5 then
-        m.seekHoldTally = m.seekHoldTally + 2
-    else
-        m.seekHoldTally = m.seekHoldTally + 1
-    end if
-    updateSeekHoldPreview()
-end sub
-
-'-------------------------------------------------------------------------------
-' updateSeekHoldPreview
-'-------------------------------------------------------------------------------
-sub updateSeekHoldPreview()
-    targetPosition = getSeekHoldTargetPosition()
-    updateProgress(targetPosition)
-
-    offsetSeconds = m.seekHoldDirection * m.seekHoldTally * 30
-    if offsetSeconds > 0 then
-        setStatus("Seek +" + formatPlaybackTime(offsetSeconds))
-    else
-        setStatus("Seek -" + formatPlaybackTime(Abs(offsetSeconds)))
-    end if
-end sub
-
-'-------------------------------------------------------------------------------
-' finishTransportSeekHold
-'-------------------------------------------------------------------------------
-sub finishTransportSeekHold()
-    if m.seekHoldDirection = 0 then return
-
-    targetPosition = getSeekHoldTargetPosition()
-    resetSeekHold()
-
-    if m.audioPlayer <> invalid then
-        seekToGlobalTime(targetPosition, m.isPaused <> true, false)
-    end if
-
-    updateProgress(targetPosition)
-    requestSyncPlaybackSession("seek", targetPosition)
-    if m.isPaused = true then
-        setStatus("Paused")
-    else
-        setStatus("Playing")
-        startProgressTimer()
-    end if
-end sub
-
-'-------------------------------------------------------------------------------
-' resetSeekHold
-'-------------------------------------------------------------------------------
-sub resetSeekHold()
-    if m.seekHoldTimer <> invalid then m.seekHoldTimer.control = "stop"
-    m.seekHoldDirection = 0
-    m.seekHoldTally = 0
-    m.seekHoldSeconds = 0
-    m.seekHoldStartPosition = 0
-end sub
-
-'-------------------------------------------------------------------------------
-' getSeekHoldTargetPosition
-'-------------------------------------------------------------------------------
-function getSeekHoldTargetPosition() as integer
-    targetPosition = m.seekHoldStartPosition + (m.seekHoldDirection * m.seekHoldTally * 30)
-    if targetPosition < 0 then targetPosition = 0
-    if getPlaybackDurationSeconds() > 0 and targetPosition > getPlaybackDurationSeconds() then targetPosition = getPlaybackDurationSeconds()
-    return targetPosition
 end function
 
 '-------------------------------------------------------------------------------
@@ -1479,20 +1482,10 @@ sub updatePlayPauseButton()
     end if
 end sub
 
-'-------------------------------------------------------------------------------
-' seekRelative
-'-------------------------------------------------------------------------------
-sub seekRelative(offsetSeconds as integer)
-    if m.audioPlayer = invalid then return
-
-    nextPosition = getPlaybackCurrentTimeSeconds() + offsetSeconds
-    seekToGlobalTime(nextPosition, m.isPaused <> true, true)
-end sub
-
 ' onProgressTimerFired
 '-------------------------------------------------------------------------------
 sub onProgressTimerFired()
-    if m.seekHoldDirection <> 0 then return
+    if m.isProgressScrubbing = true then return
     accumulatePlaybackListeningTime()
     position = getPlaybackCurrentTimeSeconds()
     updatePlaybackPosition(position)
@@ -1664,7 +1657,7 @@ end sub
 ' startProgressTimer
 '-------------------------------------------------------------------------------
 sub startProgressTimer()
-    if m.seekHoldDirection <> 0 then return
+    if m.isProgressScrubbing = true then return
     if m.lastProgressTickAtSeconds <= 0 then m.lastProgressTickAtSeconds = getNowSeconds()
     if m.progressTimer <> invalid then m.progressTimer.control = "start"
     updateProgress(getPlaybackCurrentTimeSeconds())

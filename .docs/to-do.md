@@ -5,9 +5,12 @@
 - player transport
     - replace chapter display with time remaining
     - label above playing should be the current chapter name
+
     - progress bar have interactive UI for jogging forward/backward
         - playback pauses on first interaction
         - ok, or navigation away resumes playback
+        - on job, keep progress bar where it's at, it resets back, I think it's waiting for playback to trigger updating it
+        - sync progress on job
     - kill -30/+30
 
 - library... list... expanded... doctor who titles prefixed with a number
