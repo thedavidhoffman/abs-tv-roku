@@ -29,7 +29,10 @@ function Playback_Start(request as object) as object
     title = SafeString(request.title, "")
 
     ' build the POST body
-    bodyData = __BuildPlaybackStartBody(request.forceTranscode = true)
+    forceTranscode = request.forceTranscode = true
+    forceDirectPlay = request.forceDirectPlay = true
+    if forceTranscode = true then forceDirectPlay = false
+    bodyData = __BuildPlaybackStartBody(forceTranscode, forceDirectPlay)
     body = FormatJson(bodyData)
 
     ' build the POST url
@@ -77,6 +80,7 @@ function Playback_Start(request as object) as object
     duration = __GetNumber(playbackSession.duration)
     playMethod = __GetInteger(playbackSession.playMethod, -1)
     isHlsTranscode = __IsSessionHlsTranscode(playbackSession, tracks)
+    if forceDirectPlay = true and isHlsTranscode = true then log.error("Force direct play request returned an HLS/transcode session.")
 
     ' logging
     log.write("function response...")
@@ -232,7 +236,7 @@ end function
 '-------------------------------------------------------------------------------
 ' __BuildPlaybackStartBody
 '-------------------------------------------------------------------------------
-function __BuildPlaybackStartBody(forceTranscode = false as boolean) as object
+function __BuildPlaybackStartBody(forceTranscode = false as boolean, forceDirectPlay = false as boolean) as object
     deviceInfo = CreateObject("roDeviceInfo")
     model = deviceInfo.GetModel()
     modelDisplayName = deviceInfo.GetModelDisplayName()
@@ -244,19 +248,37 @@ function __BuildPlaybackStartBody(forceTranscode = false as boolean) as object
             manufacturer: "Roku"
             model: modelDisplayName + " " + model
         }
-        forceDirectPlay: false
+        forceDirectPlay: forceDirectPlay
         forceTranscode: forceTranscode
-        supportedMimeTypes: [
-            "audio/mpeg"
-            "audio/mp4"
-            "audio/aac"
-            "application/vnd.apple.mpegurl"
-            "application/x-mpegURL"
-            "application/x-mpegurl"
-            "application/vnd.apple.mpegURL"
-        ]
+        supportedMimeTypes: __GetSupportedMimeTypes(forceDirectPlay)
         mediaPlayer: "roku"
     }
+end function
+
+'-------------------------------------------------------------------------------
+' __GetSupportedMimeTypes
+'-------------------------------------------------------------------------------
+function __GetSupportedMimeTypes(forceDirectPlay as boolean) as object
+    mimeTypes = [
+        "audio/mpeg"
+        "audio/mp3"
+        "audio/mp4"
+        "audio/aac"
+        "audio/m4a"
+        "audio/x-m4a"
+        "audio/m4b"
+        "audio/x-m4b"
+        "audio/x-mpeg"
+    ]
+
+    if forceDirectPlay = true then return mimeTypes
+
+    mimeTypes.Push("application/vnd.apple.mpegurl")
+    mimeTypes.Push("application/x-mpegURL")
+    mimeTypes.Push("application/x-mpegurl")
+    mimeTypes.Push("application/vnd.apple.mpegURL")
+
+    return mimeTypes
 end function
 
 '-------------------------------------------------------------------------------

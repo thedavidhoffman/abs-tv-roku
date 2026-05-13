@@ -55,6 +55,7 @@
     <Timer id="seekHoldTimer" duration="1" repeat="true" />
     <Timer id="closeTimer" duration="0.5" repeat="false" />
     <Timer id="hlsRetryTimer" duration="2" repeat="false" />
+    <Timer id="deferredCloseSessionTimer" duration="0.1" repeat="false" />
 
     <!-- video player -->
     <!-- note: useing video player instead of audio player because video player supports suspending the screen saver -->
