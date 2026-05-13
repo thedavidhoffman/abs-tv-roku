@@ -451,15 +451,6 @@ sub setLabelText(label as dynamic, text as string)
 end sub
 
 '-------------------------------------------------------------------------------
-' getDisplayTrackTitle
-'-------------------------------------------------------------------------------
-function getDisplayTrackTitle(track as dynamic, index as integer) as string
-    title = SafeString(track.title, "Track " + (index + 1).ToStr())
-    if LCase(String_Trim(title)) = LCase(String_Trim(m.audiobookTitle)) then return ""
-    return title
-end function
-
-'-------------------------------------------------------------------------------
 ' playTracks
 '-------------------------------------------------------------------------------
 sub playTracks(tracks as dynamic, chapters as dynamic)
@@ -519,7 +510,6 @@ sub playCurrentTrack(playWhenReady = true as boolean)
     m.log.write("track index=" + m.currentTrackIndex.ToStr() + " format=" + SafeString(node.streamFormat) + " url=" + SafeString(node.url))
 
     m.currentTrackStartPosition = getTrackStartPosition(track)
-    setLabelText(m.trackTitleLabel, getDisplayTrackTitle(track, m.currentTrackIndex))
     if m.totalDurationSeconds > 0 then
         setLabelText(m.totalTimeLabel, formatPlaybackTime(m.totalDurationSeconds))
     else
@@ -650,7 +640,6 @@ sub updatePlaybackPosition(globalTime as dynamic)
         return
     end if
     m.currentTrackIndex = getTrackIndexForGlobalTime(m.currentTimeSeconds)
-    setLabelText(m.trackTitleLabel, getDisplayTrackTitle(m.tracks[m.currentTrackIndex], m.currentTrackIndex))
     updateProgress(m.currentTimeSeconds)
     updateCurrentChapterStatus()
 end sub
@@ -1413,7 +1402,6 @@ end sub
 ' updateCurrentChapterStatus
 '-------------------------------------------------------------------------------
 sub updateCurrentChapterStatus()
-    if m.chapterStatusLabel = invalid then return
     if m.deferChapterStatusUpdates = true then
         m.pendingChapterStatusUpdate = true
         return
@@ -1428,7 +1416,7 @@ sub updateCurrentChapterStatus()
         end if
     end if
 
-    m.chapterStatusLabel.text = title
+    setLabelText(m.trackTitleLabel, title)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1709,6 +1697,7 @@ sub updateProgress(positionSeconds as integer, forceUpdate = false as boolean)
     if m.totalDurationSeconds > 0 and positionSeconds > m.totalDurationSeconds then positionSeconds = m.totalDurationSeconds
 
     setLabelText(m.currentTimeLabel, formatPlaybackTime(positionSeconds))
+    setLabelText(m.chapterStatusLabel, "-" + formatPlaybackTime(getRemainingPlaybackSeconds(positionSeconds)))
 
     fillWidth = 0
     if m.totalDurationSeconds > 0 then
@@ -1723,6 +1712,17 @@ sub updateProgress(positionSeconds as integer, forceUpdate = false as boolean)
         m.progressFill.width = fillWidth
     end if
 end sub
+
+'-------------------------------------------------------------------------------
+' getRemainingPlaybackSeconds
+'-------------------------------------------------------------------------------
+function getRemainingPlaybackSeconds(positionSeconds as integer) as integer
+    if m.totalDurationSeconds <= 0 then return 0
+
+    remainingSeconds = m.totalDurationSeconds - positionSeconds
+    if remainingSeconds < 0 then return 0
+    return remainingSeconds
+end function
 
 '-------------------------------------------------------------------------------
 ' styleProgressBar

@@ -32,7 +32,7 @@
     
     <Label id="trackTitleLabel" translation="[700,664]" width="1040" />
     <Label id="statusLabel" translation="[700,724]" width="430" color="0xF2C879FF" />
-    <Label id="chapterStatusLabel" translation="[1020,724]" width="720" horizAlign="right" color="0xB7C5D4FF" />
+    <MonospaceLabel id="chapterStatusLabel" translation="[1020,734]" width="720" horizAlign="right" color="0xB7C5D4FF" font="font:TinySystemFont" characterWidth="20" />
     
     <!-- progress/play head -->
     <Group id="progressGroup" translation="[700,774]">
