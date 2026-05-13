@@ -34,7 +34,6 @@ sub initReferences()
     m.seekHoldTimer = m.top.findNode("seekHoldTimer")
     m.closeTimer = m.top.findNode("closeTimer")
     m.hlsRetryTimer = m.top.findNode("hlsRetryTimer")
-    m.deferredCloseSessionTimer = m.top.findNode("deferredCloseSessionTimer")
     m.rewindButton = m.top.findNode("rewindButton")
     m.playPauseButton = m.top.findNode("playPauseButton")
     m.forwardButton = m.top.findNode("forwardButton")
@@ -113,7 +112,6 @@ sub initHandlers()
     if m.seekHoldTimer <> invalid then m.seekHoldTimer.observeField("fire", "onSeekHoldTimerFired")
     if m.closeTimer <> invalid then m.closeTimer.observeField("fire", "onCloseTimerFired")
     if m.hlsRetryTimer <> invalid then m.hlsRetryTimer.observeField("fire", "onHlsRetryTimerFired")
-    if m.deferredCloseSessionTimer <> invalid then m.deferredCloseSessionTimer.observeField("fire", "onDeferredCloseSessionTimerFired")
     if m.audioPlayer <> invalid then m.audioPlayer.observeField("state", "onAudioStateChanged")
     if m.playbackApiTask <> invalid then m.playbackApiTask.observeField("response", "onPlaybackApiResponse")
     if m.chapterList <> invalid then
@@ -1088,25 +1086,6 @@ end sub
 sub requestClosePlaybackSession()
     request = buildPlaybackSessionRequest("closePlaybackSession")
     if request <> invalid then runPlaybackApiRequest(request)
-end sub
-
-'-------------------------------------------------------------------------------
-' scheduleDeferredClosePlaybackSession
-'-------------------------------------------------------------------------------
-sub scheduleDeferredClosePlaybackSession()
-    if m.deferredCloseSessionTimer <> invalid then
-        m.deferredCloseSessionTimer.control = "stop"
-        m.deferredCloseSessionTimer.control = "start"
-    else
-        requestClosePlaybackSession()
-    end if
-end sub
-
-'-------------------------------------------------------------------------------
-' onDeferredCloseSessionTimerFired
-'-------------------------------------------------------------------------------
-sub onDeferredCloseSessionTimerFired()
-    requestClosePlaybackSession()
 end sub
 
 '-------------------------------------------------------------------------------

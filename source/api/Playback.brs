@@ -136,13 +136,9 @@ function Playback_CloseSession(request as object) as object
         }
     end if
 
-    bodyData = {}
-    if request.currentTime <> invalid then bodyData.currentTime = request.currentTime
-    if request.timeListened <> invalid then bodyData.timeListened = request.timeListened
-    if request.duration <> invalid then bodyData.duration = request.duration
     body = __BuildPlaybackProgressBodyJson(request)
 
-    log.write("sessionId=" + sessionId.ToStr() + " currentTime=" + SafeString(bodyData.currentTime, "invalid") + " timeListened=" + SafeString(bodyData.timeListened, "invalid") + " duration=" + SafeString(bodyData.duration, "invalid"))
+    __LogPlaybackProgressRequest(log, sessionId, request)
 
     result = HttpClient_Request(server + "/api/session/" + sessionId.ToStr() + "/close", "POST", token, body)
     result.action = "closePlaybackSession"
@@ -167,13 +163,9 @@ function Playback_SyncSession(request as object) as object
         return { ok: false, action: "syncPlaybackSession", errorMessage: "No playback session was available to sync." }
     end if
 
-    bodyData = {}
-    if request.currentTime <> invalid then bodyData.currentTime = request.currentTime
-    if request.timeListened <> invalid then bodyData.timeListened = request.timeListened
-    if request.duration <> invalid then bodyData.duration = request.duration
     body = __BuildPlaybackProgressBodyJson(request)
 
-    log.write("sessionId=" + sessionId.ToStr() + " currentTime=" + SafeString(bodyData.currentTime, "invalid") + " timeListened=" + SafeString(bodyData.timeListened, "invalid") + " duration=" + SafeString(bodyData.duration, "invalid"))
+    __LogPlaybackProgressRequest(log, sessionId, request)
 
     result = HttpClient_Request(server + "/api/session/" + sessionId.ToStr() + "/sync", "POST", token, body)
     result.action = "syncPlaybackSession"
@@ -193,6 +185,18 @@ function __BuildPlaybackProgressBodyJson(request as dynamic) as string
     if request.duration <> invalid then parts.Push(Chr(34) + "duration" + Chr(34) + ":" + __JsonNumber(request.duration))
     return "{" + __JoinJsonParts(parts) + "}"
 end function
+
+'-------------------------------------------------------------------------------
+' __LogPlaybackProgressRequest
+'-------------------------------------------------------------------------------
+sub __LogPlaybackProgressRequest(log as object, sessionId as dynamic, request as dynamic)
+    if request.currentTime = invalid and request.timeListened = invalid and request.duration = invalid then
+        log.write("sessionId=" + sessionId.ToStr() + " progressData=omitted")
+        return
+    end if
+
+    log.write("sessionId=" + sessionId.ToStr() + " currentTime=" + SafeString(request.currentTime, "invalid") + " timeListened=" + SafeString(request.timeListened, "invalid") + " duration=" + SafeString(request.duration, "invalid"))
+end sub
 
 '-------------------------------------------------------------------------------
 ' __LogPlaybackSessionResponse
