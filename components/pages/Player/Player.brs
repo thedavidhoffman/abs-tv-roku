@@ -1185,6 +1185,13 @@ sub jogProgressScrub(offsetSeconds as integer)
     m.hasProgressScrubInput = true
     m.progressScrubTargetSeconds = m.progressScrubTargetSeconds + offsetSeconds
     updateProgressScrubPreview()
+    seekToGlobalTime(m.progressScrubTargetSeconds, true, true)
+    m.isPaused = false
+    disableScreenSaver()
+    startProgressTimer()
+    setStatus("Playing")
+    updatePlayPauseButton()
+    m.hasProgressScrubInput = false
 end sub
 
 '-------------------------------------------------------------------------------
