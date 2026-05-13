@@ -38,7 +38,7 @@
     <Group id="progressGroup" translation="[700,774]">
       <Rectangle id="progressTrack" width="1040" height="12" color="0x555555FF" />
       <Rectangle id="progressFill" width="1" height="12" color="0xE09B42FF" visible="false" />
-      <Rectangle id="progressCrossbar" translation="[0,-10]" width="4" height="32" color="0xF3F7FBFF" visible="false" />
+      <Rectangle id="progressCrossbar" translation="[0,-10]" width="8" height="32" color="0xF3F7FBFF" visible="false" />
       <Label id="currentTimeLabel" translation="[0,26]" width="220" text="0:00" />
       <Label id="totalTimeLabel" translation="[820,26]" width="220" horizAlign="right" text="0:00" />
     </Group>

@@ -84,6 +84,7 @@ sub initValues()
     m.totalDurationSeconds = 0
     m.progressBarWidth = 1040
     m.isProgressScrubbing = false
+    m.hasProgressScrubInput = false
     m.progressScrubTargetSeconds = 0
     m.progressScrubReturnFocusIndex = 0
     m.transportFocusIndex = -1
@@ -705,13 +706,6 @@ sub onAudioStateChanged()
         if hasUnsettledHlsStartupSeek <> true then m.hlsRetryCount = 0
         m.hlsRetryPending = false
         m.hasStartedPlayback = true
-        if m.isProgressScrubbing = true then
-            m.audioPlayer.control = "pause"
-            m.isPaused = true
-            stopProgressTimer()
-            updatePlayPauseButton()
-            return
-        end if
         m.isPaused = false
         disableScreenSaver()
         applyPendingInitialSeek()
@@ -1106,6 +1100,13 @@ function onKeyEvent(key as string, press as boolean) as boolean
         return true
     end if
 
+    if m.descriptionLabel <> invalid and m.descriptionLabel.isInFocusChain() then
+        if key = "down" then
+            focusProgressBar(0)
+            return true
+        end if
+    end if
+
     if m.transportFocusIndex >= 0 then
         if key = "left" then
             focusTransportButton(m.transportFocusIndex - 1)
@@ -1165,18 +1166,13 @@ sub focusProgressBar(returnFocusIndex as integer)
     if returnFocusIndex < 0 then returnFocusIndex = 0
 
     m.isProgressScrubbing = true
+    m.hasProgressScrubInput = false
     m.progressScrubReturnFocusIndex = returnFocusIndex
     m.progressScrubTargetSeconds = getPlaybackCurrentTimeSeconds()
 
-    if m.audioPlayer <> invalid and SafeString(m.audioPlayer.state, "") = "playing" then m.audioPlayer.control = "pause"
-    m.isPaused = true
-    stopProgressTimer()
-    enableScreenSaver()
-    requestSyncPlaybackSession("pause")
     updatePlayPauseButton()
     updateTransportFocus(-1)
     updateProgressScrubPreview()
-    setStatus("Paused")
     m.progressGroup.setFocus(true)
 end sub
 
@@ -1186,6 +1182,7 @@ end sub
 sub jogProgressScrub(offsetSeconds as integer)
     if m.isProgressScrubbing <> true then return
 
+    m.hasProgressScrubInput = true
     m.progressScrubTargetSeconds = m.progressScrubTargetSeconds + offsetSeconds
     updateProgressScrubPreview()
 end sub
@@ -1204,10 +1201,15 @@ sub updateProgressScrubPreview()
         crossbarX = int((targetPosition / m.totalDurationSeconds) * m.progressBarWidth)
     end if
 
-    if crossbarX < 2 then crossbarX = 2
-    if crossbarX > m.progressBarWidth - 2 then crossbarX = m.progressBarWidth - 2
+    crossbarWidth = 8
+    if m.progressCrossbar <> invalid and m.progressCrossbar.width <> invalid then crossbarWidth = int(m.progressCrossbar.width)
+    halfCrossbarWidth = int(crossbarWidth / 2)
+    if halfCrossbarWidth < 1 then halfCrossbarWidth = 1
+
+    if crossbarX < halfCrossbarWidth then crossbarX = halfCrossbarWidth
+    if crossbarX > m.progressBarWidth - halfCrossbarWidth then crossbarX = m.progressBarWidth - halfCrossbarWidth
     if m.progressCrossbar <> invalid then
-        m.progressCrossbar.translation = [crossbarX - 2, -10]
+        m.progressCrossbar.translation = [crossbarX - halfCrossbarWidth, -10]
         m.progressCrossbar.visible = true
     end if
 end sub
@@ -1218,8 +1220,14 @@ end sub
 sub commitProgressScrub(nextFocus as string)
     if m.isProgressScrubbing <> true then return
 
+    if m.hasProgressScrubInput <> true then
+        exitProgressScrubWithoutSeek(nextFocus)
+        return
+    end if
+
     targetPosition = clampGlobalTime(m.progressScrubTargetSeconds)
     m.isProgressScrubbing = false
+    m.hasProgressScrubInput = false
     if m.progressCrossbar <> invalid then m.progressCrossbar.visible = false
 
     seekToGlobalTime(targetPosition, true, true)
@@ -1234,12 +1242,27 @@ sub commitProgressScrub(nextFocus as string)
 end sub
 
 '-------------------------------------------------------------------------------
+' exitProgressScrubWithoutSeek
+'-------------------------------------------------------------------------------
+sub exitProgressScrubWithoutSeek(nextFocus as string)
+    m.isProgressScrubbing = false
+    m.hasProgressScrubInput = false
+    if m.progressCrossbar <> invalid then m.progressCrossbar.visible = false
+    updateProgress(getPlaybackCurrentTimeSeconds(), true)
+    updatePlayPauseButton()
+
+    if nextFocus = "description" and focusDescriptionFromTransport() then return
+    focusTransportButton(m.progressScrubReturnFocusIndex)
+end sub
+
+'-------------------------------------------------------------------------------
 ' cancelProgressScrub
 '-------------------------------------------------------------------------------
 sub cancelProgressScrub()
     if m.isProgressScrubbing <> true then return
 
     m.isProgressScrubbing = false
+    m.hasProgressScrubInput = false
     if m.progressCrossbar <> invalid then m.progressCrossbar.visible = false
     updateProgress(getPlaybackCurrentTimeSeconds(), true)
     updatePlayPauseButton()
@@ -1485,9 +1508,19 @@ end sub
 ' onProgressTimerFired
 '-------------------------------------------------------------------------------
 sub onProgressTimerFired()
-    if m.isProgressScrubbing = true then return
     accumulatePlaybackListeningTime()
     position = getPlaybackCurrentTimeSeconds()
+
+    if m.isProgressScrubbing = true then
+        if m.hasProgressScrubInput <> true then
+            m.progressScrubTargetSeconds = position
+            updatePlaybackPosition(position)
+            updateProgressScrubPreview()
+        end if
+        requestPeriodicPlaybackSync()
+        return
+    end if
+
     updatePlaybackPosition(position)
     requestPeriodicPlaybackSync()
 end sub
@@ -1657,10 +1690,14 @@ end sub
 ' startProgressTimer
 '-------------------------------------------------------------------------------
 sub startProgressTimer()
-    if m.isProgressScrubbing = true then return
     if m.lastProgressTickAtSeconds <= 0 then m.lastProgressTickAtSeconds = getNowSeconds()
     if m.progressTimer <> invalid then m.progressTimer.control = "start"
-    updateProgress(getPlaybackCurrentTimeSeconds())
+    if m.isProgressScrubbing = true then
+        if m.hasProgressScrubInput <> true then m.progressScrubTargetSeconds = getPlaybackCurrentTimeSeconds()
+        updateProgressScrubPreview()
+    else
+        updateProgress(getPlaybackCurrentTimeSeconds())
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
