@@ -88,6 +88,8 @@ sub initValues()
     m.hasProgressScrubInput = false
     m.progressScrubTargetSeconds = 0
     m.progressScrubReturnFocusIndex = 0
+    m.chapterMarkerHeight = 9
+    m.hasChapterMarkers = false
     m.transportFocusIndex = -1
     m.deferChapterStatusUpdates = false
     m.pendingChapterStatusUpdate = false
@@ -1332,21 +1334,30 @@ end sub
 sub updateChapterMarkers()
     if m.chapterMarkersGroup = invalid then return
 
+    m.hasChapterMarkers = false
     while m.chapterMarkersGroup.getChildCount() > 0
         child = m.chapterMarkersGroup.getChild(0)
         if child = invalid then exit while
         m.chapterMarkersGroup.removeChild(child)
     end while
 
-    if m.chapterItems = invalid or m.chapterItems.Count() <= 1 then return
-    if m.totalDurationSeconds <= 0 then return
+    if m.chapterItems = invalid or m.chapterItems.Count() <= 1 then
+        updateChapterMarkerLayout()
+        return
+    end if
+    if m.totalDurationSeconds <= 0 then
+        updateChapterMarkerLayout()
+        return
+    end if
 
     markerWidth = 2
     markerTop = 13
     markerBottom = 22
     markerHeight = markerBottom - markerTop
+    m.chapterMarkerHeight = markerHeight
     halfMarkerWidth = int(markerWidth / 2)
     if halfMarkerWidth < 1 then halfMarkerWidth = 1
+    m.hasChapterMarkers = true
 
     for each chapter in m.chapterItems
         chapterPosition = getChapterStartPosition(chapter)
@@ -1366,6 +1377,21 @@ sub updateChapterMarkers()
             m.chapterMarkersGroup.appendChild(marker)
         end if
     end for
+
+    updateChapterMarkerLayout()
+end sub
+
+'-------------------------------------------------------------------------------
+' updateChapterMarkerLayout
+'-------------------------------------------------------------------------------
+sub updateChapterMarkerLayout()
+    offsetY = 0
+    if m.hasChapterMarkers = true then offsetY = m.chapterMarkerHeight
+
+    if m.currentTimeLabel <> invalid then m.currentTimeLabel.translation = [0, 26 + offsetY]
+    if m.totalTimeLabel <> invalid then m.totalTimeLabel.translation = [820, 26 + offsetY]
+    if m.playPauseButton <> invalid then m.playPauseButton.translation = [0, offsetY]
+    if m.chaptersButton <> invalid then m.chaptersButton.translation = [850, offsetY]
 end sub
 
 '-------------------------------------------------------------------------------
