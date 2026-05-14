@@ -4,7 +4,7 @@
 
 - player transport
     when starting a title that has progress, or moving the playhead, the progress bar and playhead can lag behind   
-
+- home page isn't getting focus on first load
     
 - library... list... expanded... doctor who titles prefixed with a number
 - support screen saver

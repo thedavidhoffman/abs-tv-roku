@@ -68,6 +68,7 @@ sub initValues()
     m.hlsResumeRetryMax = 8
     m.hlsRetryPending = false
     m.hlsStartupSeekTargetSeconds = invalid
+    m.playbackVisualTargetSeconds = invalid
     m.hlsSessionRefreshTried = false
     m.forceTranscodeFallbackTried = false
     m.hasStartedPlayback = false
@@ -216,6 +217,8 @@ sub resetPlaybackSessionState()
     m.playbackSessionId = invalid
     m.isHlsTranscode = false
     m.hlsStartupSeekTargetSeconds = invalid
+    m.playbackVisualTargetSeconds = invalid
+    m.hasStartedPlayback = false
     updateChapterMarkers()
     updateCurrentChapterStatus()
 end sub
@@ -512,12 +515,18 @@ sub playCurrentTrack(playWhenReady = true as boolean)
     m.log.write("track index=" + m.currentTrackIndex.ToStr() + " format=" + SafeString(node.streamFormat) + " url=" + SafeString(node.url))
 
     m.currentTrackStartPosition = getTrackStartPosition(track)
+    if m.currentTimeSeconds > 0 then
+        setPlaybackVisualTarget(m.currentTimeSeconds)
+    else
+        m.playbackVisualTargetSeconds = invalid
+    end if
+
     if m.totalDurationSeconds > 0 then
         setLabelText(m.totalTimeLabel, formatPlaybackTime(m.totalDurationSeconds))
     else
         setLabelText(m.totalTimeLabel, "0:00")
     end if
-    updateProgress(m.currentTimeSeconds)
+    updateProgress(m.currentTimeSeconds, true)
     updateChapterList()
     updateCurrentChapterStatus()
 
@@ -612,6 +621,7 @@ sub seekToGlobalTime(globalTime as dynamic, playWhenReady = true as boolean, sho
     if m.tracks = invalid or m.tracks.Count() = 0 then return
 
     targetTime = clampGlobalTime(globalTime)
+    setPlaybackVisualTarget(targetTime)
     targetTrackIndex = getTrackIndexForGlobalTime(targetTime)
     m.currentTimeSeconds = targetTime
 
@@ -1648,9 +1658,36 @@ function getCurrentTrackPlaybackPosition() as integer
 end function
 
 '-------------------------------------------------------------------------------
+' setPlaybackVisualTarget
+'-------------------------------------------------------------------------------
+sub setPlaybackVisualTarget(targetTime as dynamic)
+    m.playbackVisualTargetSeconds = clampGlobalTime(targetTime)
+    updateProgress(m.playbackVisualTargetSeconds, true)
+    updateCurrentChapterStatus()
+end sub
+
+'-------------------------------------------------------------------------------
 ' getPlaybackCurrentTimeSeconds
 '-------------------------------------------------------------------------------
 function getPlaybackCurrentTimeSeconds() as integer
+    if m.playbackVisualTargetSeconds <> invalid then
+        actualTime = getActualPlaybackCurrentTimeSeconds()
+        targetTime = clampGlobalTime(m.playbackVisualTargetSeconds)
+        if m.hasStartedPlayback <> true then return targetTime
+        if Abs(actualTime - targetTime) <= 2 then
+            m.playbackVisualTargetSeconds = invalid
+            return actualTime
+        end if
+        return targetTime
+    end if
+
+    return getActualPlaybackCurrentTimeSeconds()
+end function
+
+'-------------------------------------------------------------------------------
+' getActualPlaybackCurrentTimeSeconds
+'-------------------------------------------------------------------------------
+function getActualPlaybackCurrentTimeSeconds() as integer
     if m.audioPlayer = invalid then return clampGlobalTime(m.currentTimeSeconds)
     if m.tracks = invalid or m.tracks.Count() = 0 then return clampGlobalTime(m.currentTimeSeconds)
     if m.hasStartedPlayback <> true then return clampGlobalTime(m.currentTimeSeconds)
@@ -1762,7 +1799,7 @@ end sub
 ' resetProgress
 '-------------------------------------------------------------------------------
 sub resetProgress()
-    updateProgress(0, true)
+    updateProgress(m.currentTimeSeconds, true)
 end sub
 
 '-------------------------------------------------------------------------------
