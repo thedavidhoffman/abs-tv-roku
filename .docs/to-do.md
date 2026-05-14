@@ -2,8 +2,6 @@
 ## Hit List
 ----------------------------------------------------
 
-- no series found, focus is lost
-
 - library view, series first view, display "loading" instead of "no titles found"
     - maybe it's time for a loading screen
 

@@ -145,9 +145,16 @@ function focusSeriesPage() as boolean
         return true
     end if
 
-    m.top.setFocus(true)
+    focusSeriesStatus()
     return true
 end function
+
+'-------------------------------------------------------------------------------
+' focusSeriesStatus
+'-------------------------------------------------------------------------------
+sub focusSeriesStatus()
+    m.top.setFocus(true)
+end sub
 
 '-------------------------------------------------------------------------------
 ' onKeyEvent
@@ -155,7 +162,7 @@ end function
 function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
-    if key = "up" and isFocusedOnFirstRow() then
+    if key = "up" and (isFocusedOnFirstRow() or isStatusFocused()) then
         m.upFromFirstRowSelectedCounter = m.upFromFirstRowSelectedCounter + 1
         m.top.upFromFirstRowSelected = m.upFromFirstRowSelectedCounter
         return true
@@ -266,6 +273,8 @@ sub setStatus(message as dynamic)
     m.statusLabel.text = text
     m.statusLabel.visible = (text <> "")
     m.seriesRowList.visible = (text = "")
+
+    if text <> "" and m.focusRequested = true and m.top.visible = true then focusSeriesStatus()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -278,6 +287,15 @@ sub updateStatus(rowCount as integer)
         setStatus("No series found")
     end if
 end sub
+
+'-------------------------------------------------------------------------------
+' isStatusFocused
+'-------------------------------------------------------------------------------
+function isStatusFocused() as boolean
+    if m.statusLabel = invalid then return false
+    if m.statusLabel.visible <> true then return false
+    return m.top.isInFocusChain()
+end function
 
 '-------------------------------------------------------------------------------
 ' getResponseRows
