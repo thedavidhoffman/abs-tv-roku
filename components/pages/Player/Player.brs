@@ -10,6 +10,7 @@ sub init()
     updateChaptersButtonVisibility()
     updateTransportFocus(-1)
     updatePlayPauseButton()
+    updateAudioBadges(invalid)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -17,8 +18,14 @@ end sub
 '-------------------------------------------------------------------------------
 sub initReferences()
     m.log = CreateLogger("Player", false)
-    m.playerBg = m.top.findNode("playerBg")
     m.cover = m.top.findNode("cover")
+    m.audioBadgeGroup = m.top.findNode("audioBadgeGroup")
+    m.codecBadge = m.top.findNode("codecBadge")
+    m.codecBadgeLabel = m.top.findNode("codecBadgeLabel")
+    m.bitRateBadge = m.top.findNode("bitRateBadge")
+    m.bitRateBadgeLabel = m.top.findNode("bitRateBadgeLabel")
+    m.channelBadge = m.top.findNode("channelBadge")
+    m.channelBadgeLabel = m.top.findNode("channelBadgeLabel")
     m.titleLabel = m.top.findNode("titleLabel")
     m.authorLabel = m.top.findNode("authorLabel")
     m.metadataLabel = m.top.findNode("metadataLabel")
@@ -138,7 +145,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub initStyle()
     palette = Color()
-    if m.playerBg <> invalid then m.playerBg.color = palette.background.secondary
+
 end sub
 
 '-------------------------------------------------------------------------------
@@ -150,7 +157,7 @@ sub onPlayRequestChanged()
 
     request = m.top.playRequest
 
-    if request = invalid then 
+    if request = invalid then
         m.log.write("invalid request")
         return
     end if
@@ -237,6 +244,7 @@ sub resetPlaybackSessionState()
     m.hlsStartupSeekTargetSeconds = invalid
     m.playbackVisualTargetSeconds = invalid
     m.hasStartedPlayback = false
+    updateAudioBadges(invalid)
     updateChapterMarkers()
     updateCurrentChapterStatus()
 end sub
@@ -474,6 +482,91 @@ sub setLabelText(label as dynamic, text as string)
 end sub
 
 '-------------------------------------------------------------------------------
+' updateAudioBadgesForCurrentTrack
+'-------------------------------------------------------------------------------
+sub updateAudioBadgesForCurrentTrack()
+    if m.tracks = invalid or m.currentTrackIndex < 0 or m.currentTrackIndex >= m.tracks.Count() then
+        updateAudioBadges(invalid)
+        return
+    end if
+
+    updateAudioBadges(m.tracks[m.currentTrackIndex])
+end sub
+
+'-------------------------------------------------------------------------------
+' updateAudioBadges
+'-------------------------------------------------------------------------------
+sub updateAudioBadges(track as dynamic)
+    codecText = formatAudioBadgeCodec(track)
+    bitRateText = formatAudioBadgeBitRate(track)
+    channelText = formatAudioBadgeChannels(track)
+
+    setAudioBadge(m.codecBadge, m.codecBadgeLabel, codecText)
+    setAudioBadge(m.bitRateBadge, m.bitRateBadgeLabel, bitRateText)
+    setAudioBadge(m.channelBadge, m.channelBadgeLabel, channelText)
+
+    if m.audioBadgeGroup <> invalid then m.audioBadgeGroup.visible = (codecText <> "" or bitRateText <> "" or channelText <> "")
+end sub
+
+'-------------------------------------------------------------------------------
+' setAudioBadge
+'-------------------------------------------------------------------------------
+sub setAudioBadge(badge as dynamic, label as dynamic, text as string)
+    isVisible = (text <> "")
+    if badge <> invalid then badge.visible = isVisible
+    if label <> invalid then label.text = text
+end sub
+
+'-------------------------------------------------------------------------------
+' formatAudioBadgeCodec
+'-------------------------------------------------------------------------------
+function formatAudioBadgeCodec(track as dynamic) as string
+    if track = invalid then return ""
+
+    codec = String_Trim(SafeString(track.codec, ""))
+    if codec = "" then return ""
+
+    return UCase(codec)
+end function
+
+'-------------------------------------------------------------------------------
+' formatAudioBadgeBitRate
+'-------------------------------------------------------------------------------
+function formatAudioBadgeBitRate(track as dynamic) as string
+    bitRate = getAudioBadgeInteger(track, "bitRate")
+    if bitRate <= 0 then return ""
+
+    kiloBits = int(bitRate / 1024)
+    if kiloBits <= 0 then return ""
+
+    return kiloBits.ToStr() + " KB"
+end function
+
+'-------------------------------------------------------------------------------
+' formatAudioBadgeChannels
+'-------------------------------------------------------------------------------
+function formatAudioBadgeChannels(track as dynamic) as string
+    channels = getAudioBadgeInteger(track, "channels")
+    if channels <= 0 then return ""
+
+    channelLayout = String_Trim(SafeString(track.channelLayout, ""))
+    if channelLayout = "" then return ""
+
+    return channels.ToStr() + " CHANNEL " + UCase(channelLayout)
+end function
+
+'-------------------------------------------------------------------------------
+' getAudioBadgeInteger
+'-------------------------------------------------------------------------------
+function getAudioBadgeInteger(track as dynamic, fieldName as string) as integer
+    if track = invalid then return 0
+    value = track[fieldName]
+    if value = invalid then return 0
+
+    return int(val(value.ToStr()))
+end function
+
+'-------------------------------------------------------------------------------
 ' playTracks
 '-------------------------------------------------------------------------------
 sub playTracks(tracks as dynamic, chapters as dynamic)
@@ -509,6 +602,7 @@ sub playCurrentTrack(playWhenReady = true as boolean)
     if m.tracks = invalid or m.currentTrackIndex < 0 or m.currentTrackIndex >= m.tracks.Count() then return
 
     track = m.tracks[m.currentTrackIndex]
+    updateAudioBadges(track)
     node = CreateObject("roSGNode", "ContentNode")
     node.url = getTrackPlaybackUrl(track)
     node.title = SafeString(track.title, "Audiobook")
@@ -667,10 +761,12 @@ sub updatePlaybackPosition(globalTime as dynamic)
     m.currentTimeSeconds = clampGlobalTime(globalTime)
     if m.tracks = invalid or m.tracks.Count() = 0 then
         updateProgress(m.currentTimeSeconds)
+        updateAudioBadges(invalid)
         return
     end if
     m.currentTrackIndex = getTrackIndexForGlobalTime(m.currentTimeSeconds)
     updateProgress(m.currentTimeSeconds)
+    updateAudioBadgesForCurrentTrack()
     updateCurrentChapterStatus()
 end sub
 
@@ -735,15 +831,15 @@ sub onAudioStateChanged()
         setStatus("Playing")
         startProgressTimer()
         updatePlayPauseButton()
-    '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    ' buffering
-    '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        ' buffering
+        '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     else if state = "buffering" then
         disableScreenSaver()
         m.log.write("buffering state observed")
-    '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    ' finished
-    '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        ' finished
+        '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     else if state = "finished" then
         if m.pendingSeekSeconds <> invalid and m.isHlsTranscode <> true then
             applyPendingInitialSeek()

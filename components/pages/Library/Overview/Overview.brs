@@ -20,7 +20,6 @@ end sub
 ' initReferences
 '-------------------------------------------------------------------------------
 sub initReferences()
-    m.overviewBg = m.top.findNode("overviewBg")
     m.selectedPoster = m.top.findNode("selectedPoster")
     m.seriesPosterGroup = m.top.findNode("seriesPosterGroup")
     m.seriesPosterSlots = getSeriesPosterSlots()
@@ -60,7 +59,7 @@ end function
 '-------------------------------------------------------------------------------
 sub initStyle()
     palette = Color()
-    if m.overviewBg <> invalid then m.overviewBg.color = palette.background.primary
+
 end sub
 
 '-------------------------------------------------------------------------------

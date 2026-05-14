@@ -11,10 +11,6 @@
     <field id="errorResponse" type="assocarray" />
   </interface>
   <children>
-
-    <!-- background -->
-    <Rectangle id="playerBg" width="1920" height="1080" />
-    
     <!-- poster -->
     <ItemPoster
       id="cover"
@@ -23,17 +19,33 @@
       showText="false"
       showProgressBar="false" />
 
+    <!-- source audio badges -->
+    <Group id="audioBadgeGroup" translation="[120,704]">
+      <Group id="codecBadge">
+        <Poster id="codecBadgeBackground" width="92" height="34" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
+        <Label id="codecBadgeLabel" translation="[10,7]" width="72" height="24" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
+      </Group>
+      <Group id="bitRateBadge" translation="[104,0]">
+        <Poster id="bitRateBadgeBackground" width="112" height="34" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
+        <Label id="bitRateBadgeLabel" translation="[10,7]" width="92" height="24" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
+      </Group>
+      <Group id="channelBadge" translation="[228,0]">
+        <Poster id="channelBadgeBackground" width="272" height="34" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
+        <Label id="channelBadgeLabel" translation="[10,7]" width="252" height="24" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
+      </Group>
+    </Group>
+
     <!-- metadata -->
     <ScrollingLabel id="titleLabel" translation="[700,210]" maxWidth="1040" font="font:LargeBoldSystemFont" repeatCount="1" />
     <Label id="authorLabel" translation="[700,260]" width="1040" color="0xB7C5D4FF" />
     <Label id="metadataLabel" translation="[700,310]" width="1040" color="0xB7C5D4FF" font="font:SmallestSystemFont" />
-    
+
     <Description id="description" translation="[700,389]" width="1040" numLines="5" />
-    
+
     <Label id="trackTitleLabel" translation="[700,664]" width="1040" />
     <Label id="statusLabel" translation="[700,724]" width="430" color="0xF2C879FF" />
     <MonospaceLabel id="chapterStatusLabel" translation="[1020,734]" width="720" horizAlign="right" color="0xB7C5D4FF" font="font:TinySystemFont" characterWidth="20" />
-    
+
     <!-- progress/play head -->
     <Group id="progressGroup" translation="[700,774]">
       <Rectangle id="progressTrack" width="1040" height="12" color="0x555555FF" />

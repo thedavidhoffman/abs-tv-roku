@@ -25,7 +25,6 @@ end sub
 ' initReferences
 '-------------------------------------------------------------------------------
 sub initReferences()
-    m.bg = m.top.findNode("bg")
     m.login = m.top.findNode("login")
     m.authenticatedContent = m.top.findNode("authenticatedContent")
     m.header = m.top.findNode("header")
@@ -91,7 +90,6 @@ end sub
 '-------------------------------------------------------------------------------
 sub initStyle()
     palette = Color()
-    if m.bg <> invalid then m.bg.color = palette.background.secondary
 end sub
 
 '-------------------------------------------------------------------------------

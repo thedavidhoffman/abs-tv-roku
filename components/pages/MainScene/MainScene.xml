@@ -11,7 +11,7 @@
     <field id="closeRequested" type="boolean" />
   </interface>
   <children>
-    <Rectangle id="bg" width="1920" height="1080" />
+    <RectanglePrimary id="bg" width="1920" height="1080" />
 
     <Login id="login" visible="false" />
 

@@ -41,13 +41,14 @@
       width="590" wrap="true"
       font="font:SmallestSystemFont"
       text="This is a free open-source app that respects your privacy and does not track any data."
-      color="0xF3F7FBFF" />
+      color="0xD5E0EAFF" />
 
     <!-- login form -->
-    <Rectangle id="loginCard" translation="[972,0]" width="960" height="1080" color="0x00000040" />
+    <RectangleSecondary id="loginCard" translation="[972,0]" width="960" height="1080" />
 
     <Group id="loginForm" translation="[1100,214]">
-      <Label translation="[0,0]" text="Sign In" color="0xF3F7FBFF" font="font:LargeBoldSystemFont" />
+
+      <LabelHeading translation="[0,0]" text="Sign In" />
       <Label translation="[0,64]" width="650" numLines="2" wrap="true" text="To get started please enter your server url, username, and password." color="0xD5E0EAFF" />
 
       <!-- server -->

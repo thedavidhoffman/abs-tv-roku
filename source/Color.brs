@@ -28,14 +28,42 @@ function ThemeDefault() as object
     BACKGROUND_SECONDARY = &h313040FF
 
     return {
-        text: {
-            primary: &hF6F7FBFF
-            secondary: &hB7C5D4FF
-        }
         background: {
             header: &h12112BFF
-            primary: BACKGROUND_PRIMARY
-            secondary: BACKGROUND_SECONDARY
+            primary: &h313040FF
+            secondary: &h292836FF
+            tertiary: &h12112BFF
+        }
+        text: {
+            heading: &hF3F7FBFF
+            primary: &hD5E0EAFF
+            subtle: &hA8B7C8FF
+        }
+        accent: {
+            primary: &hE09B42FF
+            success: &h3BB273FF
+            focus: &hFFFFFFFF
+            divider: &hF3F7FB33
+        }
+        control: {
+            input: &h16263BFF
+            inputFocus: &h21405EFF
+            badge: &h0F1A2AFF
+            menu: &h132235FF
+        }
+        images: {
+            button: {
+                primaryFocused: "pkg:/images/buttons/primary_focused.9.png"
+                primaryUnfocused: "pkg:/images/buttons/primary_unfocused.9.png"
+                headerActive: "pkg:/images/buttons/header_active.9.png"
+                headerFocused: "pkg:/images/buttons/header_focused.9.png"
+            }
+            badge: {
+                audio: "pkg:/images/badges/audio_badge.9.png"
+            }
+            focus: {
+                transparentFootprint: "pkg:/images/focus/transparent_focus_footprint.9.png"
+            }
         }
         dialog: {
             backdrop: BACKGROUND_SECONDARY

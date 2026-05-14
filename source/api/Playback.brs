@@ -316,6 +316,7 @@ function __MapTracks(server as string, token as dynamic, session as dynamic, log
     mappedTracks = []
     tracks = invalid
     if session <> invalid then tracks = session.audioTracks
+    audioFiles = __GetSourceAudioFiles(session)
     sessionId = __GetSessionId(session)
 
     log.write("playback mapping audioTracks=" + Array_GetCount(tracks).ToStr())
@@ -327,8 +328,10 @@ function __MapTracks(server as string, token as dynamic, session as dynamic, log
         if track <> invalid then
             url = __BuildTrackUrl(server, token, sessionId, track)
             if url <> "" then
+                trackIndex = __GetTrackIndex(track, i)
+                sourceAudioFile = __GetSourceAudioFile(audioFiles, trackIndex, i)
                 mappedTracks.Push({
-                    index: __GetTrackIndex(track, i)
+                    index: trackIndex
                     url: url
                     title: __GetTrackTitle(track, i)
                     startOffset: __GetNumber(track.startOffset)
@@ -336,12 +339,59 @@ function __MapTracks(server as string, token as dynamic, session as dynamic, log
                     contentUrl: SafeString(track.contentUrl, "")
                     mimeType: __GetTrackMimeType(track)
                     isHls: __IsHlsTrack(track)
+                    codec: __GetSourceAudioFileField(sourceAudioFile, "codec")
+                    bitRate: __GetSourceAudioFileField(sourceAudioFile, "bitRate")
+                    channels: __GetSourceAudioFileField(sourceAudioFile, "channels")
+                    channelLayout: __GetSourceAudioFileField(sourceAudioFile, "channelLayout")
+                    sampleRate: __GetSourceAudioFileField(sourceAudioFile, "sampleRate")
+                    format: __GetSourceAudioFileField(sourceAudioFile, "format")
                 })
             end if
         end if
     end for
 
     return mappedTracks
+end function
+
+'-------------------------------------------------------------------------------
+' __GetSourceAudioFiles
+'-------------------------------------------------------------------------------
+function __GetSourceAudioFiles(session as dynamic) as dynamic
+    if session <> invalid and session.libraryItem <> invalid and session.libraryItem.media <> invalid then
+        return session.libraryItem.media.audioFiles
+    end if
+
+    return invalid
+end function
+
+'-------------------------------------------------------------------------------
+' __GetSourceAudioFile
+'-------------------------------------------------------------------------------
+function __GetSourceAudioFile(audioFiles as dynamic, trackIndex as integer, fallbackIndex as integer) as dynamic
+    if audioFiles = invalid or audioFiles.Count() = 0 then return invalid
+
+    for each audioFile in audioFiles
+        if audioFile <> invalid and audioFile.index <> invalid and __GetInteger(audioFile.index, -1) = trackIndex then
+            return audioFile
+        end if
+    end for
+
+    if fallbackIndex >= 0 and fallbackIndex < audioFiles.Count() then return audioFiles[fallbackIndex]
+    return invalid
+end function
+
+'-------------------------------------------------------------------------------
+' __GetSourceAudioFileField
+'-------------------------------------------------------------------------------
+function __GetSourceAudioFileField(audioFile as dynamic, fieldName as string) as dynamic
+    if audioFile = invalid then return invalid
+    fieldValue = audioFile[fieldName]
+    if fieldValue <> invalid then return fieldValue
+
+    metadata = audioFile.metadata
+    if metadata <> invalid then return metadata[fieldName]
+
+    return invalid
 end function
 
 '-------------------------------------------------------------------------------
