@@ -29,6 +29,7 @@ m.top.functionName = "executeRequest"
 - `logout`
 - `loadLibrary`
 - `loadSeries`
+- `loadInProgress`
 - `loadPersonalized`
 - `startPlayback`
 - `syncPlaybackSession`
@@ -42,8 +43,9 @@ Task instances are owned by the component responsible for the feature state:
 
 ```xml
 <AppTask id="authApiTask" />
-<AppTask id="libraryApiTask" />
-<AppTask id="seriesApiTask" />
+<AppTask id="allItemsTask" />
+<AppTask id="collapsedItemsTask" />
+<AppTask id="inProgressApiTask" />
 <AppTask id="personalizedApiTask" />
 <AppTask id="playbackApiTask" />
 ```
@@ -51,10 +53,16 @@ Task instances are owned by the component responsible for the feature state:
 Current ownership:
 
 - `AuthController` owns `authApiTask` for login, token authorization, and logout.
-- `Library` owns `libraryApiTask` for root library loads and grid-view series drilldown.
-- `ListView` owns `seriesApiTask` for inline MarkupList series expansion.
+- `LibraryController` owns `allItemsTask` and `collapsedItemsTask` for parallel
+  `loadLibrary` requests. It caches both the all-title library result and the
+  collapsed-series library result.
+- `MainScene` owns `inProgressApiTask` for post-playback progress refreshes.
 - `HomePage` owns `personalizedApiTask` for personalized shelves.
 - `Player` owns `playbackApiTask` for playback start, sync, and close-session requests.
+
+`Library`, `ListView`, and `Series` do not currently own `AppTask` instances.
+They request search results, series rows, and series-item drilldowns through
+`LibraryController`, which serves those responses from its library caches.
 
 This keeps `MainScene` focused on app-shell routing and lets each feature own
 its local loading state, response handling, and error publication.
@@ -64,19 +72,22 @@ its local loading state, response handling, and error publication.
 The owning component sets `request`, then starts the task:
 
 ```brightscript
-m.libraryApiTask.request = {
+m.allItemsTask.request = {
     action: "loadLibrary"
     server: m.loadRequest.server
     token: m.loadRequest.token
     bookLibraryId: m.loadRequest.bookLibraryId
+    cacheKey: "allTitles"
+    collapseSeries: false
+    requestGeneration: m.requestGeneration
 }
-m.libraryApiTask.control = "run"
+m.allItemsTask.control = "run"
 ```
 
 The same component observes `response`:
 
 ```brightscript
-m.libraryApiTask.observeField("response", "onLibraryApiResponse")
+m.allItemsTask.observeField("response", "onAllItemsResponse")
 ```
 
 The response handler should stay in the owner component unless the result is a
@@ -90,9 +101,15 @@ independent API work to run at the same time, or when different components own
 different loading state.
 
 Each task node has its own `request`, `response`, and `control` state. This lets
-home shelves load through `HomePage`, library items load through `Library`,
-inline series load through `ListView`, and playback calls run through `Player`
-without one request overwriting another component's in-flight work.
+home shelves load through `HomePage`, progress refreshes load through
+`MainScene`, playback calls run through `Player`, and library cache loads run
+in parallel through `LibraryController` without one request overwriting another
+component's in-flight work.
+
+`LibraryController` is the main case where multiple task instances of the same
+component are intentionally owned by one component. It runs `allItemsTask` and
+`collapsedItemsTask` at the same time, tags each request with `cacheKey` and
+`requestGeneration`, then ignores stale responses from older generations.
 
 ## Single Task Instance
 
@@ -110,10 +127,21 @@ Name task instances by their lane of responsibility, not by the shared component
 type:
 
 - `authApiTask`
-- `libraryApiTask`
-- `seriesApiTask`
+- `allItemsTask`
+- `collapsedItemsTask`
+- `inProgressApiTask`
 - `personalizedApiTask`
 - `playbackApiTask`
 
 This keeps the concurrency and ownership model visible while still sharing the
 same reusable `AppTask` implementation.
+
+## Supported Actions And Current Use
+
+`AppTask` still dispatches `loadSeries` to `Series_Load(request)`, but the
+current UI path for series rows and drilldowns is cache-backed in
+`LibraryController`. The controller publishes `loadSeriesRows` and `loadSeries`
+responses from cached library data rather than starting a separate `AppTask`.
+
+`loadInProgress` is used by `MainScene` after playback closes so Home, Library,
+and Series can receive refreshed media-progress data.

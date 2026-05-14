@@ -5,12 +5,14 @@
 - library view, series first view, display "loading" instead of "no titles found"
     - maybe it's time for a loading screen
 
-- settings, change "series display" to "Collapse Series" On/Off
-
 - library... list... expanded... doctor who titles prefixed with a number
-- support screen saver
 
-- add homepage shelf for "continue series"?
+- login form
+    - use StandardKeyboardDialog
+    - branding
+    - review UI
+
+- settings, change "series display" to "Collapse Series" On/Off
 
 - default page setting
     - home
@@ -21,18 +23,13 @@
     - add cache info
     - add library names
 
-- login form
-    - use StandardKeyboardDialog
-    - branding
-    - review UI
+- in-progress bar for series
+- loading spinner/indicator
 
 
 Titles with playback problems
 ----------------------------------------------------
 - meditations playback
-
-- in-progress bar for series
-- loading spinner/indicator
 
 - error modal
 

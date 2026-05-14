@@ -38,7 +38,9 @@ sub initReferences()
     m.hlsRetryTimer = m.top.findNode("hlsRetryTimer")
     m.playPauseButton = m.top.findNode("playPauseButton")
     m.restartButton = m.top.findNode("restartButton")
+    m.tintButton = m.top.findNode("tintButton")
     m.chaptersButton = m.top.findNode("chaptersButton")
+    m.nightModeTint = m.top.findNode("nightModeTint")
     m.chapterList = m.top.findNode("chapterList")
     m.audioPlayer = m.top.findNode("audioPlayer")
     m.playbackApiTask = m.top.findNode("playbackApiTask")
@@ -90,6 +92,7 @@ sub initValues()
     m.progressTotalTimeLabelX = 820
     m.playPauseButtonX = 0
     m.restartButtonX = 208
+    m.tintButtonX = 416
     m.chaptersButtonX = 850
     m.transportButtonY = 0
     m.progressCrossbarWidth = 8
@@ -109,6 +112,7 @@ sub initValues()
     m.transportButtons = [
         m.playPauseButton
         m.restartButton
+        m.tintButton
         m.chaptersButton
     ]
     m.isClosing = false
@@ -175,6 +179,7 @@ sub onPlayRequestChanged()
     updateDetails(request.details)
     resetProgress()
     closeChapterList()
+    hideNightModeTint()
     updateChaptersButtonVisibility()
     focusTransportButton(0)
     setStatus("Starting playback...")
@@ -1090,6 +1095,11 @@ end function
 function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
+    if m.nightModeTint <> invalid and m.nightModeTint.visible = true then
+        m.nightModeTint.visible = false
+        return true
+    end if
+
     if m.isProgressScrubbing = true then
         if key = "back" then
             cancelProgressScrub()
@@ -1138,7 +1148,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
         else if key = "down" then
             return true
         else if key = "OK" or key = "select" then
-            if m.transportFocusIndex = 2 then
+            if m.transportFocusIndex = 3 then
                 openChapterList()
             else
                 activateTransportButton()
@@ -1300,8 +1310,8 @@ end sub
 ' getTransportButtonCount
 '-------------------------------------------------------------------------------
 function getTransportButtonCount() as integer
-    if m.chaptersButton <> invalid and m.chaptersButton.visible = true then return 3
-    return 2
+    if m.chaptersButton <> invalid and m.chaptersButton.visible = true then return 4
+    return 3
 end function
 
 '-------------------------------------------------------------------------------
@@ -1313,8 +1323,26 @@ sub activateTransportButton()
     else if m.transportFocusIndex = 1 then
         restartPlayback()
     else if m.transportFocusIndex = 2 then
+        toggleNightModeTint()
+    else if m.transportFocusIndex = 3 then
         openChapterList()
     end if
+end sub
+
+'-------------------------------------------------------------------------------
+' toggleNightModeTint
+'-------------------------------------------------------------------------------
+sub toggleNightModeTint()
+    if m.nightModeTint = invalid then return
+
+    m.nightModeTint.visible = not m.nightModeTint.visible
+end sub
+
+'-------------------------------------------------------------------------------
+' hideNightModeTint
+'-------------------------------------------------------------------------------
+sub hideNightModeTint()
+    if m.nightModeTint <> invalid then m.nightModeTint.visible = false
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1342,7 +1370,7 @@ sub updateChaptersButtonVisibility()
         if hasMultipleTracks = false then m.chaptersButton.hasFocusVisual = false
     end if
 
-    if hasMultipleTracks = false and m.transportFocusIndex > 1 then updateTransportFocus(1)
+    if hasMultipleTracks = false and m.transportFocusIndex > 2 then updateTransportFocus(2)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1409,6 +1437,7 @@ sub updateChapterMarkerLayout()
     if m.totalTimeLabel <> invalid then m.totalTimeLabel.translation = [m.progressTotalTimeLabelX, m.progressTimeLabelY + offsetY]
     if m.playPauseButton <> invalid then m.playPauseButton.translation = [m.playPauseButtonX, m.transportButtonY + offsetY]
     if m.restartButton <> invalid then m.restartButton.translation = [m.restartButtonX, m.transportButtonY + offsetY]
+    if m.tintButton <> invalid then m.tintButton.translation = [m.tintButtonX, m.transportButtonY + offsetY]
     if m.chaptersButton <> invalid then m.chaptersButton.translation = [m.chaptersButtonX, m.transportButtonY + offsetY]
 end sub
 
@@ -1495,7 +1524,7 @@ end sub
 sub focusChaptersButton()
     if m.chaptersButton <> invalid and m.chaptersButton.visible = true then
         m.chaptersButton.setFocus(true)
-        updateTransportFocus(2)
+        updateTransportFocus(3)
     end if
 end sub
 
