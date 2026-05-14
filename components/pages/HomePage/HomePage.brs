@@ -8,7 +8,7 @@ sub init()
     m.personalizedApiTask = m.top.findNode("personalizedApiTask")
     m.shelfItemsByRow = []
     m.playSelectedCounter = 0
-    m.focusRequested = false
+    m.firstItemFocusPending = false
     m.focusRetryCount = 0
     m.focusRetryMax = 12
     m.backSelectedCounter = 0
@@ -118,10 +118,7 @@ sub onPersonalizedShelvesChanged()
     m.homeRowList.content = root
     updateStatus(root.getChildCount())
 
-    if m.focusRequested = true and m.top.visible = true then
-        scheduleFirstHomeItemFocus()
-        focusHomePage()
-    end if
+    if m.firstItemFocusPending = true and m.top.visible = true then requestFirstHomeItemFocus()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -210,11 +207,10 @@ end sub
 ' focusHomePage
 '-------------------------------------------------------------------------------
 function focusHomePage() as boolean
-    m.focusRequested = true
+    m.firstItemFocusPending = true
 
     if m.homeRowList <> invalid and m.homeRowList.visible = true then
-        focusFirstHomeItem()
-        scheduleFirstHomeItemFocus()
+        requestFirstHomeItemFocus()
         return true
     end if
 
@@ -223,11 +219,13 @@ function focusHomePage() as boolean
 end function
 
 '-------------------------------------------------------------------------------
-' scheduleFirstHomeItemFocus
+' requestFirstHomeItemFocus
 '-------------------------------------------------------------------------------
-sub scheduleFirstHomeItemFocus()
-    if m.focusRetryTimer = invalid then return
+sub requestFirstHomeItemFocus()
+    m.firstItemFocusPending = true
+    applyFirstHomeItemFocus()
 
+    if m.focusRetryTimer = invalid then return
     m.focusRetryCount = 0
     m.focusRetryTimer.control = "stop"
     m.focusRetryTimer.control = "start"
@@ -238,33 +236,33 @@ end sub
 '-------------------------------------------------------------------------------
 sub onFocusRetryTimerFired()
     if m.focusRetryTimer = invalid then return
-    if m.focusRequested <> true or m.top.visible <> true or m.homeRowList = invalid or m.homeRowList.visible <> true then
-        m.focusRetryTimer.control = "stop"
+    if m.firstItemFocusPending <> true or m.top.visible <> true or m.homeRowList = invalid or m.homeRowList.visible <> true then
+        finishFirstHomeItemFocus()
         return
     end if
 
-    focusFirstHomeItem()
-    m.homeRowList.setFocus(true)
+    applyFirstHomeItemFocus()
     m.focusRetryCount = m.focusRetryCount + 1
 
     if isFocusedOnHomeItem(0, 0) and m.homeRowList.isInFocusChain() then
-        m.focusRetryTimer.control = "stop"
+        finishFirstHomeItemFocus()
     else if m.focusRetryCount >= m.focusRetryMax then
-        m.focusRetryTimer.control = "stop"
+        finishFirstHomeItemFocus()
     end if
 end sub
 
 '-------------------------------------------------------------------------------
-' stopFirstHomeItemFocusRetry
+' finishFirstHomeItemFocus
 '-------------------------------------------------------------------------------
-sub stopFirstHomeItemFocusRetry()
+sub finishFirstHomeItemFocus()
+    m.firstItemFocusPending = false
     if m.focusRetryTimer <> invalid then m.focusRetryTimer.control = "stop"
 end sub
 
 '-------------------------------------------------------------------------------
-' focusFirstHomeItem
+' applyFirstHomeItemFocus
 '-------------------------------------------------------------------------------
-sub focusFirstHomeItem()
+sub applyFirstHomeItemFocus()
     if m.homeRowList = invalid then return
     if m.homeRowList.content = invalid then return
     if m.homeRowList.content.getChildCount() <= 0 then return
@@ -295,8 +293,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
     if key = "up" and isFocusedOnFirstRow() then
-        m.focusRequested = false
-        stopFirstHomeItemFocusRetry()
+        finishFirstHomeItemFocus()
         m.upFromFirstRowSelectedCounter = m.upFromFirstRowSelectedCounter + 1
         m.top.upFromFirstRowSelected = m.upFromFirstRowSelectedCounter
         return true
@@ -304,8 +301,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
     if key <> "back" then return false
 
-    m.focusRequested = false
-    stopFirstHomeItemFocusRetry()
+    finishFirstHomeItemFocus()
     m.backSelectedCounter = m.backSelectedCounter + 1
     m.top.backSelected = m.backSelectedCounter
     return true
