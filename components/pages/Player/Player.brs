@@ -85,11 +85,21 @@ sub initValues()
     m.isPaused = false
     m.totalDurationSeconds = 0
     m.progressBarWidth = 1040
+    m.progressTimeLabelY = 26
+    m.progressTotalTimeLabelX = 820
+    m.playPauseButtonX = 0
+    m.chaptersButtonX = 850
+    m.transportButtonY = 0
+    m.progressCrossbarWidth = 8
+    m.progressCrossbarY = -10
+    m.chapterMarkerWidth = 2
+    m.chapterMarkerTop = 13
+    m.chapterMarkerBottom = 22
+    m.chapterMarkerColor = &hF3F7FB80
     m.isProgressScrubbing = false
-    m.hasProgressScrubInput = false
     m.progressScrubTargetSeconds = 0
     m.progressScrubReturnFocusIndex = 0
-    m.chapterMarkerHeight = 9
+    m.chapterMarkerHeight = m.chapterMarkerBottom - m.chapterMarkerTop
     m.hasChapterMarkers = false
     m.transportFocusIndex = -1
     m.deferChapterStatusUpdates = false
@@ -1171,7 +1181,6 @@ sub focusProgressBar(returnFocusIndex as integer)
     if returnFocusIndex < 0 then returnFocusIndex = 0
 
     m.isProgressScrubbing = true
-    m.hasProgressScrubInput = false
     m.progressScrubReturnFocusIndex = returnFocusIndex
     m.progressScrubTargetSeconds = getPlaybackCurrentTimeSeconds()
 
@@ -1187,7 +1196,6 @@ end sub
 sub jogProgressScrub(offsetSeconds as integer)
     if m.isProgressScrubbing <> true then return
 
-    m.hasProgressScrubInput = true
     m.progressScrubTargetSeconds = m.progressScrubTargetSeconds + offsetSeconds
     updateProgressScrubPreview()
     seekToGlobalTime(m.progressScrubTargetSeconds, true, true)
@@ -1196,7 +1204,6 @@ sub jogProgressScrub(offsetSeconds as integer)
     startProgressTimer()
     setStatus("Playing")
     updatePlayPauseButton()
-    m.hasProgressScrubInput = false
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1213,7 +1220,7 @@ sub updateProgressScrubPreview()
         crossbarX = int((targetPosition / m.totalDurationSeconds) * m.progressBarWidth)
     end if
 
-    crossbarWidth = 8
+    crossbarWidth = m.progressCrossbarWidth
     if m.progressCrossbar <> invalid and m.progressCrossbar.width <> invalid then crossbarWidth = int(m.progressCrossbar.width)
     halfCrossbarWidth = int(crossbarWidth / 2)
     if halfCrossbarWidth < 1 then halfCrossbarWidth = 1
@@ -1221,7 +1228,7 @@ sub updateProgressScrubPreview()
     if crossbarX < halfCrossbarWidth then crossbarX = halfCrossbarWidth
     if crossbarX > m.progressBarWidth - halfCrossbarWidth then crossbarX = m.progressBarWidth - halfCrossbarWidth
     if m.progressCrossbar <> invalid then
-        m.progressCrossbar.translation = [crossbarX - halfCrossbarWidth, -10]
+        m.progressCrossbar.translation = [crossbarX - halfCrossbarWidth, m.progressCrossbarY]
         m.progressCrossbar.visible = true
     end if
 end sub
@@ -1232,33 +1239,14 @@ end sub
 sub commitProgressScrub(nextFocus as string)
     if m.isProgressScrubbing <> true then return
 
-    if m.hasProgressScrubInput <> true then
-        exitProgressScrubWithoutSeek(nextFocus)
-        return
-    end if
-
-    targetPosition = clampGlobalTime(m.progressScrubTargetSeconds)
-    m.isProgressScrubbing = false
-    m.hasProgressScrubInput = false
-    if m.progressCrossbar <> invalid then m.progressCrossbar.visible = false
-
-    seekToGlobalTime(targetPosition, true, true)
-    m.isPaused = false
-    disableScreenSaver()
-    startProgressTimer()
-    setStatus("Playing")
-    updatePlayPauseButton()
-
-    if nextFocus = "description" and focusDescriptionFromTransport() then return
-    focusTransportButton(m.progressScrubReturnFocusIndex)
+    exitProgressScrub(nextFocus)
 end sub
 
 '-------------------------------------------------------------------------------
-' exitProgressScrubWithoutSeek
+' exitProgressScrub
 '-------------------------------------------------------------------------------
-sub exitProgressScrubWithoutSeek(nextFocus as string)
+sub exitProgressScrub(nextFocus as string)
     m.isProgressScrubbing = false
-    m.hasProgressScrubInput = false
     if m.progressCrossbar <> invalid then m.progressCrossbar.visible = false
     updateProgress(getPlaybackCurrentTimeSeconds(), true)
     updatePlayPauseButton()
@@ -1274,7 +1262,6 @@ sub cancelProgressScrub()
     if m.isProgressScrubbing <> true then return
 
     m.isProgressScrubbing = false
-    m.hasProgressScrubInput = false
     if m.progressCrossbar <> invalid then m.progressCrossbar.visible = false
     updateProgress(getPlaybackCurrentTimeSeconds(), true)
     updatePlayPauseButton()
@@ -1360,9 +1347,9 @@ sub updateChapterMarkers()
         return
     end if
 
-    markerWidth = 2
-    markerTop = 13
-    markerBottom = 22
+    markerWidth = m.chapterMarkerWidth
+    markerTop = m.chapterMarkerTop
+    markerBottom = m.chapterMarkerBottom
     markerHeight = markerBottom - markerTop
     m.chapterMarkerHeight = markerHeight
     halfMarkerWidth = int(markerWidth / 2)
@@ -1383,7 +1370,7 @@ sub updateChapterMarkers()
             marker.width = markerWidth
             marker.height = markerHeight
             marker.translation = [markerX - halfMarkerWidth, markerTop]
-            marker.color = &hF3F7FB80
+            marker.color = m.chapterMarkerColor
             m.chapterMarkersGroup.appendChild(marker)
         end if
     end for
@@ -1398,10 +1385,10 @@ sub updateChapterMarkerLayout()
     offsetY = 0
     if m.hasChapterMarkers = true then offsetY = m.chapterMarkerHeight
 
-    if m.currentTimeLabel <> invalid then m.currentTimeLabel.translation = [0, 26 + offsetY]
-    if m.totalTimeLabel <> invalid then m.totalTimeLabel.translation = [820, 26 + offsetY]
-    if m.playPauseButton <> invalid then m.playPauseButton.translation = [0, offsetY]
-    if m.chaptersButton <> invalid then m.chaptersButton.translation = [850, offsetY]
+    if m.currentTimeLabel <> invalid then m.currentTimeLabel.translation = [0, m.progressTimeLabelY + offsetY]
+    if m.totalTimeLabel <> invalid then m.totalTimeLabel.translation = [m.progressTotalTimeLabelX, m.progressTimeLabelY + offsetY]
+    if m.playPauseButton <> invalid then m.playPauseButton.translation = [m.playPauseButtonX, m.transportButtonY + offsetY]
+    if m.chaptersButton <> invalid then m.chaptersButton.translation = [m.chaptersButtonX, m.transportButtonY + offsetY]
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1589,11 +1576,9 @@ sub onProgressTimerFired()
     position = getPlaybackCurrentTimeSeconds()
 
     if m.isProgressScrubbing = true then
-        if m.hasProgressScrubInput <> true then
-            m.progressScrubTargetSeconds = position
-            updatePlaybackPosition(position)
-            updateProgressScrubPreview()
-        end if
+        m.progressScrubTargetSeconds = position
+        updatePlaybackPosition(position)
+        updateProgressScrubPreview()
         requestPeriodicPlaybackSync()
         return
     end if
@@ -1809,7 +1794,7 @@ sub startProgressTimer()
     if m.lastProgressTickAtSeconds <= 0 then m.lastProgressTickAtSeconds = getNowSeconds()
     if m.progressTimer <> invalid then m.progressTimer.control = "start"
     if m.isProgressScrubbing = true then
-        if m.hasProgressScrubInput <> true then m.progressScrubTargetSeconds = getPlaybackCurrentTimeSeconds()
+        m.progressScrubTargetSeconds = getPlaybackCurrentTimeSeconds()
         updateProgressScrubPreview()
     else
         updateProgress(getPlaybackCurrentTimeSeconds())

@@ -2,12 +2,21 @@
 ## Hit List
 ----------------------------------------------------
 
-- player transport
-    when starting a title that has progress, or moving the playhead, the progress bar and playhead can lag behind   
+- player, add "Play from beginning" or maybe call it "Restart"
+
 - home page isn't getting focus on first load
-    
+
+- no series found, focus is lost
+
+- library view, series first view, display "loading" instead of "no titles found"
+    - maybe it's time for a loading screen
+
+- settings, change "series display" to "Collapse Series" On/Off
+
 - library... list... expanded... doctor who titles prefixed with a number
 - support screen saver
+
+- add homepage shelf for "continue series"?
 
 - default page setting
     - home
@@ -30,11 +39,6 @@ Titles with playback problems
 
 - in-progress bar for series
 - loading spinner/indicator
-
-Continue Listening (home page)
-    - * key triggers menu
-    - mark as finished
-    - removed from continue listening "HideFromContinueListening"
 
 - error modal
 
