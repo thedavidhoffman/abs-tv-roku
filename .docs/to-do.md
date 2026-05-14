@@ -2,10 +2,6 @@
 ## Hit List
 ----------------------------------------------------
 
-- player, add "Play from beginning" or maybe call it "Restart"
-
-- home page isn't getting focus on first load
-
 - no series found, focus is lost
 
 - library view, series first view, display "loading" instead of "no titles found"
