@@ -142,7 +142,7 @@
       buttonWidth="420"
       buttonHeight="56"
       text="Play"
-      iconUri="pkg:/images/icons/dark/play_dark.png"
+      iconUri="pkg:/images/icons/play.png"
     />
     <Group id="metadataGroup">
       <Label

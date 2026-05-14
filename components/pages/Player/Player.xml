@@ -47,6 +47,7 @@
     <!-- play/chapters -->
     <Group id="transportControls" translation="[700,849]">
       <PrimaryButton id="playPauseButton" translation="[0,0]" buttonWidth="188" buttonHeight="56" text="Pause" />
+      <PrimaryButton id="restartButton" translation="[208,0]" buttonWidth="188" buttonHeight="56" text="Restart" iconUri="pkg:/images/icons/restart.png" />
       <PrimaryButton id="chaptersButton" translation="[850,0]" buttonWidth="190" buttonHeight="56" text="Chapters" visible="false" />
     </Group>
 

@@ -37,6 +37,7 @@ sub initReferences()
     m.closeTimer = m.top.findNode("closeTimer")
     m.hlsRetryTimer = m.top.findNode("hlsRetryTimer")
     m.playPauseButton = m.top.findNode("playPauseButton")
+    m.restartButton = m.top.findNode("restartButton")
     m.chaptersButton = m.top.findNode("chaptersButton")
     m.chapterList = m.top.findNode("chapterList")
     m.audioPlayer = m.top.findNode("audioPlayer")
@@ -88,6 +89,7 @@ sub initValues()
     m.progressTimeLabelY = 26
     m.progressTotalTimeLabelX = 820
     m.playPauseButtonX = 0
+    m.restartButtonX = 208
     m.chaptersButtonX = 850
     m.transportButtonY = 0
     m.progressCrossbarWidth = 8
@@ -106,6 +108,7 @@ sub initValues()
     m.pendingChapterStatusUpdate = false
     m.transportButtons = [
         m.playPauseButton
+        m.restartButton
         m.chaptersButton
     ]
     m.isClosing = false
@@ -1135,7 +1138,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
         else if key = "down" then
             return true
         else if key = "OK" or key = "select" then
-            if m.transportFocusIndex = 1 then
+            if m.transportFocusIndex = 2 then
                 openChapterList()
             else
                 activateTransportButton()
@@ -1297,8 +1300,8 @@ end sub
 ' getTransportButtonCount
 '-------------------------------------------------------------------------------
 function getTransportButtonCount() as integer
-    if m.chaptersButton <> invalid and m.chaptersButton.visible = true then return 2
-    return 1
+    if m.chaptersButton <> invalid and m.chaptersButton.visible = true then return 3
+    return 2
 end function
 
 '-------------------------------------------------------------------------------
@@ -1308,8 +1311,25 @@ sub activateTransportButton()
     if m.transportFocusIndex = 0 then
         togglePlayPause()
     else if m.transportFocusIndex = 1 then
+        restartPlayback()
+    else if m.transportFocusIndex = 2 then
         openChapterList()
     end if
+end sub
+
+'-------------------------------------------------------------------------------
+' restartPlayback
+'-------------------------------------------------------------------------------
+sub restartPlayback()
+    if m.audioPlayer = invalid then return
+    if m.tracks = invalid or m.tracks.Count() = 0 then return
+
+    seekToGlobalTime(0, true, true)
+    m.isPaused = false
+    disableScreenSaver()
+    startProgressTimer()
+    setStatus("Playing")
+    updatePlayPauseButton()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1322,7 +1342,7 @@ sub updateChaptersButtonVisibility()
         if hasMultipleTracks = false then m.chaptersButton.hasFocusVisual = false
     end if
 
-    if hasMultipleTracks = false and m.transportFocusIndex > 0 then updateTransportFocus(0)
+    if hasMultipleTracks = false and m.transportFocusIndex > 1 then updateTransportFocus(1)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1388,6 +1408,7 @@ sub updateChapterMarkerLayout()
     if m.currentTimeLabel <> invalid then m.currentTimeLabel.translation = [0, m.progressTimeLabelY + offsetY]
     if m.totalTimeLabel <> invalid then m.totalTimeLabel.translation = [m.progressTotalTimeLabelX, m.progressTimeLabelY + offsetY]
     if m.playPauseButton <> invalid then m.playPauseButton.translation = [m.playPauseButtonX, m.transportButtonY + offsetY]
+    if m.restartButton <> invalid then m.restartButton.translation = [m.restartButtonX, m.transportButtonY + offsetY]
     if m.chaptersButton <> invalid then m.chaptersButton.translation = [m.chaptersButtonX, m.transportButtonY + offsetY]
 end sub
 
@@ -1474,7 +1495,7 @@ end sub
 sub focusChaptersButton()
     if m.chaptersButton <> invalid and m.chaptersButton.visible = true then
         m.chaptersButton.setFocus(true)
-        updateTransportFocus(1)
+        updateTransportFocus(2)
     end if
 end sub
 
@@ -1562,10 +1583,10 @@ sub updatePlayPauseButton()
 
     if m.isPaused = true or (m.audioPlayer <> invalid and m.audioPlayer.state <> "playing") then
         m.playPauseButton.text = "Play"
-        m.playPauseButton.iconUri = "pkg:/images/icons/dark/play_dark.png"
+        m.playPauseButton.iconUri = "pkg:/images/icons/play.png"
     else
         m.playPauseButton.text = "Pause"
-        m.playPauseButton.iconUri = "pkg:/images/icons/dark/pause_dark.png"
+        m.playPauseButton.iconUri = "pkg:/images/icons/pause.png"
     end if
 end sub
 
