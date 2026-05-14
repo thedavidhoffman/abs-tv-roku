@@ -37,7 +37,7 @@ function ThemeDefault() as object
         text: {
             heading: &hF3F7FBFF
             primary: &hD5E0EAFF
-            subtle: &hA8B7C8FF
+            secondary: &hA8B7C8FF
         }
         accent: {
             primary: &hE09B42FF

@@ -1,3 +1,6 @@
+'-------------------------------------------------------------------------------
+' init
+'-------------------------------------------------------------------------------
 sub init()
     m.focusFramePlaceholder = m.top.findNode("focusFramePlaceholder")
     m.focusFrame = m.top.findNode("focusFrame")
@@ -10,6 +13,9 @@ sub init()
     onFocusVisualChanged()
 end sub
 
+'-------------------------------------------------------------------------------
+' onDimensionsChanged
+'-------------------------------------------------------------------------------
 sub onDimensionsChanged()
     width = int(m.top.fieldWidth)
     height = int(m.top.fieldHeight)
@@ -38,6 +44,9 @@ sub onDimensionsChanged()
     end if
 end sub
 
+'-------------------------------------------------------------------------------
+' onTextChanged
+'-------------------------------------------------------------------------------
 sub onTextChanged()
     if m.textLabel = invalid then return
 
@@ -49,17 +58,22 @@ sub onTextChanged()
     m.textLabel.text = displayText
 end sub
 
+'-------------------------------------------------------------------------------
+' onFocusVisualChanged
+'-------------------------------------------------------------------------------
 sub onFocusVisualChanged()
     if m.bg = invalid then return
 
     if m.top.hasFocusVisual = true then
-        if m.focusFramePlaceholder <> invalid then m.focusFramePlaceholder.visible = false
+        'if m.focusFramePlaceholder <> invalid then m.focusFramePlaceholder.visible = false
         if m.focusFrame <> invalid then m.focusFrame.visible = true
-        m.bg.color = "21405EFF"
+        'm.bg.color = "21405EFF"
+        'm.bg.color = Color().background.tertiary
     else
-        if m.focusFramePlaceholder <> invalid then m.focusFramePlaceholder.visible = true
+        'if m.focusFramePlaceholder <> invalid then m.focusFramePlaceholder.visible = true
         if m.focusFrame <> invalid then m.focusFrame.visible = false
-        m.bg.color = "16263BFF"
+        'm.bg.color = "16263BFF"
+        'm.bg.color = Color().background.tertiary
     end if
     '00000040
     onTextChanged()
