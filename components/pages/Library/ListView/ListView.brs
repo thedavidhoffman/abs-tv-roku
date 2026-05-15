@@ -374,9 +374,8 @@ function getListRowTitle(row as object) as string
         return getSeriesListTitle(item)
     end if
 
-    title = getBookListTitle(item, row.seriesId)
-    if row.child = true then return "    " + title
-    return title
+    if row.child = true then return "    " + getBookListTitle(item, row.seriesId)
+    return ItemMetadataParser_GetTitle(item)
 end function
 
 '-------------------------------------------------------------------------------
@@ -407,8 +406,10 @@ end function
 ' getBookListTitle
 '-------------------------------------------------------------------------------
 function getBookListTitle(item as dynamic, seriesId as dynamic) as string
-    sequence = getSeriesSequence(item, seriesId)
     title = ItemMetadataParser_GetTitle(item)
+    if seriesId = invalid then return title
+
+    sequence = getSeriesSequence(item, seriesId)
     if sequence <> "" then return "#" + sequence + "  " + title
     return title
 end function
