@@ -26,6 +26,7 @@
     <function name="activateLibraryButton" />
     <function name="activateSeriesButton" />
     <function name="activateSearchButton" />
+    <function name="isSearchButtonActive" />
   </interface>
   <children>
     <Rectangle id="headerBg" width="1920" height="100" />

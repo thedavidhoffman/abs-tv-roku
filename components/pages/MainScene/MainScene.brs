@@ -557,6 +557,7 @@ sub libraryHandleCurrentLibrarySelected()
 
     m.session.bookLibraryId = selectedLibrary.id
     m.header.currentLibraryId = m.session.bookLibraryId
+    if m.header.callFunc("isSearchButtonActive") then m.header.callFunc("activateLibraryButton")
 
     loadRequest = buildSessionLoadRequest()
     if m.library <> invalid then

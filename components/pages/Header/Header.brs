@@ -149,6 +149,13 @@ function activateSearchButton() as boolean
 end function
 
 '-------------------------------------------------------------------------------
+' isSearchButtonActive
+'-------------------------------------------------------------------------------
+function isSearchButtonActive() as boolean
+    return m.searchButton <> invalid and m.searchButton.isActive = true
+end function
+
+'-------------------------------------------------------------------------------
 ' isHomeButtonFocused
 '-------------------------------------------------------------------------------
 function isHomeButtonFocused() as boolean

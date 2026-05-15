@@ -2,6 +2,9 @@
 
 ---
 
+- hotwire response from library call to return only 1 library to test header/nav display with only 1 library
+??
+
 - default page setting
   - home
   - library
