@@ -362,7 +362,6 @@ end sub
 '-------------------------------------------------------------------------------
 function shouldShowProgressBar(item as dynamic) as boolean
     if m.top.showProgressBar <> true then return false
-    if isSeriesItem(item) then return false
     return true
 end function
 

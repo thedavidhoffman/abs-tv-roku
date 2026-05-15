@@ -7,6 +7,7 @@ sub init()
     m.activeView = "list"
     m.syncingLibraryItems = false
     m.loadRequest = invalid
+    m.allLibraryItems = []
     m.rootLibraryItems = []
     m.itemBackStack = []
     m.searchResults = []
@@ -107,6 +108,19 @@ sub onRootLibraryItemsChanged()
     end if
 
     if m.gridContextType = "root" then restoreRootLibraryItems()
+end sub
+
+'-------------------------------------------------------------------------------
+' onAllLibraryItemsChanged
+'-------------------------------------------------------------------------------
+sub onAllLibraryItemsChanged()
+    if m.top.allLibraryItems = invalid then
+        m.allLibraryItems = []
+    else
+        m.allLibraryItems = m.top.allLibraryItems
+    end if
+
+    if m.gridView <> invalid then m.gridView.allLibraryItems = m.allLibraryItems
 end sub
 
 '-------------------------------------------------------------------------------
@@ -250,7 +264,10 @@ sub onLibraryItemsChanged()
     items = m.top.libraryItems
 
     if m.listView <> invalid then m.listView.libraryItems = items
-    if m.gridView <> invalid then m.gridView.libraryItems = items
+    if m.gridView <> invalid then
+        m.gridView.allLibraryItems = m.allLibraryItems
+        m.gridView.libraryItems = items
+    end if
     syncLoadingToViews()
 
     m.syncingLibraryItems = false

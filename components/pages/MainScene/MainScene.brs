@@ -597,7 +597,10 @@ end sub
 '-------------------------------------------------------------------------------
 sub libraryControllerHandleItemsChanged()
     if m.libraryController = invalid then return
-    if m.library <> invalid then m.library.rootLibraryItems = m.libraryController.libraryItems
+    if m.library <> invalid then
+        m.library.allLibraryItems = m.libraryController.allLibraryItems
+        m.library.rootLibraryItems = m.libraryController.libraryItems
+    end if
 end sub
 
 '-------------------------------------------------------------------------------

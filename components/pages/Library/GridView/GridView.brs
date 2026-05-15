@@ -43,6 +43,7 @@ sub onLibraryItemsChanged()
 
     root = CreateObject("roSGNode", "ContentNode")
     items = m.top.libraryItems
+    allLibraryItemLookup = buildLibraryItemLookup(m.top.allLibraryItems)
     m.libraryItemsByIndex = []
     m.focusedItemNode = invalid
 
@@ -54,7 +55,7 @@ sub onLibraryItemsChanged()
                 node.title = getLibraryItemTitle(item)
                 node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, 280)
                 node.SDPosterUrl = node.HDPosterUrl
-                progress = getProgressData(item)
+                progress = getPosterProgressData(item, allLibraryItemLookup)
                 node.AddFields({
                     author: getItemAuthor(metadata)
                     isSeriesItem: isSeriesItem(item)
@@ -274,6 +275,157 @@ function getSequenceFromSeriesValue(series as dynamic) as string
 end function
 
 '-------------------------------------------------------------------------------
+' getPosterProgressData
+'-------------------------------------------------------------------------------
+function getPosterProgressData(item as dynamic, allLibraryItemLookup as object) as object
+    if isSeriesItem(item) then return getSeriesProgressData(item, allLibraryItemLookup)
+    return getProgressData(item)
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesProgressData
+'-------------------------------------------------------------------------------
+function getSeriesProgressData(item as dynamic, allLibraryItemLookup as object) as object
+    totalCurrentTime = 0.0
+    totalDuration = 0.0
+
+    childItems = getCollapsedSeriesItems(item, allLibraryItemLookup)
+    for each childItem in childItems
+        childProgress = getProgressData(childItem)
+        childDuration = getSeriesChildDuration(childItem, childProgress)
+
+        if childDuration > 0 then
+            totalDuration = totalDuration + childDuration
+            totalCurrentTime = totalCurrentTime + getSeriesChildCurrentTime(childProgress, childDuration)
+        end if
+    end for
+
+    if totalDuration <= 0 then return getEmptyProgressData()
+
+    if totalCurrentTime > totalDuration then totalCurrentTime = totalDuration
+    return {
+        progress: totalCurrentTime / totalDuration
+        currentTime: totalCurrentTime
+        duration: totalDuration
+        isFinished: totalCurrentTime >= totalDuration
+    }
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesItems
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesItems(item as dynamic, allLibraryItemLookup as object) as object
+    childItems = []
+    libraryItemIds = getCollapsedSeriesLibraryItemIds(item)
+    if libraryItemIds = invalid then return childItems
+    if allLibraryItemLookup = invalid then return childItems
+
+    ids = getLibraryItemIdList(libraryItemIds)
+    for each id in ids
+        childItem = allLibraryItemLookup[id]
+        if childItem <> invalid then childItems.Push(childItem)
+    end for
+
+    return childItems
+end function
+
+'-------------------------------------------------------------------------------
+' buildLibraryItemLookup
+'-------------------------------------------------------------------------------
+function buildLibraryItemLookup(items as dynamic) as object
+    lookup = {}
+    if items = invalid then return lookup
+
+    for each item in items
+        if item <> invalid then
+            addLibraryItemLookupCandidate(lookup, item, item.id)
+            addLibraryItemLookupCandidate(lookup, item, item.libraryItemId)
+            addLibraryItemLookupCandidate(lookup, item, item.mediaItemId)
+            if item.media <> invalid then
+                addLibraryItemLookupCandidate(lookup, item, item.media.id)
+                addLibraryItemLookupCandidate(lookup, item, item.media.libraryItemId)
+            end if
+        end if
+    end for
+
+    return lookup
+end function
+
+'-------------------------------------------------------------------------------
+' addLibraryItemLookupCandidate
+'-------------------------------------------------------------------------------
+sub addLibraryItemLookupCandidate(lookup as object, item as dynamic, id as dynamic)
+    idText = getText(id)
+    if idText = "" then return
+    if lookup[idText] = invalid then lookup[idText] = item
+end sub
+
+'-------------------------------------------------------------------------------
+' getLibraryItemIdList
+'-------------------------------------------------------------------------------
+function getLibraryItemIdList(libraryItemIds as dynamic) as object
+    ids = []
+    if libraryItemIds = invalid then return ids
+
+    idsType = Type(libraryItemIds)
+    if idsType = "roArray" then
+        for each id in libraryItemIds
+            idText = getText(id)
+            if idText <> "" then ids.Push(idText)
+        end for
+    else
+        idText = getText(libraryItemIds)
+        if idText <> "" then ids.Push(idText)
+    end if
+
+    return ids
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesChildDuration
+'-------------------------------------------------------------------------------
+function getSeriesChildDuration(item as dynamic, progress as object) as float
+    duration = getNumberFromFields(progress, ["duration"])
+    if duration > 0 then return duration
+
+    return getItemDurationSeconds(item)
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesChildCurrentTime
+'-------------------------------------------------------------------------------
+function getSeriesChildCurrentTime(progress as object, duration as float) as float
+    if progress = invalid or duration <= 0 then return 0
+    if progress.isFinished = true then return duration
+
+    currentTime = getNumberFromFields(progress, ["currentTime"])
+    if currentTime > 0 then return clampSeconds(currentTime, duration)
+
+    return clampSeconds(getDerivedCurrentTime(progress.progress, duration), duration)
+end function
+
+'-------------------------------------------------------------------------------
+' getEmptyProgressData
+'-------------------------------------------------------------------------------
+function getEmptyProgressData() as object
+    return {
+        progress: 0
+        currentTime: 0
+        duration: 0
+        isFinished: false
+    }
+end function
+
+'-------------------------------------------------------------------------------
+' clampSeconds
+'-------------------------------------------------------------------------------
+function clampSeconds(value as float, maxValue as float) as float
+    if value < 0 then return 0
+    if value > maxValue then return maxValue
+    return value
+end function
+
+'-------------------------------------------------------------------------------
 ' getProgressData
 '-------------------------------------------------------------------------------
 function getProgressData(item as dynamic) as object
@@ -420,6 +572,14 @@ function getBoolean(value as dynamic) as boolean
 
     text = LCase(value.ToStr())
     return text = "true" or text = "1"
+end function
+
+'-------------------------------------------------------------------------------
+' getText
+'-------------------------------------------------------------------------------
+function getText(value as dynamic) as string
+    if value = invalid then return ""
+    return value.ToStr()
 end function
 
 '-------------------------------------------------------------------------------

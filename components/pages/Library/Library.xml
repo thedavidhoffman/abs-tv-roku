@@ -11,6 +11,7 @@
     <field id="searchRequest" type="assocarray" onChange="onSearchRequestChanged" />
     <field id="searchResponse" type="assocarray" onChange="onSearchResponseChanged" />
     <field id="seriesItemsResponse" type="assocarray" onChange="onSeriesItemsResponseChanged" />
+    <field id="allLibraryItems" type="array" onChange="onAllLibraryItemsChanged" />
     <field id="rootLibraryItems" type="array" onChange="onRootLibraryItemsChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
     <field id="searchResults" type="array" />

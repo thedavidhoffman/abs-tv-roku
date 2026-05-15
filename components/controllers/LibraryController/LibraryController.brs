@@ -19,6 +19,7 @@ sub init()
     if m.allItemsTask <> invalid then m.allItemsTask.observeField("response", "onAllItemsResponse")
     if m.collapsedItemsTask <> invalid then m.collapsedItemsTask.observeField("response", "onCollapsedItemsResponse")
 
+    m.top.allLibraryItems = []
     m.top.libraryItems = []
     m.top.loading = false
 end sub
@@ -176,6 +177,7 @@ end function
 sub beginNewCacheGeneration()
     m.requestGeneration = m.requestGeneration + 1
     cacheClear()
+    m.top.allLibraryItems = []
     m.pendingSearchRequest = invalid
     m.pendingSeriesRowsRequest = invalid
     m.pendingSeriesItemsRequest = invalid
@@ -307,6 +309,8 @@ end sub
 ' publishCurrentLibraryItems
 '-------------------------------------------------------------------------------
 sub publishCurrentLibraryItems()
+    m.top.allLibraryItems = cacheGetItems(cacheKeyAllTitles())
+
     if shouldUseCollapsedSeriesItems() then
         publishItems(cacheGetItems(cacheKeyCollapsedSeries()))
     else

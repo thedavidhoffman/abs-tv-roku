@@ -13,6 +13,7 @@
     <field id="searchRequest" type="assocarray" onChange="onSearchRequestChanged" />
     <field id="seriesRowsRequest" type="assocarray" onChange="onSeriesRowsRequestChanged" />
     <field id="seriesItemsRequest" type="assocarray" onChange="onSeriesItemsRequestChanged" />
+    <field id="allLibraryItems" type="array" />
     <field id="libraryItems" type="array" />
     <field id="libraryItemsChanged" type="integer" />
     <field id="searchResponse" type="assocarray" />
