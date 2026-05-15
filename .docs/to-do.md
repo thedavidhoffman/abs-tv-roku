@@ -7,8 +7,6 @@
 
 - library... list... expanded... doctor who titles prefixed with a number
 
-- settings, change "series display" to "Collapse Series" On/Off
-
 - default page setting
   - home
   - library

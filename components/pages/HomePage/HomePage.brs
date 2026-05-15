@@ -51,7 +51,7 @@ sub reloadPersonalizedShelves()
     if hasValidLoadRequest() = false then return
 
     if m.top.visible = true then m.firstItemFocusPending = true
-    setStatus("Loading")
+    setStatus("Loading...")
     runPersonalizedApiRequest({
         action: "loadPersonalized"
         server: m.loadRequest.server

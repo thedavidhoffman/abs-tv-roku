@@ -17,15 +17,14 @@
     <function name="reloadPersonalizedShelves" />
   </interface>
   <children>
-    <Label
+    <LabelHeading
       id="statusLabel"
-      translation="[64,144]"
-      width="1200"
+      translation="[0,540]"
+      width="1920"
       numLines="2"
       wrap="true"
       text=""
-      color="0xF6F7FBFF"
-      font="font:MediumSystemFont"
+      horizAlign="center"
       visible="false" />
     <RowList
       id="homeRowList"
