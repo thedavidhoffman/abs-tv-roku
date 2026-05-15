@@ -2,8 +2,6 @@
 
 ---
 
-- when switching libraries, the home page doesn't set focus
-
 - library view, series first view, display "loading" instead of "no titles found"
   - maybe it's time for a loading screen
 
