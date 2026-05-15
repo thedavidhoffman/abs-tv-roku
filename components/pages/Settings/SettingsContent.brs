@@ -19,9 +19,9 @@ sub initSeriesOptions()
 
     content = CreateObject("roSGNode", "ContentNode")
     collapseOption = content.createChild("ContentNode")
-    collapseOption.title = "Collapsed"
+    collapseOption.title = "On"
     expandOption = content.createChild("ContentNode")
-    expandOption.title = "Expanded"
+    expandOption.title = "Off"
 
     m.seriesOptions.content = content
 end sub

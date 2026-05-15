@@ -4,7 +4,6 @@
 sub init()
     m.closeRequestedCounter = 0
     m.dialog = m.top.findNode("dialog")
-    m.backdrop = m.top.findNode("backdrop")
     m.panel = m.top.findNode("panel")
     m.titleLabel = m.top.findNode("titleLabel")
     m.titleRule = m.top.findNode("titleRule")
@@ -94,10 +93,7 @@ end function
 sub initStyle()
     colors = Color()
 
-    if m.backdrop <> invalid then m.backdrop.color = colors.dialog.backdrop
-    if m.panel <> invalid then m.panel.color = colors.dialog.background
     if m.footer <> invalid then m.footer.color = &h00000040
-    if m.titleLabel <> invalid then m.titleLabel.color = &hF3F7FBFF
     if m.titleRule <> invalid then m.titleRule.color = &hF3F7FB33
 end sub
 

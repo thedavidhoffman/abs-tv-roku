@@ -32,7 +32,7 @@
     <Label
       id="seriesLabel"
       translation="[0,172]"
-      text="Display series as..."
+      text="Collapse series..."
       width="560"
       height="36"
       font="font:MediumBoldSystemFont" />

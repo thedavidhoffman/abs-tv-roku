@@ -18,7 +18,7 @@
     <Group id="authenticatedContent" visible="false">
 
       <HomePage id="homePage" visible="false" />
-      <Library id="library" />
+      <Library id="library" visible="false" />
       <Series id="seriesPage" visible="false" />
       <Header id="header" visible="false" />
 
