@@ -243,6 +243,7 @@ sub updateActiveView(viewName as string)
     m.activeView = viewName
     if m.listView <> invalid then m.listView.visible = (viewName = "list")
     if m.gridView <> invalid then m.gridView.visible = (viewName = "grid")
+    syncGridContext()
     syncStatusMessage()
 end sub
 
@@ -467,12 +468,11 @@ function handleBackNavigation() as boolean
     if m.top.visible <> true then return false
 
     if isShowingSearchResults() then
-        if moveFocusToFirstGridItem() then return true
-        restoreRootItemsFromSearch()
-        return true
+        return false
     end if
 
     if hasBackStack() then
+        if m.activeView = "list" then return false
         if moveFocusToFirstGridItem() then return true
         if restorePreviousItems() then return true
     end if
@@ -546,6 +546,11 @@ end function
 ' syncGridContext
 '-------------------------------------------------------------------------------
 sub syncGridContext()
+    if m.listView <> invalid then
+        m.listView.contextTitle = m.gridContextTitle
+        m.listView.contextType = m.gridContextType
+    end if
+
     if m.gridView = invalid then return
 
     m.gridView.contextTitle = m.gridContextTitle

@@ -36,16 +36,6 @@
       font="font:LargeBoldSystemFont"
       color="0xF3F7FBFF"
       visible="false" />
-    <Label
-      id="contextHintLabel"
-      translation="[64,178]"
-      width="1720"
-      height="40"
-      maxLines="1"
-      text="Press the back button to return to the main list."
-      font="font:SmallSystemFont"
-      color="0xB7C5D4FF"
-      visible="false" />
     <MarkupGrid
       id="markupGrid"
       translation="[64,135]"

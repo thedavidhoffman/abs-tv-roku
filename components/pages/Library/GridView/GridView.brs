@@ -4,7 +4,6 @@
 sub init()
     m.markupGrid = m.top.findNode("markupGrid")
     m.contextTitleLabel = m.top.findNode("contextTitleLabel")
-    m.contextHintLabel = m.top.findNode("contextHintLabel")
     m.libraryItemsByIndex = []
     m.playSelectedCounter = 0
     m.seriesSelectedCounter = 0
@@ -151,11 +150,9 @@ sub onContextTitleChanged()
         m.contextTitleLabel.visible = hasTitle
     end if
 
-    if m.contextHintLabel <> invalid then m.contextHintLabel.visible = hasTitle
-
     if m.markupGrid <> invalid then
         if hasTitle then
-            m.markupGrid.translation = [64,240]
+            m.markupGrid.translation = [64,200]
         else
             m.markupGrid.translation = [64,135]
         end if

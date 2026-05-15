@@ -2,8 +2,6 @@
 
 ---
 
-- search when library view is set to list, display message like on grid view
-
 - default page setting
   - home
   - library

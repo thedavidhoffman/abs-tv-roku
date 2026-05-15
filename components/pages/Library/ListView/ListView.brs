@@ -16,6 +16,7 @@ sub init()
 
     initHandlers()
     onLibraryItemsChanged()
+    onContextTitleChanged()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -23,7 +24,31 @@ end sub
 '-------------------------------------------------------------------------------
 sub initReferences()
     m.libraryList = m.top.findNode("libraryList")
+    m.contextTitleLabel = m.top.findNode("contextTitleLabel")
     m.overview = m.top.findNode("overview")
+end sub
+
+'-------------------------------------------------------------------------------
+' onContextTitleChanged
+'-------------------------------------------------------------------------------
+sub onContextTitleChanged()
+    title = String_Trim(m.top.contextTitle)
+    hasTitle = (title <> "" and m.top.contextType = "search")
+
+    if m.contextTitleLabel <> invalid then
+        m.contextTitleLabel.text = title
+        m.contextTitleLabel.visible = hasTitle
+    end if
+
+    if m.libraryList <> invalid then
+        if hasTitle then
+            m.libraryList.translation = [64,200]
+            m.libraryList.numRows = 14
+        else
+            m.libraryList.translation = [64,162]
+            m.libraryList.numRows = 15
+        end if
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
