@@ -31,6 +31,7 @@ sub initReferences()
     m.homePage = m.top.findNode("homePage")
     m.library = m.top.findNode("library")
     m.seriesPage = m.top.findNode("seriesPage")
+    m.statusLabel = m.top.findNode("statusLabel")
     m.search = m.top.findNode("search")
     m.player = m.top.findNode("player")
     m.overlayHost = m.top.findNode("overlayHost")
@@ -58,6 +59,7 @@ sub initHandlers()
     m.homePage.observeField("upFromFirstRowSelected", "homeHandleUpFromFirstRowSelected")
     m.homePage.observeField("playSelected", "homeHandlePlaySelected")
     m.homePage.observeField("errorResponse", "homeHandleError")
+    m.homePage.observeField("statusMessage", "homeHandleStatusMessageChanged")
     m.library.observeField("errorResponse", "libraryHandleError")
     m.library.observeField("playSelected", "libraryHandlePlaySelected")
     m.library.observeField("upFromFirstItemSelected", "libraryHandleUpFromFirstItemSelected")
@@ -66,6 +68,7 @@ sub initHandlers()
     m.library.observeField("mainListRestored", "libraryHandleMainListRestored")
     m.library.observeField("controllerSearchRequest", "libraryHandleSearchRequest")
     m.library.observeField("seriesItemsRequest", "libraryHandleSeriesItemsRequest")
+    m.library.observeField("statusMessage", "libraryHandleStatusMessageChanged")
     m.seriesPage.observeField("playSelected", "seriesHandlePlaySelected")
     m.seriesPage.observeField("upFromFirstRowSelected", "seriesHandleUpFromFirstRowSelected")
     m.seriesPage.observeField("backSelected", "seriesHandleBackSelected")
@@ -97,6 +100,15 @@ end sub
 '-------------------------------------------------------------------------------
 sub reloadHomeShelvesAfterPlayback()
     if m.homePage <> invalid then m.homePage.callFunc("reloadPersonalizedShelves")
+end sub
+
+'-------------------------------------------------------------------------------
+' statusSetMessage
+'-------------------------------------------------------------------------------
+sub statusSetMessage(message as dynamic)
+    if m.statusLabel = invalid then return
+
+    m.statusLabel.text = SafeString(message, "")
 end sub
 
 '===============================================================================
@@ -316,6 +328,7 @@ sub navShowHomePage()
         m.library.visible = false
         m.library.callFunc("resetDrilldown")
     end if
+    if m.homePage <> invalid then statusSetMessage(m.homePage.statusMessage)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -325,6 +338,7 @@ sub navShowLibraryPage()
     if m.homePage <> invalid then m.homePage.visible = false
     if m.seriesPage <> invalid then m.seriesPage.visible = false
     if m.library <> invalid then m.library.visible = true
+    if m.library <> invalid then statusSetMessage(m.library.statusMessage)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -337,6 +351,7 @@ sub navShowSeriesPage()
         m.library.callFunc("resetDrilldown")
     end if
     if m.seriesPage <> invalid then m.seriesPage.visible = true
+    statusSetMessage("")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -503,6 +518,16 @@ sub homeHandleError()
     handleComponentError(m.homePage.errorResponse)
 end sub
 
+'-------------------------------------------------------------------------------
+' homeHandleStatusMessageChanged
+'-------------------------------------------------------------------------------
+sub homeHandleStatusMessageChanged()
+    if m.homePage = invalid then return
+    if m.homePage.visible <> true then return
+
+    statusSetMessage(m.homePage.statusMessage)
+end sub
+
 '===============================================================================
 ' Library
 '===============================================================================
@@ -615,6 +640,16 @@ end sub
 '-------------------------------------------------------------------------------
 sub libraryHandleError()
     handleComponentError(m.library.errorResponse)
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleStatusMessageChanged
+'-------------------------------------------------------------------------------
+sub libraryHandleStatusMessageChanged()
+    if m.library = invalid then return
+    if m.library.visible <> true then return
+
+    statusSetMessage(m.library.statusMessage)
 end sub
 
 '-------------------------------------------------------------------------------

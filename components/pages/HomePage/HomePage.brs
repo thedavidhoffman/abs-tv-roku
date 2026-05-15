@@ -3,7 +3,6 @@
 '-------------------------------------------------------------------------------
 sub init()
     m.homeRowList = m.top.findNode("homeRowList")
-    m.statusLabel = m.top.findNode("statusLabel")
     m.focusRetryTimer = m.top.findNode("focusRetryTimer")
     m.personalizedApiTask = m.top.findNode("personalizedApiTask")
     m.shelfItemsByRow = []
@@ -179,16 +178,15 @@ end function
 ' updateStatus
 '-------------------------------------------------------------------------------
 sub updateStatus(rowCount as integer)
-    if m.statusLabel = invalid or m.homeRowList = invalid then return
+    if m.homeRowList = invalid then return
 
     hasItems = rowCount > 0
-    m.statusLabel.visible = not hasItems
     m.homeRowList.visible = hasItems
 
     if hasItems then
-        m.statusLabel.text = ""
+        m.top.statusMessage = ""
     else
-        m.statusLabel.text = "Loading"
+        m.top.statusMessage = "Loading"
     end if
 end sub
 
@@ -196,11 +194,10 @@ end sub
 ' setStatus
 '-------------------------------------------------------------------------------
 sub setStatus(message as dynamic)
-    if m.statusLabel = invalid or m.homeRowList = invalid then return
+    if m.homeRowList = invalid then return
 
     text = SafeString(message, "")
-    m.statusLabel.text = text
-    m.statusLabel.visible = (text <> "")
+    m.top.statusMessage = text
     m.homeRowList.visible = (text = "")
 end sub
 

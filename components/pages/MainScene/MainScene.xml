@@ -20,6 +20,7 @@
       <HomePage id="homePage" visible="false" />
       <Library id="library" visible="false" />
       <Series id="seriesPage" visible="false" />
+      <StatusLabel id="statusLabel" visible="false" />
       <Header id="header" visible="false" />
 
     </Group>

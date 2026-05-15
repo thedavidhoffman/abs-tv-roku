@@ -32,6 +32,7 @@ sub init()
         m.gridView.observeField("upFromFirstItemSelected", "onGridViewUpFromFirstItemSelected")
         m.gridView.observeField("backFromFirstItemSelected", "onGridViewBackFromFirstItemSelected")
         m.gridView.observeField("errorResponse", "onGridViewError")
+        m.gridView.observeField("statusMessage", "onGridViewStatusMessageChanged")
     end if
 
     applyDisplaySettings(SettingsStore_Load())
@@ -212,6 +213,7 @@ sub updateActiveView(viewName as string)
     m.activeView = viewName
     if m.listView <> invalid then m.listView.visible = (viewName = "list")
     if m.gridView <> invalid then m.gridView.visible = (viewName = "grid")
+    syncStatusMessage()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -356,6 +358,30 @@ end sub
 '-------------------------------------------------------------------------------
 sub onGridViewError()
     if m.gridView <> invalid then m.top.errorResponse = m.gridView.errorResponse
+end sub
+
+'-------------------------------------------------------------------------------
+' onGridViewStatusMessageChanged
+'-------------------------------------------------------------------------------
+sub onGridViewStatusMessageChanged()
+    syncStatusMessage()
+end sub
+
+'-------------------------------------------------------------------------------
+' syncStatusMessage
+'-------------------------------------------------------------------------------
+sub syncStatusMessage()
+    if m.activeView <> "grid" then
+        m.top.statusMessage = ""
+        return
+    end if
+
+    if m.gridView = invalid then
+        m.top.statusMessage = ""
+        return
+    end if
+
+    m.top.statusMessage = getText(m.gridView.statusMessage)
 end sub
 
 '-------------------------------------------------------------------------------

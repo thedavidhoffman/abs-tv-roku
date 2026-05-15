@@ -5,7 +5,6 @@ sub init()
     m.markupGrid = m.top.findNode("markupGrid")
     m.contextTitleLabel = m.top.findNode("contextTitleLabel")
     m.contextHintLabel = m.top.findNode("contextHintLabel")
-    m.gridStatus = m.top.findNode("gridStatus")
     m.libraryItemsByIndex = []
     m.playSelectedCounter = 0
     m.seriesSelectedCounter = 0
@@ -149,13 +148,6 @@ sub onContextTitleChanged()
         end if
     end if
 
-    if m.gridStatus <> invalid then
-        if hasTitle then
-            m.gridStatus.translation = [64,250]
-        else
-            m.gridStatus.translation = [64,144]
-        end if
-    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -515,10 +507,7 @@ end function
 ' setStatus
 '-------------------------------------------------------------------------------
 sub setStatus(message as dynamic)
-    if m.gridStatus = invalid then return
-    text = SafeString(message, "")
-    m.gridStatus.text = text
-    m.gridStatus.visible = (text <> "")
+    m.top.statusMessage = SafeString(message, "")
 end sub
 
 '-------------------------------------------------------------------------------

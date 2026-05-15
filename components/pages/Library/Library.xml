@@ -23,6 +23,7 @@
     <field id="seriesItemsRequest" type="assocarray" />
     <field id="errorResponse" type="assocarray" />
     <field id="itemsReloaded" type="integer" />
+    <field id="statusMessage" type="string" />
     <function name="focusLibraryList" />
     <function name="focusItemAtIndex" />
     <function name="handleBackNavigation" />

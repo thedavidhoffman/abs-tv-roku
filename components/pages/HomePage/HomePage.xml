@@ -13,19 +13,11 @@
     <field id="backSelected" type="integer" />
     <field id="upFromFirstRowSelected" type="integer" />
     <field id="errorResponse" type="assocarray" />
+    <field id="statusMessage" type="string" />
     <function name="focusHomePage" />
     <function name="reloadPersonalizedShelves" />
   </interface>
   <children>
-    <LabelHeading
-      id="statusLabel"
-      translation="[0,540]"
-      width="1920"
-      numLines="2"
-      wrap="true"
-      text=""
-      horizAlign="center"
-      visible="false" />
     <RowList
       id="homeRowList"
       translation="[64,144]"
