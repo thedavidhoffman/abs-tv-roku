@@ -140,7 +140,7 @@ sub appendShelfRow(root as object, shelfId as string, title as string)
             node.title = getLibraryItemTitle(item)
             node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, 280)
             node.SDPosterUrl = node.HDPosterUrl
-            progress = getProgressData(item)
+            progress = ProgressData_GetItemProgress(item, m.top.mediaProgress)
             metadata = getItemMetadata(item)
             node.AddFields({
                 author: getItemAuthor(metadata)
@@ -416,152 +416,10 @@ function getLibraryItemTitle(item as dynamic) as string
 end function
 
 '-------------------------------------------------------------------------------
-' getProgressData
-'-------------------------------------------------------------------------------
-function getProgressData(item as dynamic) as object
-    mappedProgress = getMappedProgressForItem(item)
-    if mappedProgress <> invalid then
-        return {
-            progress: getNumberFromFields(mappedProgress, ["progress"])
-            currentTime: getNumberFromFields(mappedProgress, ["currentTime"])
-            duration: getNumberFromFields(mappedProgress, ["duration"])
-            isFinished: getBooleanFromFields(mappedProgress, ["isFinished"])
-        }
-    end if
-
-    progress = invalid
-
-    if item <> invalid and item.userMediaProgress <> invalid then
-        progress = item.userMediaProgress
-    else if item <> invalid and item.mediaProgress <> invalid then
-        progress = item.mediaProgress
-    end if
-
-    if progress = invalid then
-        return {
-            progress: getNumberFromFields(item, ["progress"])
-            currentTime: getNumberFromFields(item, ["currentTime", "progressCurrentTime"])
-            duration: getNumberFromFields(item, ["duration", "progressDuration"])
-            isFinished: getBooleanFromFields(item, ["isFinished", "progressIsFinished"])
-        }
-    end if
-
-    return {
-        progress: getNumberFromFields(progress, ["progress"])
-        currentTime: getNumberFromFields(progress, ["currentTime"])
-        duration: getNumberFromFields(progress, ["duration"])
-        isFinished: getBooleanFromFields(progress, ["isFinished"])
-    }
-end function
-
-'-------------------------------------------------------------------------------
-' getMappedProgressForItem
-'-------------------------------------------------------------------------------
-function getMappedProgressForItem(item as dynamic) as dynamic
-    if item = invalid then return invalid
-    if m.top.mediaProgress = invalid then return invalid
-
-    candidateIds = getProgressCandidateIds(item)
-    if candidateIds = invalid or candidateIds.Count() = 0 then return invalid
-
-    for each progress in m.top.mediaProgress
-        if progress <> invalid and progress.itemId <> invalid and candidateIds[progress.itemId.ToStr()] = true then
-            return progress
-        end if
-    end for
-
-    return invalid
-end function
-
-'-------------------------------------------------------------------------------
-' getProgressCandidateIds
-'-------------------------------------------------------------------------------
-function getProgressCandidateIds(item as dynamic) as object
-    ids = {}
-    if item = invalid then return ids
-
-    if item.id <> invalid then ids[item.id.ToStr()] = true
-    if item.libraryItemId <> invalid then ids[item.libraryItemId.ToStr()] = true
-    if item.mediaItemId <> invalid then ids[item.mediaItemId.ToStr()] = true
-    if item.media <> invalid and item.media.id <> invalid then ids[item.media.id.ToStr()] = true
-
-    return ids
-end function
-
-'-------------------------------------------------------------------------------
 ' getPlaybackStartPosition
 '-------------------------------------------------------------------------------
 function getPlaybackStartPosition(item as dynamic) as integer
-    progress = getProgressData(item)
-    if progress = invalid then return 0
-    if progress.isFinished = true then return 0
-
-    currentTime = int(val(progress.currentTime.ToStr()))
-    if currentTime > 0 then return currentTime
-
-    return getDerivedCurrentTime(progress.progress, progress.duration)
-end function
-
-'-------------------------------------------------------------------------------
-' getDerivedCurrentTime
-'-------------------------------------------------------------------------------
-function getDerivedCurrentTime(progressValue as dynamic, durationValue as dynamic) as integer
-    duration = val(durationValue.ToStr())
-    if duration <= 0 then return 0
-
-    progress = val(progressValue.ToStr())
-    if progress <= 0 then return 0
-    if progress > 1 then progress = progress / 100
-    if progress > 1 then progress = 1
-
-    return int(progress * duration)
-end function
-
-'-------------------------------------------------------------------------------
-' getNumberFromFields
-'-------------------------------------------------------------------------------
-function getNumberFromFields(value as dynamic, fieldNames as object) as float
-    if value = invalid then return 0
-
-    for each fieldName in fieldNames
-        fieldValue = value[fieldName]
-        if fieldValue <> invalid then return getNumber(fieldValue)
-    end for
-
-    return 0
-end function
-
-'-------------------------------------------------------------------------------
-' getBooleanFromFields
-'-------------------------------------------------------------------------------
-function getBooleanFromFields(value as dynamic, fieldNames as object) as boolean
-    if value = invalid then return false
-
-    for each fieldName in fieldNames
-        fieldValue = value[fieldName]
-        if fieldValue <> invalid then return getBoolean(fieldValue)
-    end for
-
-    return false
-end function
-
-'-------------------------------------------------------------------------------
-' getNumber
-'-------------------------------------------------------------------------------
-function getNumber(value as dynamic) as float
-    if value = invalid then return 0
-    return val(value.ToStr())
-end function
-
-'-------------------------------------------------------------------------------
-' getBoolean
-'-------------------------------------------------------------------------------
-function getBoolean(value as dynamic) as boolean
-    if value = invalid then return false
-    if Type(value) = "Boolean" or Type(value) = "roBoolean" then return value
-
-    text = LCase(value.ToStr())
-    return text = "true" or text = "1"
+    return ProgressData_GetPlaybackStartPosition(item, m.top.mediaProgress)
 end function
 
 '-------------------------------------------------------------------------------

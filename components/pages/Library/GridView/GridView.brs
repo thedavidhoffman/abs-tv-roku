@@ -11,6 +11,7 @@ sub init()
     m.upFromFirstItemSelectedCounter = 0
     m.backFromFirstItemSelectedCounter = 0
     m.focusedItemNode = invalid
+    m.allLibraryItemLookup = {}
     m.server = invalid
     m.token = invalid
 
@@ -21,6 +22,14 @@ sub init()
 
     onLibraryItemsChanged()
     onContextTitleChanged()
+end sub
+
+'-------------------------------------------------------------------------------
+' onAllLibraryItemsChanged
+'-------------------------------------------------------------------------------
+sub onAllLibraryItemsChanged()
+    m.allLibraryItemLookup = LibraryItemLookup_Build(m.top.allLibraryItems)
+    onLibraryItemsChanged()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -43,7 +52,6 @@ sub onLibraryItemsChanged()
 
     root = CreateObject("roSGNode", "ContentNode")
     items = m.top.libraryItems
-    allLibraryItemLookup = buildLibraryItemLookup(m.top.allLibraryItems)
     m.libraryItemsByIndex = []
     m.focusedItemNode = invalid
 
@@ -55,7 +63,7 @@ sub onLibraryItemsChanged()
                 node.title = getLibraryItemTitle(item)
                 node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, 280)
                 node.SDPosterUrl = node.HDPosterUrl
-                progress = getPosterProgressData(item, allLibraryItemLookup)
+                progress = getPosterProgressData(item)
                 node.AddFields({
                     author: getItemAuthor(metadata)
                     isSeriesItem: isSeriesItem(item)
@@ -277,309 +285,16 @@ end function
 '-------------------------------------------------------------------------------
 ' getPosterProgressData
 '-------------------------------------------------------------------------------
-function getPosterProgressData(item as dynamic, allLibraryItemLookup as object) as object
-    if isSeriesItem(item) then return getSeriesProgressData(item, allLibraryItemLookup)
-    return getProgressData(item)
-end function
-
-'-------------------------------------------------------------------------------
-' getSeriesProgressData
-'-------------------------------------------------------------------------------
-function getSeriesProgressData(item as dynamic, allLibraryItemLookup as object) as object
-    totalCurrentTime = 0.0
-    totalDuration = 0.0
-
-    childItems = getCollapsedSeriesItems(item, allLibraryItemLookup)
-    for each childItem in childItems
-        childProgress = getProgressData(childItem)
-        childDuration = getSeriesChildDuration(childItem, childProgress)
-
-        if childDuration > 0 then
-            totalDuration = totalDuration + childDuration
-            totalCurrentTime = totalCurrentTime + getSeriesChildCurrentTime(childProgress, childDuration)
-        end if
-    end for
-
-    if totalDuration <= 0 then return getEmptyProgressData()
-
-    if totalCurrentTime > totalDuration then totalCurrentTime = totalDuration
-    return {
-        progress: totalCurrentTime / totalDuration
-        currentTime: totalCurrentTime
-        duration: totalDuration
-        isFinished: totalCurrentTime >= totalDuration
-    }
-end function
-
-'-------------------------------------------------------------------------------
-' getCollapsedSeriesItems
-'-------------------------------------------------------------------------------
-function getCollapsedSeriesItems(item as dynamic, allLibraryItemLookup as object) as object
-    childItems = []
-    libraryItemIds = getCollapsedSeriesLibraryItemIds(item)
-    if libraryItemIds = invalid then return childItems
-    if allLibraryItemLookup = invalid then return childItems
-
-    ids = getLibraryItemIdList(libraryItemIds)
-    for each id in ids
-        childItem = allLibraryItemLookup[id]
-        if childItem <> invalid then childItems.Push(childItem)
-    end for
-
-    return childItems
-end function
-
-'-------------------------------------------------------------------------------
-' buildLibraryItemLookup
-'-------------------------------------------------------------------------------
-function buildLibraryItemLookup(items as dynamic) as object
-    lookup = {}
-    if items = invalid then return lookup
-
-    for each item in items
-        if item <> invalid then
-            addLibraryItemLookupCandidate(lookup, item, item.id)
-            addLibraryItemLookupCandidate(lookup, item, item.libraryItemId)
-            addLibraryItemLookupCandidate(lookup, item, item.mediaItemId)
-            if item.media <> invalid then
-                addLibraryItemLookupCandidate(lookup, item, item.media.id)
-                addLibraryItemLookupCandidate(lookup, item, item.media.libraryItemId)
-            end if
-        end if
-    end for
-
-    return lookup
-end function
-
-'-------------------------------------------------------------------------------
-' addLibraryItemLookupCandidate
-'-------------------------------------------------------------------------------
-sub addLibraryItemLookupCandidate(lookup as object, item as dynamic, id as dynamic)
-    idText = getText(id)
-    if idText = "" then return
-    if lookup[idText] = invalid then lookup[idText] = item
-end sub
-
-'-------------------------------------------------------------------------------
-' getLibraryItemIdList
-'-------------------------------------------------------------------------------
-function getLibraryItemIdList(libraryItemIds as dynamic) as object
-    ids = []
-    if libraryItemIds = invalid then return ids
-
-    idsType = Type(libraryItemIds)
-    if idsType = "roArray" then
-        for each id in libraryItemIds
-            idText = getText(id)
-            if idText <> "" then ids.Push(idText)
-        end for
-    else
-        idText = getText(libraryItemIds)
-        if idText <> "" then ids.Push(idText)
-    end if
-
-    return ids
-end function
-
-'-------------------------------------------------------------------------------
-' getSeriesChildDuration
-'-------------------------------------------------------------------------------
-function getSeriesChildDuration(item as dynamic, progress as object) as float
-    duration = getNumberFromFields(progress, ["duration"])
-    if duration > 0 then return duration
-
-    return getItemDurationSeconds(item)
-end function
-
-'-------------------------------------------------------------------------------
-' getSeriesChildCurrentTime
-'-------------------------------------------------------------------------------
-function getSeriesChildCurrentTime(progress as object, duration as float) as float
-    if progress = invalid or duration <= 0 then return 0
-    if progress.isFinished = true then return duration
-
-    currentTime = getNumberFromFields(progress, ["currentTime"])
-    if currentTime > 0 then return clampSeconds(currentTime, duration)
-
-    return clampSeconds(getDerivedCurrentTime(progress.progress, duration), duration)
-end function
-
-'-------------------------------------------------------------------------------
-' getEmptyProgressData
-'-------------------------------------------------------------------------------
-function getEmptyProgressData() as object
-    return {
-        progress: 0
-        currentTime: 0
-        duration: 0
-        isFinished: false
-    }
-end function
-
-'-------------------------------------------------------------------------------
-' clampSeconds
-'-------------------------------------------------------------------------------
-function clampSeconds(value as float, maxValue as float) as float
-    if value < 0 then return 0
-    if value > maxValue then return maxValue
-    return value
-end function
-
-'-------------------------------------------------------------------------------
-' getProgressData
-'-------------------------------------------------------------------------------
-function getProgressData(item as dynamic) as object
-    mappedProgress = getMappedProgressForItem(item)
-    if mappedProgress <> invalid then
-        return {
-            progress: getNumberFromFields(mappedProgress, ["progress"])
-            currentTime: getNumberFromFields(mappedProgress, ["currentTime"])
-            duration: getNumberFromFields(mappedProgress, ["duration"])
-            isFinished: getBooleanFromFields(mappedProgress, ["isFinished"])
-        }
-    end if
-
-    progress = invalid
-
-    if item <> invalid and item.userMediaProgress <> invalid then
-        progress = item.userMediaProgress
-    else if item <> invalid and item.mediaProgress <> invalid then
-        progress = item.mediaProgress
-    end if
-
-    if progress = invalid then
-        return {
-            progress: getNumberFromFields(item, ["progress"])
-            currentTime: getNumberFromFields(item, ["currentTime", "progressCurrentTime"])
-            duration: getNumberFromFields(item, ["duration", "progressDuration"])
-            isFinished: getBooleanFromFields(item, ["isFinished", "progressIsFinished"])
-        }
-    end if
-
-    return {
-        progress: getNumberFromFields(progress, ["progress"])
-        currentTime: getNumberFromFields(progress, ["currentTime"])
-        duration: getNumberFromFields(progress, ["duration"])
-        isFinished: getBooleanFromFields(progress, ["isFinished"])
-    }
-end function
-
-'-------------------------------------------------------------------------------
-' getMappedProgressForItem
-'-------------------------------------------------------------------------------
-function getMappedProgressForItem(item as dynamic) as dynamic
-    if item = invalid then return invalid
-    if m.top.mediaProgress = invalid then return invalid
-
-    candidateIds = getProgressCandidateIds(item)
-    if candidateIds = invalid or candidateIds.Count() = 0 then return invalid
-
-    for each progress in m.top.mediaProgress
-        if progress <> invalid and progress.itemId <> invalid and candidateIds[progress.itemId.ToStr()] = true then
-            return progress
-        end if
-    end for
-
-    return invalid
-end function
-
-'-------------------------------------------------------------------------------
-' getProgressCandidateIds
-'-------------------------------------------------------------------------------
-function getProgressCandidateIds(item as dynamic) as object
-    ids = {}
-    if item = invalid then return ids
-
-    if item.id <> invalid then ids[item.id.ToStr()] = true
-    if item.libraryItemId <> invalid then ids[item.libraryItemId.ToStr()] = true
-    if item.mediaItemId <> invalid then ids[item.mediaItemId.ToStr()] = true
-    if item.media <> invalid and item.media.id <> invalid then ids[item.media.id.ToStr()] = true
-
-    return ids
+function getPosterProgressData(item as dynamic) as object
+    if isSeriesItem(item) then return SeriesProgress_GetProgress(item, m.allLibraryItemLookup, m.top.mediaProgress)
+    return ProgressData_GetItemProgress(item, m.top.mediaProgress)
 end function
 
 '-------------------------------------------------------------------------------
 ' getPlaybackStartPosition
 '-------------------------------------------------------------------------------
 function getPlaybackStartPosition(item as dynamic) as integer
-    progress = getProgressData(item)
-    if progress = invalid then return 0
-    if progress.isFinished = true then return 0
-
-    currentTime = int(val(progress.currentTime.ToStr()))
-    if currentTime > 0 then return currentTime
-
-    return getDerivedCurrentTime(progress.progress, progress.duration)
-end function
-
-'-------------------------------------------------------------------------------
-' getDerivedCurrentTime
-'-------------------------------------------------------------------------------
-function getDerivedCurrentTime(progressValue as dynamic, durationValue as dynamic) as integer
-    duration = val(durationValue.ToStr())
-    if duration <= 0 then return 0
-
-    progress = val(progressValue.ToStr())
-    if progress <= 0 then return 0
-    if progress > 1 then progress = progress / 100
-    if progress > 1 then progress = 1
-
-    return int(progress * duration)
-end function
-
-'-------------------------------------------------------------------------------
-' getNumberFromFields
-'-------------------------------------------------------------------------------
-function getNumberFromFields(value as dynamic, fieldNames as object) as float
-    if value = invalid then return 0
-
-    for each fieldName in fieldNames
-        fieldValue = value[fieldName]
-        if fieldValue <> invalid then return getNumber(fieldValue)
-    end for
-
-    return 0
-end function
-
-'-------------------------------------------------------------------------------
-' getBooleanFromFields
-'-------------------------------------------------------------------------------
-function getBooleanFromFields(value as dynamic, fieldNames as object) as boolean
-    if value = invalid then return false
-
-    for each fieldName in fieldNames
-        fieldValue = value[fieldName]
-        if fieldValue <> invalid then return getBoolean(fieldValue)
-    end for
-
-    return false
-end function
-
-'-------------------------------------------------------------------------------
-' getNumber
-'-------------------------------------------------------------------------------
-function getNumber(value as dynamic) as float
-    if value = invalid then return 0
-    return val(value.ToStr())
-end function
-
-'-------------------------------------------------------------------------------
-' getBoolean
-'-------------------------------------------------------------------------------
-function getBoolean(value as dynamic) as boolean
-    if value = invalid then return false
-    if Type(value) = "Boolean" or Type(value) = "roBoolean" then return value
-
-    text = LCase(value.ToStr())
-    return text = "true" or text = "1"
-end function
-
-'-------------------------------------------------------------------------------
-' getText
-'-------------------------------------------------------------------------------
-function getText(value as dynamic) as string
-    if value = invalid then return ""
-    return value.ToStr()
+    return ProgressData_GetPlaybackStartPosition(item, m.top.mediaProgress)
 end function
 
 '-------------------------------------------------------------------------------

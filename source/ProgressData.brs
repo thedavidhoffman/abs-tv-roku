@@ -1,0 +1,154 @@
+'-------------------------------------------------------------------------------
+' ProgressData_GetItemProgress
+'-------------------------------------------------------------------------------
+function ProgressData_GetItemProgress(item as dynamic, mediaProgress as dynamic) as object
+    mappedProgress = __ProgressData_GetMappedProgressForItem(item, mediaProgress)
+    if mappedProgress <> invalid then
+        return {
+            progress: __ProgressData_GetNumberFromFields(mappedProgress, ["progress"])
+            currentTime: __ProgressData_GetNumberFromFields(mappedProgress, ["currentTime"])
+            duration: __ProgressData_GetNumberFromFields(mappedProgress, ["duration"])
+            isFinished: __ProgressData_GetBooleanFromFields(mappedProgress, ["isFinished"])
+        }
+    end if
+
+    progress = invalid
+    if item <> invalid and item.userMediaProgress <> invalid then
+        progress = item.userMediaProgress
+    else if item <> invalid and item.mediaProgress <> invalid then
+        progress = item.mediaProgress
+    end if
+
+    if progress = invalid then
+        return {
+            progress: __ProgressData_GetNumberFromFields(item, ["progress"])
+            currentTime: __ProgressData_GetNumberFromFields(item, ["currentTime", "progressCurrentTime"])
+            duration: __ProgressData_GetNumberFromFields(item, ["duration", "progressDuration"])
+            isFinished: __ProgressData_GetBooleanFromFields(item, ["isFinished", "progressIsFinished"])
+        }
+    end if
+
+    return {
+        progress: __ProgressData_GetNumberFromFields(progress, ["progress"])
+        currentTime: __ProgressData_GetNumberFromFields(progress, ["currentTime"])
+        duration: __ProgressData_GetNumberFromFields(progress, ["duration"])
+        isFinished: __ProgressData_GetBooleanFromFields(progress, ["isFinished"])
+    }
+end function
+
+'-------------------------------------------------------------------------------
+' ProgressData_GetPlaybackStartPosition
+'-------------------------------------------------------------------------------
+function ProgressData_GetPlaybackStartPosition(item as dynamic, mediaProgress as dynamic) as integer
+    progress = ProgressData_GetItemProgress(item, mediaProgress)
+    if progress = invalid then return 0
+    if progress.isFinished = true then return 0
+
+    currentTime = int(val(progress.currentTime.ToStr()))
+    if currentTime > 0 then return currentTime
+
+    return ProgressData_GetDerivedCurrentTime(progress.progress, progress.duration)
+end function
+
+'-------------------------------------------------------------------------------
+' ProgressData_GetDerivedCurrentTime
+'-------------------------------------------------------------------------------
+function ProgressData_GetDerivedCurrentTime(progressValue as dynamic, durationValue as dynamic) as integer
+    duration = val(durationValue.ToStr())
+    if duration <= 0 then return 0
+
+    progress = val(progressValue.ToStr())
+    if progress <= 0 then return 0
+    if progress > 1 then progress = progress / 100
+    if progress > 1 then progress = 1
+
+    return int(progress * duration)
+end function
+
+'-------------------------------------------------------------------------------
+' ProgressData_GetNumberFromFields
+'-------------------------------------------------------------------------------
+function ProgressData_GetNumberFromFields(value as dynamic, fieldNames as object) as float
+    return __ProgressData_GetNumberFromFields(value, fieldNames)
+end function
+
+'-------------------------------------------------------------------------------
+' __ProgressData_GetMappedProgressForItem
+'-------------------------------------------------------------------------------
+function __ProgressData_GetMappedProgressForItem(item as dynamic, mediaProgress as dynamic) as dynamic
+    if item = invalid then return invalid
+    if mediaProgress = invalid then return invalid
+
+    candidateIds = __ProgressData_GetCandidateIds(item)
+    if candidateIds = invalid or candidateIds.Count() = 0 then return invalid
+
+    for each progress in mediaProgress
+        if progress <> invalid and progress.itemId <> invalid and candidateIds[progress.itemId.ToStr()] = true then
+            return progress
+        end if
+    end for
+
+    return invalid
+end function
+
+'-------------------------------------------------------------------------------
+' __ProgressData_GetCandidateIds
+'-------------------------------------------------------------------------------
+function __ProgressData_GetCandidateIds(item as dynamic) as object
+    ids = {}
+    if item = invalid then return ids
+
+    if item.id <> invalid then ids[item.id.ToStr()] = true
+    if item.libraryItemId <> invalid then ids[item.libraryItemId.ToStr()] = true
+    if item.mediaItemId <> invalid then ids[item.mediaItemId.ToStr()] = true
+    if item.media <> invalid and item.media.id <> invalid then ids[item.media.id.ToStr()] = true
+
+    return ids
+end function
+
+'-------------------------------------------------------------------------------
+' __ProgressData_GetNumberFromFields
+'-------------------------------------------------------------------------------
+function __ProgressData_GetNumberFromFields(value as dynamic, fieldNames as object) as float
+    if value = invalid then return 0
+
+    for each fieldName in fieldNames
+        fieldValue = value[fieldName]
+        if fieldValue <> invalid then return __ProgressData_GetNumber(fieldValue)
+    end for
+
+    return 0
+end function
+
+'-------------------------------------------------------------------------------
+' __ProgressData_GetBooleanFromFields
+'-------------------------------------------------------------------------------
+function __ProgressData_GetBooleanFromFields(value as dynamic, fieldNames as object) as boolean
+    if value = invalid then return false
+
+    for each fieldName in fieldNames
+        fieldValue = value[fieldName]
+        if fieldValue <> invalid then return __ProgressData_GetBoolean(fieldValue)
+    end for
+
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' __ProgressData_GetNumber
+'-------------------------------------------------------------------------------
+function __ProgressData_GetNumber(value as dynamic) as float
+    if value = invalid then return 0
+    return val(value.ToStr())
+end function
+
+'-------------------------------------------------------------------------------
+' __ProgressData_GetBoolean
+'-------------------------------------------------------------------------------
+function __ProgressData_GetBoolean(value as dynamic) as boolean
+    if value = invalid then return false
+    if Type(value) = "Boolean" or Type(value) = "roBoolean" then return value
+
+    text = LCase(value.ToStr())
+    return text = "true" or text = "1"
+end function

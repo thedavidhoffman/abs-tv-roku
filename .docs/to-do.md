@@ -2,6 +2,8 @@
 
 ---
 
+- player codec/bitrate/channel badges
+
 - library... list... expanded... doctor who titles prefixed with a number
 
 - default page setting

@@ -22,16 +22,16 @@
     <!-- source audio badges -->
     <Group id="audioBadgeGroup" translation="[120,704]">
       <Group id="codecBadge">
-        <Poster id="codecBadgeBackground" width="92" height="34" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
-        <Label id="codecBadgeLabel" translation="[10,7]" width="72" height="24" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
+        <Poster id="codecBadgeBackground" width="92" height="44" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
+        <Label id="codecBadgeLabel" translation="[10,7]" width="72" height="34" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
       </Group>
       <Group id="bitRateBadge" translation="[104,0]">
-        <Poster id="bitRateBadgeBackground" width="112" height="34" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
-        <Label id="bitRateBadgeLabel" translation="[10,7]" width="92" height="24" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
+        <Poster id="bitRateBadgeBackground" width="112" height="44" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
+        <Label id="bitRateBadgeLabel" translation="[10,7]" width="92" height="34" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
       </Group>
       <Group id="channelBadge" translation="[228,0]">
-        <Poster id="channelBadgeBackground" width="272" height="34" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
-        <Label id="channelBadgeLabel" translation="[10,7]" width="252" height="24" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
+        <Poster id="channelBadgeBackground" width="272" height="44" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
+        <Label id="channelBadgeLabel" translation="[10,7]" width="252" height="34" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
       </Group>
     </Group>
 

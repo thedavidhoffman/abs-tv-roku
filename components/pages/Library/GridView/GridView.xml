@@ -4,12 +4,15 @@
   <script type="text/brightscript" uri="pkg:/source/String.brs" />
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/Cover.brs" />
+  <script type="text/brightscript" uri="pkg:/source/ProgressData.brs" />
+  <script type="text/brightscript" uri="pkg:/source/LibraryItemLookup.brs" />
+  <script type="text/brightscript" uri="pkg:/source/SeriesProgress.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Library/GridView/GridView.brs" />
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="contextTitle" type="string" onChange="onContextTitleChanged" />
     <field id="contextType" type="string" onChange="onLibraryItemsChanged" />
-    <field id="allLibraryItems" type="array" onChange="onLibraryItemsChanged" />
+    <field id="allLibraryItems" type="array" onChange="onAllLibraryItemsChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
     <field id="loading" type="boolean" onChange="onLibraryItemsChanged" />
     <field id="mediaProgress" type="array" onChange="onLibraryItemsChanged" />
