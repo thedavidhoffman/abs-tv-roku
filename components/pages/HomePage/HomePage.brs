@@ -186,7 +186,7 @@ sub updateStatus(rowCount as integer)
     if hasItems then
         m.top.statusMessage = ""
     else
-        m.top.statusMessage = "Loading"
+        m.top.statusMessage = "Loading..."
     end if
 end sub
 

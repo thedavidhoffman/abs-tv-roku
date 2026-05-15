@@ -337,6 +337,9 @@ end sub
 ' focusLibraryList
 '-------------------------------------------------------------------------------
 sub focusLibraryList()
+    if SafeString(m.top.statusMessage, "") <> "" then return
+    if m.libraryList = invalid or m.libraryList.visible <> true then return
+
     clearOverviewFocus()
     if m.libraryList <> invalid then
         m.libraryList.setFocus(true)

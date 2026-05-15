@@ -426,6 +426,7 @@ end function
 ' focusLibraryList
 '-------------------------------------------------------------------------------
 sub focusLibraryList()
+    if SafeString(m.top.statusMessage, "") <> "" then return
     if m.markupGrid <> invalid then m.markupGrid.setFocus(true)
 end sub
 

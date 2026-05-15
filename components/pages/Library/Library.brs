@@ -395,33 +395,34 @@ end sub
 ' syncStatusMessage
 '-------------------------------------------------------------------------------
 sub syncStatusMessage()
-    if m.activeView = "grid" then
-        if m.gridView = invalid then
-            m.top.statusMessage = ""
-            return
-        end if
-
-        m.top.statusMessage = getText(m.gridView.statusMessage)
-        return
-    end if
-
-    if m.activeView = "list" then
-        if m.listView = invalid then
-            m.top.statusMessage = ""
-            return
-        end if
-
-        m.top.statusMessage = getText(m.listView.statusMessage)
-        return
-    end if
-
-    m.top.statusMessage = ""
+    m.top.statusMessage = getActiveViewStatusMessage()
 end sub
+
+'-------------------------------------------------------------------------------
+' getActiveViewStatusMessage
+'-------------------------------------------------------------------------------
+function getActiveViewStatusMessage() as string
+    if m.activeView = "grid" and m.gridView <> invalid then return getText(m.gridView.statusMessage)
+    if m.activeView = "list" and m.listView <> invalid then return getText(m.listView.statusMessage)
+    return ""
+end function
+
+'-------------------------------------------------------------------------------
+' hasStatusMessage
+'-------------------------------------------------------------------------------
+function hasStatusMessage() as boolean
+    return getText(m.top.statusMessage) <> ""
+end function
 
 '-------------------------------------------------------------------------------
 ' focusLibraryList
 '-------------------------------------------------------------------------------
 sub focusLibraryList()
+    if hasStatusMessage() then
+        m.top.setFocus(true)
+        return
+    end if
+
     if m.activeView = "grid" then
         if m.gridView <> invalid then m.gridView.callFunc("focusLibraryList")
         return
