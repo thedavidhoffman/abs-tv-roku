@@ -7,7 +7,7 @@ function LibraryMapper_Map(value as dynamic) as object
     if libraries = invalid then return mappedLibraries
 
     for each library in libraries
-        if library <> invalid then
+        if library <> invalid and library.mediaType <> "podcast" then
             mappedLibraries.Push({
                 id: library.id
                 name: library.name

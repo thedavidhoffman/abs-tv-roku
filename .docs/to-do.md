@@ -2,8 +2,7 @@
 
 ---
 
-- hotwire response from library call to return only 1 library to test header/nav display with only 1 library
-??
+test library with no content
 
 - default page setting
   - home
@@ -13,6 +12,5 @@
 - diagnostic screen
   - clear registry
   - add cache info
-  - add library names
 
 - on playback (https://api.audiobookshelf.org/#play-a-library-item-or-podcast-episode) send the device info

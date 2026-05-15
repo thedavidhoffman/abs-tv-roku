@@ -28,6 +28,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub initReferences()
     m.headerBg = m.top.findNode("headerBg")
+    m.navGroup = m.top.findNode("navGroup")
     m.homeButton = m.top.findNode("homeButton")
     m.libraryButton = m.top.findNode("libraryButton")
     m.seriesButton = m.top.findNode("seriesButton")
@@ -92,7 +93,7 @@ end sub
 function focusHeader() as boolean
     closeMenu()
 
-    for each button in m.headerButtons
+    for each button in getFocusableHeaderButtons()
         if button <> invalid then
             button.setFocus(true)
             return true
@@ -258,7 +259,8 @@ end sub
 ' focusHeaderButtonByOffset
 '-------------------------------------------------------------------------------
 function focusHeaderButtonByOffset(offset as integer) as boolean
-    if m.headerButtons = invalid or m.headerButtons.Count() = 0 then return false
+    headerButtons = getFocusableHeaderButtons()
+    if headerButtons = invalid or headerButtons.Count() = 0 then return false
 
     currentIndex = getFocusedHeaderButtonIndex()
     if currentIndex < 0 then
@@ -266,7 +268,7 @@ function focusHeaderButtonByOffset(offset as integer) as boolean
     end if
 
     nextIndex = currentIndex + offset
-    lastIndex = m.headerButtons.Count() - 1
+    lastIndex = headerButtons.Count() - 1
 
     if nextIndex < 0 then
         nextIndex = lastIndex
@@ -276,7 +278,7 @@ function focusHeaderButtonByOffset(offset as integer) as boolean
 
     closeMenu()
 
-    nextButton = m.headerButtons[nextIndex]
+    nextButton = headerButtons[nextIndex]
     if nextButton = invalid then return false
 
     nextButton.setFocus(true)
@@ -284,18 +286,36 @@ function focusHeaderButtonByOffset(offset as integer) as boolean
 end function
 
 '-------------------------------------------------------------------------------
+' getFocusableHeaderButtons
+'-------------------------------------------------------------------------------
+function getFocusableHeaderButtons() as object
+    buttons = []
+
+    if hasLibraryChoices() then buttons.Push(m.currentLibraryButton)
+    buttons.Push(m.homeButton)
+    buttons.Push(m.libraryButton)
+    buttons.Push(m.seriesButton)
+    buttons.Push(m.searchButton)
+    buttons.Push(m.settingsButton)
+    buttons.Push(m.userMenuButton)
+
+    return buttons
+end function
+
+'-------------------------------------------------------------------------------
 ' getFocusedHeaderButtonIndex
 '-------------------------------------------------------------------------------
 function getFocusedHeaderButtonIndex() as integer
-    if m.currentLibraryButton <> invalid and m.currentLibraryButton.isInFocusChain() then return 0
-    if isLibraryMenuInFocusChain() then return 0
-    if m.homeButton <> invalid and m.homeButton.isInFocusChain() then return 1
-    if m.libraryButton <> invalid and m.libraryButton.isInFocusChain() then return 2
-    if m.seriesButton <> invalid and m.seriesButton.isInFocusChain() then return 3
-    if m.searchButton <> invalid and m.searchButton.isInFocusChain() then return 4
-    if m.settingsButton <> invalid and m.settingsButton.isInFocusChain() then return 5
-    if m.userMenuButton <> invalid and m.userMenuButton.isInFocusChain() then return 6
-    if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return 6
+    headerButtons = getFocusableHeaderButtons()
+    if headerButtons = invalid then return -1
+
+    for i = 0 to headerButtons.Count() - 1
+        button = headerButtons[i]
+        if button <> invalid and button.isInFocusChain() then return i
+    end for
+
+    if isLibraryMenuInFocusChain() and hasLibraryChoices() then return 0
+    if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return headerButtons.Count() - 1
 
     return -1
 end function
@@ -347,6 +367,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onLibrariesChanged()
     updateCurrentLibraryButton()
+    updateNavGroupPosition()
     rebuildLibraryMenu()
 end sub
 
@@ -355,6 +376,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onCurrentLibraryIdChanged()
     updateCurrentLibraryButton()
+    updateNavGroupPosition()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -415,6 +437,7 @@ end sub
 ' onCurrentLibraryPressed
 '-------------------------------------------------------------------------------
 sub onCurrentLibraryPressed()
+    if hasLibraryChoices() = false then return
     setLibraryMenuOpen(not isLibraryMenuOpen())
 end sub
 
@@ -474,6 +497,8 @@ end sub
 ' setLibraryMenuOpen
 '-------------------------------------------------------------------------------
 sub setLibraryMenuOpen(isOpen as boolean)
+    if isOpen and hasLibraryChoices() = false then isOpen = false
+
     wasOpen = isLibraryMenuOpen()
     if isOpen then setMenuOpen(false)
     if m.libraryMenuPanel <> invalid then m.libraryMenuPanel.visible = isOpen
@@ -489,6 +514,13 @@ end sub
 '-------------------------------------------------------------------------------
 function isLibraryMenuOpen() as boolean
     return m.libraryMenuPanel <> invalid and m.libraryMenuPanel.visible = true
+end function
+
+'-------------------------------------------------------------------------------
+' hasLibraryChoices
+'-------------------------------------------------------------------------------
+function hasLibraryChoices() as boolean
+    return m.top.libraries <> invalid and m.top.libraries.Count() > 1
 end function
 
 '-------------------------------------------------------------------------------
@@ -508,6 +540,20 @@ sub updateCurrentLibraryButton()
     if m.currentLibraryButton = invalid then return
 
     m.currentLibraryButton.text = getCurrentLibraryName()
+    m.currentLibraryButton.visible = hasLibraryChoices()
+end sub
+
+'-------------------------------------------------------------------------------
+' updateNavGroupPosition
+'-------------------------------------------------------------------------------
+sub updateNavGroupPosition()
+    if m.navGroup = invalid then return
+
+    if hasLibraryChoices() then
+        m.navGroup.translation = [632, 22]
+    else
+        m.navGroup.translation = [526, 22]
+    end if
 end sub
 
 '-------------------------------------------------------------------------------

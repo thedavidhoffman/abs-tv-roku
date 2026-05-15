@@ -22,8 +22,13 @@ function Libraries_Load(server as string, token as dynamic) as object
 
     log.flush()
 
+    libraries = LibraryMapper_Map(result.data)
+
+    ' TEMP/DEV TOGGLE: limit libraries to the first entry for one-library testing.
+    'if libraries <> invalid and libraries.Count() > 1 then libraries = [libraries[0]]
+
     return {
         ok: true
-        libraries: LibraryMapper_Map(result.data)
+        libraries: libraries
     }
 end function
