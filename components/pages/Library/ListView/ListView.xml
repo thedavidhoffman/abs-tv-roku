@@ -7,12 +7,14 @@
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
+    <field id="loading" type="boolean" onChange="onLibraryItemsChanged" />
     <field id="seriesItemsResponse" type="assocarray" onChange="onSeriesItemsResponseChanged" />
     <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />
     <field id="playSelected" type="assocarray" />
     <field id="upFromFirstItemSelected" type="integer" />
     <field id="seriesItemsRequest" type="assocarray" />
     <field id="errorResponse" type="assocarray" />
+    <field id="statusMessage" type="string" />
     <function name="focusLibraryList" />
   </interface>
   <children>

@@ -14,20 +14,11 @@
     <field id="backSelected" type="integer" />
     <field id="upFromFirstRowSelected" type="integer" />
     <field id="errorResponse" type="assocarray" />
+    <field id="statusMessage" type="string" />
     <function name="focusSeriesPage" />
     <function name="resetSeriesRows" />
   </interface>
   <children>
-    <Label
-      id="statusLabel"
-      translation="[64,144]"
-      width="1200"
-      numLines="2"
-      wrap="true"
-      text=""
-      color="0xF6F7FBFF"
-      font="font:MediumSystemFont"
-      visible="false" />
     <RowList
       id="seriesRowList"
       translation="[64,144]"

@@ -10,6 +10,7 @@
     <field id="contextTitle" type="string" onChange="onContextTitleChanged" />
     <field id="contextType" type="string" onChange="onLibraryItemsChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
+    <field id="loading" type="boolean" onChange="onLibraryItemsChanged" />
     <field id="mediaProgress" type="array" onChange="onLibraryItemsChanged" />
     <field id="playSelected" type="assocarray" />
     <field id="seriesSelected" type="assocarray" />

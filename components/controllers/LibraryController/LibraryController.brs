@@ -153,8 +153,8 @@ end sub
 function reloadActiveLibrary() as boolean
     if hasValidLoadRequest() = false then return false
 
-    beginNewCacheGeneration()
     m.top.loading = true
+    beginNewCacheGeneration()
 
     runLibraryItemsRequest(m.allItemsTask, cacheKeyAllTitles(), false)
     runLibraryItemsRequest(m.collapsedItemsTask, cacheKeyCollapsedSeries(), true)

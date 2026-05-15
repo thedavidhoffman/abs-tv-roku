@@ -3,7 +3,6 @@
 '-------------------------------------------------------------------------------
 sub init()
     m.seriesRowList = m.top.findNode("seriesRowList")
-    m.statusLabel = m.top.findNode("statusLabel")
     m.seriesItemsByRow = []
     m.playSelectedCounter = 0
     m.backSelectedCounter = 0
@@ -20,7 +19,7 @@ sub init()
         m.seriesRowList.observeField("rowItemFocused", "onRowItemFocused")
     end if
 
-    setStatus("Loading")
+    setStatus("Loading...")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -68,7 +67,7 @@ function resetSeriesRows() as boolean
     m.focusedItemNode = invalid
     m.hasSeriesRowsResponse = false
     if m.seriesRowList <> invalid then m.seriesRowList.content = CreateObject("roSGNode", "ContentNode")
-    setStatus("Loading")
+    setStatus("Loading...")
     return true
 end function
 
@@ -267,11 +266,10 @@ end function
 ' setStatus
 '-------------------------------------------------------------------------------
 sub setStatus(message as dynamic)
-    if m.statusLabel = invalid or m.seriesRowList = invalid then return
+    if m.seriesRowList = invalid then return
 
     text = SafeString(message, "")
-    m.statusLabel.text = text
-    m.statusLabel.visible = (text <> "")
+    m.top.statusMessage = text
     m.seriesRowList.visible = (text = "")
 
     if text <> "" and m.focusRequested = true and m.top.visible = true then focusSeriesStatus()
@@ -292,8 +290,7 @@ end sub
 ' isStatusFocused
 '-------------------------------------------------------------------------------
 function isStatusFocused() as boolean
-    if m.statusLabel = invalid then return false
-    if m.statusLabel.visible <> true then return false
+    if SafeString(m.top.statusMessage, "") = "" then return false
     return m.top.isInFocusChain()
 end function
 

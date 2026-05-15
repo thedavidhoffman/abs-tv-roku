@@ -73,6 +73,7 @@ sub initHandlers()
     m.seriesPage.observeField("upFromFirstRowSelected", "seriesHandleUpFromFirstRowSelected")
     m.seriesPage.observeField("backSelected", "seriesHandleBackSelected")
     m.seriesPage.observeField("errorResponse", "seriesHandleError")
+    m.seriesPage.observeField("statusMessage", "seriesHandleStatusMessageChanged")
     m.player.observeField("closeRequested", "playbackHandlePlayerCloseRequested")
     m.player.observeField("errorResponse", "playbackHandlePlayerError")
     m.overlayHost.observeField("closed", "overlayHandleClosed")
@@ -81,6 +82,7 @@ sub initHandlers()
     m.authController.observeField("loginFailed", "authHandleLoginFailed")
     m.authController.observeField("sessionExpired", "authHandleSessionExpired")
     m.libraryController.observeField("libraryItemsChanged", "libraryControllerHandleItemsChanged")
+    m.libraryController.observeField("loading", "libraryControllerHandleLoadingChanged")
     m.libraryController.observeField("searchResponse", "libraryControllerHandleSearchResponse")
     m.libraryController.observeField("seriesItemsResponse", "libraryControllerHandleSeriesItemsResponse")
     m.libraryController.observeField("seriesRowsResponse", "libraryControllerHandleSeriesRowsResponse")
@@ -351,7 +353,7 @@ sub navShowSeriesPage()
         m.library.callFunc("resetDrilldown")
     end if
     if m.seriesPage <> invalid then m.seriesPage.visible = true
-    statusSetMessage("")
+    if m.seriesPage <> invalid then statusSetMessage(m.seriesPage.statusMessage)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -599,6 +601,14 @@ sub libraryControllerHandleItemsChanged()
 end sub
 
 '-------------------------------------------------------------------------------
+' libraryControllerHandleLoadingChanged
+'-------------------------------------------------------------------------------
+sub libraryControllerHandleLoadingChanged()
+    if m.libraryController = invalid then return
+    if m.library <> invalid then m.library.loading = m.libraryController.loading
+end sub
+
+'-------------------------------------------------------------------------------
 ' libraryControllerHandleSearchResponse
 '-------------------------------------------------------------------------------
 sub libraryControllerHandleSearchResponse()
@@ -749,6 +759,16 @@ end sub
 '-------------------------------------------------------------------------------
 sub seriesHandleError()
     handleComponentError(m.seriesPage.errorResponse)
+end sub
+
+'-------------------------------------------------------------------------------
+' seriesHandleStatusMessageChanged
+'-------------------------------------------------------------------------------
+sub seriesHandleStatusMessageChanged()
+    if m.seriesPage = invalid then return
+    if m.seriesPage.visible <> true then return
+
+    statusSetMessage(m.seriesPage.statusMessage)
 end sub
 
 '===============================================================================

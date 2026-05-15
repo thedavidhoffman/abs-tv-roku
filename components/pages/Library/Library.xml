@@ -14,6 +14,7 @@
     <field id="rootLibraryItems" type="array" onChange="onRootLibraryItemsChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
     <field id="searchResults" type="array" />
+    <field id="loading" type="boolean" onChange="onLoadingChanged" />
     <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />
     <field id="playSelected" type="assocarray" />
     <field id="upFromFirstItemSelected" type="integer" />

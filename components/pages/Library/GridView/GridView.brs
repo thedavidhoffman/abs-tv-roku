@@ -77,7 +77,11 @@ sub onLibraryItemsChanged()
     setStatus("")
 
     if m.libraryItemsByIndex.Count() = 0 then
-        setStatus("No titles found")
+        if m.top.loading = true then
+            setStatus("Loading...")
+        else
+            setStatus("No titles found")
+        end if
     end if
 end sub
 

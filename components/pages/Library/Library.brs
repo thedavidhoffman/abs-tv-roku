@@ -24,6 +24,7 @@ sub init()
         m.listView.observeField("upFromFirstItemSelected", "onListViewUpFromFirstItemSelected")
         m.listView.observeField("errorResponse", "onListViewError")
         m.listView.observeField("seriesItemsRequest", "onListViewSeriesItemsRequest")
+        m.listView.observeField("statusMessage", "onListViewStatusMessageChanged")
     end if
 
     if m.gridView <> invalid then
@@ -71,6 +72,21 @@ end sub
 sub syncLoadRequestToViews()
     if m.listView <> invalid then m.listView.loadRequest = m.loadRequest
     if m.gridView <> invalid then m.gridView.loadRequest = m.loadRequest
+end sub
+
+'-------------------------------------------------------------------------------
+' onLoadingChanged
+'-------------------------------------------------------------------------------
+sub onLoadingChanged()
+    syncLoadingToViews()
+end sub
+
+'-------------------------------------------------------------------------------
+' syncLoadingToViews
+'-------------------------------------------------------------------------------
+sub syncLoadingToViews()
+    if m.listView <> invalid then m.listView.loading = m.top.loading
+    if m.gridView <> invalid then m.gridView.loading = m.top.loading
 end sub
 
 '-------------------------------------------------------------------------------
@@ -235,6 +251,7 @@ sub onLibraryItemsChanged()
 
     if m.listView <> invalid then m.listView.libraryItems = items
     if m.gridView <> invalid then m.gridView.libraryItems = items
+    syncLoadingToViews()
 
     m.syncingLibraryItems = false
     focusLibraryList()
@@ -354,6 +371,13 @@ sub onListViewError()
 end sub
 
 '-------------------------------------------------------------------------------
+' onListViewStatusMessageChanged
+'-------------------------------------------------------------------------------
+sub onListViewStatusMessageChanged()
+    syncStatusMessage()
+end sub
+
+'-------------------------------------------------------------------------------
 ' onGridViewError
 '-------------------------------------------------------------------------------
 sub onGridViewError()
@@ -371,17 +395,27 @@ end sub
 ' syncStatusMessage
 '-------------------------------------------------------------------------------
 sub syncStatusMessage()
-    if m.activeView <> "grid" then
-        m.top.statusMessage = ""
+    if m.activeView = "grid" then
+        if m.gridView = invalid then
+            m.top.statusMessage = ""
+            return
+        end if
+
+        m.top.statusMessage = getText(m.gridView.statusMessage)
         return
     end if
 
-    if m.gridView = invalid then
-        m.top.statusMessage = ""
+    if m.activeView = "list" then
+        if m.listView = invalid then
+            m.top.statusMessage = ""
+            return
+        end if
+
+        m.top.statusMessage = getText(m.listView.statusMessage)
         return
     end if
 
-    m.top.statusMessage = getText(m.gridView.statusMessage)
+    m.top.statusMessage = ""
 end sub
 
 '-------------------------------------------------------------------------------

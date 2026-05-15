@@ -113,10 +113,13 @@ sub rebuildLibraryList(focusIndex as dynamic)
         end for
     end if
 
+    setStatus("")
     if root.getChildCount() = 0 then
-        node = CreateObject("roSGNode", "ContentNode")
-        node.title = "No titles found"
-        root.appendChild(node)
+        if m.top.loading = true then
+            setStatus("Loading...")
+        else
+            setStatus("No titles found")
+        end if
     end if
 
     m.libraryList.content = root
@@ -131,6 +134,23 @@ sub rebuildLibraryList(focusIndex as dynamic)
     else
         showSelectedItem(invalid, false)
     end if
+end sub
+
+'-------------------------------------------------------------------------------
+' setStatus
+'-------------------------------------------------------------------------------
+sub setStatus(message as dynamic)
+    text = SafeString(message, "")
+    m.top.statusMessage = text
+    setContentVisible(text = "")
+end sub
+
+'-------------------------------------------------------------------------------
+' setContentVisible
+'-------------------------------------------------------------------------------
+sub setContentVisible(isVisible as boolean)
+    if m.libraryList <> invalid then m.libraryList.visible = isVisible
+    if m.overview <> invalid then m.overview.visible = isVisible
 end sub
 
 '-------------------------------------------------------------------------------
