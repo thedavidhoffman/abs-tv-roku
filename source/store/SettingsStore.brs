@@ -28,7 +28,7 @@ function SettingsStore_Load() as object
     settingsStore = GetSettingsStore()
     settings = {}
     settings["series-display"] = SettingsStore_ReadValue(settingsStore, "series-display", "collapse")
-    settings["item-display"] = SettingsStore_ReadValue(settingsStore, "item-display", "list")
+    settings["item-display"] = SettingsStore_ReadValue(settingsStore, "item-display", "grid")
     return settings
 end function
 

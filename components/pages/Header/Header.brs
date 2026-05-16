@@ -529,8 +529,9 @@ end function
 sub updateUserMenuButton()
     if m.userMenuButton = invalid then return
 
-    buttonText = FirstNonEmpty([m.top.username], "Account")
-    m.userMenuButton.text = buttonText
+    ' leaving this here in case we ever go back to displaying the username
+    'buttonText = FirstNonEmpty([m.top.username], "Account")
+    'm.userMenuButton.text = buttonText
 end sub
 
 '-------------------------------------------------------------------------------

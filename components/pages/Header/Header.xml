@@ -48,11 +48,11 @@
       <HeaderButton id="settingsButton" translation="[688,0]" buttonWidth="180" buttonHeight="56" text="Settings" />
     </Group>
 
-    <HeaderButton id="userMenuButton" translation="[1520,22]" buttonWidth="160" buttonHeight="56" />
+    <HeaderButton id="userMenuButton" translation="[1520,22]" buttonWidth="160" buttonHeight="56" text="Account" />
 
     <Clock id="clock" translation="[1680,30]" clockWidth="176" clockHeight="40" color="0xF6F7FBFF" />
 
-    <Group id="menuPanel" visible="false" translation="[1420,102]">
+    <Group id="menuPanel" visible="false" translation="[1520,102]">
       <Rectangle width="260" height="94" color="0x132235FF" />
       <HeaderButton id="logoutButton" translation="[20,18]" buttonWidth="220" buttonHeight="56" text="Logout" />
     </Group>
