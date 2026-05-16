@@ -14,10 +14,7 @@ sub init()
         m.passwordInput
         m.loginButton
     ]
-
-    if m.top.serverValue = invalid or String_Trim(m.top.serverValue) = "" then m.top.serverValue = "192.168.0.178:8098"
-    if m.top.usernameValue = invalid or String_Trim(m.top.usernameValue) = "" then m.top.usernameValue = "David"
-    if m.top.passwordValue = invalid or String_Trim(m.top.passwordValue) = "" then m.top.passwordValue = "Reading15Fundamental"
+   
     m.activeKeyboardField = invalid
     syncFieldsFromState()
 end sub
