@@ -6,53 +6,15 @@ NOTE: this app currently does not support: podcasts, collections, or playlists.
 
 ## Table of Contents
 
-- [Privacy Policy](#privacy-policy)
-- [Safety & Responsibility](#safety--responsibility)
 - [Sideloading on Roku](#sideloading-on-roku)
 - [AI Usage Disclaimer](#ai-usage-disclaimer)
+- [Requirements](#requirements)
 - [Wishlist](#wishlist)
-
-## Privacy Policy
-
-Your privacy is a core design principle of this application.
-
-This app **does not collect, harvest, or track any user data or telemetry in any form**. It operates locally and only communicates with your Audiobookshelf server as required for normal playback functionality.
-
-The app also **does not modify, manage, or alter your Audiobookshelf library** in any way. It does not create, delete, or edit your media or metadata.
-
-The **only data transmitted** by this app is your playback progress (such as position within an audiobook), which is sent directly to your Audiobookshelf server. This ensures your listening progress stays synchronized across devices.
-
-### What This Means for You
-
-- No analytics or tracking services are used.
-- No personal data is collected.
-- The only information stored by the app on your Roku device are:
-    - Your username, user id, and authentication token required to communicate with the ABS server.
-    - The application settings.
-- No data is shared with third parties.
-- All interactions are limited strictly to essential playback functionality.
-
-### Important Note
-
-While this app is intentionally designed to be minimal and privacy-respecting, no software can guarantee absolute security in every environment. You are responsible for reviewing your server configuration, network security, and usage practices to ensure they meet your privacy expectations.
-
-If you have concerns, you are encouraged to inspect the source code (if available) or monitor network activity to verify the app’s behavior.
-
-## Safety & Responsibility
-
-This application is built with safety in mind. The goal is to be transparent, predictable, and minimal in what it touches—doing only what it needs to do to function and nothing more. That said, **no software can be guaranteed to be perfectly safe or error‑free in every environment**. Bugs happen, dependencies change, operating systems behave differently, and unexpected interactions can occur.
-
-By installing or using this app, **you acknowledge and accept that you are using it at your own risk**. You are solely responsible for verifying that it is suitable for your device, your data, and your use case. You are also responsible for maintaining appropriate backups and safeguards for anything you care about.
-
-### No Warranty
-
-This software is provided **“as is”**, without warranty of any kind—express or implied—including but not limited to warranties of merchantability, fitness for a particular purpose, and non‑infringement.
-
-### Limitation of Liability
-
-To the maximum extent permitted by law, the authors and contributors will not be liable for any claim, damages, or other liability arising from, out of, or in connection with the software or its use, including (without limitation) loss of data, loss of profits, business interruption, device failure, or any other direct or indirect damages.
-
-If you do not agree with these terms, do not install or use the app.
+- [The Mumbo Jumbo](#the-mumbo-jumbo)
+  - [Privacy Policy](#privacy-policy)
+  - [Safety & Responsibility](#safety--responsibility)
+  - [No Warranty](#no-warranty)
+  - [Limitation of Liability](#limitation-of-liability)
 
 ## Sideloading on Roku
 
@@ -77,16 +39,47 @@ After installation, ABSTV will be available from the Roku home screen.
 
 ## AI Usage Disclaimer
 
-This app was built with the help of Codex. It wasn't simply "vibe coded." As a senior software engineer, I used AI as a tool to help accelerate development, but the process was highly hands-on. The commit history in this repository shows my active role in guiding and refining the output. I spent a significant amount of time refactoring the AI generated code, making design decisions, and shaping the project to meet a specific standard (as much as you can within the constraints of Roku's BrightScript ecosystem).
+This app was built with help from Codex, but it was not simply “vibe coded.” As a senior software engineer, I used AI to accelerate development while staying deeply involved in the implementation. The commit history on this repository reflects an active, hands-on process of guiding the work, refining generated code, making design decisions, and shaping the project toward a deliberate standard within the constraints of Roku’s BrightScript ecosystem.
+
+## Requirements
+
+- An [audiobookshelf](https://www.audiobookshelf.org/) server (self-hosted)
+- A Roku device
 
 ## Wishlist
 
 Things I hope to add support to this app for in the future.
 
 - switching between multiple logins
-- localization
+- localization (Sweden, Norway, Finland, France, Germany, China, India)
 - themes
 - usage stat page
 - collections
 - playlists
 - custom screensaver(s)
+
+## The Mumbo Jumbo
+
+### Privacy Policy
+
+- No analytics or tracking services are used.
+- No personal data is collected.
+- The only information stored by this app on your Roku device are:
+    - Your username, user id, and authentication token required to communicate with the ABS server.
+    - Application settings.
+- No data is shared with third parties.
+
+
+### Safety & Responsibility
+
+By installing or using this app, **you acknowledge and accept that you are using it at your own risk**. You are solely responsible for verifying that it is suitable for your device, your data, and your use case. You are also responsible for maintaining appropriate backups and safeguards for anything you care about.
+
+### No Warranty
+
+This software is provided **“as is”**, without warranty of any kind, express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, and non‑infringement.
+
+### Limitation of Liability
+
+To the maximum extent permitted by law, the authors and contributors will not be liable for any claim, damages, or other liability arising from, out of, or in connection with the software or its use, including (without limitation) loss of data, loss of profits, business interruption, device failure, or any other direct or indirect damages.
+
+If you do not agree with these terms, do not install or use the app.

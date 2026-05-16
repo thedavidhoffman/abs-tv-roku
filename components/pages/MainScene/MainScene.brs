@@ -969,6 +969,19 @@ sub overlayHandleRequested()
     request = m.header.overlayRequested
     if request = invalid then return
 
+    ' if we're displaying the diagnostics dialog then we need to get the
+    ' cache information from the LibraryController and pass it over
+    if request.id = "diagnostics" and m.libraryController <> invalid then
+        request.cacheInfo = m.libraryController.callFunc("getCacheInfo")
+        request.openFunction = invalid
+        overlay = m.overlayHost.callFunc("openOverlay", request)
+        if overlay <> invalid then
+            overlay.cacheInfo = request.cacheInfo
+            overlay.callFunc("openDiagnostics")
+        end if
+        return
+    end if
+
     m.overlayHost.callFunc("openOverlay", request)
 end sub
 

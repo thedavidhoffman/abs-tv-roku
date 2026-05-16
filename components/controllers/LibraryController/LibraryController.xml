@@ -23,6 +23,7 @@
     <field id="errorResponse" type="assocarray" />
     <function name="reloadActiveLibrary" />
     <function name="clearCache" />
+    <function name="getCacheInfo" />
   </interface>
   <children>
     <AppTask id="allItemsTask" />

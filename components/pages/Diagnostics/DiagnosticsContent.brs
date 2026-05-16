@@ -2,6 +2,12 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+    m.appSectionTitle = m.top.findNode("appSectionTitle")
+    m.appInfoKeysLabel = m.top.findNode("appInfoKeysLabel")
+    m.appInfoValuesLabel = m.top.findNode("appInfoValuesLabel")
+    m.cacheSectionTitle = m.top.findNode("cacheSectionTitle")
+    m.cacheKeysLabel = m.top.findNode("cacheKeysLabel")
+    m.cacheValuesLabel = m.top.findNode("cacheValuesLabel")
     m.deviceSectionTitle = m.top.findNode("deviceSectionTitle")
     m.deviceInfoKeysLabel = m.top.findNode("deviceInfoKeysLabel")
     m.deviceInfoValuesLabel = m.top.findNode("deviceInfoValuesLabel")
@@ -17,8 +23,14 @@ end sub
 ' initStyle
 '-------------------------------------------------------------------------------
 sub initStyle()
+    setSectionTitleColor(m.appSectionTitle)
+    setSectionTitleColor(m.cacheSectionTitle)
     setSectionTitleColor(m.deviceSectionTitle)
     setSectionTitleColor(m.registrySectionTitle)
+    setBodyColor(m.appInfoKeysLabel)
+    setBodyColor(m.appInfoValuesLabel)
+    setBodyColor(m.cacheKeysLabel)
+    setBodyColor(m.cacheValuesLabel)
     setBodyColor(m.deviceInfoKeysLabel)
     setBodyColor(m.deviceInfoValuesLabel)
     setBodyColor(m.registryKeysLabel)
@@ -43,9 +55,15 @@ end sub
 ' updateDiagnostics
 '-------------------------------------------------------------------------------
 sub updateDiagnostics()
+    appInfoText = getAppInfoText()
+    cacheText = getCacheInfoText()
     deviceInfoText = getDeviceInfoText()
     registryText = getApplicationRegistryText()
 
+    setLabelText(m.appInfoKeysLabel, appInfoText.keys)
+    setLabelText(m.appInfoValuesLabel, appInfoText.values)
+    setLabelText(m.cacheKeysLabel, cacheText.keys)
+    setLabelText(m.cacheValuesLabel, cacheText.values)
     setLabelText(m.deviceInfoKeysLabel, deviceInfoText.keys)
     setLabelText(m.deviceInfoValuesLabel, deviceInfoText.values)
     setLabelText(m.registryKeysLabel, registryText.keys)
@@ -53,11 +71,46 @@ sub updateDiagnostics()
 end sub
 
 '-------------------------------------------------------------------------------
+' getAppInfoText
+'-------------------------------------------------------------------------------
+function getAppInfoText() as object
+    appInfo = CreateObject("roAppInfo")
+
+    return keyValueText([
+        { key: "title", value: appInfo.GetTitle() }
+        { key: "version", value: appInfo.GetVersion() }
+    ])
+end function
+
+'-------------------------------------------------------------------------------
+' getCacheInfoText
+'-------------------------------------------------------------------------------
+function getCacheInfoText() as object
+    cacheInfo = m.top.cacheInfo
+    if cacheInfo = invalid or cacheInfo.Count() = 0 then
+        return keyValueText([
+            { key: "cache", value: "(empty)" }
+        ])
+    end if
+
+    entries = []
+    for each cacheEntry in cacheInfo
+        if cacheEntry <> invalid then
+            entries.Push({
+                key: cacheEntry.key
+                value: formatValue(cacheEntry.itemCount) + " items, " + formatValue(cacheEntry.size)
+            })
+        end if
+    end for
+
+    return keyValueText(entries)
+end function
+
+'-------------------------------------------------------------------------------
 ' getDeviceInfoText
 '-------------------------------------------------------------------------------
 function getDeviceInfoText() as object
     deviceInfo = CreateObject("roDeviceInfo")
-    appInfo = CreateObject("roAppInfo")
 
     model = deviceInfo.GetModel()
     modelDisplayName = deviceInfo.GetModelDisplayName()
@@ -65,7 +118,6 @@ function getDeviceInfoText() as object
     uiResolution = deviceInfo.GetUIResolution()
     displayMode = deviceInfo.GetDisplayMode()
     connectionInfo = deviceInfo.GetConnectionInfo()
-    isDev = appInfo.IsDev()
 
     return keyValueText([
         { key: "model", value: modelDisplayName + " " + model }
@@ -73,7 +125,6 @@ function getDeviceInfoText() as object
         { key: "ui resolution", value: uiResolution }
         { key: "display mode", value: displayMode }
         { key: "connection Info", value: connectionInfo.type + " (" + LCase(connectionInfo.quality) + " quality) " + connectionInfo.ip }
-        { key: "is Dev", value: isDev }
     ])
 end function
 
@@ -88,7 +139,7 @@ function getApplicationRegistryText() as object
         { key: "server", value: auth.server }
         { key: "username", value: auth.username }
         { key: "userId", value: auth.userId }
-        { key: "token", value: truncateText(auth.token, 50) + "..." }
+        { key: "token", value: truncateText(auth.token, 40) + "..." }
         { key: "series-display", value: settings["series-display"] }
         { key: "item-display", value: settings["item-display"] }
     ])

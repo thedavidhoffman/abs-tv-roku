@@ -3,13 +3,14 @@
   <script type="text/brightscript" uri="pkg:/components/pages/Diagnostics/DiagnosticsDialog.brs" />
   <interface>
     <field id="closeRequested" type="integer" />
+    <field id="cacheInfo" type="array" />
     <function name="openDiagnostics" />
   </interface>
   <children>
     <Dialog
       id="diagnosticsDialog"
       title="Diagnostics"
-      dialogWidth="1200"
+      dialogWidth="1680"
       dialogHeight="900"
       contentComponentName="DiagnosticsContent" />
   </children>

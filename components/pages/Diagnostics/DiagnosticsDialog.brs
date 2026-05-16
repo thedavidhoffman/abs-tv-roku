@@ -14,7 +14,10 @@ sub openDiagnostics()
     if m.dialog = invalid then return
 
     content = m.dialog.callFunc("getContentComponent")
-    if content <> invalid then content.callFunc("updateDiagnostics")
+    if content <> invalid then
+        content.cacheInfo = m.top.cacheInfo
+        content.callFunc("updateDiagnostics")
+    end if
     m.dialog.callFunc("openDialog")
 end sub
 

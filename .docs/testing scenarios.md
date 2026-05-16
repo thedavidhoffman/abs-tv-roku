@@ -1,6 +1,6 @@
 # Test scenarios:
 
-## Header Library Button
+## Header Libraries Button
 
 ### 1. One library
 The header should not display the libraries button, the other buttons { Home, Library, Series, Search, Settings } should display centered as a group.
@@ -25,3 +25,5 @@ Any podcast directories should not be listed.
 1. All header buttons should navigate in order.
 2. When the first button in the header has focus and the `LEFT` button is pressed focus should move to the last button in the header.
 3. When the last button in the header has focus and the `RIGHT` button is pressed focus should move to the first button in the header.
+
+## Library with no content

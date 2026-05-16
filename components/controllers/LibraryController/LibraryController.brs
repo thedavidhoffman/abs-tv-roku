@@ -452,6 +452,28 @@ sub cacheLog()
 end sub
 
 '-------------------------------------------------------------------------------
+' getCacheInfo
+'-------------------------------------------------------------------------------
+function getCacheInfo() as object
+    cacheInfo = []
+    if m.cache = invalid then return cacheInfo
+
+    for each cacheEntry in m.cache
+        if cacheEntry <> invalid then
+            bytes = getJsonByteSize(cacheEntry.value)
+            cacheInfo.Push({
+                key: SafeString(cacheEntry.key, "")
+                itemCount: Array_GetCount(cacheEntry.value)
+                bytes: bytes
+                size: formatCacheSize(bytes)
+            })
+        end if
+    end for
+
+    return cacheInfo
+end function
+
+'-------------------------------------------------------------------------------
 ' getJsonByteSize
 '-------------------------------------------------------------------------------
 function getJsonByteSize(value as dynamic) as integer
