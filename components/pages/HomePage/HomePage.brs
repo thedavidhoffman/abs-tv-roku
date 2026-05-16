@@ -16,6 +16,7 @@ sub init()
     m.loadRequest = invalid
     m.server = invalid
     m.token = invalid
+    m.isLoading = false
 
     if m.homeRowList <> invalid then
         m.homeRowList.observeField("itemSelected", "onItemSelected")
@@ -50,6 +51,7 @@ sub reloadPersonalizedShelves()
     if hasValidLoadRequest() = false then return
 
     if m.top.visible = true then m.firstItemFocusPending = true
+    m.isLoading = true
     setStatus("Loading...")
     runPersonalizedApiRequest({
         action: "loadPersonalized"
@@ -88,6 +90,8 @@ sub onPersonalizedApiResponse()
     response = m.personalizedApiTask.response
     if response = invalid then return
 
+    m.isLoading = false
+
     if response.ok <> true then
         setStatus(SafeString(response.errorMessage, "Unable to load home shelves."))
         m.top.errorResponse = response
@@ -118,7 +122,14 @@ sub onPersonalizedShelvesChanged()
     m.homeRowList.content = root
     updateStatus(root.getChildCount())
 
-    if m.firstItemFocusPending = true and m.top.visible = true then requestFirstHomeItemFocus()
+    if m.firstItemFocusPending = true and m.top.visible = true then
+        if root.getChildCount() > 0 then
+            requestFirstHomeItemFocus()
+        else
+            m.top.setFocus(true)
+            finishFirstHomeItemFocus()
+        end if
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -185,8 +196,10 @@ sub updateStatus(rowCount as integer)
 
     if hasItems then
         m.top.statusMessage = ""
-    else
+    else if m.isLoading = true then
         m.top.statusMessage = "Loading..."
+    else
+        m.top.statusMessage = "No titles found"
     end if
 end sub
 
@@ -199,6 +212,8 @@ sub setStatus(message as dynamic)
     text = SafeString(message, "")
     m.top.statusMessage = text
     m.homeRowList.visible = (text = "")
+
+    if text <> "" and m.firstItemFocusPending = true and m.top.visible = true then focusHomeStatus()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -212,9 +227,16 @@ function focusHomePage() as boolean
         return true
     end if
 
-    m.top.setFocus(true)
+    focusHomeStatus()
     return true
 end function
+
+'-------------------------------------------------------------------------------
+' focusHomeStatus
+'-------------------------------------------------------------------------------
+sub focusHomeStatus()
+    m.top.setFocus(true)
+end sub
 
 '-------------------------------------------------------------------------------
 ' requestFirstHomeItemFocus
@@ -290,7 +312,7 @@ end function
 function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
-    if key = "up" and isFocusedOnFirstRow() then
+    if key = "up" and (isFocusedOnFirstRow() or isStatusFocused()) then
         finishFirstHomeItemFocus()
         m.upFromFirstRowSelectedCounter = m.upFromFirstRowSelectedCounter + 1
         m.top.upFromFirstRowSelected = m.upFromFirstRowSelectedCounter
@@ -303,6 +325,14 @@ function onKeyEvent(key as string, press as boolean) as boolean
     m.backSelectedCounter = m.backSelectedCounter + 1
     m.top.backSelected = m.backSelectedCounter
     return true
+end function
+
+'-------------------------------------------------------------------------------
+' isStatusFocused
+'-------------------------------------------------------------------------------
+function isStatusFocused() as boolean
+    if SafeString(m.top.statusMessage, "") = "" then return false
+    return m.top.isInFocusChain()
 end function
 
 '-------------------------------------------------------------------------------

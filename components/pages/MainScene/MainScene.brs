@@ -1048,6 +1048,16 @@ function onKeyEvent(key as string, press as boolean) as boolean
         return false
     end if
 
+    if isHomeStatusVisible() and (key = "up" or key = "back") then
+        focusHeader()
+        return true
+    end if
+
+    if isLibraryStatusVisible() and (key = "up" or key = "back") then
+        focusHeader()
+        return true
+    end if
+
     if m.header <> invalid and m.header.menuOpen and key = "back" then
         headerCloseMenu()
         return true
@@ -1063,4 +1073,24 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     return false
+end function
+
+'-------------------------------------------------------------------------------
+' isHomeStatusVisible
+'-------------------------------------------------------------------------------
+function isHomeStatusVisible() as boolean
+    if m.homePage = invalid then return false
+    if m.homePage.visible <> true then return false
+
+    return SafeString(m.homePage.statusMessage, "") <> ""
+end function
+
+'-------------------------------------------------------------------------------
+' isLibraryStatusVisible
+'-------------------------------------------------------------------------------
+function isLibraryStatusVisible() as boolean
+    if m.library = invalid then return false
+    if m.library.visible <> true then return false
+
+    return SafeString(m.library.statusMessage, "") <> ""
 end function

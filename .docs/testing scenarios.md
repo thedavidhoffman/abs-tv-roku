@@ -27,3 +27,4 @@ Any podcast directories should not be listed.
 3. When the last button in the header has focus and the `RIGHT` button is pressed focus should move to the first button in the header.
 
 ## Library with no content
+Test a library with no content to make sure that screens and navigation all work correctly.
