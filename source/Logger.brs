@@ -18,12 +18,10 @@ function CreateLogger(label = "" as string, buffered = true as boolean) as objec
         buffer: []
         writeHead: __Logger_WriteHead
         write: __Logger_Write
-        writeBlankLine: __Logger_WriteBlankLine
         writeBracketed: __Logger_WriteBracketed
         writeJson: __Logger_WriteJson
         error: __Logger_Error
         flush: __Logger_Flush
-        text: __Logger_Text
     }
 
     if buffered = true then log.WriteHead()
@@ -55,19 +53,6 @@ function __Logger_Write(message as dynamic) as object
 
     return m
 
-end function
-
-'-------------------------------------------------------------------------------
-' __Logger_WriteBlankLine
-'-------------------------------------------------------------------------------
-function __Logger_WriteBlankLine() as object
-    if m.buffered then
-        m.buffer.Push()
-    else
-        ?
-    end if
-
-    return m
 end function
 
 '-------------------------------------------------------------------------------
@@ -115,25 +100,21 @@ end function
 ' __Logger_Flush
 '-------------------------------------------------------------------------------
 sub __Logger_Flush()
-    output = m.text()
-    if output <> "" then ? output
-    m.buffer = []
-end sub
-
-'-------------------------------------------------------------------------------
-' __Logger_Text
-'-------------------------------------------------------------------------------
-function __Logger_Text() as string
-
     output = ""
+
+    if m.buffer.Count() = 0 then
+        m.buffer = []
+        return
+    end if
 
     for each line in m.buffer
         output = output + line + Chr(10)
     end for
 
-    return output
-
-end function
+    ' print once so buffered task logs stay grouped
+    if output <> "" then ? output;
+    m.buffer = []
+end sub
 
 '-------------------------------------------------------------------------------
 ' __Logger_Format

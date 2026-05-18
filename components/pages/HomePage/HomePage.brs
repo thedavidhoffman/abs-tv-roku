@@ -2,6 +2,10 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+
+    m.log = CreateLogger("HomePage", false)
+    m.log.write("init")
+
     m.homeRowList = m.top.findNode("homeRowList")
     m.focusRetryTimer = m.top.findNode("focusRetryTimer")
     m.personalizedApiTask = m.top.findNode("personalizedApiTask")
@@ -28,31 +32,38 @@ sub init()
     end if
     if m.focusRetryTimer <> invalid then m.focusRetryTimer.observeField("fire", "onFocusRetryTimerFired")
 
-    onPersonalizedShelvesChanged()
 end sub
 
 '-------------------------------------------------------------------------------
 ' onLoadRequestChanged
 '-------------------------------------------------------------------------------
 sub onLoadRequestChanged()
+
+    m.log.write("onLoadRequestChanged")
+
     m.loadRequest = m.top.loadRequest
     if m.loadRequest <> invalid then
         m.server = m.loadRequest.server
         m.token = m.loadRequest.token
     end if
 
-    reloadPersonalizedShelves()
+    renderPersonalizedShelves()
+    loadPersonalizedShelves()
 end sub
 
 '-------------------------------------------------------------------------------
-' reloadPersonalizedShelves
+' loadPersonalizedShelves
 '-------------------------------------------------------------------------------
-sub reloadPersonalizedShelves()
+sub loadPersonalizedShelves()
+
+    m.log.write("loadPersonalizedShelves")
+
     if hasValidLoadRequest() = false then return
 
     if m.top.visible = true then m.firstItemFocusPending = true
     m.isLoading = true
     setStatus("Loading...")
+    
     runPersonalizedApiRequest({
         action: "loadPersonalized"
         server: m.loadRequest.server
@@ -65,18 +76,26 @@ end sub
 ' hasValidLoadRequest
 '-------------------------------------------------------------------------------
 function hasValidLoadRequest() as boolean
-    if m.loadRequest = invalid then return false
-    if m.loadRequest.server = invalid or m.loadRequest.server = "" then return false
-    if m.loadRequest.token = invalid or m.loadRequest.token = "" then return false
-    if m.personalizedApiTask = invalid then return false
 
-    return true
+    result = true
+
+    if m.loadRequest = invalid then result = false
+    if m.loadRequest.server = invalid or m.loadRequest.server = "" then result = false
+    if m.loadRequest.token = invalid or m.loadRequest.token = "" result = false
+    if m.personalizedApiTask = invalid then result = false
+
+    if result = false then m.log.write("hasValidLoadRequest() returned " + result.ToStr())
+
+    return result
 end function
 
 '-------------------------------------------------------------------------------
 ' runPersonalizedApiRequest
 '-------------------------------------------------------------------------------
 sub runPersonalizedApiRequest(request as object)
+
+    m.log.write("runPersonalizedApiRequest")
+
     if m.personalizedApiTask = invalid then return
 
     m.personalizedApiTask.request = request
@@ -87,6 +106,9 @@ end sub
 ' onPersonalizedApiResponse
 '-------------------------------------------------------------------------------
 sub onPersonalizedApiResponse()
+
+    m.log.write("onPersonalizedApiResponse")
+
     response = m.personalizedApiTask.response
     if response = invalid then return
 
@@ -109,7 +131,32 @@ end sub
 ' onPersonalizedShelvesChanged
 '-------------------------------------------------------------------------------
 sub onPersonalizedShelvesChanged()
+
+    m.log.write("onPersonalizedShelvesChanged")
+
+    renderPersonalizedShelves()
+end sub
+
+'-------------------------------------------------------------------------------
+' onMediaProgressChanged
+'-------------------------------------------------------------------------------
+sub onMediaProgressChanged()
+
+    m.log.write("onMediaProgressChanged")
+
+    if hasPersonalizedShelves() = false then return
+    renderPersonalizedShelves()
+end sub
+
+'-------------------------------------------------------------------------------
+' renderPersonalizedShelves
+'-------------------------------------------------------------------------------
+sub renderPersonalizedShelves()
+
+    m.log.write("renderPersonalizedShelves")
+
     if m.homeRowList = invalid then return
+    if hasValidLoadRequest() = false then return
 
     root = CreateObject("roSGNode", "ContentNode")
     m.shelfItemsByRow = []
@@ -131,6 +178,15 @@ sub onPersonalizedShelvesChanged()
         end if
     end if
 end sub
+
+'-------------------------------------------------------------------------------
+' hasPersonalizedShelves
+'-------------------------------------------------------------------------------
+function hasPersonalizedShelves() as boolean
+    shelves = m.top.personalizedShelves
+    if shelves = invalid then return false
+    return shelves.Count() > 0
+end function
 
 '-------------------------------------------------------------------------------
 ' appendShelfRow

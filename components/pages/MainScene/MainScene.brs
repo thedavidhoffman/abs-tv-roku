@@ -101,7 +101,7 @@ end sub
 ' reloadHomeShelvesAfterPlayback
 '-------------------------------------------------------------------------------
 sub reloadHomeShelvesAfterPlayback()
-    if m.homePage <> invalid then m.homePage.callFunc("reloadPersonalizedShelves")
+    if m.homePage <> invalid then m.homePage.callFunc("loadPersonalizedShelves")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -278,33 +278,37 @@ end sub
 ' navShowApp
 '-------------------------------------------------------------------------------
 sub navShowApp()
+    
     m.login.visible = false
     m.authenticatedContent.visible = true
     headerCloseMenu()
+
     loadRequest = buildSessionLoadRequest()
+    
     if m.header <> invalid then
         m.header.visible = true
         m.header.username = m.session.username
         m.header.libraries = m.session.libraries
         m.header.currentLibraryId = m.session.bookLibraryId
     end if
-    if m.homePage <> invalid then
-        m.homePage.mediaProgress = m.mediaProgress
-        m.homePage.loadRequest = loadRequest
-    end if
-    if m.library <> invalid then m.library.mediaProgress = m.mediaProgress
+    
+    if m.homePage <> invalid then m.homePage.loadRequest = loadRequest
+    
     if m.seriesPage <> invalid then
-        m.seriesPage.mediaProgress = m.mediaProgress
         m.seriesPage.loadRequest = loadRequest
     end if
+    
     navShowHomePage()
     focusHomePage()
+    
     if m.library <> invalid then
         m.library.loadRequest = loadRequest
     end if
+    
     if m.libraryController <> invalid then
         m.libraryController.loadRequest = loadRequest
     end if
+
 end sub
 
 '-------------------------------------------------------------------------------
@@ -487,7 +491,7 @@ sub homeHandlePressed()
     if m.library <> invalid then m.library.callFunc("resetSearchResults")
     navShowHomePage()
     focusHomePage()
-    if m.homePage <> invalid then m.homePage.callFunc("reloadPersonalizedShelves")
+    if m.homePage <> invalid then m.homePage.callFunc("loadPersonalizedShelves")
 end sub
 
 '-------------------------------------------------------------------------------

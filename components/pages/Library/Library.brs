@@ -2,6 +2,10 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+
+    m.log = CreateLogger("Library", false)
+    m.log.write("init")
+
     m.listView = m.top.findNode("listView")
     m.gridView = m.top.findNode("gridView")
     m.activeView = "list"
@@ -63,9 +67,29 @@ end sub
 ' onLoadRequestChanged
 '-------------------------------------------------------------------------------
 sub onLoadRequestChanged()
+
+    m.log.write("onLoadRequestChanged")
+
     m.loadRequest = m.top.loadRequest
     syncLoadRequestToViews()
+    onLibraryItemsChanged()
 end sub
+
+'-------------------------------------------------------------------------------
+' hasValidLoadRequest
+'-------------------------------------------------------------------------------
+function hasValidLoadRequest() as boolean
+
+    result = true
+
+    if m.loadRequest = invalid then result = false
+    if m.loadRequest.server = invalid or m.loadRequest.server = "" then result = false
+    if m.loadRequest.token = invalid or m.loadRequest.token = "" then result = false
+
+    if result = false then m.log.write("hasValidLoadRequest() returned " + result.ToStr())
+
+    return result
+end function
 
 '-------------------------------------------------------------------------------
 ' syncLoadRequestToViews
@@ -94,6 +118,9 @@ end sub
 ' reloadItems
 '-------------------------------------------------------------------------------
 sub reloadItems()
+
+    m.log.write("reloadItems")
+
     restoreRootLibraryItems()
 end sub
 
@@ -101,6 +128,9 @@ end sub
 ' onRootLibraryItemsChanged
 '-------------------------------------------------------------------------------
 sub onRootLibraryItemsChanged()
+
+    m.log.write("onRootLibraryItemsChanged")
+
     if m.top.rootLibraryItems = invalid then
         m.rootLibraryItems = []
     else
@@ -114,6 +144,9 @@ end sub
 ' onAllLibraryItemsChanged
 '-------------------------------------------------------------------------------
 sub onAllLibraryItemsChanged()
+
+    m.log.write("onAllLibraryItemsChanged")
+
     if m.top.allLibraryItems = invalid then
         m.allLibraryItems = []
     else
@@ -141,6 +174,9 @@ end sub
 ' onSearchResponseChanged
 '-------------------------------------------------------------------------------
 sub onSearchResponseChanged()
+
+    m.log.write("onSearchResponseChanged")
+
     response = m.top.searchResponse
     if response = invalid then return
 
@@ -260,10 +296,12 @@ end sub
 '-------------------------------------------------------------------------------
 sub onLibraryItemsChanged()
     if m.syncingLibraryItems = true then return
+    if hasValidLoadRequest() = false then return
 
     m.syncingLibraryItems = true
     items = m.top.libraryItems
 
+    syncLoadRequestToViews()
     if m.listView <> invalid then m.listView.libraryItems = items
     if m.gridView <> invalid then
         m.gridView.allLibraryItems = m.allLibraryItems

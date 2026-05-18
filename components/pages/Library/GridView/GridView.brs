@@ -2,6 +2,10 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+
+    m.log = CreateLogger("GridView", false)
+    m.log.write("init")
+
     m.markupGrid = m.top.findNode("markupGrid")
     m.contextTitleLabel = m.top.findNode("contextTitleLabel")
     m.libraryItemsByIndex = []
@@ -19,7 +23,6 @@ sub init()
         m.markupGrid.observeField("itemFocused", "onItemFocused")
     end if
 
-    onLibraryItemsChanged()
     onContextTitleChanged()
 end sub
 
@@ -27,6 +30,9 @@ end sub
 ' onAllLibraryItemsChanged
 '-------------------------------------------------------------------------------
 sub onAllLibraryItemsChanged()
+
+    m.log.write("onAllLibraryItemsChanged")
+
     m.allLibraryItemLookup = LibraryItemLookup_Build(m.top.allLibraryItems)
     onLibraryItemsChanged()
 end sub
@@ -35,6 +41,9 @@ end sub
 ' onLoadRequestChanged
 '-------------------------------------------------------------------------------
 sub onLoadRequestChanged()
+
+    m.log.write("onLoadRequestChanged")
+
     request = m.top.loadRequest
     if request = invalid then return
 
@@ -47,7 +56,11 @@ end sub
 ' onLibraryItemsChanged
 '-------------------------------------------------------------------------------
 sub onLibraryItemsChanged()
+
+    m.log.write("onLibraryItemsChanged")
+
     if m.markupGrid = invalid then return
+    if hasValidLoadRequest() = false then return
 
     root = CreateObject("roSGNode", "ContentNode")
     items = m.top.libraryItems
@@ -92,6 +105,21 @@ sub onLibraryItemsChanged()
         end if
     end if
 end sub
+
+'-------------------------------------------------------------------------------
+' hasValidLoadRequest
+'-------------------------------------------------------------------------------
+function hasValidLoadRequest() as boolean
+
+    result = true
+
+    if m.server = invalid or m.server = "" then result = false
+    if m.token = invalid or m.token = "" then result = false
+
+    if result = false then m.log.write("hasValidLoadRequest() returned " + result.ToStr())
+
+    return result
+end function
 
 '-------------------------------------------------------------------------------
 ' shouldShowSeriesSequence

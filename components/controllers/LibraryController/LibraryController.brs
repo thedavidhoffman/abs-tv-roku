@@ -448,7 +448,6 @@ sub cacheLog()
         end for
     end if
 
-    log.writeBlankLine()
 end sub
 
 '-------------------------------------------------------------------------------

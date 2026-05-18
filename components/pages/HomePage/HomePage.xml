@@ -9,14 +9,14 @@
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="personalizedShelves" type="array" onChange="onPersonalizedShelvesChanged" />
-    <field id="mediaProgress" type="array" onChange="onPersonalizedShelvesChanged" />
+    <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />
     <field id="playSelected" type="assocarray" />
     <field id="backSelected" type="integer" />
     <field id="upFromFirstRowSelected" type="integer" />
     <field id="errorResponse" type="assocarray" />
     <field id="statusMessage" type="string" />
     <function name="focusHomePage" />
-    <function name="reloadPersonalizedShelves" />
+    <function name="loadPersonalizedShelves" />
   </interface>
   <children>
     <RowList

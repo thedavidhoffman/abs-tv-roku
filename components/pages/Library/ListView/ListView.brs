@@ -2,6 +2,10 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+
+    m.log = CreateLogger("ListView", false)
+    m.log.write("init")
+
     initReferences()
 
     m.libraryRows = []
@@ -72,6 +76,9 @@ end sub
 ' onLoadRequestChanged
 '-------------------------------------------------------------------------------
 sub onLoadRequestChanged()
+
+    m.log.write("onLoadRequestChanged")
+
     request = m.top.loadRequest
     if request = invalid then return
 
@@ -85,6 +92,9 @@ end sub
 ' onMediaProgressChanged
 '-------------------------------------------------------------------------------
 sub onMediaProgressChanged()
+
+    m.log.write("onMediaProgressChanged")
+
     if m.overview <> invalid then m.overview.mediaProgress = m.top.mediaProgress
 end sub
 
@@ -99,6 +109,9 @@ end sub
 ' onLibraryItemsChanged
 '-------------------------------------------------------------------------------
 sub onLibraryItemsChanged()
+
+    m.log.write("onLibraryItemsChanged")
+
     if m.libraryList = invalid then return
 
     resetSeriesExpansionState()
@@ -119,6 +132,9 @@ end sub
 ' rebuildLibraryList
 '-------------------------------------------------------------------------------
 sub rebuildLibraryList(focusIndex as dynamic)
+
+    m.log.write("rebuildLibraryList")
+
     if m.libraryList = invalid then return
 
     root = CreateObject("roSGNode", "ContentNode")

@@ -2,6 +2,10 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+
+    m.log = CreateLogger("Series", false)
+    m.log.write("init")
+
     m.seriesRowList = m.top.findNode("seriesRowList")
     m.seriesItemsByRow = []
     m.playSelectedCounter = 0
@@ -26,18 +30,44 @@ end sub
 ' onLoadRequestChanged
 '-------------------------------------------------------------------------------
 sub onLoadRequestChanged()
+
+    m.log.write("onLoadRequestChanged")
+
     m.loadRequest = m.top.loadRequest
     if m.loadRequest <> invalid then
         m.server = m.loadRequest.server
         m.token = m.loadRequest.token
     end if
+
+    if m.hasSeriesRowsResponse = true then rebuildSeriesRows(getResponseRows(m.top.seriesRowsResponse))
 end sub
+
+'-------------------------------------------------------------------------------
+' hasValidLoadRequest
+'-------------------------------------------------------------------------------
+function hasValidLoadRequest() as boolean
+
+    result = true
+
+    if m.loadRequest = invalid then result = false
+    if m.loadRequest.server = invalid or m.loadRequest.server = "" then result = false
+    if m.loadRequest.token = invalid or m.loadRequest.token = "" then result = false
+
+    if result = false then m.log.write("hasValidLoadRequest() returned " + result.ToStr())
+
+    return result
+end function
 
 '-------------------------------------------------------------------------------
 ' onMediaProgressChanged
 '-------------------------------------------------------------------------------
 sub onMediaProgressChanged()
+
+    m.log.write("onMediaProgressChanged")
+
+
     if m.hasSeriesRowsResponse <> true then return
+    if hasValidLoadRequest() = false then return
 
     rebuildSeriesRows(getResponseRows(m.top.seriesRowsResponse))
 end sub
@@ -46,8 +76,12 @@ end sub
 ' onSeriesRowsResponseChanged
 '-------------------------------------------------------------------------------
 sub onSeriesRowsResponseChanged()
+
+    m.log.write("onSeriesRowsResponseChanged")
+
     response = m.top.seriesRowsResponse
     if response = invalid then return
+    if hasValidLoadRequest() = false then return
 
     if response.ok <> true then
         setStatus(SafeString(response.errorMessage, "Unable to load series."))
@@ -63,6 +97,9 @@ end sub
 ' resetSeriesRows
 '-------------------------------------------------------------------------------
 function resetSeriesRows() as boolean
+
+    m.log.write("resetSeriesRows")
+
     m.seriesItemsByRow = []
     m.focusedItemNode = invalid
     m.hasSeriesRowsResponse = false
@@ -75,7 +112,11 @@ end function
 ' rebuildSeriesRows
 '-------------------------------------------------------------------------------
 sub rebuildSeriesRows(seriesRows as object)
+
+    m.log.write("rebuildSeriesRows")
+
     if m.seriesRowList = invalid then return
+    if hasValidLoadRequest() = false then return
 
     root = CreateObject("roSGNode", "ContentNode")
     m.seriesItemsByRow = []
@@ -97,6 +138,9 @@ end sub
 ' appendSeriesRow
 '-------------------------------------------------------------------------------
 sub appendSeriesRow(root as object, seriesRow as dynamic)
+
+    m.log.write("appendSeriesRow (" +  FirstNonEmpty([seriesRow.title], "Series") + ")")
+
     if seriesRow = invalid then return
     if seriesRow.libraryItems = invalid then return
 
