@@ -10,8 +10,15 @@ This is a Roku app that connects to an [Audiobookshelf](https://www.audiobookshe
 
 NOTE: this app currently does not support: podcasts, collections, or playlists.
 
+![ABSTV library grid view](.preview-images/abstv-library-grid-view.jpg)
+
+![ABSTV library list view](.preview-images/abstv-library-list-view.jpg)
+
+![ABSTV player](.preview-images/abstv-player.jpg)
+
 ## Table of Contents
 
+- [Preview](#preview)
 - [Installing](#installing)
 - [AI Usage Disclaimer](#ai-usage-disclaimer)
 - [Privacy Policy](#privacy-policy)
