@@ -42,10 +42,10 @@ function __InProgress_LoadSourceProgress(server as string, token as dynamic, sou
     if sourceItemId = invalid or sourceItemId = "" then return invalid
 
     progressUrl = server + "/api/me/progress/" + sourceItemId.ToStr()
-    result = HttpClient_Request(progressUrl, "GET", token, invalid)
     log.write(progressUrl)
-    log.write("source progress status = " + SafeString(result.status, ""))
 
+    result = HttpClient_Request(progressUrl, "GET", token, invalid)
+    
     if result.ok <> true then return invalid
 
     return MediaProgressMapper_MapProgressItem(result.data)

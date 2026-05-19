@@ -16,7 +16,6 @@ function CreateLogger(label = "" as string, buffered = true as boolean) as objec
         label: label
         buffered: buffered
         buffer: []
-        writeHead: __Logger_WriteHead
         write: __Logger_Write
         writeBracketed: __Logger_WriteBracketed
         writeJson: __Logger_WriteJson
@@ -24,18 +23,8 @@ function CreateLogger(label = "" as string, buffered = true as boolean) as objec
         flush: __Logger_Flush
     }
 
-    if buffered = true then log.WriteHead()
-
     return log
 
-end function
-
-'-------------------------------------------------------------------------------
-' __Logger_WriteHead
-'-------------------------------------------------------------------------------
-function __Logger_WriteHead() as object
-    m.write("....................................")
-    return m
 end function
 
 '-------------------------------------------------------------------------------

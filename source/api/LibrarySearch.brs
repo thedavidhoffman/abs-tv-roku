@@ -23,14 +23,18 @@ function LibrarySearch_Search(request as object) as object
     if Len(searchTerm) > SearchRules_MaxLength() then searchTerm = Left(searchTerm, SearchRules_MaxLength())
 
     if bookLibraryId = invalid or bookLibraryId = "" then
+        
         authorizeUrl = server + "/api/authorize"
-        authResult = HttpClient_Request(authorizeUrl, "POST", token, "")
         log.write(authorizeUrl)
-        log.write("status = " + SafeString(authResult.status, ""))
+
+        authResult = HttpClient_Request(authorizeUrl, "POST", token, "")
+        
         if authResult.ok <> true then
             return authResult
         end if
+
         bookLibraryId = Session_ResolveBookLibraryId(authResult.data)
+        
     end if
 
     if bookLibraryId = invalid or bookLibraryId = "" then
@@ -40,10 +44,10 @@ function LibrarySearch_Search(request as object) as object
 
     searchUrl = server + "/api/libraries/" + bookLibraryId + "/search?q=" + Encode_Url(searchTerm)
     if request.limit <> invalid then searchUrl = searchUrl + "&limit=" + request.limit.ToStr()
+    log.write(searchUrl)
 
     result = HttpClient_Request(searchUrl, "GET", token, invalid)
-    log.write(searchUrl)
-    log.write("status = " + SafeString(result.status, ""))
+
     if result.ok <> true then
         log.flush()
         return result

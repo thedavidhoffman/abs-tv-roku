@@ -20,9 +20,10 @@ function Item_Load(request as object) as object
     end if
 
     itemUrl = server + "/api/items/" + itemId
-    result = HttpClient_Request(itemUrl, "GET", token, invalid)
     log.write(itemUrl)
-    log.write("status = " + SafeString(result.status, ""))
+
+    result = HttpClient_Request(itemUrl, "GET", token, invalid)
+    
     log.flush()
 
     return result

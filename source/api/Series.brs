@@ -29,10 +29,9 @@ function Series_Load(request as object) as object
     while keepLoading
         libraryUrl = server + "/api/libraries/" + bookLibraryId + "/items?limit=" + limit.ToStr() + "&page=" + page.ToStr() + "&sort=sequence&desc=0&minified=0"
         if seriesFilter <> "" then libraryUrl = libraryUrl + seriesFilter
+        log.write(libraryUrl)
 
         libraryResult = HttpClient_Request(libraryUrl, "GET", token, invalid)
-        log.write(libraryUrl)
-        log.write("status = " + SafeString(libraryResult.status, "unknown"))
 
         if libraryResult.ok <> true then return libraryResult
 

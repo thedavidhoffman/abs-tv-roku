@@ -16,15 +16,19 @@ function LibraryItems_Load(request as object) as object
     bookLibraryId = request.bookLibraryId
 
     if bookLibraryId = invalid or bookLibraryId = "" then
+        
         authorizeUrl = server + "/api/authorize"
-        authResult = HttpClient_Request(authorizeUrl, "POST", token, "")
         log.write(authorizeUrl)
-        log.write("status = " + SafeString(authResult.status, ""))
+
+        authResult = HttpClient_Request(authorizeUrl, "POST", token, "")
+        
         if authResult.ok <> true then
             log.flush()
             return __AttachLibraryItemsRequestMetadata(authResult, request)
         end if
+
         bookLibraryId = Session_ResolveBookLibraryId(authResult.data)
+        
     end if
 
     if bookLibraryId = invalid or bookLibraryId = "" then
@@ -39,10 +43,12 @@ function LibraryItems_Load(request as object) as object
     collapseSeries = __GetCollapseSeriesQueryValue(request)
 
     while keepLoading
+
         libraryUrl = server + "/api/libraries/" + bookLibraryId + "/items?limit=" + limit.ToStr() + "&page=" + page.ToStr() + "&sort=media.metadata.title&desc=0&minified=0&collapseseries=" + collapseSeries
-        libraryResult = HttpClient_Request(libraryUrl, "GET", token, invalid)
         log.write(libraryUrl)
-        log.write("status = " + SafeString(libraryResult.status, ""))
+
+        libraryResult = HttpClient_Request(libraryUrl, "GET", token, invalid)
+        
         if libraryResult.ok <> true then
             log.flush()
             return __AttachLibraryItemsRequestMetadata(libraryResult, request)

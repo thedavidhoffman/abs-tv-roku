@@ -12,9 +12,10 @@ function Libraries_Load(server as string, token as dynamic) as object
     log = CreateLogger("(API) Libraries_Load")
 
     librariesUrl = server + "/api/libraries"
-    result = HttpClient_Request(librariesUrl, "GET", token, invalid)
     log.write(librariesUrl)
-    log.write("status = " + SafeString(result.status, ""))
+
+    result = HttpClient_Request(librariesUrl, "GET", token, invalid)
+        
     if result.ok <> true then
         log.flush()
         return result

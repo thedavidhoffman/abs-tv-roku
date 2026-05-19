@@ -15,7 +15,8 @@
     "validate": "npx bsc --rootDir . --stagingFolder build/staging",
     "build": "npm run clean && npm run validate",
     "package": "npm run clean && npm run validate && node ./scripts/package.mjs",
-    "deploy": "npm run validate && node ./scripts/deploy.mjs"
+    "deploy": "npm run validate && node ./scripts/deploy.mjs",
+    "logviewer": "node ./scripts/logviewer.mjs"
   },
   "keywords": [
     "audiobookshelf",
