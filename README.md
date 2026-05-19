@@ -48,7 +48,7 @@ https://youtu.be/r9HhUIWA4L0?si=OGK6Tm1SdCcLLhN-&t=26
 After the Roku device restarts, upload the ABSTV app:
 
 1. Find the Roku IP address under `Settings > Network > About`.
-2. Download the ABSTV app zip file from the latest GitHub release.
+2. Download the ABSTV app zip file from the [latest ABS GitHub release](https://github.com/thedavidhoffman/abs-tv-roku/releases).
 3. In a browser, open `http://ROKU_IP_ADDRESS`.
 4. Sign in with username `rokudev` and the developer password you set.
 5. Use the upload form to select the ABSTV zip file from the most current release in this GitHub repository, then click `Install`.
