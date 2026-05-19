@@ -764,7 +764,6 @@ sub updatePlaybackPosition(globalTime as dynamic)
         updateAudioBadges(invalid)
         return
     end if
-    m.currentTrackIndex = getTrackIndexForGlobalTime(m.currentTimeSeconds)
     updateProgress(m.currentTimeSeconds)
     updateAudioBadgesForCurrentTrack()
     updateCurrentChapterStatus()
