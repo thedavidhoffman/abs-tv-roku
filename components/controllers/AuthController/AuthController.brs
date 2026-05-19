@@ -2,6 +2,10 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+
+    m.log = CreateLogger("AuthController", false)
+    m.log.write("init")
+
     m.authApiTask = m.top.findNode("authApiTask")
     m.savedSession = AuthStore_Load()
     m.isResumingSession = false
@@ -17,6 +21,9 @@ end sub
 ' onResumeRequested
 '-------------------------------------------------------------------------------
 sub onResumeRequested()
+
+    m.log.write("onResumeRequested")
+
     if hasSavedSession() then
         m.isResumingSession = true
         runAuthApiRequest({
@@ -33,6 +40,9 @@ end sub
 ' onLoginRequestChanged
 '-------------------------------------------------------------------------------
 sub onLoginRequestChanged()
+
+    m.log.write("onLoginRequestChanged")
+
     request = m.top.loginRequest
     if request = invalid then return
 
@@ -44,6 +54,9 @@ end sub
 ' onLogoutRequestChanged
 '-------------------------------------------------------------------------------
 sub onLogoutRequestChanged()
+
+    m.log.write("onLogoutRequestChanged")
+
     request = m.top.logoutRequest
 
     if request <> invalid and request.server <> invalid and request.server <> "" and request.token <> invalid and request.token <> "" then
@@ -62,6 +75,9 @@ end sub
 ' clearSavedSession
 '-------------------------------------------------------------------------------
 sub clearSavedSession()
+
+    m.log.write("clearSavedSession")
+
     AuthStore_Clear(false)
     if m.savedSession <> invalid then m.savedSession.token = ""
     m.top.savedSession = m.savedSession
@@ -82,6 +98,9 @@ end function
 ' runAuthApiRequest
 '-------------------------------------------------------------------------------
 sub runAuthApiRequest(request as object)
+
+    m.log.write("runAuthApiRequest")
+
     if m.authApiTask = invalid then return
 
     m.authApiTask.request = request
@@ -92,6 +111,9 @@ end sub
 ' onAuthApiResponse
 '-------------------------------------------------------------------------------
 sub onAuthApiResponse()
+
+    m.log.write("onAuthApiResponse")
+
     response = m.authApiTask.response
     if response = invalid then return
 
@@ -108,6 +130,9 @@ end sub
 ' getAuthResponseAction
 '-------------------------------------------------------------------------------
 function getAuthResponseAction(response as dynamic) as string
+
+    m.log.write("getAuthResponseAction")
+
     if response <> invalid and response.action <> invalid then return response.action
     if m.authApiTask <> invalid and m.authApiTask.request <> invalid and m.authApiTask.request.action <> invalid then
         return m.authApiTask.request.action
@@ -120,6 +145,9 @@ end function
 ' handleAuthError
 '-------------------------------------------------------------------------------
 sub handleAuthError(response as object, action as string)
+
+    m.log.write("handleAuthError")
+
     if m.isResumingSession = true then
         m.isResumingSession = false
         clearSavedSession()
@@ -135,6 +163,9 @@ end sub
 ' storeAuthenticatedSession
 '-------------------------------------------------------------------------------
 sub storeAuthenticatedSession(response as object)
+
+    m.log.write("storeAuthenticatedSession")
+
     m.savedSession = Session_BuildAuthenticatedSession(response)
     Session_SaveAuthenticatedSession(m.savedSession)
     m.top.savedSession = m.savedSession
@@ -145,6 +176,9 @@ end sub
 ' publishLoginRequired
 '-------------------------------------------------------------------------------
 sub publishLoginRequired(message as string)
+
+    m.log.write("publishLoginRequired")
+
     m.loginRequiredCounter = m.loginRequiredCounter + 1
     m.top.loginRequired = {
         message: message
@@ -156,6 +190,9 @@ end sub
 ' publishLoginFailed
 '-------------------------------------------------------------------------------
 sub publishLoginFailed(message as string)
+
+    m.log.write("publishLoginFailed")
+
     m.loginFailedCounter = m.loginFailedCounter + 1
     m.top.loginFailed = {
         message: message
@@ -167,6 +204,9 @@ end sub
 ' publishSessionExpired
 '-------------------------------------------------------------------------------
 sub publishSessionExpired(message as dynamic)
+
+    m.log.write("publishSessionExpired")
+
     clearSavedSession()
 
     m.sessionExpiredCounter = m.sessionExpiredCounter + 1
