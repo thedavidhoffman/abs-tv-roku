@@ -76,22 +76,6 @@ sub onLoadRequestChanged()
 end sub
 
 '-------------------------------------------------------------------------------
-' hasValidLoadRequest
-'-------------------------------------------------------------------------------
-function hasValidLoadRequest() as boolean
-
-    result = true
-
-    if m.loadRequest = invalid then result = false
-    if m.loadRequest.server = invalid or m.loadRequest.server = "" then result = false
-    if m.loadRequest.token = invalid or m.loadRequest.token = "" then result = false
-
-    if result = false then m.log.write("hasValidLoadRequest() returned " + result.ToStr())
-
-    return result
-end function
-
-'-------------------------------------------------------------------------------
 ' syncLoadRequestToViews
 '-------------------------------------------------------------------------------
 sub syncLoadRequestToViews()
@@ -296,7 +280,6 @@ end sub
 '-------------------------------------------------------------------------------
 sub onLibraryItemsChanged()
     if m.syncingLibraryItems = true then return
-    if hasValidLoadRequest() = false then return
 
     m.syncingLibraryItems = true
     items = m.top.libraryItems

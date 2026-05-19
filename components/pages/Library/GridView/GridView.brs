@@ -60,7 +60,6 @@ sub onLibraryItemsChanged()
     m.log.write("onLibraryItemsChanged")
 
     if m.markupGrid = invalid then return
-    if hasValidLoadRequest() = false then return
 
     root = CreateObject("roSGNode", "ContentNode")
     items = m.top.libraryItems
@@ -105,21 +104,6 @@ sub onLibraryItemsChanged()
         end if
     end if
 end sub
-
-'-------------------------------------------------------------------------------
-' hasValidLoadRequest
-'-------------------------------------------------------------------------------
-function hasValidLoadRequest() as boolean
-
-    result = true
-
-    if m.server = invalid or m.server = "" then result = false
-    if m.token = invalid or m.token = "" then result = false
-
-    if result = false then m.log.write("hasValidLoadRequest() returned " + result.ToStr())
-
-    return result
-end function
 
 '-------------------------------------------------------------------------------
 ' shouldShowSeriesSequence

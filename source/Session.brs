@@ -5,7 +5,7 @@ function Session_BuildAuthenticatedSession(response as object) as object
     payload = response.payload
     sessionToken = response.token
     if payload <> invalid and payload.user <> invalid and payload.user.token <> invalid then sessionToken = payload.user.token
-    server = response.server
+    server = NormalizeServerUrl(response.server)
     username = payload.user.username
     userId = payload.user.id
 

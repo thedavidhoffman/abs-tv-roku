@@ -43,22 +43,6 @@ sub onLoadRequestChanged()
 end sub
 
 '-------------------------------------------------------------------------------
-' hasValidLoadRequest
-'-------------------------------------------------------------------------------
-function hasValidLoadRequest() as boolean
-
-    result = true
-
-    if m.loadRequest = invalid then result = false
-    if m.loadRequest.server = invalid or m.loadRequest.server = "" then result = false
-    if m.loadRequest.token = invalid or m.loadRequest.token = "" then result = false
-
-    if result = false then m.log.write("hasValidLoadRequest() returned " + result.ToStr())
-
-    return result
-end function
-
-'-------------------------------------------------------------------------------
 ' onMediaProgressChanged
 '-------------------------------------------------------------------------------
 sub onMediaProgressChanged()
@@ -67,7 +51,6 @@ sub onMediaProgressChanged()
 
 
     if m.hasSeriesRowsResponse <> true then return
-    if hasValidLoadRequest() = false then return
 
     rebuildSeriesRows(getResponseRows(m.top.seriesRowsResponse))
 end sub
@@ -81,7 +64,6 @@ sub onSeriesRowsResponseChanged()
 
     response = m.top.seriesRowsResponse
     if response = invalid then return
-    if hasValidLoadRequest() = false then return
 
     if response.ok <> true then
         setStatus(SafeString(response.errorMessage, "Unable to load series."))
@@ -116,7 +98,6 @@ sub rebuildSeriesRows(seriesRows as object)
     m.log.write("rebuildSeriesRows")
 
     if m.seriesRowList = invalid then return
-    if hasValidLoadRequest() = false then return
 
     root = CreateObject("roSGNode", "ContentNode")
     m.seriesItemsByRow = []

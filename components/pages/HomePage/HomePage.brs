@@ -58,8 +58,6 @@ sub loadPersonalizedShelves()
 
     m.log.write("loadPersonalizedShelves")
 
-    if hasValidLoadRequest() = false then return
-
     if m.top.visible = true then m.firstItemFocusPending = true
     m.isLoading = true
     setStatus("Loading...")
@@ -71,23 +69,6 @@ sub loadPersonalizedShelves()
         bookLibraryId: m.loadRequest.bookLibraryId
     })
 end sub
-
-'-------------------------------------------------------------------------------
-' hasValidLoadRequest
-'-------------------------------------------------------------------------------
-function hasValidLoadRequest() as boolean
-
-    result = true
-
-    if m.loadRequest = invalid then result = false
-    if m.loadRequest.server = invalid or m.loadRequest.server = "" then result = false
-    if m.loadRequest.token = invalid or m.loadRequest.token = "" result = false
-    if m.personalizedApiTask = invalid then result = false
-
-    if result = false then m.log.write("hasValidLoadRequest() returned " + result.ToStr())
-
-    return result
-end function
 
 '-------------------------------------------------------------------------------
 ' runPersonalizedApiRequest
@@ -156,7 +137,6 @@ sub renderPersonalizedShelves()
     m.log.write("renderPersonalizedShelves")
 
     if m.homeRowList = invalid then return
-    if hasValidLoadRequest() = false then return
 
     root = CreateObject("roSGNode", "ContentNode")
     m.shelfItemsByRow = []
