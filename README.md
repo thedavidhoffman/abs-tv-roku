@@ -18,7 +18,6 @@ NOTE: this app currently does not support: podcasts, collections, or playlists.
 
 ## Table of Contents
 
-- [Preview](#preview)
 - [Installing](#installing)
 - [AI Usage Disclaimer](#ai-usage-disclaimer)
 - [Privacy Policy](#privacy-policy)
