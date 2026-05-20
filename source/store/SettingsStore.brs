@@ -2,7 +2,7 @@
 ' Settings Registry Storage
 '-------------------------------------------------------------------------------
 ' roRegistrySection is Roku's persistent key/value storage API. This app uses the
-' registry to remember display preferences for series and library items.
+' registry to remember display preferences and screensaver settings.
 '
 '-------------------------------------------------------------------------------
 ' GetSettingsStore
@@ -14,10 +14,12 @@ end function
 '-------------------------------------------------------------------------------
 ' SettingsStore_Save
 '-------------------------------------------------------------------------------
-sub SettingsStore_Save(seriesDisplay as string, itemDisplay as string)
+sub SettingsStore_Save(seriesDisplay as string, itemDisplay as string, screensaverType as string, screensaverDelay as string)
     settingsStore = GetSettingsStore()
     settingsStore.Write("series-display", seriesDisplay)
     settingsStore.Write("item-display", itemDisplay)
+    settingsStore.Write("screensaver-type", screensaverType)
+    settingsStore.Write("screensaver-delay", screensaverDelay)
     settingsStore.Flush()
 end sub
 
@@ -29,6 +31,8 @@ function SettingsStore_Load() as object
     settings = {}
     settings["series-display"] = SettingsStore_ReadValue(settingsStore, "series-display", "collapse")
     settings["item-display"] = SettingsStore_ReadValue(settingsStore, "item-display", "grid")
+    settings["screensaver-type"] = SettingsStore_ReadValue(settingsStore, "screensaver-type", "off")
+    settings["screensaver-delay"] = SettingsStore_ReadValue(settingsStore, "screensaver-delay", "1")
     return settings
 end function
 
@@ -39,6 +43,8 @@ sub SettingsStore_Clear()
     settingsStore = GetSettingsStore()
     settingsStore.Delete("series-display")
     settingsStore.Delete("item-display")
+    settingsStore.Delete("screensaver-type")
+    settingsStore.Delete("screensaver-delay")
     settingsStore.Flush()
 end sub
 

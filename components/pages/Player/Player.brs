@@ -51,6 +51,7 @@ sub initReferences()
     m.chapterList = m.top.findNode("chapterList")
     m.audioPlayer = m.top.findNode("audioPlayer")
     m.playbackApiTask = m.top.findNode("playbackApiTask")
+    m.screensaverOverlay = m.top.findNode("screensaverOverlay")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -180,6 +181,7 @@ sub onPlayRequestChanged()
     m.currentTimeSeconds = m.requestedStartPositionSeconds
 
     if m.cover <> invalid then m.cover.itemContent = getCoverContent(request)
+    startScreensaverOverlay(request)
     if m.titleLabel <> invalid then m.titleLabel.text = m.audiobookTitle
     if m.descriptionLabel <> invalid then m.descriptionLabel.title = m.audiobookTitle
     if m.chapterList <> invalid then m.chapterList.audiobookTitle = m.audiobookTitle
@@ -220,6 +222,7 @@ end sub
 ' resetMediaNodeForNewPlayback
 '-------------------------------------------------------------------------------
 sub resetMediaNodeForNewPlayback()
+    stopScreensaverOverlay()
     stopProgressTimer()
     cancelProgressScrub()
     if m.hlsRetryTimer <> invalid then m.hlsRetryTimer.control = "stop"
@@ -228,6 +231,37 @@ sub resetMediaNodeForNewPlayback()
         m.audioPlayer.content = invalid
     end if
 end sub
+
+'-------------------------------------------------------------------------------
+' startScreensaverOverlay
+'-------------------------------------------------------------------------------
+sub startScreensaverOverlay(request as object)
+    if m.screensaverOverlay = invalid or request = invalid then return
+
+    m.screensaverOverlay.playbackRequest = {
+        server: SafeString(request.server, "")
+        token: SafeString(request.token, "")
+        itemId: SafeString(request.itemId, "")
+    }
+    m.screensaverOverlay.callFunc("startDelay")
+end sub
+
+'-------------------------------------------------------------------------------
+' stopScreensaverOverlay
+'-------------------------------------------------------------------------------
+sub stopScreensaverOverlay()
+    if m.screensaverOverlay <> invalid then m.screensaverOverlay.callFunc("stopOverlay")
+end sub
+
+'-------------------------------------------------------------------------------
+' recordScreensaverOverlayActivity
+'-------------------------------------------------------------------------------
+function recordScreensaverOverlayActivity() as boolean
+    if m.screensaverOverlay = invalid then return false
+
+    wasVisible = m.screensaverOverlay.callFunc("recordActivity")
+    return wasVisible = true
+end function
 
 '-------------------------------------------------------------------------------
 ' resetPlaybackSessionState
@@ -1081,6 +1115,7 @@ sub closePlayer()
     m.isClosing = true
 
     accumulatePlaybackListeningTime()
+    stopScreensaverOverlay()
     requestClosePlaybackSession()
     cancelProgressScrub()
     stopProgressTimer()
@@ -1108,6 +1143,8 @@ end sub
 ' finalizeClosePlayer
 '-------------------------------------------------------------------------------
 sub finalizeClosePlayer()
+    stopScreensaverOverlay()
+
     if m.audioPlayer <> invalid then
         m.audioPlayer.control = "stop"
         m.audioPlayer.content = invalid
@@ -1189,6 +1226,8 @@ end function
 '-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
+
+    if recordScreensaverOverlayActivity() then return true
 
     if m.nightModeTint <> invalid and m.nightModeTint.visible = true then
         m.nightModeTint.visible = false

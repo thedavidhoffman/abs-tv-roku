@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="ScreensaverOverlay" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Format.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
+  <script type="text/brightscript" uri="pkg:/source/String.brs" />
+  <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />
+  <script type="text/brightscript" uri="pkg:/components/screensavers/ScreensaverOverlay/ScreensaverOverlay.brs" />
+  <interface>
+    <field id="playbackRequest" type="assocarray" />
+    <function name="startDelay" />
+    <function name="stopOverlay" />
+    <function name="recordActivity" />
+    <function name="isVisible" />
+  </interface>
+  <children>
+    <Timer id="screensaverDelayTimer" repeat="false" />
+    <Group id="screensaverLayer" />
+  </children>
+</component>

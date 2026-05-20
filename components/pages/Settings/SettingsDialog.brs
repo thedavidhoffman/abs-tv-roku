@@ -46,7 +46,7 @@ sub saveSettings()
     if settings = invalid then return
     if areSettingsEqual(settings, m.originalSettings) then return
 
-    SettingsStore_Save(settings.seriesDisplay, settings.itemDisplay)
+    SettingsStore_Save(settings.seriesDisplay, settings.itemDisplay, settings.screensaverType, settings.screensaverDelay)
     m.top.savedSettings = settings
     m.settingsSavedCounter = m.settingsSavedCounter + 1
     m.top.settingsSaved = m.settingsSavedCounter
@@ -58,7 +58,7 @@ end sub
 function areSettingsEqual(settings as dynamic, previousSettings as dynamic) as boolean
     if settings = invalid or previousSettings = invalid then return false
 
-    return settings.seriesDisplay = previousSettings.seriesDisplay and settings.itemDisplay = previousSettings.itemDisplay
+    return settings.seriesDisplay = previousSettings.seriesDisplay and settings.itemDisplay = previousSettings.itemDisplay and settings.screensaverType = previousSettings.screensaverType and settings.screensaverDelay = previousSettings.screensaverDelay
 end function
 
 '-------------------------------------------------------------------------------

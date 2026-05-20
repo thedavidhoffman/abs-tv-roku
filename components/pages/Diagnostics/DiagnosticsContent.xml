@@ -38,21 +38,21 @@
     <!-- cache -->
     <Label
       id="cacheSectionTitle"
-      translation="[0,340]"
+      translation="[0,315]"
       width="420"
       height="40"
       text="Application Cache"
       font="font:MediumBoldSystemFont" />
     <Label
       id="cacheKeysLabel"
-      translation="[0,390]"
+      translation="[0,365]"
       width="250"
       height="450"
       wrap="true"
       font="font:SmallestBoldSystemFont" />
     <Label
       id="cacheValuesLabel"
-      translation="[270,390]"
+      translation="[270,365]"
       width="350"
       height="450"
       wrap="true"
@@ -84,23 +84,23 @@
     <!-- application registry -->
     <Label
       id="registrySectionTitle"
-      translation="[650,340]"
+      translation="[650,315]"
       width="500"
       height="40"
       text="Application Registry"
       font="font:MediumBoldSystemFont" />
     <Label
       id="registryKeysLabel"
-      translation="[650,390]"
-      width="260"
-      height="290"
+      translation="[650,365]"
+      width="315"
+      height="324"
       wrap="true"
       font="font:SmallestBoldSystemFont" />
     <Label
       id="registryValuesLabel"
-      translation="[930,390]"
+      translation="[985,365]"
       width="600"
-      height="290"
+      height="324"
       wrap="true"
       font="font:SmallestSystemFont" />
   </children>

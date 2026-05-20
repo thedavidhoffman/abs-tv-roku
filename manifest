@@ -27,4 +27,4 @@ splash_screen_sd=pkg:/images/splash-sd.jpg
 ui_resolutions=fhd,hd
 supports_input_launch=1
 run_as_process=0
-splash_min_time=1500
+splash_min_time=2000

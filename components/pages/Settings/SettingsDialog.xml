@@ -12,8 +12,8 @@
     <Dialog
       id="settingsDialog"
       title="Settings"
-      dialogWidth="900"
-      dialogHeight="550"
+      dialogWidth="1070"
+      dialogHeight="820"
       contentComponentName="SettingsContent" />
   </children>
 </component>

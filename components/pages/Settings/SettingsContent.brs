@@ -4,10 +4,14 @@
 sub init()
     m.seriesOptions = m.top.findNode("seriesOptions")
     m.displayOptions = m.top.findNode("displayOptions")
+    m.screensaverTypeOptions = m.top.findNode("screensaverTypeOptions")
+    m.screensaverDelayOptions = m.top.findNode("screensaverDelayOptions")
     m.activeGroupIndex = 0
     m.top.observeField("focusedChild", "onFocusChanged")
     initSeriesOptions()
     initDisplayOptions()
+    initScreensaverTypeOptions()
+    initScreensaverDelayOptions()
     loadSettingsValues()
 end sub
 
@@ -42,6 +46,43 @@ sub initDisplayOptions()
 end sub
 
 '-------------------------------------------------------------------------------
+' initScreensaverTypeOptions
+'-------------------------------------------------------------------------------
+sub initScreensaverTypeOptions()
+    if m.screensaverTypeOptions = invalid then return
+
+    content = CreateObject("roSGNode", "ContentNode")
+    offOption = content.createChild("ContentNode")
+    offOption.title = "Off"
+    bounceOption = content.createChild("ContentNode")
+    bounceOption.title = "Bouncing Cover"
+    starfieldOption = content.createChild("ContentNode")
+    starfieldOption.title = "Starfield"
+
+    m.screensaverTypeOptions.content = content
+end sub
+
+'-------------------------------------------------------------------------------
+' initScreensaverDelayOptions
+'-------------------------------------------------------------------------------
+sub initScreensaverDelayOptions()
+    if m.screensaverDelayOptions = invalid then return
+
+    content = CreateObject("roSGNode", "ContentNode")
+
+    oneMinuteOption = content.createChild("ContentNode")
+    oneMinuteOption.title = "1 minute"
+    fiveMinuteOption = content.createChild("ContentNode")
+    fiveMinuteOption.title = "5 minutes"
+    fifteenMinuteOption = content.createChild("ContentNode")
+    fifteenMinuteOption.title = "15 minutes"
+    thirtyMinuteOption = content.createChild("ContentNode")
+    thirtyMinuteOption.title = "30 minutes"
+
+    m.screensaverDelayOptions.content = content
+end sub
+
+'-------------------------------------------------------------------------------
 ' loadSettingsValues
 '-------------------------------------------------------------------------------
 sub loadSettingsValues()
@@ -63,6 +104,30 @@ sub loadSettingsValues()
             m.displayOptions.checkedItem = 0
         end if
     end if
+
+    if m.screensaverTypeOptions <> invalid then
+        if settings["screensaver-type"] = "bounce" then
+            m.screensaverTypeOptions.checkedItem = 1
+        else if settings["screensaver-type"] = "starfield" then
+            m.screensaverTypeOptions.checkedItem = 2
+        else
+            m.screensaverTypeOptions.checkedItem = 0
+        end if
+    end if
+
+    if m.screensaverDelayOptions <> invalid then
+        if settings["screensaver-delay"] = "1" then
+            m.screensaverDelayOptions.checkedItem = 0
+        else if settings["screensaver-delay"] = "5" then
+            m.screensaverDelayOptions.checkedItem = 1
+        else if settings["screensaver-delay"] = "15" then
+            m.screensaverDelayOptions.checkedItem = 2
+        else if settings["screensaver-delay"] = "30" then
+            m.screensaverDelayOptions.checkedItem = 3
+        else
+            m.screensaverDelayOptions.checkedItem = 0
+        end if
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -70,7 +135,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onFocusChanged()
     if m.top.isInFocusChain() = false then return
-    if isOptionsFocused(m.seriesOptions) or isOptionsFocused(m.displayOptions) then return
+    if isOptionsFocused(m.seriesOptions) or isOptionsFocused(m.displayOptions) or isOptionsFocused(m.screensaverTypeOptions) or isOptionsFocused(m.screensaverDelayOptions) then return
 
     focusActiveGroup()
 end sub
@@ -82,21 +147,39 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
     if key = "down" and isFocusedAtLastItem(m.displayOptions) then
-        if m.seriesOptions <> invalid then
-            m.activeGroupIndex = 1
-            m.seriesOptions.jumpToItem = 0
-            m.seriesOptions.setFocus(true)
-            return true
-        end if
+        return focusGroup(1, 0)
+    end if
+
+    if key = "down" and isFocusedAtLastItem(m.screensaverTypeOptions) then
+        return focusGroup(3, 0)
+    end if
+
+    if key = "right" and isOptionsFocused(m.displayOptions) then
+        return focusGroup(2, getFocusedItemIndex(m.screensaverTypeOptions))
+    end if
+
+    if key = "right" and isOptionsFocused(m.seriesOptions) then
+        return focusGroup(3, getFocusedItemIndex(m.screensaverDelayOptions))
+    end if
+
+    if key = "left" and isOptionsFocused(m.screensaverTypeOptions) then
+        return focusGroup(0, getFocusedItemIndex(m.displayOptions))
+    end if
+
+    if key = "left" and isOptionsFocused(m.screensaverDelayOptions) then
+        return focusGroup(1, getFocusedItemIndex(m.seriesOptions))
+    end if
+
+    if key = "up" and isFocusedAtFirstItem(m.screensaverDelayOptions) then
+        return focusGroup(2, getLastItemIndex(m.screensaverTypeOptions))
+    end if
+
+    if key = "up" and isFocusedAtFirstItem(m.screensaverTypeOptions) then
+        return focusGroup(1, getLastItemIndex(m.seriesOptions))
     end if
 
     if key = "up" and isFocusedAtFirstItem(m.seriesOptions) then
-        if m.displayOptions <> invalid then
-            m.activeGroupIndex = 0
-            m.displayOptions.jumpToItem = getLastItemIndex(m.displayOptions)
-            m.displayOptions.setFocus(true)
-            return true
-        end if
+        return focusGroup(0, getLastItemIndex(m.displayOptions))
     end if
 
     return false
@@ -106,33 +189,50 @@ end function
 ' focusActiveGroup
 '-------------------------------------------------------------------------------
 sub focusActiveGroup()
-    if m.activeGroupIndex = 1 and m.seriesOptions <> invalid then
-        m.seriesOptions.setFocus(true)
-    else if m.displayOptions <> invalid then
-        m.displayOptions.setFocus(true)
-    end if
+    focusGroup(m.activeGroupIndex, invalid)
 end sub
+
+'-------------------------------------------------------------------------------
+' focusGroup
+'-------------------------------------------------------------------------------
+function focusGroup(groupIndex as integer, itemIndex as dynamic) as boolean
+    options = getOptionsForGroup(groupIndex)
+    if options = invalid then return false
+
+    m.activeGroupIndex = groupIndex
+    if itemIndex <> invalid then
+        if itemIndex < 0 then itemIndex = 0
+        lastItemIndex = getLastItemIndex(options)
+        if itemIndex > lastItemIndex then itemIndex = lastItemIndex
+        options.jumpToItem = itemIndex
+    end if
+    options.setFocus(true)
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' getOptionsForGroup
+'-------------------------------------------------------------------------------
+function getOptionsForGroup(groupIndex as integer) as dynamic
+    if groupIndex = 1 then return m.seriesOptions
+    if groupIndex = 2 then return m.screensaverTypeOptions
+    if groupIndex = 3 then return m.screensaverDelayOptions
+
+    return m.displayOptions
+end function
 
 '-------------------------------------------------------------------------------
 ' focusFirstField
 '-------------------------------------------------------------------------------
 sub focusFirstField()
-    m.activeGroupIndex = 0
-    if m.displayOptions <> invalid then
-        m.displayOptions.jumpToItem = 0
-        m.displayOptions.setFocus(true)
-    end if
+    focusGroup(0, 0)
 end sub
 
 '-------------------------------------------------------------------------------
 ' focusLastField
 '-------------------------------------------------------------------------------
 sub focusLastField()
-    m.activeGroupIndex = 1
-    if m.seriesOptions <> invalid then
-        m.seriesOptions.jumpToItem = getLastItemIndex(m.seriesOptions)
-        m.seriesOptions.setFocus(true)
-    end if
+    focusGroup(3, getLastItemIndex(m.screensaverDelayOptions))
 end sub
 
 '-------------------------------------------------------------------------------
@@ -151,9 +251,31 @@ function getSettingsValues() as object
         itemDisplay = "grid"
     end if
 
+    screensaverTypeIndex = getCheckedItemIndex(m.screensaverTypeOptions)
+    if screensaverTypeIndex = 1 then
+        screensaverType = "bounce"
+    else if screensaverTypeIndex = 2 then
+        screensaverType = "starfield"
+    else
+        screensaverType = "off"
+    end if
+
+    screensaverDelayIndex = getCheckedItemIndex(m.screensaverDelayOptions)
+    if screensaverDelayIndex = 1 then
+        screensaverDelay = "5"
+    else if screensaverDelayIndex = 2 then
+        screensaverDelay = "15"
+    else if screensaverDelayIndex = 3 then
+        screensaverDelay = "30"
+    else
+        screensaverDelay = "1"
+    end if
+
     return {
         seriesDisplay: seriesDisplay
         itemDisplay: itemDisplay
+        screensaverType: screensaverType
+        screensaverDelay: screensaverDelay
     }
 end function
 
@@ -161,7 +283,7 @@ end function
 ' canMoveFocusToButtons
 '-------------------------------------------------------------------------------
 function canMoveFocusToButtons() as boolean
-    return isFocusedAtLastItem(m.seriesOptions)
+    return isFocusedAtLastItem(m.seriesOptions) or isFocusedAtLastItem(m.screensaverDelayOptions)
 end function
 
 '-------------------------------------------------------------------------------

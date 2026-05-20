@@ -1,0 +1,181 @@
+'-------------------------------------------------------------------------------
+' init
+'-------------------------------------------------------------------------------
+sub init()
+
+    m.log = CreateLogger("ScreensaverOverlay", false)
+    m.log.write("init")
+
+    m.screensaverDelayTimer = m.top.findNode("screensaverDelayTimer")
+    m.screensaverLayer = m.top.findNode("screensaverLayer")
+    m.activeScreensaver = invalid
+
+    if m.screensaverDelayTimer <> invalid then m.screensaverDelayTimer.observeField("fire", "onScreensaverDelayTimerFired")
+end sub
+
+'-------------------------------------------------------------------------------
+' startDelay
+'-------------------------------------------------------------------------------
+sub startDelay()
+
+    m.log.write("startDelay")
+
+    stopDelayTimer()
+
+    settings = SettingsStore_Load()
+    screensaverType = getScreensaverType(settings)
+    if screensaverType = "off" then return
+
+    if m.screensaverDelayTimer <> invalid then
+        m.screensaverDelayTimer.duration = getScreensaverDelaySeconds(settings)
+        m.screensaverDelayTimer.control = "start"
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' stopOverlay
+'-------------------------------------------------------------------------------
+sub stopOverlay()
+
+    m.log.write("stopOverlay")
+
+    stopDelayTimer()
+    removeScreensaver()
+end sub
+
+'-------------------------------------------------------------------------------
+' recordActivity
+'-------------------------------------------------------------------------------
+function recordActivity() as boolean
+
+    m.log.write("recordActivity")
+
+    wasVisible = isVisible()
+
+    if wasVisible then removeScreensaver()
+    startDelay()
+
+    return wasVisible
+end function
+
+'-------------------------------------------------------------------------------
+' isVisible
+'-------------------------------------------------------------------------------
+function isVisible() as boolean
+    return m.activeScreensaver <> invalid
+end function
+
+'-------------------------------------------------------------------------------
+' stopDelayTimer
+'-------------------------------------------------------------------------------
+sub stopDelayTimer()
+
+    m.log.write("stopDelayTimer")
+
+    if m.screensaverDelayTimer <> invalid then m.screensaverDelayTimer.control = "stop"
+end sub
+
+'-------------------------------------------------------------------------------
+' onScreensaverDelayTimerFired
+'-------------------------------------------------------------------------------
+sub onScreensaverDelayTimerFired()
+
+    m.log.write("onScreensaverDelayTimerFired")
+
+    stopDelayTimer()
+    showConfiguredScreensaver()
+end sub
+
+'-------------------------------------------------------------------------------
+' showConfiguredScreensaver
+'-------------------------------------------------------------------------------
+sub showConfiguredScreensaver()
+
+    m.log.write("showConfiguredScreensaver")
+
+    if m.screensaverLayer = invalid then return
+
+    settings = SettingsStore_Load()
+    screensaverType = getScreensaverType(settings)
+    if screensaverType = "off" then return
+
+    removeScreensaver()
+
+    componentName = ""
+    if screensaverType = "bounce" then
+        componentName = "Bounce"
+    else if screensaverType = "starfield" then
+        componentName = "Starfield"
+    end if
+    if componentName = "" then return
+
+    screensaver = CreateObject("roSGNode", componentName)
+    if screensaver = invalid then return
+
+    if screensaverType = "bounce" then updateBounceScreensaverNode(screensaver)
+    m.screensaverLayer.appendChild(screensaver)
+    m.activeScreensaver = screensaver
+end sub
+
+'-------------------------------------------------------------------------------
+' removeScreensaver
+'-------------------------------------------------------------------------------
+sub removeScreensaver()
+
+    m.log.write("removeScreensaver")
+
+    if m.screensaverLayer <> invalid then
+        while m.screensaverLayer.getChildCount() > 0
+            child = m.screensaverLayer.getChild(0)
+            if child = invalid then exit while
+            m.screensaverLayer.removeChild(child)
+        end while
+    end if
+
+    m.activeScreensaver = invalid
+end sub
+
+'-------------------------------------------------------------------------------
+' updateBounceScreensaverNode
+'-------------------------------------------------------------------------------
+sub updateBounceScreensaverNode(screensaver as object)
+
+    m.log.write("updateBounceScreensaverNode")
+
+    request = m.top.playbackRequest
+    if screensaver = invalid or request = invalid then return
+
+    screensaver.server = SafeString(request.server, "")
+    screensaver.token = SafeString(request.token, "")
+    screensaver.itemId = SafeString(request.itemId, "")
+end sub
+
+'-------------------------------------------------------------------------------
+' getScreensaverType
+'-------------------------------------------------------------------------------
+function getScreensaverType(settings as dynamic) as string
+
+    m.log.write("getScreensaverType")
+
+    if settings = invalid then return "off"
+
+    screensaverType = SafeString(settings["screensaver-type"], "off")
+    if screensaverType = "bounce" or screensaverType = "starfield" then return screensaverType
+
+    return "off"
+end function
+
+'-------------------------------------------------------------------------------
+' getScreensaverDelaySeconds
+'-------------------------------------------------------------------------------
+function getScreensaverDelaySeconds(settings as dynamic) as integer
+
+    m.log.write("getScreensaverDelaySeconds")
+
+    if settings = invalid then return 60
+
+    delayMinutes = int(val(SafeString(settings["screensaver-delay"], "1")))
+    if delayMinutes <> 1 and delayMinutes <> 5 and delayMinutes <> 15 and delayMinutes <> 30 then delayMinutes = 1
+
+    return delayMinutes * 60
+end function
