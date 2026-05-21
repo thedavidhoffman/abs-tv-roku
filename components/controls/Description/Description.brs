@@ -11,7 +11,7 @@ sub init()
     m.focusRingPadding = 20
 
     ' for computing the height of the focus ring per line of text
-    m.focusRingLineHeightTranslation = 46
+    m.focusRingLineHeightTranslation = 52
 
     ' default width and numLines if not set
     if m.top.width = invalid or m.top.width <= 0 then m.top.width = 1040
@@ -175,6 +175,9 @@ sub openDescriptionDialog()
     m.descriptionDialog.observeField("closeRequested", "onDescriptionDialogClosed")
     scene.appendChild(m.descriptionDialog)
     m.descriptionDialog.callFunc("openDialog")
+
+    content = m.descriptionDialog.callFunc("getContentComponent")
+    if content <> invalid then content.callFunc("focusFirstField")
 end sub
 
 '-------------------------------------------------------------------------------
