@@ -76,4 +76,4 @@ Things I hope to add support to this app for in the future.
 - usage stat page
 - collections
 - playlists
-- custom screensaver(s)
+
