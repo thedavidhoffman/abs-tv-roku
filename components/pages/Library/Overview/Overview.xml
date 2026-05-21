@@ -21,7 +21,7 @@
     <function name="isInFocusChain" />
   </interface>
   <children>
-    <RectangleSecondary id="overviewBg" translation="[920,91]" width="1000" height="980" />
+    <RectangleSecondary id="overviewBg" translation="[920,100]" width="1000" height="980" />
     <ScrollingLabel
       id="detailTitle"
       translation="[980,171]"
