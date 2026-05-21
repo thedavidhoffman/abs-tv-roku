@@ -12,6 +12,10 @@
     <field id="errorResponse" type="assocarray" />
   </interface>
   <children>
+
+    <!-- clock -->
+    <Clock id="clock" translation="[1680,30]" clockWidth="176" clockHeight="40" color="0xF6F7FBFF" />
+
     <!-- poster -->
     <ItemPoster
       id="cover"
