@@ -142,6 +142,7 @@ function getApplicationRegistryText() as object
         { key: "token", value: truncateText(auth.token, 40) + "..." }
         { key: "series-display", value: settings["series-display"] }
         { key: "item-display", value: settings["item-display"] }
+        { key: "grid-columns", value: settings["grid-columns"] }
         { key: "screensaver-type", value: settings["screensaver-type"] }
         { key: "screensaver-delay", value: settings["screensaver-delay"] }
     ])

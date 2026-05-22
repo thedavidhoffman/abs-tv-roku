@@ -12,7 +12,7 @@
     <Dialog
       id="settingsDialog"
       title="Settings"
-      dialogWidth="1070"
+      dialogWidth="1560"
       dialogHeight="820"
       contentComponentName="SettingsContent" />
   </children>

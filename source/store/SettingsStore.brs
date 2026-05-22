@@ -14,10 +14,11 @@ end function
 '-------------------------------------------------------------------------------
 ' SettingsStore_Save
 '-------------------------------------------------------------------------------
-sub SettingsStore_Save(seriesDisplay as string, itemDisplay as string, screensaverType as string, screensaverDelay as string)
+sub SettingsStore_Save(seriesDisplay as string, itemDisplay as string, gridColumns as string, screensaverType as string, screensaverDelay as string)
     settingsStore = GetSettingsStore()
     settingsStore.Write("series-display", seriesDisplay)
     settingsStore.Write("item-display", itemDisplay)
+    settingsStore.Write("grid-columns", gridColumns)
     settingsStore.Write("screensaver-type", screensaverType)
     settingsStore.Write("screensaver-delay", screensaverDelay)
     settingsStore.Flush()
@@ -31,6 +32,7 @@ function SettingsStore_Load() as object
     settings = {}
     settings["series-display"] = SettingsStore_ReadValue(settingsStore, "series-display", "collapse")
     settings["item-display"] = SettingsStore_ReadValue(settingsStore, "item-display", "grid")
+    settings["grid-columns"] = SettingsStore_ReadValue(settingsStore, "grid-columns", "6")
     settings["screensaver-type"] = SettingsStore_ReadValue(settingsStore, "screensaver-type", "off")
     settings["screensaver-delay"] = SettingsStore_ReadValue(settingsStore, "screensaver-delay", "1")
     return settings
@@ -43,6 +45,7 @@ sub SettingsStore_Clear()
     settingsStore = GetSettingsStore()
     settingsStore.Delete("series-display")
     settingsStore.Delete("item-display")
+    settingsStore.Delete("grid-columns")
     settingsStore.Delete("screensaver-type")
     settingsStore.Delete("screensaver-delay")
     settingsStore.Flush()

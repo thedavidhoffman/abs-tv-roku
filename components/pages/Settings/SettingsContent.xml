@@ -15,7 +15,7 @@
     <Label
       id="displayLabel"
       translation="[40,0]"
-      text="View library as"
+      text="View Library As"
       width="380"
       height="36"
       font="font:MediumBoldSystemFont" />
@@ -29,17 +29,35 @@
       fadeFocusFeedbackWhenAutoScrolling="false"
       focusFootprintBitmapUri="pkg:/images/focus/transparent_focus_footprint.9.png" />
 
+    <!-- grid columns -->
+    <Label
+      id="gridColumnsLabel"
+      translation="[1020,0]"
+      text="Grid Columns"
+      width="380"
+      height="36"
+      font="font:MediumBoldSystemFont" />
+    <RadioButtonList
+      id="gridColumnsOptions"
+      translation="[1020,48]"
+      itemSize="[380,48]"
+      numRows="3"
+      checkedItem="2"
+      vertFocusAnimationStyle="floatingFocus"
+      fadeFocusFeedbackWhenAutoScrolling="false"
+      focusFootprintBitmapUri="pkg:/images/focus/transparent_focus_footprint.9.png" />
+
     <!-- series display -->
     <Label
       id="seriesLabel"
-      translation="[40,220]"
-      text="Collapse series"
+      translation="[530,0]"
+      text="Collapse Series"
       width="380"
       height="36"
       font="font:MediumBoldSystemFont" />
     <RadioButtonList
       id="seriesOptions"
-      translation="[40,268]"
+      translation="[530,48]"
       itemSize="[380,48]"
       numRows="2"
       checkedItem="0"
@@ -50,14 +68,14 @@
     <!-- screensaver type -->
     <Label
       id="screensaverTypeLabel"
-      translation="[530,0]"
+      translation="[40,220]"
       text="Screensaver"
       width="380"
       height="36"
       font="font:MediumBoldSystemFont" />
     <RadioButtonList
       id="screensaverTypeOptions"
-      translation="[530,48]"
+      translation="[40,268]"
       itemSize="[380,48]"
       numRows="3"
       checkedItem="0"
@@ -86,9 +104,9 @@
     <!-- screensaver note -->
     <Label
       id="screensaverNoteLabel"
-      translation="[40,490]"
+      translation="[40,500]"
       text="ABSTV’s in-app screensaver only runs during audiobook playback. While a title is playing, ABSTV disables any configured Roku screensaver and uses its own screensaver instead."
-      width="870"
+      width="1360"
       height="150"
       wrap="true"
       numLines="3"

@@ -239,6 +239,8 @@ end sub
 sub applyDisplaySettings(settings as object)
     if settings = invalid then return
 
+    if m.gridView <> invalid then m.gridView.displaySettings = settings
+
     itemDisplay = getItemDisplaySetting(settings)
     if itemDisplay = "grid" then
         updateActiveView("grid")

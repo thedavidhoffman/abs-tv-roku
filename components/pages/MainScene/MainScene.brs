@@ -1019,8 +1019,10 @@ end sub
 sub overlayHandleSettingsSaved(savedSettings as dynamic)
     if savedSettings = invalid then return
 
+    if m.homePage <> invalid then m.homePage.displaySettings = savedSettings
     if m.library <> invalid then m.library.displaySettings = savedSettings
     if m.libraryController <> invalid then m.libraryController.displaySettings = savedSettings
+    if m.seriesPage <> invalid then m.seriesPage.displaySettings = savedSettings
     m.focusSettingsAfterLibraryReload = true
 end sub
 

@@ -4,15 +4,34 @@
 sub init()
     m.seriesOptions = m.top.findNode("seriesOptions")
     m.displayOptions = m.top.findNode("displayOptions")
+    m.gridColumnsOptions = m.top.findNode("gridColumnsOptions")
     m.screensaverTypeOptions = m.top.findNode("screensaverTypeOptions")
     m.screensaverDelayOptions = m.top.findNode("screensaverDelayOptions")
     m.activeGroupIndex = 0
     m.top.observeField("focusedChild", "onFocusChanged")
     initSeriesOptions()
     initDisplayOptions()
+    initGridColumnsOptions()
     initScreensaverTypeOptions()
     initScreensaverDelayOptions()
     loadSettingsValues()
+end sub
+
+'-------------------------------------------------------------------------------
+' initGridColumnsOptions
+'-------------------------------------------------------------------------------
+sub initGridColumnsOptions()
+    if m.gridColumnsOptions = invalid then return
+
+    content = CreateObject("roSGNode", "ContentNode")
+    fourOption = content.createChild("ContentNode")
+    fourOption.title = "4"
+    fiveOption = content.createChild("ContentNode")
+    fiveOption.title = "5"
+    sixOption = content.createChild("ContentNode")
+    sixOption.title = "6"
+
+    m.gridColumnsOptions.content = content
 end sub
 
 '-------------------------------------------------------------------------------
@@ -105,6 +124,16 @@ sub loadSettingsValues()
         end if
     end if
 
+    if m.gridColumnsOptions <> invalid then
+        if settings["grid-columns"] = "4" then
+            m.gridColumnsOptions.checkedItem = 0
+        else if settings["grid-columns"] = "5" then
+            m.gridColumnsOptions.checkedItem = 1
+        else
+            m.gridColumnsOptions.checkedItem = 2
+        end if
+    end if
+
     if m.screensaverTypeOptions <> invalid then
         if settings["screensaver-type"] = "bounce" then
             m.screensaverTypeOptions.checkedItem = 1
@@ -135,7 +164,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onFocusChanged()
     if m.top.isInFocusChain() = false then return
-    if isOptionsFocused(m.seriesOptions) or isOptionsFocused(m.displayOptions) or isOptionsFocused(m.screensaverTypeOptions) or isOptionsFocused(m.screensaverDelayOptions) then return
+    if isOptionsFocused(m.seriesOptions) or isOptionsFocused(m.displayOptions) or isOptionsFocused(m.gridColumnsOptions) or isOptionsFocused(m.screensaverTypeOptions) or isOptionsFocused(m.screensaverDelayOptions) then return
 
     focusActiveGroup()
 end sub
@@ -147,39 +176,51 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
     if key = "down" and isFocusedAtLastItem(m.displayOptions) then
-        return focusGroup(1, 0)
-    end if
-
-    if key = "down" and isFocusedAtLastItem(m.screensaverTypeOptions) then
         return focusGroup(3, 0)
     end if
 
+    if key = "down" and isFocusedAtLastItem(m.seriesOptions) then
+        return focusGroup(4, 0)
+    end if
+
+    if key = "down" and isFocusedAtLastItem(m.gridColumnsOptions) then
+        return focusGroup(4, 0)
+    end if
+
+    if key = "down" and isFocusedAtLastItem(m.screensaverTypeOptions) then
+        return focusGroup(4, 0)
+    end if
+
     if key = "right" and isOptionsFocused(m.displayOptions) then
-        return focusGroup(2, getFocusedItemIndex(m.screensaverTypeOptions))
-    end if
-
-    if key = "right" and isOptionsFocused(m.seriesOptions) then
-        return focusGroup(3, getFocusedItemIndex(m.screensaverDelayOptions))
-    end if
-
-    if key = "left" and isOptionsFocused(m.screensaverTypeOptions) then
-        return focusGroup(0, getFocusedItemIndex(m.displayOptions))
-    end if
-
-    if key = "left" and isOptionsFocused(m.screensaverDelayOptions) then
         return focusGroup(1, getFocusedItemIndex(m.seriesOptions))
     end if
 
-    if key = "up" and isFocusedAtFirstItem(m.screensaverDelayOptions) then
-        return focusGroup(2, getLastItemIndex(m.screensaverTypeOptions))
+    if key = "right" and isOptionsFocused(m.seriesOptions) then
+        return focusGroup(2, getFocusedItemIndex(m.gridColumnsOptions))
+    end if
+
+    if key = "right" and isOptionsFocused(m.screensaverTypeOptions) then
+        return focusGroup(4, getFocusedItemIndex(m.screensaverDelayOptions))
+    end if
+
+    if key = "left" and isOptionsFocused(m.seriesOptions) then
+        return focusGroup(0, getFocusedItemIndex(m.displayOptions))
+    end if
+
+    if key = "left" and isOptionsFocused(m.gridColumnsOptions) then
+        return focusGroup(1, getFocusedItemIndex(m.seriesOptions))
+    end if
+
+    if key = "left" and isOptionsFocused(m.screensaverDelayOptions) then
+        return focusGroup(3, getFocusedItemIndex(m.screensaverTypeOptions))
     end if
 
     if key = "up" and isFocusedAtFirstItem(m.screensaverTypeOptions) then
-        return focusGroup(1, getLastItemIndex(m.seriesOptions))
+        return focusGroup(0, getFocusedItemIndex(m.displayOptions))
     end if
 
-    if key = "up" and isFocusedAtFirstItem(m.seriesOptions) then
-        return focusGroup(0, getLastItemIndex(m.displayOptions))
+    if key = "up" and isFocusedAtFirstItem(m.screensaverDelayOptions) then
+        return focusGroup(1, getFocusedItemIndex(m.seriesOptions))
     end if
 
     return false
@@ -215,8 +256,9 @@ end function
 '-------------------------------------------------------------------------------
 function getOptionsForGroup(groupIndex as integer) as dynamic
     if groupIndex = 1 then return m.seriesOptions
-    if groupIndex = 2 then return m.screensaverTypeOptions
-    if groupIndex = 3 then return m.screensaverDelayOptions
+    if groupIndex = 2 then return m.gridColumnsOptions
+    if groupIndex = 3 then return m.screensaverTypeOptions
+    if groupIndex = 4 then return m.screensaverDelayOptions
 
     return m.displayOptions
 end function
@@ -232,7 +274,7 @@ end sub
 ' focusLastField
 '-------------------------------------------------------------------------------
 sub focusLastField()
-    focusGroup(3, getLastItemIndex(m.screensaverDelayOptions))
+    focusGroup(4, getLastItemIndex(m.screensaverDelayOptions))
 end sub
 
 '-------------------------------------------------------------------------------
@@ -249,6 +291,15 @@ function getSettingsValues() as object
         itemDisplay = "list"
     else
         itemDisplay = "grid"
+    end if
+
+    gridColumnsIndex = getCheckedItemIndex(m.gridColumnsOptions)
+    if gridColumnsIndex = 0 then
+        gridColumns = "4"
+    else if gridColumnsIndex = 1 then
+        gridColumns = "5"
+    else
+        gridColumns = "6"
     end if
 
     screensaverTypeIndex = getCheckedItemIndex(m.screensaverTypeOptions)
@@ -274,6 +325,7 @@ function getSettingsValues() as object
     return {
         seriesDisplay: seriesDisplay
         itemDisplay: itemDisplay
+        gridColumns: gridColumns
         screensaverType: screensaverType
         screensaverDelay: screensaverDelay
     }

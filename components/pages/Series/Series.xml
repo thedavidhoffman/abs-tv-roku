@@ -6,9 +6,12 @@
   <script type="text/brightscript" uri="pkg:/source/Cover.brs" />
   <script type="text/brightscript" uri="pkg:/source/MediaProgressLookup.brs" />
   <script type="text/brightscript" uri="pkg:/source/ProgressData.brs" />
+  <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />
+  <script type="text/brightscript" uri="pkg:/source/GridLayout.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Series/Series.brs" />
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
+    <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
     <field id="seriesRowsResponse" type="assocarray" onChange="onSeriesRowsResponseChanged" />
     <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />
     <field id="playSelected" type="assocarray" />

@@ -93,14 +93,14 @@
       id="registryKeysLabel"
       translation="[650,365]"
       width="315"
-      height="324"
+      height="372"
       wrap="true"
       font="font:SmallestBoldSystemFont" />
     <Label
       id="registryValuesLabel"
       translation="[985,365]"
       width="600"
-      height="324"
+      height="372"
       wrap="true"
       font="font:SmallestSystemFont" />
   </children>

@@ -11,7 +11,7 @@
       id="diagnosticsDialog"
       title="Diagnostics"
       dialogWidth="1680"
-      dialogHeight="900"
+      dialogHeight="940"
       contentComponentName="DiagnosticsContent" />
   </children>
 </component>

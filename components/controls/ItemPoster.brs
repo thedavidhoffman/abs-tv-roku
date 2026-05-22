@@ -4,7 +4,8 @@
 ' itemContent carries item data such as title, author, cover URLs, focus state,
 ' series data, and progress values. Component fields carry presentation settings
 ' for this specific ItemPoster usage, such as posterWidth, showText, and
-' showProgressBar.
+' showProgressBar. Grid rows may also provide posterWidth on itemContent when a
+' shared setting controls the rendered item size.
 
 '-------------------------------------------------------------------------------
 ' init
@@ -99,6 +100,7 @@ end sub
 '-------------------------------------------------------------------------------
 function getPosterWidth() as integer
     width = m.top.posterWidth
+    if m.content <> invalid and m.content.posterWidth <> invalid then width = m.content.posterWidth
     if width = invalid or width < 1 then width = 280
     return width
 end function

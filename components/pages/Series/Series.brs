@@ -17,13 +17,41 @@ sub init()
     m.loadRequest = invalid
     m.server = invalid
     m.token = invalid
+    m.posterWidth = 280
 
     if m.seriesRowList <> invalid then
         m.seriesRowList.observeField("itemSelected", "onItemSelected")
         m.seriesRowList.observeField("rowItemFocused", "onRowItemFocused")
     end if
 
+    applyGridLayout(SettingsStore_Load())
     setStatus("Loading...")
+end sub
+
+'-------------------------------------------------------------------------------
+' onDisplaySettingsChanged
+'-------------------------------------------------------------------------------
+sub onDisplaySettingsChanged()
+    applyGridLayout(m.top.displaySettings)
+    if m.hasSeriesRowsResponse = true then rebuildSeriesRows(getResponseRows(m.top.seriesRowsResponse))
+end sub
+
+'-------------------------------------------------------------------------------
+' applyGridLayout
+'-------------------------------------------------------------------------------
+sub applyGridLayout(settings as dynamic)
+    if m.seriesRowList = invalid then return
+
+    columnCount = GridLayout_GetColumnCount(settings)
+    posterWidth = GridLayout_GetPosterWidth(columnCount)
+    itemHeight = GridLayout_GetItemHeight(posterWidth)
+    rowHeight = GridLayout_GetRowHeight(itemHeight)
+    gutter = GridLayout_GetHorizontalGutter()
+
+    m.posterWidth = posterWidth
+    m.seriesRowList.itemSize = [1792, rowHeight]
+    m.seriesRowList.rowItemSize = [[posterWidth, itemHeight], [posterWidth, itemHeight], [posterWidth, itemHeight]]
+    m.seriesRowList.rowItemSpacing = [[gutter, 0], [gutter, 0], [gutter, 0]]
 end sub
 
 '-------------------------------------------------------------------------------
@@ -133,12 +161,13 @@ sub appendSeriesRow(root as object, seriesRow as dynamic)
         if item <> invalid and item.id <> invalid then
             node = CreateObject("roSGNode", "ContentNode")
             node.title = getLibraryItemTitle(item)
-            node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, 280)
+            node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, m.posterWidth)
             node.SDPosterUrl = node.HDPosterUrl
             progress = ProgressData_GetItemProgress(item, m.top.mediaProgress)
             metadata = getItemMetadata(item)
             node.AddFields({
                 author: getItemAuthor(metadata)
+                posterWidth: m.posterWidth
                 seriesSequence: getSeriesSequence(item, seriesRow.seriesId)
                 showSeriesSequence: true
                 progressPercent: progress.progress

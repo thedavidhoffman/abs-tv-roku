@@ -17,13 +17,39 @@ sub init()
     m.allLibraryItemLookup = {}
     m.server = invalid
     m.token = invalid
+    m.posterWidth = 280
 
     if m.markupGrid <> invalid then
         m.markupGrid.observeField("itemSelected", "onPosterSelected")
         m.markupGrid.observeField("itemFocused", "onItemFocused")
     end if
 
+    applyGridLayout(m.top.displaySettings)
     onContextTitleChanged()
+end sub
+
+'-------------------------------------------------------------------------------
+' onDisplaySettingsChanged
+'-------------------------------------------------------------------------------
+sub onDisplaySettingsChanged()
+    applyGridLayout(m.top.displaySettings)
+    onLibraryItemsChanged()
+end sub
+
+'-------------------------------------------------------------------------------
+' applyGridLayout
+'-------------------------------------------------------------------------------
+sub applyGridLayout(settings as dynamic)
+    if m.markupGrid = invalid then return
+
+    columnCount = GridLayout_GetColumnCount(settings)
+    posterWidth = GridLayout_GetPosterWidth(columnCount)
+    itemHeight = GridLayout_GetItemHeight(posterWidth)
+
+    m.posterWidth = posterWidth
+    m.markupGrid.numColumns = columnCount
+    m.markupGrid.itemSize = [posterWidth, itemHeight]
+    m.markupGrid.itemSpacing = [GridLayout_GetHorizontalGutter(), 34]
 end sub
 
 '-------------------------------------------------------------------------------
@@ -72,11 +98,12 @@ sub onLibraryItemsChanged()
                 metadata = getItemMetadata(item)
                 node = CreateObject("roSGNode", "ContentNode")
                 node.title = getLibraryItemTitle(item)
-                node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, 280)
+                node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, m.posterWidth)
                 node.SDPosterUrl = node.HDPosterUrl
                 progress = getPosterProgressData(item)
                 node.AddFields({
                     author: getItemAuthor(metadata)
+                    posterWidth: m.posterWidth
                     isSeriesItem: isSeriesItem(item)
                     collapsedSeries: item.collapsedSeries
                     seriesSequence: getSeriesSequence(item)

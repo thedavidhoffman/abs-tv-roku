@@ -5,9 +5,12 @@
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/Cover.brs" />
   <script type="text/brightscript" uri="pkg:/source/ProgressData.brs" />
+  <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />
+  <script type="text/brightscript" uri="pkg:/source/GridLayout.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/HomePage/HomePage.brs" />
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
+    <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
     <field id="personalizedShelves" type="array" onChange="onPersonalizedShelvesChanged" />
     <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />
     <field id="playSelected" type="assocarray" />

@@ -21,6 +21,7 @@ sub init()
     m.server = invalid
     m.token = invalid
     m.isLoading = false
+    m.posterWidth = 280
 
     if m.homeRowList <> invalid then
         m.homeRowList.observeField("itemSelected", "onItemSelected")
@@ -32,6 +33,33 @@ sub init()
     end if
     if m.focusRetryTimer <> invalid then m.focusRetryTimer.observeField("fire", "onFocusRetryTimerFired")
 
+    applyGridLayout(SettingsStore_Load())
+end sub
+
+'-------------------------------------------------------------------------------
+' onDisplaySettingsChanged
+'-------------------------------------------------------------------------------
+sub onDisplaySettingsChanged()
+    applyGridLayout(m.top.displaySettings)
+    renderPersonalizedShelves()
+end sub
+
+'-------------------------------------------------------------------------------
+' applyGridLayout
+'-------------------------------------------------------------------------------
+sub applyGridLayout(settings as dynamic)
+    if m.homeRowList = invalid then return
+
+    columnCount = GridLayout_GetColumnCount(settings)
+    posterWidth = GridLayout_GetPosterWidth(columnCount)
+    itemHeight = GridLayout_GetItemHeight(posterWidth)
+    rowHeight = GridLayout_GetRowHeight(itemHeight)
+    gutter = GridLayout_GetHorizontalGutter()
+
+    m.posterWidth = posterWidth
+    m.homeRowList.itemSize = [1792, rowHeight]
+    m.homeRowList.rowItemSize = [[posterWidth, itemHeight], [posterWidth, itemHeight], [posterWidth, itemHeight]]
+    m.homeRowList.rowItemSpacing = [[gutter, 0], [gutter, 0], [gutter, 0]]
 end sub
 
 '-------------------------------------------------------------------------------
@@ -185,12 +213,13 @@ sub appendShelfRow(root as object, shelfId as string, title as string)
         if item <> invalid and item.id <> invalid then
             node = CreateObject("roSGNode", "ContentNode")
             node.title = getLibraryItemTitle(item)
-            node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, 280)
+            node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, m.posterWidth)
             node.SDPosterUrl = node.HDPosterUrl
             progress = ProgressData_GetItemProgress(item, m.top.mediaProgress)
             metadata = getItemMetadata(item)
             node.AddFields({
                 author: getItemAuthor(metadata)
+                posterWidth: m.posterWidth
                 progressPercent: progress.progress
                 progressCurrentTime: progress.currentTime
                 progressDuration: progress.duration
