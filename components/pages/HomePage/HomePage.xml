@@ -32,6 +32,7 @@
       itemSpacing="[0,34]"
       rowItemSpacing="[[22,0],[22,0],[22,0]]"
       showRowLabel="[true]"
+      showRowCounter="[true]"
       rowLabelFont="font:SmallSystemFont"
       rowLabelOffset="[[0,16],[0,16],[0,16]]"
       drawFocusFeedback="true"
