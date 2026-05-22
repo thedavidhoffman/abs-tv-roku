@@ -85,6 +85,7 @@ sub initValues()
     m.hasStartedPlayback = false
     m.visiblePlaybackStatus = ""
     m.startTimeOverrideSeconds = invalid
+    m.playbackComplete = false
     m.playbackStartedAtSeconds = 0
     m.lastPlaybackSyncAtSeconds = 0
     m.lastProgressTickAtSeconds = 0
@@ -168,6 +169,7 @@ sub onPlayRequestChanged()
     m.log.write("startPosition = " + SafeString(request.startPositionSeconds))
 
     m.isClosing = false
+    m.playbackComplete = false
     if m.closeTimer <> invalid then m.closeTimer.control = "stop"
     resetMediaNodeForNewPlayback()
 
@@ -247,6 +249,14 @@ sub startScreensaverOverlay(request as object)
 end sub
 
 '-------------------------------------------------------------------------------
+' restartScreensaverOverlayDelay
+'-------------------------------------------------------------------------------
+sub restartScreensaverOverlayDelay()
+    m.playbackComplete = false
+    startScreensaverOverlay(m.top.playRequest)
+end sub
+
+'-------------------------------------------------------------------------------
 ' stopScreensaverOverlay
 '-------------------------------------------------------------------------------
 sub stopScreensaverOverlay()
@@ -258,6 +268,12 @@ end sub
 '-------------------------------------------------------------------------------
 function recordScreensaverOverlayActivity() as boolean
     if m.screensaverOverlay = invalid then return false
+
+    if m.playbackComplete = true then
+        wasVisible = m.screensaverOverlay.callFunc("isVisible")
+        stopScreensaverOverlay()
+        return wasVisible = true
+    end if
 
     wasVisible = m.screensaverOverlay.callFunc("recordActivity")
     return wasVisible = true
@@ -275,6 +291,7 @@ sub resetPlaybackSessionState()
     m.playbackSession = invalid
     m.playbackSessionId = invalid
     m.isHlsTranscode = false
+    m.playbackComplete = false
     m.hlsStartupSeekTargetSeconds = invalid
     m.playbackVisualTargetSeconds = invalid
     m.hasStartedPlayback = false
@@ -681,6 +698,7 @@ sub playCurrentTrack(playWhenReady = true as boolean)
     m.isPaused = (playWhenReady <> true)
     disableScreenSaver()
     if playWhenReady then
+        restartScreensaverOverlayDelay()
         m.audioPlayer.control = "play"
         if m.hasStartedPlayback = true then setStatus("Playing")
     else
@@ -778,7 +796,14 @@ sub seekToGlobalTime(globalTime as dynamic, playWhenReady = true as boolean, sho
     else
         seekPosition = getTrackSeekPosition(m.currentTrackIndex, targetTime)
         m.audioPlayer.seek = seekPosition
-        if playWhenReady = true and m.audioPlayer.state = "paused" then m.audioPlayer.control = "resume"
+        if playWhenReady = true then
+            restartScreensaverOverlayDelay()
+            if m.audioPlayer.state = "paused" then
+                m.audioPlayer.control = "resume"
+            else if m.audioPlayer.state = "finished" then
+                m.audioPlayer.control = "play"
+            end if
+        end if
         if playWhenReady = false and m.audioPlayer.state = "playing" then m.audioPlayer.control = "pause"
     end if
 
@@ -854,6 +879,7 @@ sub onAudioStateChanged()
     ' playing
     '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     if state = "playing" then
+        restartScreensaverOverlayDelay()
         hasUnsettledHlsStartupSeek = (m.isHlsTranscode = true and (m.pendingSeekSeconds <> invalid or m.hlsStartupSeekTargetSeconds <> invalid))
         if hasUnsettledHlsStartupSeek <> true then m.hlsRetryCount = 0
         m.hlsRetryPending = false
@@ -898,12 +924,7 @@ sub onAudioStateChanged()
             return
         end if
 
-        stopProgressTimer()
-        enableScreenSaver()
-        updateProgress(m.totalDurationSeconds, true)
-        setStatus("Finished")
-        m.isPaused = false
-        updatePlayPauseButton()
+        handlePlaybackComplete()
     else if state = "error" then
         logPlaybackError("Roku media node entered error state.")
         if restartWithTranscodeFallback("media-error") then return
@@ -916,6 +937,22 @@ sub onAudioStateChanged()
         m.isPaused = false
         updatePlayPauseButton()
     end if
+end sub
+
+'-------------------------------------------------------------------------------
+' handlePlaybackComplete
+'-------------------------------------------------------------------------------
+sub handlePlaybackComplete()
+    if m.playbackComplete = true then return
+
+    m.playbackComplete = true
+    stopProgressTimer()
+    stopScreensaverOverlay()
+    enableScreenSaver()
+    updateProgress(m.totalDurationSeconds, true)
+    setStatus("Finished")
+    m.isPaused = false
+    updatePlayPauseButton()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1725,6 +1762,7 @@ sub togglePlayPause()
         setStatus("Paused")
     else
         m.isPaused = false
+        restartScreensaverOverlayDelay()
         disableScreenSaver()
         if m.audioPlayer.state = "paused" then
             m.audioPlayer.control = "resume"
@@ -1759,6 +1797,11 @@ sub onProgressTimerFired()
     accumulatePlaybackListeningTime()
     position = getPlaybackCurrentTimeSeconds()
 
+    if isPlaybackCompleteAtPosition(position) then
+        handlePlaybackComplete()
+        return
+    end if
+
     if m.isProgressScrubbing = true then
         m.progressScrubTargetSeconds = position
         updatePlaybackPosition(position)
@@ -1770,6 +1813,20 @@ sub onProgressTimerFired()
     updatePlaybackPosition(position)
     requestPeriodicPlaybackSync()
 end sub
+
+'-------------------------------------------------------------------------------
+' isPlaybackCompleteAtPosition
+'-------------------------------------------------------------------------------
+function isPlaybackCompleteAtPosition(position as integer) as boolean
+    if m.playbackComplete = true then return false
+    if m.hasStartedPlayback <> true then return false
+    if m.isProgressScrubbing = true then return false
+
+    duration = getPlaybackDurationSeconds()
+    if duration <= 0 then return false
+
+    return position >= duration
+end function
 
 '-------------------------------------------------------------------------------
 ' accumulatePlaybackListeningTime

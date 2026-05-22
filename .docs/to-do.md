@@ -1,7 +1,7 @@
 
 
 
-v1.1.0Release Notes
+v1.1.0 Release Notes
 
 - Screensaver support has been added. ABSTV now includes two in-app screensaver options: Bouncing Cover and Starfield. While browsing titles in ABSTV, your configured Roku screensaver will still run as usual. During audiobook playback, ABSTV disables the Roku system screensaver. If an ABSTV screensaver is enabled, it will appear during playback only.
 
