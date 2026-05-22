@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="Pong" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Format.brs" />
+  <script type="text/brightscript" uri="pkg:/source/String.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Cover.brs" />
+  <script type="text/brightscript" uri="pkg:/components/screensavers/Pong/Pong.brs" />
+  <interface>
+    <field id="server" type="string" onChange="updatePoster" />
+    <field id="token" type="string" onChange="updatePoster" />
+    <field id="itemId" type="string" onChange="updatePoster" />
+  </interface>
+  <children>
+    <Rectangle id="background" width="1920" height="1080" color="0x000000FF" />
+    <Group id="centerLineLayer" />
+    <Rectangle id="leftPaddle" width="21" height="220" color="0xFFFFFFFF" />
+    <Rectangle id="rightPaddle" width="21" height="220" color="0xFFFFFFFF" />
+    <Label
+      id="leftScore"
+      translation="[700,80]"
+      width="160"
+      height="80"
+      horizAlign="center"
+      color="0xFFFFFFFF"
+      font="font:LargeBoldSystemFont" />
+    <Label
+      id="rightScore"
+      translation="[1060,80]"
+      width="160"
+      height="80"
+      horizAlign="center"
+      color="0xFFFFFFFF"
+      font="font:LargeBoldSystemFont" />
+    <Poster
+      id="poster"
+      width="250"
+      height="250"
+      uri="pkg:/images/placeholder-cover.png"
+      loadDisplayMode="scaleToFit" />
+    <Timer id="gameTimer" duration="0.033" repeat="true" />
+    <Timer id="serveTimer" duration="0.55" repeat="false" />
+  </children>
+</component>

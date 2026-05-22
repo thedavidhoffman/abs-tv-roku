@@ -58,6 +58,8 @@ sub initScreensaverTypeOptions()
     bounceOption.title = "Bouncing Cover"
     starfieldOption = content.createChild("ContentNode")
     starfieldOption.title = "Starfield"
+    pongOption = content.createChild("ContentNode")
+    pongOption.title = "Pong"
 
     m.screensaverTypeOptions.content = content
 end sub
@@ -110,6 +112,8 @@ sub loadSettingsValues()
             m.screensaverTypeOptions.checkedItem = 1
         else if settings["screensaver-type"] = "starfield" then
             m.screensaverTypeOptions.checkedItem = 2
+        else if settings["screensaver-type"] = "pong" then
+            m.screensaverTypeOptions.checkedItem = 3
         else
             m.screensaverTypeOptions.checkedItem = 0
         end if
@@ -256,6 +260,8 @@ function getSettingsValues() as object
         screensaverType = "bounce"
     else if screensaverTypeIndex = 2 then
         screensaverType = "starfield"
+    else if screensaverTypeIndex = 3 then
+        screensaverType = "pong"
     else
         screensaverType = "off"
     end if

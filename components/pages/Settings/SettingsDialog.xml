@@ -13,7 +13,7 @@
       id="settingsDialog"
       title="Settings"
       dialogWidth="1070"
-      dialogHeight="820"
+      dialogHeight="900"
       contentComponentName="SettingsContent" />
   </children>
 </component>

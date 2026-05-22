@@ -59,7 +59,7 @@
       id="screensaverTypeOptions"
       translation="[530,48]"
       itemSize="[380,48]"
-      numRows="3"
+      numRows="4"
       checkedItem="0"
       vertFocusAnimationStyle="floatingFocus"
       fadeFocusFeedbackWhenAutoScrolling="false"
@@ -68,14 +68,14 @@
     <!-- screensaver delay -->
     <Label
       id="screensaverDelayLabel"
-      translation="[530,220]"
+      translation="[530,268]"
       text="Start screensaver after"
       width="400"
       height="36"
       font="font:MediumBoldSystemFont" />
     <RadioButtonList
       id="screensaverDelayOptions"
-      translation="[530,268]"
+      translation="[530,316]"
       itemSize="[380,48]"
       numRows="4"
       checkedItem="0"
@@ -86,7 +86,7 @@
     <!-- screensaver note -->
     <Label
       id="screensaverNoteLabel"
-      translation="[40,490]"
+      translation="[40,540]"
       text="ABSTV’s in-app screensaver only runs during audiobook playback. While a title is playing, ABSTV disables any configured Roku screensaver and uses its own screensaver instead."
       width="870"
       height="150"

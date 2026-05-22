@@ -106,13 +106,15 @@ sub showConfiguredScreensaver()
         componentName = "Bounce"
     else if screensaverType = "starfield" then
         componentName = "Starfield"
+    else if screensaverType = "pong" then
+        componentName = "Pong"
     end if
     if componentName = "" then return
 
     screensaver = CreateObject("roSGNode", componentName)
     if screensaver = invalid then return
 
-    if screensaverType = "bounce" then updateBounceScreensaverNode(screensaver)
+    if screensaverType = "bounce" or screensaverType = "pong" then updateCoverScreensaverNode(screensaver)
     m.screensaverLayer.appendChild(screensaver)
     m.activeScreensaver = screensaver
 end sub
@@ -136,11 +138,11 @@ sub removeScreensaver()
 end sub
 
 '-------------------------------------------------------------------------------
-' updateBounceScreensaverNode
+' updateCoverScreensaverNode
 '-------------------------------------------------------------------------------
-sub updateBounceScreensaverNode(screensaver as object)
+sub updateCoverScreensaverNode(screensaver as object)
 
-    m.log.write("updateBounceScreensaverNode")
+    m.log.write("updateCoverScreensaverNode")
 
     request = m.top.playbackRequest
     if screensaver = invalid or request = invalid then return
@@ -160,7 +162,7 @@ function getScreensaverType(settings as dynamic) as string
     if settings = invalid then return "off"
 
     screensaverType = SafeString(settings["screensaver-type"], "off")
-    if screensaverType = "bounce" or screensaverType = "starfield" then return screensaverType
+    if screensaverType = "bounce" or screensaverType = "starfield" or screensaverType = "pong" then return screensaverType
 
     return "off"
 end function
