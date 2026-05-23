@@ -113,3 +113,19 @@ function SettingsStore_GetSettingValue(settings as dynamic, key as string) as st
     if settings[key] = invalid or settings[key] = "" then return defaultValue
     return settings[key].ToStr()
 end function
+
+'-------------------------------------------------------------------------------
+' SettingsStore_AreEqual
+'-------------------------------------------------------------------------------
+function SettingsStore_AreEqual(left as dynamic, right as dynamic) as boolean
+    if left = invalid or right = invalid then return false
+
+    keys = SettingsStore_Keys()
+    if SettingsStore_GetSettingValue(left, keys.seriesDisplay) <> SettingsStore_GetSettingValue(right, keys.seriesDisplay) then return false
+    if SettingsStore_GetSettingValue(left, keys.itemDisplay) <> SettingsStore_GetSettingValue(right, keys.itemDisplay) then return false
+    if SettingsStore_GetSettingValue(left, keys.gridColumns) <> SettingsStore_GetSettingValue(right, keys.gridColumns) then return false
+    if SettingsStore_GetSettingValue(left, keys.screensaverType) <> SettingsStore_GetSettingValue(right, keys.screensaverType) then return false
+    if SettingsStore_GetSettingValue(left, keys.screensaverDelay) <> SettingsStore_GetSettingValue(right, keys.screensaverDelay) then return false
+
+    return true
+end function
