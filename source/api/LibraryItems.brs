@@ -14,6 +14,14 @@ function LibraryItems_Load(request as object) as object
     server = request.server
     token = request.token
     bookLibraryId = request.bookLibraryId
+    collapseSeries = "0"
+
+    if request.collapseSeries = invalid then
+        log.error("Missing collapseSeries for library load request, defaulting to false/0.")
+        log.flush()
+    else
+        if request.collapseSeries = true then collapseSeries = "1"
+    end if
 
     if bookLibraryId = invalid or bookLibraryId = "" then
         
@@ -40,7 +48,6 @@ function LibraryItems_Load(request as object) as object
     page = 0
     limit = 100
     keepLoading = true
-    collapseSeries = __GetCollapseSeriesQueryValue(request)
 
     while keepLoading
 
@@ -88,18 +95,4 @@ function __AttachLibraryItemsRequestMetadata(response as object, request as obje
     response.cacheKey = request.cacheKey
     response.requestGeneration = request.requestGeneration
     return response
-end function
-
-'-------------------------------------------------------------------------------
-' __GetCollapseSeriesQueryValue
-'-------------------------------------------------------------------------------
-function __GetCollapseSeriesQueryValue(request as object) as string
-    if request <> invalid and request.collapseSeries <> invalid then
-        if request.collapseSeries = true then return "1"
-        return "0"
-    end if
-
-    settings = SettingsStore_Load()
-    if settings <> invalid and settings["series-display"] = "collapse" then return "1"
-    return "0"
 end function

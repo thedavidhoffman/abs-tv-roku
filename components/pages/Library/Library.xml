@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="Library" extends="Group">
-  <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />
   <script type="text/brightscript" uri="pkg:/source/Format.brs" />
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/String.brs" />

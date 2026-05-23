@@ -3,6 +3,7 @@
 '-------------------------------------------------------------------------------
 sub init()
     initReferences()
+    initSettings()
     initHandlers()
     initStyle()
 
@@ -19,6 +20,14 @@ sub init()
 
     authPreloadSavedFields()
     authRequestResumeSession()
+end sub
+
+'-------------------------------------------------------------------------------
+' initSettings
+'-------------------------------------------------------------------------------
+sub initSettings()
+    m.displaySettings = SettingsStore_Load()
+    syncDisplaySettingsToComponents()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1019,14 +1028,24 @@ end sub
 sub overlayHandleSettingsSaved(savedSettings as dynamic)
     if savedSettings = invalid then return
 
-    if m.homePage <> invalid then m.homePage.displaySettings = savedSettings
-    if m.library <> invalid then m.library.displaySettings = savedSettings
-    if m.libraryController <> invalid then m.libraryController.displaySettings = savedSettings
-    if m.seriesPage <> invalid then m.seriesPage.displaySettings = savedSettings
+    m.displaySettings = savedSettings
+    syncDisplaySettingsToComponents()
     m.focusSettingsAfterLibraryReload = true
 end sub
 
 '-------------------------------------------------------------------------------
+' syncDisplaySettingsToComponents
+'-------------------------------------------------------------------------------
+sub syncDisplaySettingsToComponents()
+    if m.displaySettings = invalid then return
+
+    if m.homePage <> invalid then m.homePage.displaySettings = m.displaySettings
+    if m.library <> invalid then m.library.displaySettings = m.displaySettings
+    if m.libraryController <> invalid then m.libraryController.displaySettings = m.displaySettings
+    if m.seriesPage <> invalid then m.seriesPage.displaySettings = m.displaySettings
+    if m.player <> invalid then m.player.displaySettings = m.displaySettings
+end sub
+
 ' overlayOpenExitDialog
 '-------------------------------------------------------------------------------
 sub overlayOpenExitDialog()

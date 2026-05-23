@@ -5,7 +5,6 @@
   <script type="text/brightscript" uri="pkg:/source/String.brs" />
   <script type="text/brightscript" uri="pkg:/source/SearchRules.brs" />
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
-  <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />
   <script type="text/brightscript" uri="pkg:/components/controllers/LibraryController/LibraryController.brs" />
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />

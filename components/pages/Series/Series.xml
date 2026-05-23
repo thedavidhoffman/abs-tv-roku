@@ -6,7 +6,6 @@
   <script type="text/brightscript" uri="pkg:/source/Cover.brs" />
   <script type="text/brightscript" uri="pkg:/source/MediaProgressLookup.brs" />
   <script type="text/brightscript" uri="pkg:/source/ProgressData.brs" />
-  <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />
   <script type="text/brightscript" uri="pkg:/source/GridLayout.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Series/Series.brs" />
   <interface>

@@ -9,6 +9,7 @@
   <script type="text/brightscript" uri="pkg:/components/pages/Player/Player.brs" />
   <interface>
     <field id="playRequest" type="assocarray" onChange="onPlayRequestChanged" />
+    <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
     <field id="closeRequested" type="integer" />
     <field id="errorResponse" type="assocarray" />
   </interface>

@@ -216,6 +216,22 @@ sub onPlayRequestChanged()
 end sub
 
 '-------------------------------------------------------------------------------
+' onDisplaySettingsChanged
+'-------------------------------------------------------------------------------
+sub onDisplaySettingsChanged()
+    syncDisplaySettingsToScreensaverOverlay()
+end sub
+
+'-------------------------------------------------------------------------------
+' syncDisplaySettingsToScreensaverOverlay
+'-------------------------------------------------------------------------------
+sub syncDisplaySettingsToScreensaverOverlay()
+    if m.overlayRefs = invalid or m.overlayRefs.screensaverOverlay = invalid then return
+
+    m.overlayRefs.screensaverOverlay.displaySettings = m.top.displaySettings
+end sub
+
+'-------------------------------------------------------------------------------
 ' requestStartPlaybackSession
 '-------------------------------------------------------------------------------
 sub requestStartPlaybackSession(forceTranscode = false as boolean, startTimeOverride = invalid as dynamic)
@@ -269,6 +285,7 @@ sub startScreensaverOverlay(request as object)
 
     logPlayerVerbose("startScreensaverOverlay")
 
+    syncDisplaySettingsToScreensaverOverlay()
     m.overlayRefs.screensaverOverlay.playbackRequest = {
         server: request.server
         token: request.token

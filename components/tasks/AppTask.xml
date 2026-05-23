@@ -10,7 +10,6 @@
   <script type="text/brightscript" uri="pkg:/source/Session.brs" />
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/Encode.brs" />
-  <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />
   <script type="text/brightscript" uri="pkg:/source/api/HttpClient.brs" />
   <script type="text/brightscript" uri="pkg:/source/mappers/LibraryMapper.brs" />
   <script type="text/brightscript" uri="pkg:/source/api/Libraries.brs" />

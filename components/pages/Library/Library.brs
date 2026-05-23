@@ -41,7 +41,7 @@ sub init()
         m.gridView.observeField("statusMessage", "onGridViewStatusMessageChanged")
     end if
 
-    applyDisplaySettings(SettingsStore_Load())
+    applyDisplaySettings(m.top.displaySettings)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -254,7 +254,6 @@ end sub
 '-------------------------------------------------------------------------------
 function getItemDisplaySetting(settings as object) as string
     if settings["item-display"] <> invalid then return settings["item-display"]
-    if settings.itemDisplay <> invalid then return settings.itemDisplay
     return "list"
 end function
 

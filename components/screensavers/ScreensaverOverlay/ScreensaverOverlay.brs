@@ -25,7 +25,7 @@ sub startDelay()
 
     stopDelayTimer()
 
-    settings = SettingsStore_Load()
+    settings = getDisplaySettings()
     m.screensaverType = getScreensaverType(settings)
 
     ' if the screensaver is already running, then return out
@@ -99,7 +99,7 @@ sub showConfiguredScreensaver()
 
     if m.screensaverLayer = invalid then return
 
-    settings = SettingsStore_Load()
+    settings = getDisplaySettings()
     m.screensaverType = getScreensaverType(settings)
     m.screensaverEnabled = (m.screensaverType <> "off")
     if m.screensaverEnabled <> true then return
@@ -165,6 +165,13 @@ function getScreensaverType(settings as dynamic) as string
     if screensaverType = "bounce" or screensaverType = "starfield" then return screensaverType
 
     return "off"
+end function
+
+'-------------------------------------------------------------------------------
+' getDisplaySettings
+'-------------------------------------------------------------------------------
+function getDisplaySettings() as dynamic
+    return m.top.displaySettings
 end function
 
 '-------------------------------------------------------------------------------

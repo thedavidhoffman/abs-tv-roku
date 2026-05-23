@@ -29,12 +29,21 @@ end sub
 '-------------------------------------------------------------------------------
 function SettingsStore_Load() as object
     settingsStore = GetSettingsStore()
+    values = settingsStore.ReadMulti([
+        "series-display"
+        "item-display"
+        "grid-columns"
+        "screensaver-type"
+        "screensaver-delay"
+    ])
+    if values = invalid then values = {}
+
     settings = {}
-    settings["series-display"] = SettingsStore_ReadValue(settingsStore, "series-display", "collapse")
-    settings["item-display"] = SettingsStore_ReadValue(settingsStore, "item-display", "grid")
-    settings["grid-columns"] = SettingsStore_ReadValue(settingsStore, "grid-columns", "6")
-    settings["screensaver-type"] = SettingsStore_ReadValue(settingsStore, "screensaver-type", "off")
-    settings["screensaver-delay"] = SettingsStore_ReadValue(settingsStore, "screensaver-delay", "1")
+    settings["series-display"] = SettingsStore_GetValue(values, "series-display", "collapse")
+    settings["item-display"] = SettingsStore_GetValue(values, "item-display", "grid")
+    settings["grid-columns"] = SettingsStore_GetValue(values, "grid-columns", "6")
+    settings["screensaver-type"] = SettingsStore_GetValue(values, "screensaver-type", "off")
+    settings["screensaver-delay"] = SettingsStore_GetValue(values, "screensaver-delay", "1")
     return settings
 end function
 
@@ -56,6 +65,16 @@ end sub
 '-------------------------------------------------------------------------------
 function SettingsStore_ReadValue(settingsStore as object, key as string, defaultValue as string) as string
     value = settingsStore.Read(key)
+    if value = invalid or value = "" then return defaultValue
+    return value
+end function
+
+'-------------------------------------------------------------------------------
+' SettingsStore_GetValue
+'-------------------------------------------------------------------------------
+function SettingsStore_GetValue(values as object, key as string, defaultValue as string) as string
+    value = invalid
+    if values <> invalid then value = values[key]
     if value = invalid or value = "" then return defaultValue
     return value
 end function

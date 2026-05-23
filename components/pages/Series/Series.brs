@@ -24,7 +24,7 @@ sub init()
         m.seriesRowList.observeField("rowItemFocused", "onRowItemFocused")
     end if
 
-    applyGridLayout(SettingsStore_Load())
+    applyGridLayout(m.top.displaySettings)
     setStatus("Loading...")
 end sub
 

@@ -5,7 +5,7 @@ sub init()
     m.allItemsTask = m.top.findNode("allItemsTask")
     m.collapsedItemsTask = m.top.findNode("collapsedItemsTask")
     m.loadRequest = invalid
-    m.displaySettings = SettingsStore_Load()
+    m.displaySettings = invalid
     m.cache = []
     m.requestGeneration = 0
     m.libraryItemsChangedCounter = 0
@@ -337,7 +337,6 @@ function shouldUseCollapsedSeriesItems() as boolean
     if settings = invalid then return true
 
     if settings["series-display"] <> invalid then return settings["series-display"] = "collapse"
-    if settings.seriesDisplay <> invalid then return settings.seriesDisplay = "collapse"
 
     return true
 end function

@@ -33,7 +33,7 @@ sub init()
     end if
     if m.focusRetryTimer <> invalid then m.focusRetryTimer.observeField("fire", "onFocusRetryTimerFired")
 
-    applyGridLayout(SettingsStore_Load())
+    applyGridLayout(m.top.displaySettings)
 end sub
 
 '-------------------------------------------------------------------------------

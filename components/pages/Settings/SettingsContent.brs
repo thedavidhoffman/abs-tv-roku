@@ -323,11 +323,11 @@ function getSettingsValues() as object
     end if
 
     return {
-        seriesDisplay: seriesDisplay
-        itemDisplay: itemDisplay
-        gridColumns: gridColumns
-        screensaverType: screensaverType
-        screensaverDelay: screensaverDelay
+        "series-display": seriesDisplay
+        "item-display": itemDisplay
+        "grid-columns": gridColumns
+        "screensaver-type": screensaverType
+        "screensaver-delay": screensaverDelay
     }
 end function
 
