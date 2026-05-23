@@ -59,6 +59,74 @@ function PlaybackTrackTime_GetTrackSeekPosition(tracks as dynamic, trackIndex as
 end function
 
 '-------------------------------------------------------------------------------
+' PlaybackTrackTime_GetSeekPlan
+'-------------------------------------------------------------------------------
+function PlaybackTrackTime_GetSeekPlan(tracks as dynamic, currentTrackIndex as integer, globalTime as dynamic, durationSeconds as integer, isHlsTranscode as boolean) as object
+    targetTime = PlaybackTrackTime_ClampGlobalTime(globalTime, durationSeconds)
+    targetTrackIndex = PlaybackTrackTime_GetTrackIndexForGlobalTime(tracks, targetTime, durationSeconds, isHlsTranscode)
+
+    return {
+        targetTime: targetTime
+        targetTrackIndex: targetTrackIndex
+        seekPosition: PlaybackTrackTime_GetTrackSeekPosition(tracks, targetTrackIndex, targetTime, durationSeconds, isHlsTranscode)
+        trackChanged: targetTrackIndex <> currentTrackIndex
+    }
+end function
+
+'-------------------------------------------------------------------------------
+' PlaybackTrackTime_GetVisualTargetResult
+'-------------------------------------------------------------------------------
+function PlaybackTrackTime_GetVisualTargetResult(visualTargetSeconds as dynamic, actualTimeSeconds as integer, hasStarted as boolean, durationSeconds as integer, toleranceSeconds as integer) as object
+    targetTime = PlaybackTrackTime_ClampGlobalTime(visualTargetSeconds, durationSeconds)
+
+    if hasStarted <> true then
+        return {
+            currentTime: targetTime
+            shouldClearVisualTarget: false
+        }
+    end if
+
+    shouldClear = Abs(actualTimeSeconds - targetTime) <= toleranceSeconds
+    if shouldClear then
+        return {
+            currentTime: actualTimeSeconds
+            shouldClearVisualTarget: true
+        }
+    end if
+
+    return {
+        currentTime: targetTime
+        shouldClearVisualTarget: false
+    }
+end function
+
+'-------------------------------------------------------------------------------
+' PlaybackTrackTime_GetHlsCurrentTimeResult
+'-------------------------------------------------------------------------------
+function PlaybackTrackTime_GetHlsCurrentTimeResult(currentPosition as integer, startupSeekTargetSeconds as dynamic, durationSeconds as integer) as object
+    currentTime = PlaybackTrackTime_ClampGlobalTime(currentPosition, durationSeconds)
+    if startupSeekTargetSeconds = invalid then
+        return {
+            currentTime: currentTime
+            shouldClearStartupSeekTarget: false
+        }
+    end if
+
+    targetTime = PlaybackTrackTime_ClampGlobalTime(startupSeekTargetSeconds, durationSeconds)
+    if currentTime >= targetTime + 3 then
+        return {
+            currentTime: currentTime
+            shouldClearStartupSeekTarget: true
+        }
+    end if
+
+    return {
+        currentTime: targetTime
+        shouldClearStartupSeekTarget: false
+    }
+end function
+
+'-------------------------------------------------------------------------------
 ' PlaybackTrackTime_GetTrackDurationSeconds
 '-------------------------------------------------------------------------------
 function PlaybackTrackTime_GetTrackDurationSeconds(track as dynamic) as integer

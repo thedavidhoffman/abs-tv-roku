@@ -6,6 +6,8 @@
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/Cover.brs" />
   <script type="text/brightscript" uri="pkg:/source/PlaybackTrackTime.brs" />
+  <script type="text/brightscript" uri="pkg:/source/PlaybackChapters.brs" />
+  <script type="text/brightscript" uri="pkg:/source/PlaybackSessionRequest.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Player/Player.brs" />
   <interface>
     <field id="playRequest" type="assocarray" onChange="onPlayRequestChanged" />
