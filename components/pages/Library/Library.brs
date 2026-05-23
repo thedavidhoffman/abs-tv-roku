@@ -11,6 +11,7 @@ sub init()
     m.activeView = "list"
     m.syncingLibraryItems = false
     m.loadRequest = invalid
+    m.syncedLoadRequestKey = ""
     m.allLibraryItems = []
     m.rootLibraryItems = []
     m.itemBackStack = []
@@ -22,6 +23,8 @@ sub init()
     m.seriesItemsRequestCounter = 0
     m.itemsReloadedCounter = 0
     m.mainListRestoredCounter = 0
+    m.appliedItemDisplay = invalid
+    m.appliedGridColumns = invalid
 
     if m.listView <> invalid then
         m.listView.observeField("libraryItems", "onListViewLibraryItemsChanged")
@@ -79,9 +82,22 @@ end sub
 ' syncLoadRequestToViews
 '-------------------------------------------------------------------------------
 sub syncLoadRequestToViews()
+    loadRequestKey = getLoadRequestKey(m.loadRequest)
+    if m.syncedLoadRequestKey = loadRequestKey then return
+
+    m.syncedLoadRequestKey = loadRequestKey
     if m.listView <> invalid then m.listView.loadRequest = m.loadRequest
     if m.gridView <> invalid then m.gridView.loadRequest = m.loadRequest
 end sub
+
+'-------------------------------------------------------------------------------
+' getLoadRequestKey
+'-------------------------------------------------------------------------------
+function getLoadRequestKey(request as dynamic) as string
+    if request = invalid then return ""
+
+    return getText(request.server) + "|" + getText(request.token) + "|" + getText(request.bookLibraryId)
+end function
 
 '-------------------------------------------------------------------------------
 ' onLoadingChanged
@@ -239,22 +255,41 @@ end sub
 sub applyDisplaySettings(settings as object)
     if settings = invalid then return
 
-    if m.gridView <> invalid then m.gridView.displaySettings = settings
-
     itemDisplay = getItemDisplaySetting(settings)
-    if itemDisplay = "grid" then
-        updateActiveView("grid")
-    else
-        updateActiveView("list")
+    gridColumns = getGridColumnsSetting(settings)
+    itemDisplayChanged = (m.appliedItemDisplay <> itemDisplay)
+    gridColumnsChanged = (m.appliedGridColumns <> gridColumns)
+
+    if itemDisplayChanged = false and gridColumnsChanged = false then return
+
+    if gridColumnsChanged and m.gridView <> invalid then m.gridView.displaySettings = settings
+
+    if itemDisplayChanged then
+        if itemDisplay = "grid" then
+            updateActiveView("grid")
+        else
+            updateActiveView("list")
+        end if
     end if
+
+    m.appliedItemDisplay = itemDisplay
+    m.appliedGridColumns = gridColumns
 end sub
 
 '-------------------------------------------------------------------------------
 ' getItemDisplaySetting
 '-------------------------------------------------------------------------------
 function getItemDisplaySetting(settings as object) as string
-    if settings["item-display"] <> invalid then return settings["item-display"]
-    return "list"
+    keys = SettingsStore_Keys()
+    return SettingsStore_GetSettingValue(settings, keys.itemDisplay)
+end function
+
+'-------------------------------------------------------------------------------
+' getGridColumnsSetting
+'-------------------------------------------------------------------------------
+function getGridColumnsSetting(settings as object) as string
+    keys = SettingsStore_Keys()
+    return SettingsStore_GetSettingValue(settings, keys.gridColumns)
 end function
 
 '-------------------------------------------------------------------------------
@@ -288,7 +323,6 @@ sub onLibraryItemsChanged()
     syncLoadRequestToViews()
     if m.listView <> invalid then m.listView.libraryItems = items
     if m.gridView <> invalid then
-        m.gridView.allLibraryItems = m.allLibraryItems
         m.gridView.libraryItems = items
     end if
     syncLoadingToViews()

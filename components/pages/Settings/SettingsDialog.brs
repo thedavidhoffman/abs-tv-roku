@@ -46,7 +46,8 @@ sub saveSettings()
     if settings = invalid then return
     if areSettingsEqual(settings, m.originalSettings) then return
 
-    SettingsStore_Save(settings["series-display"], settings["item-display"], settings["grid-columns"], settings["screensaver-type"], settings["screensaver-delay"])
+    keys = SettingsStore_Keys()
+    SettingsStore_Save(settings[keys.seriesDisplay], settings[keys.itemDisplay], settings[keys.gridColumns], settings[keys.screensaverType], settings[keys.screensaverDelay])
     m.top.savedSettings = settings
     m.settingsSavedCounter = m.settingsSavedCounter + 1
     m.top.settingsSaved = m.settingsSavedCounter
@@ -58,7 +59,8 @@ end sub
 function areSettingsEqual(settings as dynamic, previousSettings as dynamic) as boolean
     if settings = invalid or previousSettings = invalid then return false
 
-    return settings["series-display"] = previousSettings["series-display"] and settings["item-display"] = previousSettings["item-display"] and settings["grid-columns"] = previousSettings["grid-columns"] and settings["screensaver-type"] = previousSettings["screensaver-type"] and settings["screensaver-delay"] = previousSettings["screensaver-delay"]
+    keys = SettingsStore_Keys()
+    return settings[keys.seriesDisplay] = previousSettings[keys.seriesDisplay] and settings[keys.itemDisplay] = previousSettings[keys.itemDisplay] and settings[keys.gridColumns] = previousSettings[keys.gridColumns] and settings[keys.screensaverType] = previousSettings[keys.screensaverType] and settings[keys.screensaverDelay] = previousSettings[keys.screensaverDelay]
 end function
 
 '-------------------------------------------------------------------------------

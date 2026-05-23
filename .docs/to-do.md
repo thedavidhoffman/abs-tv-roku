@@ -9,4 +9,8 @@ v1.1.0 Release Notes
 
 - Clock added to player.
 
-- New setting for grid size with options for { 4, 5, 6 }. When items are displayed in a grid this will control the number of columns displayed in the grid and the posters will resize accordingly. Use this setting to increase/decrease the poster size.
+- New setting for grid column size with options for { 4, 5, 6 }. When items are displayed in a grid this will control the number of columns displayed in the grid and the posters will resize accordingly. Use this setting to increase/decrease the poster size. This allows for controlling the size/visibility of posters tailored to personal use (tv size and sitting distance from television).
+
+- Substantial refactoring of code. Lots of attention to cleaning up the player code. Grouped/organized the million local variables into logical/functional groupings. Also broken the player UI out into different components. Static/stateless helper functions broken out into helper module.
+
+- Replaced setting key string literals with string constants.

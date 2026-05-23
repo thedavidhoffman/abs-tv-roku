@@ -18,6 +18,7 @@ sub init()
     m.server = invalid
     m.token = invalid
     m.posterWidth = 280
+    m.appliedGridColumns = invalid
 
     if m.seriesRowList <> invalid then
         m.seriesRowList.observeField("itemSelected", "onItemSelected")
@@ -32,6 +33,9 @@ end sub
 ' onDisplaySettingsChanged
 '-------------------------------------------------------------------------------
 sub onDisplaySettingsChanged()
+    gridColumns = getGridColumnsSetting(m.top.displaySettings)
+    if m.appliedGridColumns = gridColumns then return
+
     applyGridLayout(m.top.displaySettings)
     if m.hasSeriesRowsResponse = true then rebuildSeriesRows(getResponseRows(m.top.seriesRowsResponse))
 end sub
@@ -49,10 +53,19 @@ sub applyGridLayout(settings as dynamic)
     gutter = GridLayout_GetHorizontalGutter()
 
     m.posterWidth = posterWidth
+    m.appliedGridColumns = getGridColumnsSetting(settings)
     m.seriesRowList.itemSize = [1792, rowHeight]
     m.seriesRowList.rowItemSize = [[posterWidth, itemHeight], [posterWidth, itemHeight], [posterWidth, itemHeight]]
     m.seriesRowList.rowItemSpacing = [[gutter, 0], [gutter, 0], [gutter, 0]]
 end sub
+
+'-------------------------------------------------------------------------------
+' getGridColumnsSetting
+'-------------------------------------------------------------------------------
+function getGridColumnsSetting(settings as dynamic) as string
+    keys = SettingsStore_Keys()
+    return SettingsStore_GetSettingValue(settings, keys.gridColumns)
+end function
 
 '-------------------------------------------------------------------------------
 ' onLoadRequestChanged

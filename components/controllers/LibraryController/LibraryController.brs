@@ -6,6 +6,7 @@ sub init()
     m.collapsedItemsTask = m.top.findNode("collapsedItemsTask")
     m.loadRequest = invalid
     m.displaySettings = invalid
+    m.appliedSeriesDisplay = invalid
     m.cache = []
     m.requestGeneration = 0
     m.libraryItemsChangedCounter = 0
@@ -144,8 +145,17 @@ sub onDisplaySettingsChanged()
     settings = m.top.displaySettings
     if settings = invalid then return
 
+    seriesDisplay = getSeriesDisplaySetting(settings)
+    previousSeriesDisplay = m.appliedSeriesDisplay
     m.displaySettings = settings
-    publishCurrentLibraryItems()
+    m.appliedSeriesDisplay = seriesDisplay
+
+    if previousSeriesDisplay = invalid then
+        if hasAllLibraryCaches() then publishCurrentRootLibraryItems()
+        return
+    end if
+
+    if previousSeriesDisplay <> seriesDisplay then publishCurrentRootLibraryItems()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -310,7 +320,13 @@ end sub
 '-------------------------------------------------------------------------------
 sub publishCurrentLibraryItems()
     m.top.allLibraryItems = cacheGetItems(cacheKeyAllTitles())
+    publishCurrentRootLibraryItems()
+end sub
 
+'-------------------------------------------------------------------------------
+' publishCurrentRootLibraryItems
+'-------------------------------------------------------------------------------
+sub publishCurrentRootLibraryItems()
     if shouldUseCollapsedSeriesItems() then
         publishItems(cacheGetItems(cacheKeyCollapsedSeries()))
     else
@@ -333,12 +349,15 @@ end sub
 ' shouldUseCollapsedSeriesItems
 '-------------------------------------------------------------------------------
 function shouldUseCollapsedSeriesItems() as boolean
-    settings = m.displaySettings
-    if settings = invalid then return true
+    return getSeriesDisplaySetting(m.displaySettings) = "collapse"
+end function
 
-    if settings["series-display"] <> invalid then return settings["series-display"] = "collapse"
-
-    return true
+'-------------------------------------------------------------------------------
+' getSeriesDisplaySetting
+'-------------------------------------------------------------------------------
+function getSeriesDisplaySetting(settings as dynamic) as string
+    keys = SettingsStore_Keys()
+    return SettingsStore_GetSettingValue(settings, keys.seriesDisplay)
 end function
 
 '-------------------------------------------------------------------------------

@@ -161,7 +161,8 @@ end sub
 function getScreensaverType(settings as dynamic) as string
     if settings = invalid then return "off"
 
-    screensaverType = SafeString(settings["screensaver-type"], "off")
+    keys = SettingsStore_Keys()
+    screensaverType = SafeString(settings[keys.screensaverType], "off")
     if screensaverType = "bounce" or screensaverType = "starfield" then return screensaverType
 
     return "off"
@@ -180,7 +181,8 @@ end function
 function getScreensaverDelaySeconds(settings as dynamic) as integer
     if settings = invalid then return 60
 
-    delayMinutes = int(val(SafeString(settings["screensaver-delay"], "1")))
+    keys = SettingsStore_Keys()
+    delayMinutes = int(val(SafeString(settings[keys.screensaverDelay], "1")))
     if delayMinutes <> 1 and delayMinutes <> 5 and delayMinutes <> 15 and delayMinutes <> 30 then delayMinutes = 1
 
     return delayMinutes * 60

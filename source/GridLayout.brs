@@ -6,7 +6,8 @@ function GridLayout_GetColumnCount(settings as dynamic) as integer
 
     if settings <> invalid then
         value = invalid
-        if settings["grid-columns"] <> invalid then value = settings["grid-columns"]
+        keys = SettingsStore_Keys()
+        if settings[keys.gridColumns] <> invalid then value = settings[keys.gridColumns]
 
         if value <> invalid then columns = int(val(value.ToStr()))
     end if

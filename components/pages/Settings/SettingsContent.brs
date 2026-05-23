@@ -107,9 +107,10 @@ end sub
 sub loadSettingsValues()
     settings = SettingsStore_Load()
     if settings = invalid then return
+    keys = SettingsStore_Keys()
 
     if m.seriesOptions <> invalid then
-        if settings["series-display"] = "expand" then
+        if settings[keys.seriesDisplay] = "expand" then
             m.seriesOptions.checkedItem = 1
         else
             m.seriesOptions.checkedItem = 0
@@ -117,7 +118,7 @@ sub loadSettingsValues()
     end if
 
     if m.displayOptions <> invalid then
-        if settings["item-display"] = "grid" then
+        if settings[keys.itemDisplay] = "grid" then
             m.displayOptions.checkedItem = 1
         else
             m.displayOptions.checkedItem = 0
@@ -125,9 +126,9 @@ sub loadSettingsValues()
     end if
 
     if m.gridColumnsOptions <> invalid then
-        if settings["grid-columns"] = "4" then
+        if settings[keys.gridColumns] = "4" then
             m.gridColumnsOptions.checkedItem = 0
-        else if settings["grid-columns"] = "5" then
+        else if settings[keys.gridColumns] = "5" then
             m.gridColumnsOptions.checkedItem = 1
         else
             m.gridColumnsOptions.checkedItem = 2
@@ -135,9 +136,9 @@ sub loadSettingsValues()
     end if
 
     if m.screensaverTypeOptions <> invalid then
-        if settings["screensaver-type"] = "bounce" then
+        if settings[keys.screensaverType] = "bounce" then
             m.screensaverTypeOptions.checkedItem = 1
-        else if settings["screensaver-type"] = "starfield" then
+        else if settings[keys.screensaverType] = "starfield" then
             m.screensaverTypeOptions.checkedItem = 2
         else
             m.screensaverTypeOptions.checkedItem = 0
@@ -145,13 +146,13 @@ sub loadSettingsValues()
     end if
 
     if m.screensaverDelayOptions <> invalid then
-        if settings["screensaver-delay"] = "1" then
+        if settings[keys.screensaverDelay] = "1" then
             m.screensaverDelayOptions.checkedItem = 0
-        else if settings["screensaver-delay"] = "5" then
+        else if settings[keys.screensaverDelay] = "5" then
             m.screensaverDelayOptions.checkedItem = 1
-        else if settings["screensaver-delay"] = "15" then
+        else if settings[keys.screensaverDelay] = "15" then
             m.screensaverDelayOptions.checkedItem = 2
-        else if settings["screensaver-delay"] = "30" then
+        else if settings[keys.screensaverDelay] = "30" then
             m.screensaverDelayOptions.checkedItem = 3
         else
             m.screensaverDelayOptions.checkedItem = 0
@@ -281,6 +282,8 @@ end sub
 ' getSettingsValues
 '-------------------------------------------------------------------------------
 function getSettingsValues() as object
+    keys = SettingsStore_Keys()
+
     if getCheckedItemIndex(m.seriesOptions) = 0 then
         seriesDisplay = "collapse"
     else
@@ -322,13 +325,13 @@ function getSettingsValues() as object
         screensaverDelay = "1"
     end if
 
-    return {
-        "series-display": seriesDisplay
-        "item-display": itemDisplay
-        "grid-columns": gridColumns
-        "screensaver-type": screensaverType
-        "screensaver-delay": screensaverDelay
-    }
+    settings = {}
+    settings[keys.seriesDisplay] = seriesDisplay
+    settings[keys.itemDisplay] = itemDisplay
+    settings[keys.gridColumns] = gridColumns
+    settings[keys.screensaverType] = screensaverType
+    settings[keys.screensaverDelay] = screensaverDelay
+    return settings
 end function
 
 '-------------------------------------------------------------------------------

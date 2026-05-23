@@ -18,6 +18,7 @@ sub init()
     m.server = invalid
     m.token = invalid
     m.posterWidth = 280
+    m.appliedGridColumns = invalid
 
     if m.markupGrid <> invalid then
         m.markupGrid.observeField("itemSelected", "onPosterSelected")
@@ -32,6 +33,9 @@ end sub
 ' onDisplaySettingsChanged
 '-------------------------------------------------------------------------------
 sub onDisplaySettingsChanged()
+    gridColumns = getGridColumnsSetting(m.top.displaySettings)
+    if m.appliedGridColumns = gridColumns then return
+
     applyGridLayout(m.top.displaySettings)
     onLibraryItemsChanged()
 end sub
@@ -47,10 +51,19 @@ sub applyGridLayout(settings as dynamic)
     itemHeight = GridLayout_GetItemHeight(posterWidth)
 
     m.posterWidth = posterWidth
+    m.appliedGridColumns = getGridColumnsSetting(settings)
     m.markupGrid.numColumns = columnCount
     m.markupGrid.itemSize = [posterWidth, itemHeight]
     m.markupGrid.itemSpacing = [GridLayout_GetHorizontalGutter(), 34]
 end sub
+
+'-------------------------------------------------------------------------------
+' getGridColumnsSetting
+'-------------------------------------------------------------------------------
+function getGridColumnsSetting(settings as dynamic) as string
+    keys = SettingsStore_Keys()
+    return SettingsStore_GetSettingValue(settings, keys.gridColumns)
+end function
 
 '-------------------------------------------------------------------------------
 ' onAllLibraryItemsChanged

@@ -22,6 +22,7 @@ sub init()
     m.token = invalid
     m.isLoading = false
     m.posterWidth = 280
+    m.appliedGridColumns = invalid
 
     if m.homeRowList <> invalid then
         m.homeRowList.observeField("itemSelected", "onItemSelected")
@@ -40,6 +41,9 @@ end sub
 ' onDisplaySettingsChanged
 '-------------------------------------------------------------------------------
 sub onDisplaySettingsChanged()
+    gridColumns = getGridColumnsSetting(m.top.displaySettings)
+    if m.appliedGridColumns = gridColumns then return
+
     applyGridLayout(m.top.displaySettings)
     renderPersonalizedShelves()
 end sub
@@ -57,10 +61,19 @@ sub applyGridLayout(settings as dynamic)
     gutter = GridLayout_GetHorizontalGutter()
 
     m.posterWidth = posterWidth
+    m.appliedGridColumns = getGridColumnsSetting(settings)
     m.homeRowList.itemSize = [1792, rowHeight]
     m.homeRowList.rowItemSize = [[posterWidth, itemHeight], [posterWidth, itemHeight], [posterWidth, itemHeight]]
     m.homeRowList.rowItemSpacing = [[gutter, 0], [gutter, 0], [gutter, 0]]
 end sub
+
+'-------------------------------------------------------------------------------
+' getGridColumnsSetting
+'-------------------------------------------------------------------------------
+function getGridColumnsSetting(settings as dynamic) as string
+    keys = SettingsStore_Keys()
+    return SettingsStore_GetSettingValue(settings, keys.gridColumns)
+end function
 
 '-------------------------------------------------------------------------------
 ' onLoadRequestChanged

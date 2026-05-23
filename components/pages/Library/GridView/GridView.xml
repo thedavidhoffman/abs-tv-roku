@@ -7,6 +7,7 @@
   <script type="text/brightscript" uri="pkg:/source/ProgressData.brs" />
   <script type="text/brightscript" uri="pkg:/source/LibraryItemLookup.brs" />
   <script type="text/brightscript" uri="pkg:/source/SeriesProgress.brs" />
+  <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />
   <script type="text/brightscript" uri="pkg:/source/GridLayout.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Library/GridView/GridView.brs" />
   <interface>

@@ -134,17 +134,18 @@ end function
 function getApplicationRegistryText() as object
     auth = AuthStore_Load()
     settings = SettingsStore_Load()
+    keys = SettingsStore_Keys()
 
     return keyValueText([
         { key: "server", value: auth.server }
         { key: "username", value: auth.username }
         { key: "userId", value: auth.userId }
         { key: "token", value: truncateText(auth.token, 40) + "..." }
-        { key: "series-display", value: settings["series-display"] }
-        { key: "item-display", value: settings["item-display"] }
-        { key: "grid-columns", value: settings["grid-columns"] }
-        { key: "screensaver-type", value: settings["screensaver-type"] }
-        { key: "screensaver-delay", value: settings["screensaver-delay"] }
+        { key: keys.seriesDisplay, value: settings[keys.seriesDisplay] }
+        { key: keys.itemDisplay, value: settings[keys.itemDisplay] }
+        { key: keys.gridColumns, value: settings[keys.gridColumns] }
+        { key: keys.screensaverType, value: settings[keys.screensaverType] }
+        { key: keys.screensaverDelay, value: settings[keys.screensaverDelay] }
     ])
 end function
 
