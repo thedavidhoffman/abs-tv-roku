@@ -47,7 +47,6 @@ sub initValues()
     initPlaybackValues()
     initPlaybackRetryValues()
     initPlaybackSyncValues()
-    initProgressScrubValues()
     initChapterValues()
     initLifecycleValues()
 end sub
@@ -122,17 +121,6 @@ sub initPlaybackSyncValues()
 end sub
 
 '-------------------------------------------------------------------------------
-' initProgressScrubValues
-'-------------------------------------------------------------------------------
-sub initProgressScrubValues()
-    m.progressScrub = {
-        isActive: false
-        targetSeconds: 0
-        returnFocusIndex: 0
-    }
-end sub
-
-'-------------------------------------------------------------------------------
 ' initChapterValues
 '-------------------------------------------------------------------------------
 sub initChapterValues()
@@ -164,6 +152,7 @@ sub initHandlers()
     m.dialogRefs.chapterList.observeField("closedCounter", "onChapterListClosed")
     m.playbackControls.observeField("selectedAction", "onPlaybackActionSelected")
     m.playbackControls.observeField("focusUpRequested", "onPlaybackControlsFocusUpRequested")
+    m.playbackControls.observeField("scrubEvent", "onPlaybackControlsScrubEvent")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -247,7 +236,11 @@ sub resetMediaNodeForNewPlayback()
 
     stopScreensaverOverlay()
     stopProgressTimer()
-    cancelProgressScrub()
+    if isProgressScrubbing() then
+        m.playbackControls.callFunc("cancelScrub")
+        updateProgress(getPlaybackCurrentTimeSeconds(), true)
+        updatePlayPauseButton()
+    end if
     if m.timerRefs.hlsRetryTimer <> invalid then m.timerRefs.hlsRetryTimer.control = "stop"
     if m.playbackRefs.audioPlayer <> invalid then
         m.playbackRefs.audioPlayer.control = "stop"
@@ -1171,7 +1164,11 @@ sub closePlayer()
     accumulatePlaybackListeningTime()
     stopScreensaverOverlay()
     requestClosePlaybackSession()
-    cancelProgressScrub()
+    if isProgressScrubbing() then
+        m.playbackControls.callFunc("cancelScrub")
+        updateProgress(getPlaybackCurrentTimeSeconds(), true)
+        updatePlayPauseButton()
+    end if
     stopProgressTimer()
     enableScreenSaver()
     closeChapterList()
@@ -1309,27 +1306,8 @@ function onKeyEvent(key as string, press as boolean) as boolean
         return true
     end if
 
-    if m.progressScrub.isActive = true then
-        if key = "back" then
-            cancelProgressScrub()
-            closePlayer()
-            return true
-        else if key = "left" then
-            jogProgressScrub(-30)
-            return true
-        else if key = "right" then
-            jogProgressScrub(30)
-            return true
-        else if key = "OK" or key = "select" or key = "play" then
-            commitProgressScrub("controls")
-            return true
-        else if key = "down" then
-            commitProgressScrub("controls")
-            return true
-        else if key = "up" then
-            commitProgressScrub("description")
-            return true
-        end if
+    if isPlaybackControlsFocused() then
+        if m.playbackControls <> invalid and m.playbackControls.callFunc("handleKey", key) then return true
     end if
 
     if key = "back" then
@@ -1339,18 +1317,9 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
     if m.metadata <> invalid and m.metadata.callFunc("descriptionHasFocus") then
         if key = "down" then
-            focusProgressBar(0)
+            if m.playbackControls <> invalid then m.playbackControls.callFunc("focusProgressBar", getPlaybackCurrentTimeSeconds(), 0)
             return true
         end if
-    end if
-
-    if isPlaybackControlsFocused() then
-        if key = "up" then
-            focusProgressBar(getPlaybackControlFocusIndex())
-            return true
-        end if
-
-        if m.playbackControls <> invalid then return m.playbackControls.callFunc("handleKey", key)
     end if
 
     if key = "down" then
@@ -1379,106 +1348,6 @@ function focusDescriptionFromPlaybackControls() as boolean
     updatePlaybackControlsFocus(-1)
     return m.metadata.callFunc("focusDescription")
 end function
-
-'-------------------------------------------------------------------------------
-' focusProgressBar
-'-------------------------------------------------------------------------------
-sub focusProgressBar(returnFocusIndex as integer)
-
-    m.log.write("focusProgressBar")
-
-    if m.playbackControls = invalid then return
-
-    if returnFocusIndex < 0 then returnFocusIndex = 0
-    playbackButtonCount = getPlaybackButtonCount()
-    if returnFocusIndex >= playbackButtonCount then returnFocusIndex = playbackButtonCount - 1
-    if returnFocusIndex < 0 then returnFocusIndex = 0
-
-    m.progressScrub.isActive = true
-    m.progressScrub.returnFocusIndex = returnFocusIndex
-    m.progressScrub.targetSeconds = getPlaybackCurrentTimeSeconds()
-
-    updatePlayPauseButton()
-    updatePlaybackControlsFocus(-1)
-    updateProgressScrubPreview()
-    m.playbackControls.callFunc("focusProgress")
-end sub
-
-'-------------------------------------------------------------------------------
-' jogProgressScrub
-'-------------------------------------------------------------------------------
-sub jogProgressScrub(offsetSeconds as integer)
-
-    m.log.write("jogProgressScrub")
-
-    if m.progressScrub.isActive <> true then return
-
-    m.progressScrub.targetSeconds = m.progressScrub.targetSeconds + offsetSeconds
-    updateProgressScrubPreview()
-    seekToGlobalTime(m.progressScrub.targetSeconds, true, true)
-    m.playbackState.isPaused = false
-    disableScreenSaver()
-    startProgressTimer()
-    setStatus("Playing")
-    updatePlayPauseButton()
-end sub
-
-'-------------------------------------------------------------------------------
-' updateProgressScrubPreview
-'-------------------------------------------------------------------------------
-sub updateProgressScrubPreview()
-
-    m.log.write("updateProgressScrubPreview")
-
-    targetPosition = clampGlobalTime(m.progressScrub.targetSeconds)
-    m.progressScrub.targetSeconds = targetPosition
-
-    updateProgress(targetPosition, true)
-    if m.playbackControls <> invalid then m.playbackControls.callFunc("showScrubPreview", targetPosition)
-end sub
-
-'-------------------------------------------------------------------------------
-' commitProgressScrub
-'-------------------------------------------------------------------------------
-sub commitProgressScrub(nextFocus as string)
-
-    m.log.write("commitProgressScrub")
-
-    if m.progressScrub.isActive <> true then return
-
-    exitProgressScrub(nextFocus)
-end sub
-
-'-------------------------------------------------------------------------------
-' exitProgressScrub
-'-------------------------------------------------------------------------------
-sub exitProgressScrub(nextFocus as string)
-
-    m.log.write("exitProgressScrub")
-
-    m.progressScrub.isActive = false
-    if m.playbackControls <> invalid then m.playbackControls.callFunc("hideScrubPreview")
-    updateProgress(getPlaybackCurrentTimeSeconds(), true)
-    updatePlayPauseButton()
-
-    if nextFocus = "description" and focusDescriptionFromPlaybackControls() then return
-    focusPlaybackButton(m.progressScrub.returnFocusIndex)
-end sub
-
-'-------------------------------------------------------------------------------
-' cancelProgressScrub
-'-------------------------------------------------------------------------------
-sub cancelProgressScrub()
-
-    m.log.write("cancelProgressScrub")
-
-    if m.progressScrub.isActive <> true then return
-
-    m.progressScrub.isActive = false
-    if m.playbackControls <> invalid then m.playbackControls.callFunc("hideScrubPreview")
-    updateProgress(getPlaybackCurrentTimeSeconds(), true)
-    updatePlayPauseButton()
-end sub
 
 ' focusPlaybackButton
 '-------------------------------------------------------------------------------
@@ -1545,6 +1414,16 @@ function getPlaybackControlFocusIndex() as integer
 end function
 
 '-------------------------------------------------------------------------------
+' isProgressScrubbing
+'-------------------------------------------------------------------------------
+function isProgressScrubbing() as boolean
+
+    m.log.write("isProgressScrubbing")
+
+    return m.playbackControls <> invalid and m.playbackControls.callFunc("isScrubbing") = true
+end function
+
+'-------------------------------------------------------------------------------
 ' onPlaybackActionSelected
 '-------------------------------------------------------------------------------
 sub onPlaybackActionSelected()
@@ -1565,7 +1444,46 @@ sub onPlaybackControlsFocusUpRequested()
 
     m.log.write("onPlaybackControlsFocusUpRequested")
 
-    focusProgressBar(getPlaybackControlFocusIndex())
+    if m.playbackControls <> invalid then m.playbackControls.callFunc("focusProgressBar", getPlaybackCurrentTimeSeconds(), getPlaybackControlFocusIndex())
+end sub
+
+'-------------------------------------------------------------------------------
+' onPlaybackControlsScrubEvent
+'-------------------------------------------------------------------------------
+sub onPlaybackControlsScrubEvent()
+
+    m.log.write("onPlaybackControlsScrubEvent")
+
+    if m.playbackControls = invalid then return
+    event = m.playbackControls.scrubEvent
+    if event = invalid or event.type = invalid then return
+
+    if event.type = "preview" then
+        seekToGlobalTime(event.targetSeconds, true, true)
+        m.playbackState.isPaused = false
+        disableScreenSaver()
+        startProgressTimer()
+        setStatus("Playing")
+        updatePlayPauseButton()
+    else if event.type = "commit" then
+        returnFocusIndex = 0
+        if event.returnFocusIndex <> invalid then returnFocusIndex = int(event.returnFocusIndex)
+        m.playbackControls.callFunc("cancelScrub")
+        updateProgress(getPlaybackCurrentTimeSeconds(), true)
+        updatePlayPauseButton()
+
+        nextFocus = SafeString(event.nextFocus, "controls")
+        if nextFocus = "description" and focusDescriptionFromPlaybackControls() then return
+        focusPlaybackButton(returnFocusIndex)
+    else if event.type = "cancel" then
+        if isProgressScrubbing() then
+            m.playbackControls.callFunc("cancelScrub")
+            updateProgress(getPlaybackCurrentTimeSeconds(), true)
+            updatePlayPauseButton()
+        end if
+    else if event.type = "cancelClose" then
+        closePlayer()
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1902,10 +1820,9 @@ sub onProgressTimerFired()
         return
     end if
 
-    if m.progressScrub.isActive = true then
-        m.progressScrub.targetSeconds = position
+    if isProgressScrubbing() then
         updatePlaybackPosition(position)
-        updateProgressScrubPreview()
+        if m.playbackControls <> invalid then m.playbackControls.callFunc("setScrubPosition", position)
         requestPeriodicPlaybackSync()
         return
     end if
@@ -1923,7 +1840,7 @@ function isPlaybackCompleteAtPosition(position as integer) as boolean
 
     if m.playbackState.complete = true then return false
     if m.playbackState.hasStarted <> true then return false
-    if m.progressScrub.isActive = true then return false
+    if isProgressScrubbing() then return false
 
     duration = getPlaybackDurationSeconds()
     if duration <= 0 then return false
@@ -2149,9 +2066,8 @@ sub startProgressTimer()
 
     if m.playbackSync.lastProgressTickAtSeconds <= 0 then m.playbackSync.lastProgressTickAtSeconds = getNowSeconds()
     if m.timerRefs.progressTimer <> invalid then m.timerRefs.progressTimer.control = "start"
-    if m.progressScrub.isActive = true then
-        m.progressScrub.targetSeconds = getPlaybackCurrentTimeSeconds()
-        updateProgressScrubPreview()
+    if isProgressScrubbing() then
+        if m.playbackControls <> invalid then m.playbackControls.callFunc("setScrubPosition", getPlaybackCurrentTimeSeconds())
     else
         updateProgress(getPlaybackCurrentTimeSeconds())
     end if

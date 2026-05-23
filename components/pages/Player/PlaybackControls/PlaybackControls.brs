@@ -40,6 +40,12 @@ end sub
 sub initValues()
     m.actionCounter = 0
     m.focusUpCounter = 0
+    m.scrub = {
+        isActive: false
+        targetSeconds: 0
+        returnFocusIndex: 0
+        eventCounter: 0
+    }
     m.progressLayout = {
         barWidth: 1040
         timeLabelY: 26
@@ -70,6 +76,25 @@ end function
 ' handleKey
 '-------------------------------------------------------------------------------
 function handleKey(key as string) as boolean
+    if m.scrub.isActive = true then
+        if key = "left" then
+            updateScrubTarget(-30)
+            return true
+        else if key = "right" then
+            updateScrubTarget(30)
+            return true
+        else if key = "OK" or key = "select" or key = "play" or key = "down" then
+            emitScrubEvent("commit", "controls")
+            return true
+        else if key = "up" then
+            emitScrubEvent("commit", "description")
+            return true
+        else if key = "back" then
+            emitScrubEvent("cancelClose")
+            return true
+        end if
+    end if
+
     focusedIndex = m.top.focusedIndex
     if focusedIndex < 0 then return false
 
@@ -91,6 +116,50 @@ function handleKey(key as string) as boolean
 
     return false
 end function
+
+'-------------------------------------------------------------------------------
+' focusProgressBar
+'-------------------------------------------------------------------------------
+sub focusProgressBar(positionSeconds as integer, returnFocusIndex as integer)
+    if returnFocusIndex < 0 then returnFocusIndex = 0
+    returnFocusIndex = clampButtonIndex(returnFocusIndex)
+
+    m.scrub.isActive = true
+    m.scrub.targetSeconds = clampPositionSeconds(positionSeconds)
+    m.scrub.returnFocusIndex = returnFocusIndex
+
+    m.top.focusedIndex = -1
+    updateFocusVisuals()
+    focusProgress()
+    showScrubPreview(m.scrub.targetSeconds)
+end sub
+
+'-------------------------------------------------------------------------------
+' cancelScrub
+'-------------------------------------------------------------------------------
+sub cancelScrub()
+    if m.scrub.isActive <> true then return
+
+    m.scrub.isActive = false
+    hideScrubPreview()
+end sub
+
+'-------------------------------------------------------------------------------
+' isScrubbing
+'-------------------------------------------------------------------------------
+function isScrubbing() as boolean
+    return m.scrub <> invalid and m.scrub.isActive = true
+end function
+
+'-------------------------------------------------------------------------------
+' setScrubPosition
+'-------------------------------------------------------------------------------
+sub setScrubPosition(positionSeconds as integer)
+    if m.scrub.isActive <> true then return
+
+    m.scrub.targetSeconds = clampPositionSeconds(positionSeconds)
+    showScrubPreview(m.scrub.targetSeconds)
+end sub
 
 '-------------------------------------------------------------------------------
 ' focusProgress
@@ -130,8 +199,9 @@ end function
 ' showScrubPreview
 '-------------------------------------------------------------------------------
 sub showScrubPreview(positionSeconds as integer)
-    updatePosition(positionSeconds)
-    crossbarX = getProgressX(positionSeconds)
+    targetPosition = clampPositionSeconds(positionSeconds)
+    updatePosition(targetPosition)
+    crossbarX = getProgressX(targetPosition)
 
     crossbarWidth = m.progressLayout.crossbarWidth
     if m.progressCrossbar <> invalid and m.progressCrossbar.width <> invalid then crossbarWidth = int(m.progressCrossbar.width)
@@ -230,6 +300,32 @@ sub requestFocusUp()
 end sub
 
 '-------------------------------------------------------------------------------
+' updateScrubTarget
+'-------------------------------------------------------------------------------
+sub updateScrubTarget(offsetSeconds as integer)
+    if m.scrub.isActive <> true then return
+
+    m.scrub.targetSeconds = clampPositionSeconds(m.scrub.targetSeconds + offsetSeconds)
+    showScrubPreview(m.scrub.targetSeconds)
+    emitScrubEvent("preview")
+end sub
+
+'-------------------------------------------------------------------------------
+' emitScrubEvent
+'-------------------------------------------------------------------------------
+sub emitScrubEvent(eventType as string, nextFocus = "" as string)
+    m.scrub.eventCounter = m.scrub.eventCounter + 1
+    event = {
+        type: eventType
+        targetSeconds: m.scrub.targetSeconds
+        returnFocusIndex: m.scrub.returnFocusIndex
+        counter: m.scrub.eventCounter
+    }
+    if nextFocus <> "" then event.nextFocus = nextFocus
+    m.top.scrubEvent = event
+end sub
+
+'-------------------------------------------------------------------------------
 ' updateText
 '-------------------------------------------------------------------------------
 sub updateText()
@@ -241,9 +337,7 @@ end sub
 ' updatePosition
 '-------------------------------------------------------------------------------
 sub updatePosition(positionSeconds as integer)
-    if positionSeconds < 0 then positionSeconds = 0
-    totalDurationSeconds = getTotalDurationSeconds()
-    if totalDurationSeconds > 0 and positionSeconds > totalDurationSeconds then positionSeconds = totalDurationSeconds
+    positionSeconds = clampPositionSeconds(positionSeconds)
 
     setLabelText(m.currentTimeLabel, formatPlaybackTime(positionSeconds))
     setLabelText(m.chapterStatusLabel, "-" + formatPlaybackTime(getRemainingSeconds(positionSeconds)))
@@ -372,6 +466,17 @@ function getProgressX(positionSeconds as integer) as integer
     if totalDurationSeconds <= 0 then return 0
 
     return int((positionSeconds / totalDurationSeconds) * m.progressLayout.barWidth)
+end function
+
+'-------------------------------------------------------------------------------
+' clampPositionSeconds
+'-------------------------------------------------------------------------------
+function clampPositionSeconds(positionSeconds as integer) as integer
+    if positionSeconds < 0 then positionSeconds = 0
+    totalDurationSeconds = getTotalDurationSeconds()
+    if totalDurationSeconds > 0 and positionSeconds > totalDurationSeconds then positionSeconds = totalDurationSeconds
+
+    return positionSeconds
 end function
 
 '-------------------------------------------------------------------------------

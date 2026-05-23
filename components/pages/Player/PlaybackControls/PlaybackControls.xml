@@ -14,7 +14,12 @@
     <field id="focusedIndex" type="integer" onChange="onFocusedIndexChanged" />
     <field id="selectedAction" type="assocarray" />
     <field id="focusUpRequested" type="assocarray" />
+    <field id="scrubEvent" type="assocarray" />
     <function name="handleKey" />
+    <function name="focusProgressBar" />
+    <function name="cancelScrub" />
+    <function name="isScrubbing" />
+    <function name="setScrubPosition" />
     <function name="focusButton" />
     <function name="clearFocus" />
     <function name="getButtonCount" />
