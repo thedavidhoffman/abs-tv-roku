@@ -12,7 +12,7 @@ sub init()
     initHandlers()
     updateChaptersButtonVisibility()
     updatePlaybackControlsFocus(-1)
-    updatePlayPauseButton()
+    syncPlaybackControlsPlayingState()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -253,7 +253,7 @@ sub resetMediaNodeForNewPlayback()
     if isProgressScrubbing() then
         m.playbackControls.callFunc("cancelScrub")
         updateProgress(getPlaybackCurrentTimeSeconds(), true)
-        updatePlayPauseButton()
+        syncPlaybackControlsPlayingState()
     end if
     if m.timerRefs.hlsRetryTimer <> invalid then m.timerRefs.hlsRetryTimer.control = "stop"
     if m.playbackRefs.audioPlayer <> invalid then
@@ -729,7 +729,7 @@ sub playCurrentTrack(playWhenReady = true as boolean)
         m.playbackRefs.audioPlayer.control = "pause"
         setStatus("Paused")
     end if
-    updatePlayPauseButton()
+    syncPlaybackControlsPlayingState()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -867,7 +867,7 @@ sub onAudioStateChanged()
         applyPendingInitialSeek()
         setStatus("Playing")
         startProgressTimer()
-        updatePlayPauseButton()
+        syncPlaybackControlsPlayingState()
         '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         ' buffering
         '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -898,7 +898,7 @@ sub onAudioStateChanged()
             logPlaybackError("Unexpected playback end before media duration.")
             setStatus("Playback stopped before completion.")
             m.playbackState.isPaused = false
-            updatePlayPauseButton()
+            syncPlaybackControlsPlayingState()
             return
         end if
 
@@ -913,7 +913,7 @@ sub onAudioStateChanged()
         enableScreenSaver()
         setStatus("Playback error.")
         m.playbackState.isPaused = false
-        updatePlayPauseButton()
+        syncPlaybackControlsPlayingState()
     end if
 end sub
 
@@ -933,7 +933,7 @@ sub handlePlaybackComplete()
     updateProgress(m.timeline.totalDurationSeconds, true)
     setStatus("Finished")
     m.playbackState.isPaused = false
-    updatePlayPauseButton()
+    syncPlaybackControlsPlayingState()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1188,7 +1188,7 @@ sub closePlayer()
     if isProgressScrubbing() then
         m.playbackControls.callFunc("cancelScrub")
         updateProgress(getPlaybackCurrentTimeSeconds(), true)
-        updatePlayPauseButton()
+        syncPlaybackControlsPlayingState()
     end if
     stopProgressTimer()
     enableScreenSaver()
@@ -1353,7 +1353,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
 
     if key = "play" or key = "OK" or key = "select" then
-        togglePlayPause()
+        handlePlayPauseRequested()
         return true
     end if
 
@@ -1489,13 +1489,13 @@ sub onPlaybackControlsScrubEvent()
         disableScreenSaver()
         startProgressTimer()
         setStatus("Playing")
-        updatePlayPauseButton()
+        syncPlaybackControlsPlayingState()
     else if event.type = "commit" then
         returnFocusIndex = 0
         if event.returnFocusIndex <> invalid then returnFocusIndex = int(event.returnFocusIndex)
         m.playbackControls.callFunc("cancelScrub")
         updateProgress(getPlaybackCurrentTimeSeconds(), true)
-        updatePlayPauseButton()
+        syncPlaybackControlsPlayingState()
 
         nextFocus = SafeString(event.nextFocus, "controls")
         if nextFocus = "description" and focusDescriptionFromPlaybackControls() then return
@@ -1504,7 +1504,7 @@ sub onPlaybackControlsScrubEvent()
         if isProgressScrubbing() then
             m.playbackControls.callFunc("cancelScrub")
             updateProgress(getPlaybackCurrentTimeSeconds(), true)
-            updatePlayPauseButton()
+            syncPlaybackControlsPlayingState()
         end if
     else if event.type = "cancelClose" then
         closePlayer()
@@ -1519,7 +1519,7 @@ sub activatePlaybackControlAction(action as string)
     logPlayerVerbose("activatePlaybackControlAction")
 
     if action = "playPause" then
-        togglePlayPause()
+        handlePlayPauseRequested()
     else if action = "restart" then
         restartPlayback()
     else if action = "tint" then
@@ -1565,7 +1565,7 @@ sub restartPlayback()
     disableScreenSaver()
     startProgressTimer()
     setStatus("Playing")
-    updatePlayPauseButton()
+    syncPlaybackControlsPlayingState()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1786,11 +1786,11 @@ function getChapterStartPosition(chapter as dynamic) as integer
 end function
 
 '-------------------------------------------------------------------------------
-' togglePlayPause
+' handlePlayPauseRequested
 '-------------------------------------------------------------------------------
-sub togglePlayPause()
+sub handlePlayPauseRequested()
 
-    logPlayer("toggle play/pause")
+    logPlayer("handle play/pause request")
 
     if m.playbackRefs.audioPlayer = invalid then return
 
@@ -1811,15 +1811,15 @@ sub togglePlayPause()
         end if
     end if
 
-    updatePlayPauseButton()
+    syncPlaybackControlsPlayingState()
 end sub
 
 '-------------------------------------------------------------------------------
-' updatePlayPauseButton
+' syncPlaybackControlsPlayingState
 '-------------------------------------------------------------------------------
-sub updatePlayPauseButton()
+sub syncPlaybackControlsPlayingState()
 
-    logPlayerVerbose("updatePlayPauseButton")
+    logPlayerVerbose("syncPlaybackControlsPlayingState")
 
     if m.playbackControls = invalid then return
 
