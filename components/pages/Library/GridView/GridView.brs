@@ -37,7 +37,7 @@ sub onDisplaySettingsChanged()
     if m.appliedGridColumns = gridColumns then return
 
     applyGridLayout(m.top.displaySettings)
-    onLibraryItemsChanged()
+    if hasLibraryItems() then onLibraryItemsChanged()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -73,7 +73,28 @@ sub onAllLibraryItemsChanged()
     m.log.write("onAllLibraryItemsChanged")
 
     m.allLibraryItemLookup = LibraryItemLookup_Build(m.top.allLibraryItems)
-    onLibraryItemsChanged()
+    if hasLibraryItems() then onLibraryItemsChanged()
+end sub
+
+'-------------------------------------------------------------------------------
+' onMediaProgressChanged
+'-------------------------------------------------------------------------------
+sub onMediaProgressChanged()
+    if hasLibraryItems() then onLibraryItemsChanged()
+end sub
+
+'-------------------------------------------------------------------------------
+' onLoadingChanged
+'-------------------------------------------------------------------------------
+sub onLoadingChanged()
+    updateEmptyStatus()
+end sub
+
+'-------------------------------------------------------------------------------
+' onContextTypeChanged
+'-------------------------------------------------------------------------------
+sub onContextTypeChanged()
+    if hasLibraryItems() then onLibraryItemsChanged()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -88,6 +109,7 @@ sub onLoadRequestChanged()
 
     m.server = request.server
     m.token = request.token
+    if hasLibraryItems() <> true then return
     onLibraryItemsChanged()
 end sub
 
@@ -96,9 +118,10 @@ end sub
 '-------------------------------------------------------------------------------
 sub onLibraryItemsChanged()
 
-    m.log.write("onLibraryItemsChanged")
-
     if m.markupGrid = invalid then return
+    if m.top.libraryItems = invalid then return
+
+    m.log.write("onLibraryItemsChanged")
 
     root = CreateObject("roSGNode", "ContentNode")
     items = m.top.libraryItems
@@ -134,12 +157,26 @@ sub onLibraryItemsChanged()
     end if
 
     m.markupGrid.content = root
+    updateEmptyStatus()
+end sub
+
+'-------------------------------------------------------------------------------
+' hasLibraryItems
+'-------------------------------------------------------------------------------
+function hasLibraryItems() as boolean
+    return m.top.libraryItems <> invalid and m.top.libraryItems.Count() > 0
+end function
+
+'-------------------------------------------------------------------------------
+' updateEmptyStatus
+'-------------------------------------------------------------------------------
+sub updateEmptyStatus()
     setStatus("")
 
-    if m.libraryItemsByIndex.Count() = 0 then
+    if m.libraryItemsByIndex = invalid or m.libraryItemsByIndex.Count() = 0 then
         if m.top.loading = true then
             setStatus("Loading...")
-        else
+        else if m.top.libraryItems <> invalid then
             setStatus("No titles found")
         end if
     end if

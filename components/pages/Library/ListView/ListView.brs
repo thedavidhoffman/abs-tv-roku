@@ -19,7 +19,6 @@ sub init()
     m.bookLibraryId = invalid
 
     initHandlers()
-    onLibraryItemsChanged()
     onContextTitleChanged()
 end sub
 
@@ -99,6 +98,16 @@ sub onMediaProgressChanged()
 end sub
 
 '-------------------------------------------------------------------------------
+' onLoadingChanged
+'-------------------------------------------------------------------------------
+sub onLoadingChanged()
+    if m.libraryList = invalid then return
+    if m.libraryRows <> invalid and m.libraryRows.Count() > 0 then return
+
+    updateEmptyStatus()
+end sub
+
+'-------------------------------------------------------------------------------
 ' syncLoadRequestToOverview
 '-------------------------------------------------------------------------------
 sub syncLoadRequestToOverview()
@@ -110,9 +119,10 @@ end sub
 '-------------------------------------------------------------------------------
 sub onLibraryItemsChanged()
 
-    m.log.write("onLibraryItemsChanged")
-
     if m.libraryList = invalid then return
+    if m.top.libraryItems = invalid then return
+
+    m.log.write("onLibraryItemsChanged")
 
     resetSeriesExpansionState()
     rebuildLibraryList(0)
@@ -154,14 +164,7 @@ sub rebuildLibraryList(focusIndex as dynamic)
         end for
     end if
 
-    setStatus("")
-    if root.getChildCount() = 0 then
-        if m.top.loading = true then
-            setStatus("Loading...")
-        else
-            setStatus("No titles found")
-        end if
-    end if
+    updateEmptyStatus()
 
     m.libraryList.content = root
     if m.libraryRows.Count() > 0 then
@@ -174,6 +177,21 @@ sub rebuildLibraryList(focusIndex as dynamic)
         end if
     else
         showSelectedItem(invalid, false)
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' updateEmptyStatus
+'-------------------------------------------------------------------------------
+sub updateEmptyStatus()
+    setStatus("")
+
+    if m.libraryRows = invalid or m.libraryRows.Count() = 0 then
+        if m.top.loading = true then
+            setStatus("Loading...")
+        else if m.top.libraryItems <> invalid then
+            setStatus("No titles found")
+        end if
     end if
 end sub
 

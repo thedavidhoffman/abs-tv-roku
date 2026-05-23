@@ -10,6 +10,7 @@ sub init()
     m.cache = []
     m.requestGeneration = 0
     m.libraryItemsChangedCounter = 0
+    m.hasPublishedLibraryItems = false
     m.searchResponseCounter = 0
     m.seriesRowsResponseCounter = 0
     m.seriesItemsResponseCounter = 0
@@ -187,12 +188,12 @@ end function
 sub beginNewCacheGeneration()
     m.requestGeneration = m.requestGeneration + 1
     cacheClear()
-    m.top.allLibraryItems = []
+    if m.hasPublishedLibraryItems then m.top.allLibraryItems = []
     m.pendingSearchRequest = invalid
     m.pendingSeriesRowsRequest = invalid
     m.pendingSeriesItemsRequest = invalid
     m.top.errorResponse = invalid
-    publishItems([])
+    if m.hasPublishedLibraryItems then publishItems([])
 end sub
 
 '-------------------------------------------------------------------------------
@@ -267,8 +268,8 @@ sub handleLibraryItemsResponse(response as dynamic)
         return
     end if
 
-    publishCurrentLibraryItems()
     m.top.loading = (hasAllLibraryCaches() = false)
+    if hasAllLibraryCaches() then publishCurrentLibraryItems()
 
     if shouldPublishPendingCacheRequests then publishPendingSearchResponse()
     if shouldPublishPendingCacheRequests then publishPendingSeriesItemsResponse()
@@ -341,6 +342,7 @@ sub publishItems(items as object)
     if items = invalid then items = []
 
     m.top.libraryItems = items
+    m.hasPublishedLibraryItems = true
     m.libraryItemsChangedCounter = m.libraryItemsChangedCounter + 1
     m.top.libraryItemsChanged = m.libraryItemsChangedCounter
 end sub

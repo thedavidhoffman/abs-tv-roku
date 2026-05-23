@@ -12,6 +12,14 @@ sub init()
     m.syncingLibraryItems = false
     m.loadRequest = invalid
     m.syncedLoadRequestKey = ""
+    m.libraryItemsVersion = 0
+    m.allLibraryItemsVersion = 0
+    m.mediaProgressVersion = 0
+    m.syncedListLibraryItemsVersion = -1
+    m.syncedGridLibraryItemsVersion = -1
+    m.syncedGridAllLibraryItemsVersion = -1
+    m.syncedListMediaProgressVersion = -1
+    m.syncedGridMediaProgressVersion = -1
     m.allLibraryItems = []
     m.rootLibraryItems = []
     m.itemBackStack = []
@@ -75,7 +83,6 @@ sub onLoadRequestChanged()
 
     m.loadRequest = m.top.loadRequest
     syncLoadRequestToViews()
-    onLibraryItemsChanged()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -110,8 +117,12 @@ end sub
 ' syncLoadingToViews
 '-------------------------------------------------------------------------------
 sub syncLoadingToViews()
+    if m.activeView = "grid" then
+        if m.gridView <> invalid then m.gridView.loading = m.top.loading
+        return
+    end if
+
     if m.listView <> invalid then m.listView.loading = m.top.loading
-    if m.gridView <> invalid then m.gridView.loading = m.top.loading
 end sub
 
 '-------------------------------------------------------------------------------
@@ -146,6 +157,7 @@ end sub
 sub onAllLibraryItemsChanged()
 
     m.log.write("onAllLibraryItemsChanged")
+    m.allLibraryItemsVersion = m.allLibraryItemsVersion + 1
 
     if m.top.allLibraryItems = invalid then
         m.allLibraryItems = []
@@ -153,7 +165,7 @@ sub onAllLibraryItemsChanged()
         m.allLibraryItems = m.top.allLibraryItems
     end if
 
-    if m.gridView <> invalid then m.gridView.allLibraryItems = m.allLibraryItems
+    syncAllLibraryItemsToActiveView()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -262,7 +274,7 @@ sub applyDisplaySettings(settings as object)
 
     if itemDisplayChanged = false and gridColumnsChanged = false then return
 
-    if gridColumnsChanged and m.gridView <> invalid then m.gridView.displaySettings = settings
+    if gridColumnsChanged and m.activeView = "grid" and m.gridView <> invalid then m.gridView.displaySettings = settings
 
     if itemDisplayChanged then
         if itemDisplay = "grid" then
@@ -300,7 +312,76 @@ sub updateActiveView(viewName as string)
     if m.listView <> invalid then m.listView.visible = (viewName = "list")
     if m.gridView <> invalid then m.gridView.visible = (viewName = "grid")
     syncGridContext()
+    hydrateActiveView()
     syncStatusMessage()
+end sub
+
+'-------------------------------------------------------------------------------
+' hydrateActiveView
+'-------------------------------------------------------------------------------
+sub hydrateActiveView()
+    syncLoadRequestToViews()
+    syncDisplaySettingsToActiveView()
+    syncAllLibraryItemsToActiveView()
+    syncLoadingToViews()
+    syncMediaProgressToActiveView()
+    syncLibraryItemsToActiveView()
+end sub
+
+'-------------------------------------------------------------------------------
+' syncDisplaySettingsToActiveView
+'-------------------------------------------------------------------------------
+sub syncDisplaySettingsToActiveView()
+    if m.activeView <> "grid" then return
+    if m.gridView <> invalid then m.gridView.displaySettings = m.top.displaySettings
+end sub
+
+'-------------------------------------------------------------------------------
+' syncLibraryItemsToActiveView
+'-------------------------------------------------------------------------------
+sub syncLibraryItemsToActiveView()
+    items = m.top.libraryItems
+    if items = invalid then return
+
+    if m.activeView = "grid" then
+        if m.syncedGridLibraryItemsVersion = m.libraryItemsVersion then return
+        m.syncedGridLibraryItemsVersion = m.libraryItemsVersion
+        if m.gridView <> invalid then m.gridView.libraryItems = items
+        return
+    end if
+
+    if m.syncedListLibraryItemsVersion = m.libraryItemsVersion then return
+    m.syncedListLibraryItemsVersion = m.libraryItemsVersion
+    if m.listView <> invalid then m.listView.libraryItems = items
+end sub
+
+'-------------------------------------------------------------------------------
+' syncAllLibraryItemsToActiveView
+'-------------------------------------------------------------------------------
+sub syncAllLibraryItemsToActiveView()
+    if m.activeView <> "grid" then return
+
+    if m.syncedGridAllLibraryItemsVersion = m.allLibraryItemsVersion then return
+    if m.allLibraryItemsVersion = 0 and m.allLibraryItems.Count() = 0 then return
+
+    m.syncedGridAllLibraryItemsVersion = m.allLibraryItemsVersion
+    if m.gridView <> invalid then m.gridView.allLibraryItems = m.allLibraryItems
+end sub
+
+'-------------------------------------------------------------------------------
+' syncMediaProgressToActiveView
+'-------------------------------------------------------------------------------
+sub syncMediaProgressToActiveView()
+    if m.activeView = "grid" then
+        if m.syncedGridMediaProgressVersion = m.mediaProgressVersion then return
+        m.syncedGridMediaProgressVersion = m.mediaProgressVersion
+        if m.gridView <> invalid then m.gridView.mediaProgress = m.top.mediaProgress
+        return
+    end if
+
+    if m.syncedListMediaProgressVersion = m.mediaProgressVersion then return
+    m.syncedListMediaProgressVersion = m.mediaProgressVersion
+    if m.listView <> invalid then m.listView.mediaProgress = m.top.mediaProgress
 end sub
 
 '-------------------------------------------------------------------------------
@@ -317,15 +398,15 @@ end sub
 sub onLibraryItemsChanged()
     if m.syncingLibraryItems = true then return
 
+    m.libraryItemsVersion = m.libraryItemsVersion + 1
     m.syncingLibraryItems = true
     items = m.top.libraryItems
 
     syncLoadRequestToViews()
-    if m.listView <> invalid then m.listView.libraryItems = items
-    if m.gridView <> invalid then
-        m.gridView.libraryItems = items
-    end if
+    syncAllLibraryItemsToActiveView()
     syncLoadingToViews()
+    syncMediaProgressToActiveView()
+    syncLibraryItemsToActiveView()
 
     m.syncingLibraryItems = false
     focusLibraryList()
@@ -418,8 +499,8 @@ end sub
 ' onMediaProgressChanged
 '-------------------------------------------------------------------------------
 sub onMediaProgressChanged()
-    if m.listView <> invalid then m.listView.mediaProgress = m.top.mediaProgress
-    if m.gridView <> invalid then m.gridView.mediaProgress = m.top.mediaProgress
+    m.mediaProgressVersion = m.mediaProgressVersion + 1
+    syncMediaProgressToActiveView()
 end sub
 
 '-------------------------------------------------------------------------------
