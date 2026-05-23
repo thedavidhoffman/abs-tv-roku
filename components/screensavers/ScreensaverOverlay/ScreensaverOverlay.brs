@@ -9,8 +9,11 @@ sub init()
     m.screensaverDelayTimer = m.top.findNode("screensaverDelayTimer")
     m.screensaverLayer = m.top.findNode("screensaverLayer")
     m.activeScreensaver = invalid
+    m.screensaverType = "off"
+    m.screensaverEnabled = false
 
-    if m.screensaverDelayTimer <> invalid then m.screensaverDelayTimer.observeField("fire", "onScreensaverDelayTimerFired")
+    m.screensaverDelayTimer.observeField("fire", "onScreensaverDelayTimerFired")
+
 end sub
 
 '-------------------------------------------------------------------------------
@@ -23,13 +26,16 @@ sub startDelay()
     stopDelayTimer()
 
     settings = SettingsStore_Load()
-    screensaverType = getScreensaverType(settings)
-    if screensaverType = "off" then return
+    m.screensaverType = getScreensaverType(settings)
 
-    if m.screensaverDelayTimer <> invalid then
-        m.screensaverDelayTimer.duration = getScreensaverDelaySeconds(settings)
-        m.screensaverDelayTimer.control = "start"
-    end if
+    ' if the screensaver is already running, then return out
+    m.screensaverEnabled = (m.screensaverType <> "off")
+    if m.screensaverEnabled <> true then return
+
+    ' start the timer
+    m.screensaverDelayTimer.duration = getScreensaverDelaySeconds(settings)
+    m.screensaverDelayTimer.control = "start"
+    
 end sub
 
 '-------------------------------------------------------------------------------
@@ -53,6 +59,7 @@ function recordActivity() as boolean
     wasVisible = isVisible()
 
     if wasVisible then removeScreensaver()
+    if m.screensaverEnabled <> true then return wasVisible
     startDelay()
 
     return wasVisible
@@ -69,9 +76,6 @@ end function
 ' stopDelayTimer
 '-------------------------------------------------------------------------------
 sub stopDelayTimer()
-
-    m.log.write("stopDelayTimer")
-
     if m.screensaverDelayTimer <> invalid then m.screensaverDelayTimer.control = "stop"
 end sub
 
@@ -96,15 +100,16 @@ sub showConfiguredScreensaver()
     if m.screensaverLayer = invalid then return
 
     settings = SettingsStore_Load()
-    screensaverType = getScreensaverType(settings)
-    if screensaverType = "off" then return
+    m.screensaverType = getScreensaverType(settings)
+    m.screensaverEnabled = (m.screensaverType <> "off")
+    if m.screensaverEnabled <> true then return
 
     removeScreensaver()
 
     componentName = ""
-    if screensaverType = "bounce" then
+    if m.screensaverType = "bounce" then
         componentName = "Bounce"
-    else if screensaverType = "starfield" then
+    else if m.screensaverType = "starfield" then
         componentName = "Starfield"
     end if
     if componentName = "" then return
@@ -112,7 +117,7 @@ sub showConfiguredScreensaver()
     screensaver = CreateObject("roSGNode", componentName)
     if screensaver = invalid then return
 
-    if screensaverType = "bounce" then updateBounceScreensaverNode(screensaver)
+    if m.screensaverType = "bounce" then updateBounceScreensaverNode(screensaver)
     m.screensaverLayer.appendChild(screensaver)
     m.activeScreensaver = screensaver
 end sub
@@ -154,9 +159,6 @@ end sub
 ' getScreensaverType
 '-------------------------------------------------------------------------------
 function getScreensaverType(settings as dynamic) as string
-
-    m.log.write("getScreensaverType")
-
     if settings = invalid then return "off"
 
     screensaverType = SafeString(settings["screensaver-type"], "off")
@@ -169,9 +171,6 @@ end function
 ' getScreensaverDelaySeconds
 '-------------------------------------------------------------------------------
 function getScreensaverDelaySeconds(settings as dynamic) as integer
-
-    m.log.write("getScreensaverDelaySeconds")
-
     if settings = invalid then return 60
 
     delayMinutes = int(val(SafeString(settings["screensaver-delay"], "1")))

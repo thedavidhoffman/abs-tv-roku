@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="AudioBadges" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Format.brs" />
+  <script type="text/brightscript" uri="pkg:/source/String.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Player/AudioBadges/AudioBadges.brs" />
+  <interface>
+    <field id="track" type="assocarray" onChange="onTrackChanged" />
+  </interface>
+  <children>
+    <Group id="codecBadge">
+      <Poster id="codecBadgeBackground" width="92" height="44" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
+      <Label id="codecBadgeLabel" translation="[10,7]" width="72" height="34" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
+    </Group>
+    <Group id="bitRateBadge" translation="[104,0]">
+      <Poster id="bitRateBadgeBackground" width="112" height="44" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
+      <Label id="bitRateBadgeLabel" translation="[10,7]" width="92" height="34" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
+    </Group>
+    <Group id="channelBadge" translation="[228,0]">
+      <Poster id="channelBadgeBackground" width="272" height="44" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
+      <Label id="channelBadgeLabel" translation="[10,7]" width="252" height="34" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
+    </Group>
+  </children>
+</component>

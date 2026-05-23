@@ -5,6 +5,7 @@
   <script type="text/brightscript" uri="pkg:/source/Color.brs" />
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/Cover.brs" />
+  <script type="text/brightscript" uri="pkg:/source/PlaybackTrackTime.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Player/Player.brs" />
   <interface>
     <field id="playRequest" type="assocarray" onChange="onPlayRequestChanged" />
@@ -25,54 +26,13 @@
       showProgressBar="false" />
 
     <!-- source audio badges -->
-    <Group id="audioBadgeGroup" translation="[120,704]">
-      <Group id="codecBadge">
-        <Poster id="codecBadgeBackground" width="92" height="44" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
-        <Label id="codecBadgeLabel" translation="[10,7]" width="72" height="34" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
-      </Group>
-      <Group id="bitRateBadge" translation="[104,0]">
-        <Poster id="bitRateBadgeBackground" width="112" height="44" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
-        <Label id="bitRateBadgeLabel" translation="[10,7]" width="92" height="34" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
-      </Group>
-      <Group id="channelBadge" translation="[228,0]">
-        <Poster id="channelBadgeBackground" width="272" height="44" uri="pkg:/images/badges/audio_badge.9.png" loadDisplayMode="scaleToFill" />
-        <Label id="channelBadgeLabel" translation="[10,7]" width="252" height="34" horizAlign="center" vertAlign="center" maxLines="1" color="0xF6F7FBFF" font="font:TinySystemFont" />
-      </Group>
-    </Group>
+    <AudioBadges id="audioBadges" translation="[120,704]" />
 
     <!-- metadata -->
-    <ScrollingLabel id="titleLabel" translation="[700,210]" maxWidth="1040" font="font:LargeBoldSystemFont" repeatCount="1" />
-    <Label id="authorLabel" translation="[700,260]" width="1040" color="0xB7C5D4FF" />
-    <Label id="metadataLabel" translation="[700,310]" width="1040" color="0xB7C5D4FF" font="font:SmallestSystemFont" />
+    <Metadata id="metadata" translation="[700,210]" />
 
-    <Description id="description" translation="[700,389]" width="1040" numLines="5" />
-
-    <Label id="trackTitleLabel" translation="[700,664]" width="1040" />
-    <Label id="statusLabel" translation="[700,724]" width="430" color="0xF2C879FF" />
-    <MonospaceLabel id="chapterStatusLabel" translation="[1020,734]" width="720" horizAlign="right" color="0xB7C5D4FF" font="font:TinySystemFont" characterWidth="20" />
-
-    <!-- progress/play head -->
-    <Group id="progressGroup" translation="[700,774]">
-      <Rectangle id="progressTrack" width="1040" height="12" color="0x555555FF" />
-      <Rectangle id="progressFill" width="1" height="12" color="0xE09B42FF" visible="false" />
-      <Group id="chapterMarkersGroup" />
-      <Rectangle id="progressCrossbar" translation="[0,-10]" width="8" height="32" color="0xF3F7FBFF" visible="false" />
-      <MonospaceLabel id="currentTimeLabel" translation="[0,26]" width="220" text="0:00" font="font:SmallerSystemFont" characterWidth="20" />
-      <MonospaceLabel id="totalTimeLabel" translation="[820,26]" width="220" horizAlign="right" text="0:00" font="font:SmallerSystemFont" characterWidth="20" />
-    </Group>
-
-    <!-- play/chapters -->
-    <Group id="transportControls" translation="[700,849]">
-      <PrimaryButton id="playPauseButton" translation="[0,0]" buttonWidth="188" buttonHeight="56" text="Pause" />
-      <PrimaryButton id="restartButton" translation="[208,0]" buttonWidth="188" buttonHeight="56" text="Restart" iconUri="pkg:/images/icons/restart.png" />
-      <PrimaryButton id="tintButton" translation="[416,0]" buttonWidth="188" buttonHeight="56" text="Tint" iconUri="pkg:/images/icons/tint.png" />
-      <PrimaryButton id="chaptersButton" translation="[850,0]" buttonWidth="190" buttonHeight="56" text="Chapters" visible="false" />
-    </Group>
-
-    <!-- timers -->
-    <Timer id="progressTimer" duration="1" repeat="true" />
-    <Timer id="closeTimer" duration="0.5" repeat="false" />
-    <Timer id="hlsRetryTimer" duration="2" repeat="false" />
+    <!-- playback controls -->
+    <PlaybackControls id="playbackControls" translation="[700,664]" />
 
     <!-- video player -->
     <!-- note: useing video player instead of audio player because video player supports suspending the screen saver -->
@@ -85,13 +45,20 @@
 
     <!-- dialog for displaying a chapter list for view/selection -->
     <ChapterListDialog id="chapterList" visible="false" />
-    <AppTask id="playbackApiTask" />
 
     <!-- screensaver overlay -->
     <ScreensaverOverlay id="screensaverOverlay" />
 
     <!-- night mode tint -->
     <Rectangle id="nightModeTint" width="1920" height="1080" color="0x000000BF" visible="false" />
+
+    <!-- timers -->
+    <Timer id="progressTimer" duration="1" repeat="true" />
+    <Timer id="closeTimer" duration="0.5" repeat="false" />
+    <Timer id="hlsRetryTimer" duration="2" repeat="false" />
+
+    <!-- api task -->
+    <AppTask id="playbackApiTask" />
 
   </children>
 </component>

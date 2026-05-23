@@ -2,7 +2,7 @@
 <component name="ChapterListDialog" extends="Group">
   <script type="text/brightscript" uri="pkg:/source/Format.brs" />
   <script type="text/brightscript" uri="pkg:/source/String.brs" />
-  <script type="text/brightscript" uri="pkg:/components/pages/Player/ChapterListDialog.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/Player/ChapterList/ChapterListDialog.brs" />
   <interface>
     <field id="tracks" type="array" onChange="onTracksChanged" />
     <field id="currentTrackIndex" type="integer" onChange="onCurrentTrackIndexChanged" />
