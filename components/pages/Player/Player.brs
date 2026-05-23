@@ -4,7 +4,8 @@
 sub init()
     
     m.log = CreateLogger("Player", false)
-    m.log.write("init")
+    m.verboseLogging = false
+    logPlayerVerbose("init")
 
     initReferences()
     initValues()
@@ -12,6 +13,20 @@ sub init()
     updateChaptersButtonVisibility()
     updatePlaybackControlsFocus(-1)
     updatePlayPauseButton()
+end sub
+
+'-------------------------------------------------------------------------------
+' logPlayer
+'-------------------------------------------------------------------------------
+sub logPlayer(message as dynamic)
+    if m.log <> invalid then m.log.write(message)
+end sub
+
+'-------------------------------------------------------------------------------
+' logPlayerVerbose
+'-------------------------------------------------------------------------------
+sub logPlayerVerbose(message as dynamic)
+    if m.verboseLogging = true then logPlayer(message)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -160,7 +175,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onPlayRequestChanged()
 
-    m.log.write("onPlayRequestChanged")
+    logPlayerVerbose("onPlayRequestChanged")
 
     request = m.top.playRequest
 
@@ -169,9 +184,7 @@ sub onPlayRequestChanged()
         return
     end if
 
-    m.log.write("title = " + SafeString(request.title))
-    m.log.write("itemId = " + SafeString(request.itemId))
-    m.log.write("startPosition = " + SafeString(request.startPositionSeconds))
+    logPlayer("play request title=" + SafeString(request.title) + " itemId=" + SafeString(request.itemId) + " startPosition=" + SafeString(request.startPositionSeconds))
 
     m.isClosing = false
     m.playbackState.complete = false
@@ -207,11 +220,12 @@ end sub
 '-------------------------------------------------------------------------------
 sub requestStartPlaybackSession(forceTranscode = false as boolean, startTimeOverride = invalid as dynamic)
         
-    m.log.write("requestStartPlaybackSession")
+    logPlayerVerbose("requestStartPlaybackSession")
 
     request = m.top.playRequest
     if request = invalid then return
 
+    logPlayer("request start playback forceTranscode=" + forceTranscode.ToStr() + " startTimeOverride=" + SafeString(startTimeOverride))
     m.playbackContext.startTimeOverrideSeconds = startTimeOverride
     m.playbackContext.requestCounter = m.playbackContext.requestCounter + 1
     m.playbackContext.activeStartRequestCounter = m.playbackContext.requestCounter
@@ -232,7 +246,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub resetMediaNodeForNewPlayback()
 
-    m.log.write("resetMediaNodeForNewPlayback")
+    logPlayerVerbose("resetMediaNodeForNewPlayback")
 
     stopScreensaverOverlay()
     stopProgressTimer()
@@ -253,7 +267,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub startScreensaverOverlay(request as object)
 
-    m.log.write("startScreensaverOverlay")
+    logPlayerVerbose("startScreensaverOverlay")
 
     m.overlayRefs.screensaverOverlay.playbackRequest = {
         server: request.server
@@ -270,7 +284,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub restartScreensaverOverlayDelay()
 
-    m.log.write("restartScreensaverOverlayDelay")
+    logPlayerVerbose("restartScreensaverOverlayDelay")
 
     m.playbackState.complete = false
     startScreensaverOverlay(m.top.playRequest)
@@ -281,7 +295,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub stopScreensaverOverlay()
 
-    m.log.write("stopScreensaverOverlay")
+    logPlayerVerbose("stopScreensaverOverlay")
     m.overlayRefs.screensaverOverlay.callFunc("stopOverlay")
 
 end sub
@@ -291,7 +305,7 @@ end sub
 '-------------------------------------------------------------------------------
 function recordScreensaverOverlayActivity() as boolean
 
-    m.log.write("recordScreensaverOverlayActivity")
+    logPlayerVerbose("recordScreensaverOverlayActivity")
 
     if m.playbackState.complete = true then
         wasVisible = m.overlayRefs.screensaverOverlay.callFunc("isVisible")
@@ -309,7 +323,7 @@ end function
 '-------------------------------------------------------------------------------
 sub resetPlaybackSessionState()
 
-    m.log.write("resetPlaybackSessionState")
+    logPlayerVerbose("resetPlaybackSessionState")
 
     m.playbackContent.tracks = []
     m.playbackContent.chapterItems = []
@@ -334,7 +348,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub resetPlaybackRetryState(resetFallbackAttempts = false as boolean)
 
-    m.log.write("resetPlaybackRetryState")
+    logPlayerVerbose("resetPlaybackRetryState")
 
     m.hlsRetry.count = 0
     m.hlsRetry.pending = false
@@ -354,7 +368,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub resetPlaybackSyncState()
 
-    m.log.write("resetPlaybackSyncState")
+    logPlayerVerbose("resetPlaybackSyncState")
 
     m.playbackSync.startedAtSeconds = 0
     m.playbackSync.lastSyncAtSeconds = 0
@@ -369,7 +383,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub startPlaybackSyncState()
 
-    m.log.write("startPlaybackSyncState")
+    logPlayerVerbose("startPlaybackSyncState")
     m.playbackSync.startedAtSeconds = getNowSeconds()
     m.playbackSync.lastSyncAtSeconds = m.playbackSync.startedAtSeconds
     m.playbackSync.lastProgressTickAtSeconds = 0
@@ -383,7 +397,8 @@ end sub
 '-------------------------------------------------------------------------------
 sub runPlaybackApiRequest(request as object)
 
-    m.log.write("runPlaybackApiRequest")
+    logPlayerVerbose("runPlaybackApiRequest")
+    logPlayer("playback API request action=" + SafeString(request.action))
     m.playbackRefs.playbackApiTask.request = request
     m.playbackRefs.playbackApiTask.control = "run"
 
@@ -394,12 +409,13 @@ end sub
 '-------------------------------------------------------------------------------
 sub onPlaybackApiResponse()
 
-    m.log.write("onPlaybackApiResponse")
+    logPlayerVerbose("onPlaybackApiResponse")
 
     response = m.playbackRefs.playbackApiTask.response
     if response = invalid then return
 
     action = getTaskResponseAction(response)
+    logPlayer("playback API response action=" + action + " ok=" + SafeString(response.ok))
     if action = "startPlayback" then
         if response.requestCounter <> invalid and response.requestCounter <> m.playbackContext.activeStartRequestCounter then return
         handleStartPlaybackResponse(response)
@@ -415,7 +431,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub handleClosePlaybackSessionResponse(response as dynamic)
 
-    m.log.write("handleClosePlaybackSessionResponse")
+    logPlayerVerbose("handleClosePlaybackSessionResponse")
 
     if response <> invalid and response.ok <> true then m.top.errorResponse = response
 end sub
@@ -425,7 +441,7 @@ end sub
 '-------------------------------------------------------------------------------
 function getTaskResponseAction(response as dynamic) as string
 
-    m.log.write("getTaskResponseAction")
+    logPlayerVerbose("getTaskResponseAction")
 
     if response <> invalid and response.action <> invalid then return response.action
     if m.playbackRefs.playbackApiTask <> invalid and m.playbackRefs.playbackApiTask.request <> invalid and m.playbackRefs.playbackApiTask.request.action <> invalid then
@@ -440,7 +456,7 @@ end function
 '-------------------------------------------------------------------------------
 function getCoverContent(request as dynamic) as dynamic
 
-    m.log.write("getCoverContent")
+    logPlayerVerbose("getCoverContent")
 
     ' ItemPlayer accepts a ContentNode (aka property bag)
     ' for the cover information (url, title, etc.)
@@ -463,23 +479,26 @@ end function
 '-------------------------------------------------------------------------------
 sub handleStartPlaybackResponse(response as dynamic)
 
-    m.log.write("handleStartPlaybackResponse")
+    logPlayerVerbose("handleStartPlaybackResponse")
 
     if response = invalid then return
     if m.isClosing = true then return
 
     if response.ok <> true then
+        logPlayer("start playback failed: " + SafeString(response.errorMessage, "unknown error"))
         m.top.errorResponse = response
         setStatus(SafeString(response.errorMessage, "Unable to start playback."))
         return
     end if
+
+    logPlayer("start playback response accepted")
 
     m.playbackContext.session = response.playbackSession
     m.playbackContext.sessionId = getPlaybackSessionId(response.playbackSession)
     if response.playbackSessionId <> invalid then m.playbackContext.sessionId = response.playbackSessionId
     m.hlsRetry.isTranscode = response.isHlsTranscode = true
     m.timeline.currentTimeSeconds = getStartPlaybackCurrentTime(response)
-    if m.hlsRetry.isTranscode = true then m.log.write("HLS stream global start offset=0")
+    if m.hlsRetry.isTranscode = true then logPlayer("HLS stream global start offset=0")
     m.timeline.totalDurationSeconds = getStartPlaybackDuration(response)
     updateTotalDuration()
     startPlaybackSyncState()
@@ -491,7 +510,7 @@ end sub
 '-------------------------------------------------------------------------------
 function getStartPlaybackCurrentTime(response as dynamic) as integer
 
-    m.log.write("getStartPlaybackCurrentTime")
+    logPlayerVerbose("getStartPlaybackCurrentTime")
 
     if m.playbackContext.startTimeOverrideSeconds <> invalid then
         return clampStartPlaybackTime(m.playbackContext.startTimeOverrideSeconds)
@@ -505,7 +524,7 @@ end function
 '-------------------------------------------------------------------------------
 function clampStartPlaybackTime(timeSeconds as dynamic) as integer
 
-    m.log.write("clampStartPlaybackTime")
+    logPlayerVerbose("clampStartPlaybackTime")
 
     startTime = int(val(timeSeconds.ToStr()))
     if startTime < 0 then return 0
@@ -517,7 +536,7 @@ end function
 '-------------------------------------------------------------------------------
 function getStartPlaybackDuration(response as dynamic) as integer
 
-    m.log.write("getStartPlaybackDuration")
+    logPlayerVerbose("getStartPlaybackDuration")
 
     if response <> invalid and response.duration <> invalid then return int(val(response.duration.ToStr()))
     if response <> invalid and response.playbackSession <> invalid and response.playbackSession.duration <> invalid then return int(val(response.playbackSession.duration.ToStr()))
@@ -529,7 +548,7 @@ end function
 '-------------------------------------------------------------------------------
 function getPlaybackSessionId(playbackSession as dynamic) as dynamic
 
-    m.log.write("getPlaybackSessionId")
+    logPlayerVerbose("getPlaybackSessionId")
 
     if playbackSession = invalid then return invalid
     return playbackSession.id
@@ -540,7 +559,7 @@ end function
 '-------------------------------------------------------------------------------
 sub updateDetails(details as dynamic)
 
-    m.log.write("updateDetails")
+    logPlayerVerbose("updateDetails")
 
     if details = invalid then details = {}
 
@@ -561,7 +580,7 @@ end sub
 '-------------------------------------------------------------------------------
 function getMetadataText(details as dynamic) as string
 
-    m.log.write("getMetadataText")
+    logPlayerVerbose("getMetadataText")
 
     year = getPublishedYear(details.publishDate)
     category = FirstNonEmpty([details.category], "")
@@ -576,7 +595,7 @@ end function
 '-------------------------------------------------------------------------------
 function getPublishedYear(publishDate as dynamic) as string
 
-    m.log.write("getPublishedYear")
+    logPlayerVerbose("getPublishedYear")
 
     text = SafeString(publishDate, "")
     if Len(text) < 4 then return ""
@@ -593,7 +612,7 @@ end function
 '-------------------------------------------------------------------------------
 function isYearText(value as string) as boolean
 
-    m.log.write("isYearText")
+    logPlayerVerbose("isYearText")
 
     if Len(value) <> 4 then return false
     year = int(val(value))
@@ -605,7 +624,7 @@ end function
 '-------------------------------------------------------------------------------
 sub updateAudioBadgesForCurrentTrack()
 
-    m.log.write("updateAudioBadgesForCurrentTrack")
+    logPlayerVerbose("updateAudioBadgesForCurrentTrack")
 
     if m.playbackContent.tracks = invalid or m.timeline.currentTrackIndex < 0 or m.timeline.currentTrackIndex >= m.playbackContent.tracks.Count() then
         updateAudioBadges(invalid)
@@ -620,7 +639,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub updateAudioBadges(track as dynamic)
 
-    m.log.write("updateAudioBadges")
+    logPlayerVerbose("updateAudioBadges")
 
     if m.audioBadges <> invalid then m.audioBadges.track = track
 end sub
@@ -630,7 +649,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub playTracks(tracks as dynamic, chapters as dynamic)
 
-    m.log.write("playTracks")
+    logPlayerVerbose("playTracks")
 
     if m.playbackRefs.audioPlayer = invalid then return
     if tracks = invalid or tracks.Count() = 0 then
@@ -656,7 +675,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub playCurrentTrack(playWhenReady = true as boolean)
 
-    m.log.write("playCurrentTrack")
+    logPlayerVerbose("playCurrentTrack")
 
     if m.playbackRefs.audioPlayer = invalid then return
     if m.playbackContent.tracks = invalid or m.timeline.currentTrackIndex < 0 or m.timeline.currentTrackIndex >= m.playbackContent.tracks.Count() then return
@@ -674,7 +693,7 @@ sub playCurrentTrack(playWhenReady = true as boolean)
             node.PlayStart = seekPosition
             m.timeline.pendingSeekSeconds = invalid
             m.hlsRetry.startupSeekTargetSeconds = seekPosition
-            m.log.write("HLS initial PlayStart=" + seekPosition.ToStr())
+            logPlayer("HLS initial PlayStart=" + seekPosition.ToStr())
         else
             node.PlayStart = seekPosition
             m.timeline.pendingSeekSeconds = invalid
@@ -684,7 +703,7 @@ sub playCurrentTrack(playWhenReady = true as boolean)
         if m.hlsRetry.isTranscode = true then m.hlsRetry.startupSeekTargetSeconds = invalid
     end if
 
-    m.log.write("track index=" + m.timeline.currentTrackIndex.ToStr() + " format=" + SafeString(node.streamFormat) + " url=" + SafeString(node.url))
+    logPlayer("track index=" + m.timeline.currentTrackIndex.ToStr() + " format=" + SafeString(node.streamFormat) + " url=" + SafeString(node.url))
 
     m.timeline.currentTrackStartPosition = PlaybackTrackTime_GetTrackStartPosition(track)
     if m.timeline.currentTimeSeconds > 0 then
@@ -718,7 +737,7 @@ end sub
 '-------------------------------------------------------------------------------
 function getRequestStartPosition(request as dynamic) as integer
 
-    m.log.write("getRequestStartPosition")
+    logPlayerVerbose("getRequestStartPosition")
 
     if request = invalid or request.startPositionSeconds = invalid then return 0
     startPosition = int(val(request.startPositionSeconds.ToStr()))
@@ -731,7 +750,7 @@ end function
 '-------------------------------------------------------------------------------
 function clampGlobalTime(timeSeconds as dynamic) as integer
 
-    m.log.write("clampGlobalTime")
+    logPlayerVerbose("clampGlobalTime")
 
     return PlaybackTrackTime_ClampGlobalTime(timeSeconds, getPlaybackDurationSeconds())
 end function
@@ -741,7 +760,7 @@ end function
 '-------------------------------------------------------------------------------
 function getTrackIndexForGlobalTime(timeSeconds as dynamic) as integer
 
-    m.log.write("getTrackIndexForGlobalTime")
+    logPlayerVerbose("getTrackIndexForGlobalTime")
 
     return PlaybackTrackTime_GetTrackIndexForGlobalTime(m.playbackContent.tracks, timeSeconds, getPlaybackDurationSeconds(), m.hlsRetry.isTranscode)
 end function
@@ -751,7 +770,7 @@ end function
 '-------------------------------------------------------------------------------
 function getTrackSeekPosition(trackIndex as integer, globalTime as dynamic) as integer
 
-    m.log.write("getTrackSeekPosition")
+    logPlayerVerbose("getTrackSeekPosition")
 
     return PlaybackTrackTime_GetTrackSeekPosition(m.playbackContent.tracks, trackIndex, globalTime, getPlaybackDurationSeconds(), m.hlsRetry.isTranscode)
 end function
@@ -761,12 +780,13 @@ end function
 '-------------------------------------------------------------------------------
 sub seekToGlobalTime(globalTime as dynamic, playWhenReady = true as boolean, shouldSync = true as boolean)
 
-    m.log.write("seekToGlobalTime")
+    logPlayerVerbose("seekToGlobalTime")
 
     if m.playbackRefs.audioPlayer = invalid then return
     if m.playbackContent.tracks = invalid or m.playbackContent.tracks.Count() = 0 then return
 
     targetTime = clampGlobalTime(globalTime)
+    logPlayer("seek target=" + targetTime.ToStr() + " playWhenReady=" + playWhenReady.ToStr() + " shouldSync=" + shouldSync.ToStr())
     setPlaybackVisualTarget(targetTime)
     targetTrackIndex = getTrackIndexForGlobalTime(targetTime)
     m.timeline.currentTimeSeconds = targetTime
@@ -800,7 +820,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub updatePlaybackPosition(globalTime as dynamic)
 
-    m.log.write("updatePlaybackPosition")
+    logPlayerVerbose("updatePlaybackPosition")
 
     m.timeline.currentTimeSeconds = clampGlobalTime(globalTime)
     if m.playbackContent.tracks = invalid or m.playbackContent.tracks.Count() = 0 then
@@ -818,7 +838,7 @@ end sub
 '-------------------------------------------------------------------------------
 function getInitialTrackSeekPosition() as integer
 
-    m.log.write("getInitialTrackSeekPosition")
+    logPlayerVerbose("getInitialTrackSeekPosition")
 
     if m.timeline.pendingSeekSeconds <> invalid then return int(val(m.timeline.pendingSeekSeconds.ToStr()))
     return getTrackSeekPosition(m.timeline.currentTrackIndex, m.timeline.currentTimeSeconds)
@@ -828,11 +848,10 @@ end function
 '-------------------------------------------------------------------------------
 sub onAudioStateChanged()
 
-    m.log.write("onAudioStateChanged")
-
     if m.playbackRefs.audioPlayer = invalid then return
 
     state = SafeString(m.playbackRefs.audioPlayer.state, "")
+    logPlayer("audio state=" + state)
 
     '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     ' playing
@@ -854,7 +873,7 @@ sub onAudioStateChanged()
         '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     else if state = "buffering" then
         disableScreenSaver()
-        m.log.write("buffering state observed")
+        logPlayer("buffering state observed")
         '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         ' finished
         '- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -903,7 +922,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub handlePlaybackComplete()
 
-    m.log.write("handlePlaybackComplete")
+    logPlayer("playback complete")
 
     if m.playbackState.complete = true then return
 
@@ -922,13 +941,14 @@ end sub
 '-------------------------------------------------------------------------------
 function restartWithTranscodeFallback(reason as string) as boolean
 
-    m.log.write("restartWithTranscodeFallback")
+    logPlayerVerbose("restartWithTranscodeFallback")
 
     if m.isClosing = true then return false
     if m.hlsRetry.isTranscode = true then return false
     if m.hlsRetry.forceTranscodeFallbackTried = true then return false
 
     m.hlsRetry.forceTranscodeFallbackTried = true
+    logPlayer("direct playback fallback reason=" + reason)
     restartPlaybackSession(true, "direct-play-fallback-" + reason)
     return true
 end function
@@ -938,13 +958,14 @@ end function
 '-------------------------------------------------------------------------------
 function refreshHlsPlaybackSession(reason as string) as boolean
 
-    m.log.write("refreshHlsPlaybackSession")
+    logPlayerVerbose("refreshHlsPlaybackSession")
 
     if m.isClosing = true then return false
     if m.hlsRetry.isTranscode <> true then return false
     if m.hlsRetry.sessionRefreshTried = true then return false
 
     m.hlsRetry.sessionRefreshTried = true
+    logPlayer("HLS session refresh reason=" + reason)
     restartPlaybackSession(true, "hls-session-refresh-" + reason)
     return true
 end function
@@ -954,10 +975,10 @@ end function
 '-------------------------------------------------------------------------------
 sub restartPlaybackSession(forceTranscode as boolean, reason as string)
 
-    m.log.write("restartPlaybackSession")
+    logPlayerVerbose("restartPlaybackSession")
 
     currentTime = getPlaybackCurrentTimeSeconds()
-    m.log.write("Restarting playback session reason=" + reason + " currentTime=" + currentTime.ToStr() + " forceTranscode=" + forceTranscode.ToStr())
+    logPlayer("restarting playback session reason=" + reason + " currentTime=" + currentTime.ToStr() + " forceTranscode=" + forceTranscode.ToStr())
 
     resetMediaNodeForNewPlayback()
     resetPlaybackSessionState()
@@ -973,7 +994,7 @@ end sub
 '-------------------------------------------------------------------------------
 function scheduleHlsStartupRetry(reason as string) as boolean
 
-    m.log.write("scheduleHlsStartupRetry")
+    logPlayerVerbose("scheduleHlsStartupRetry")
 
     if m.isClosing = true then return false
     if m.hlsRetry.isTranscode <> true then return false
@@ -984,7 +1005,7 @@ function scheduleHlsStartupRetry(reason as string) as boolean
     m.hlsRetry.count = m.hlsRetry.count + 1
     m.hlsRetry.pending = true
     stopProgressTimer()
-    m.log.write("HLS startup retry " + m.hlsRetry.count.ToStr() + "/" + retryMax.ToStr() + " reason=" + reason + " currentTime=" + m.timeline.currentTimeSeconds.ToStr())
+    logPlayer("HLS startup retry " + m.hlsRetry.count.ToStr() + "/" + retryMax.ToStr() + " reason=" + reason + " currentTime=" + m.timeline.currentTimeSeconds.ToStr())
 
     if m.playbackRefs.audioPlayer <> invalid then m.playbackRefs.audioPlayer.control = "stop"
     if m.timerRefs.hlsRetryTimer <> invalid then
@@ -1002,7 +1023,7 @@ end function
 '-------------------------------------------------------------------------------
 function getHlsRetryMax() as integer
 
-    m.log.write("getHlsRetryMax")
+    logPlayerVerbose("getHlsRetryMax")
 
     if m.hlsRetry.startupSeekTargetSeconds <> invalid then return m.hlsRetry.resumeMax
     return m.hlsRetry.max
@@ -1013,7 +1034,7 @@ end function
 '-------------------------------------------------------------------------------
 sub onHlsRetryTimerFired()
 
-    m.log.write("onHlsRetryTimerFired")
+    logPlayerVerbose("onHlsRetryTimerFired")
 
     retryHlsPlayback()
 end sub
@@ -1023,7 +1044,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub retryHlsPlayback()
 
-    m.log.write("retryHlsPlayback")
+    logPlayerVerbose("retryHlsPlayback")
 
     if m.isClosing = true then return
     if m.playbackContent.tracks = invalid or m.playbackContent.tracks.Count() = 0 then return
@@ -1038,7 +1059,7 @@ end sub
 '-------------------------------------------------------------------------------
 function getTrackPlaybackUrl(track as dynamic) as string
 
-    m.log.write("getTrackPlaybackUrl")
+    logPlayerVerbose("getTrackPlaybackUrl")
 
     url = SafeString(track.url, "")
     if m.hlsRetry.isTranscode <> true then return url
@@ -1054,7 +1075,7 @@ end function
 '-------------------------------------------------------------------------------
 sub applyPendingInitialSeek()
 
-    m.log.write("applyPendingInitialSeek")
+    logPlayerVerbose("applyPendingInitialSeek")
 
     if m.playbackRefs.audioPlayer = invalid then return
     if m.timeline.pendingSeekSeconds = invalid then return
@@ -1062,7 +1083,7 @@ sub applyPendingInitialSeek()
     seekPosition = int(val(m.timeline.pendingSeekSeconds.ToStr()))
     m.timeline.pendingSeekSeconds = invalid
     m.playbackRefs.audioPlayer.seek = seekPosition
-    m.log.write("applied pending seek=" + seekPosition.ToStr() + " state=" + SafeString(m.playbackRefs.audioPlayer.state, ""))
+    logPlayer("applied pending seek=" + seekPosition.ToStr() + " state=" + SafeString(m.playbackRefs.audioPlayer.state, ""))
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1070,7 +1091,7 @@ end sub
 '-------------------------------------------------------------------------------
 function playNextTrack() as boolean
 
-    m.log.write("playNextTrack")
+    logPlayerVerbose("playNextTrack")
 
     if m.playbackContent.tracks = invalid then return false
     if m.hlsRetry.isTranscode = true then return false
@@ -1090,13 +1111,13 @@ end function
 '-------------------------------------------------------------------------------
 function isPlaybackNearEnd() as boolean
 
-    m.log.write("isPlaybackNearEnd")
+    logPlayerVerbose("isPlaybackNearEnd")
 
     duration = getPlaybackDurationSeconds()
     if duration <= 0 then return true
 
     currentTime = getPlaybackCurrentTimeSeconds()
-    m.log.write("finished check currentTime=" + currentTime.ToStr() + " duration=" + duration.ToStr())
+    logPlayer("finished check currentTime=" + currentTime.ToStr() + " duration=" + duration.ToStr())
     return currentTime >= duration - 3
 end function
 
@@ -1105,7 +1126,7 @@ end function
 '-------------------------------------------------------------------------------
 sub logPlaybackError(message as string)
 
-    m.log.write("logPlaybackError")
+    logPlayerVerbose("logPlaybackError")
 
     if m.log = invalid then return
 
@@ -1125,7 +1146,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub setStatus(status as string)
 
-    m.log.write("setStatus")
+    logPlayerVerbose("setStatus")
 
     m.playbackState.visibleStatus = status
     if m.playbackControls <> invalid then m.playbackControls.statusText = status
@@ -1136,7 +1157,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub disableScreenSaver()
 
-    m.log.write("disableScreenSaver")
+    logPlayerVerbose("disableScreenSaver")
 
     if m.playbackRefs.audioPlayer <> invalid then m.playbackRefs.audioPlayer.disableScreenSaver = true
 end sub
@@ -1146,7 +1167,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub enableScreenSaver()
 
-    m.log.write("enableScreenSaver")
+    logPlayerVerbose("enableScreenSaver")
 
     if m.playbackRefs.audioPlayer <> invalid then m.playbackRefs.audioPlayer.disableScreenSaver = false
 end sub
@@ -1156,7 +1177,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub closePlayer()
 
-    m.log.write("closePlayer")
+    logPlayer("close player")
 
     if m.isClosing = true then return
     m.isClosing = true
@@ -1188,7 +1209,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onCloseTimerFired()
 
-    m.log.write("onCloseTimerFired")
+    logPlayerVerbose("onCloseTimerFired")
 
     finalizeClosePlayer()
 end sub
@@ -1198,7 +1219,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub finalizeClosePlayer()
 
-    m.log.write("finalizeClosePlayer")
+    logPlayer("finalize close player")
 
     stopScreensaverOverlay()
 
@@ -1222,10 +1243,13 @@ end sub
 '-------------------------------------------------------------------------------
 sub requestClosePlaybackSession()
 
-    m.log.write("requestClosePlaybackSession")
+    logPlayerVerbose("requestClosePlaybackSession")
 
     request = buildPlaybackSessionRequest("closePlaybackSession")
-    if request <> invalid then runPlaybackApiRequest(request)
+    if request <> invalid then
+        logPlayer("request close playback session")
+        runPlaybackApiRequest(request)
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1233,12 +1257,13 @@ end sub
 '-------------------------------------------------------------------------------
 sub requestSyncPlaybackSession(reason = "" as string, currentTimeOverride = invalid as dynamic)
 
-    m.log.write("requestSyncPlaybackSession")
+    logPlayerVerbose("requestSyncPlaybackSession")
 
     request = buildPlaybackSessionRequest("syncPlaybackSession", currentTimeOverride)
     if request = invalid then return
 
     if reason <> "" then request.reason = reason
+    logPlayer("request sync playback session reason=" + SafeString(reason, ""))
     if request.currentTime <> invalid then m.playbackSync.lastSyncedCurrentTimeSeconds = int(val(request.currentTime.ToStr()))
     m.playbackSync.listeningTimeSinceSync = 0
     m.playbackSync.lastSyncAtSeconds = getNowSeconds()
@@ -1250,7 +1275,7 @@ end sub
 '-------------------------------------------------------------------------------
 function buildPlaybackSessionRequest(action as string, currentTimeOverride = invalid as dynamic) as dynamic
 
-    m.log.write("buildPlaybackSessionRequest")
+    logPlayerVerbose("buildPlaybackSessionRequest")
 
     if m.playbackContext.sessionId = invalid or m.playbackContext.sessionId = "" then return invalid
     if m.playbackContext.server = invalid or m.playbackContext.server = "" then return invalid
@@ -1272,7 +1297,7 @@ function buildPlaybackSessionRequest(action as string, currentTimeOverride = inv
         request.timeListened = timeListened
         request.duration = getPlaybackDurationSeconds()
     else
-        m.log.write("Closing playback session without progress data because listening time was " + timeListened.ToStr() + " seconds.")
+        logPlayer("closing playback session without progress data because listening time was " + timeListened.ToStr() + " seconds")
     end if
 
     return request
@@ -1283,7 +1308,7 @@ end function
 '-------------------------------------------------------------------------------
 function shouldSendPlaybackProgressData(action as string, timeListened as integer) as boolean
 
-    m.log.write("shouldSendPlaybackProgressData")
+    logPlayerVerbose("shouldSendPlaybackProgressData")
 
     if action <> "closePlaybackSession" then return true
     if m.playbackSync.lastSyncedCurrentTimeSeconds > 0 then return timeListened >= m.playbackSync.config.syncIntervalSeconds
@@ -1295,7 +1320,7 @@ end function
 '-------------------------------------------------------------------------------
 function onKeyEvent(key as string, press as boolean) as boolean
 
-    m.log.write("onKeyEvent")
+    logPlayerVerbose("onKeyEvent")
 
     if press = false then return false
 
@@ -1340,7 +1365,7 @@ end function
 '-------------------------------------------------------------------------------
 function focusDescriptionFromPlaybackControls() as boolean
 
-    m.log.write("focusDescriptionFromPlaybackControls")
+    logPlayerVerbose("focusDescriptionFromPlaybackControls")
 
     if m.metadata = invalid then return false
     if m.metadata.callFunc("canFocusDescription") <> true then return false
@@ -1353,7 +1378,7 @@ end function
 '-------------------------------------------------------------------------------
 sub focusPlaybackButton(index as integer)
 
-    m.log.write("focusPlaybackButton")
+    logPlayerVerbose("focusPlaybackButton")
 
     if index < 0 then index = 0
     playbackButtonCount = getPlaybackButtonCount()
@@ -1368,7 +1393,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub updatePlaybackControlsFocus(index as integer)
 
-    m.log.write("updatePlaybackControlsFocus")
+    logPlayerVerbose("updatePlaybackControlsFocus")
 
     if m.playbackControls = invalid then return
 
@@ -1384,7 +1409,7 @@ end sub
 '-------------------------------------------------------------------------------
 function getPlaybackButtonCount() as integer
 
-    m.log.write("getPlaybackButtonCount")
+    logPlayerVerbose("getPlaybackButtonCount")
 
     if m.playbackControls <> invalid then return m.playbackControls.callFunc("getButtonCount")
     return 3
@@ -1395,7 +1420,7 @@ end function
 '-------------------------------------------------------------------------------
 function isPlaybackControlsFocused() as boolean
 
-    m.log.write("isPlaybackControlsFocused")
+    logPlayerVerbose("isPlaybackControlsFocused")
 
     return m.playbackControls <> invalid and m.playbackControls.isInFocusChain()
 end function
@@ -1405,7 +1430,7 @@ end function
 '-------------------------------------------------------------------------------
 function getPlaybackControlFocusIndex() as integer
 
-    m.log.write("getPlaybackControlFocusIndex")
+    logPlayerVerbose("getPlaybackControlFocusIndex")
 
     if m.playbackControls = invalid then return -1
     if m.playbackControls.focusedIndex = invalid then return -1
@@ -1418,7 +1443,7 @@ end function
 '-------------------------------------------------------------------------------
 function isProgressScrubbing() as boolean
 
-    m.log.write("isProgressScrubbing")
+    logPlayerVerbose("isProgressScrubbing")
 
     return m.playbackControls <> invalid and m.playbackControls.callFunc("isScrubbing") = true
 end function
@@ -1428,7 +1453,7 @@ end function
 '-------------------------------------------------------------------------------
 sub onPlaybackActionSelected()
 
-    m.log.write("onPlaybackActionSelected")
+    logPlayerVerbose("onPlaybackActionSelected")
 
     if m.playbackControls = invalid then return
     selection = m.playbackControls.selectedAction
@@ -1442,7 +1467,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onPlaybackControlsFocusUpRequested()
 
-    m.log.write("onPlaybackControlsFocusUpRequested")
+    logPlayerVerbose("onPlaybackControlsFocusUpRequested")
 
     if m.playbackControls <> invalid then m.playbackControls.callFunc("focusProgressBar", getPlaybackCurrentTimeSeconds(), getPlaybackControlFocusIndex())
 end sub
@@ -1452,7 +1477,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onPlaybackControlsScrubEvent()
 
-    m.log.write("onPlaybackControlsScrubEvent")
+    logPlayerVerbose("onPlaybackControlsScrubEvent")
 
     if m.playbackControls = invalid then return
     event = m.playbackControls.scrubEvent
@@ -1491,7 +1516,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub activatePlaybackControlAction(action as string)
 
-    m.log.write("activatePlaybackControlAction")
+    logPlayerVerbose("activatePlaybackControlAction")
 
     if action = "playPause" then
         togglePlayPause()
@@ -1508,7 +1533,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub toggleNightModeTint()
 
-    m.log.write("toggleNightModeTint")
+    logPlayerVerbose("toggleNightModeTint")
 
     if m.overlayRefs.nightModeTint = invalid then return
 
@@ -1520,7 +1545,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub hideNightModeTint()
 
-    m.log.write("hideNightModeTint")
+    logPlayerVerbose("hideNightModeTint")
 
     if m.overlayRefs.nightModeTint <> invalid then m.overlayRefs.nightModeTint.visible = false
 end sub
@@ -1530,7 +1555,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub restartPlayback()
 
-    m.log.write("restartPlayback")
+    logPlayerVerbose("restartPlayback")
 
     if m.playbackRefs.audioPlayer = invalid then return
     if m.playbackContent.tracks = invalid or m.playbackContent.tracks.Count() = 0 then return
@@ -1548,7 +1573,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub updateChaptersButtonVisibility()
 
-    m.log.write("updateChaptersButtonVisibility")
+    logPlayerVerbose("updateChaptersButtonVisibility")
 
     hasMultipleTracks = (m.playbackContent.chapterItems <> invalid and m.playbackContent.chapterItems.Count() > 1)
     if m.playbackControls <> invalid then m.playbackControls.showChapters = hasMultipleTracks
@@ -1561,7 +1586,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub rebuildChapterStartPositions()
 
-    m.log.write("rebuildChapterStartPositions")
+    logPlayerVerbose("rebuildChapterStartPositions")
 
     positions = []
     if m.playbackContent.chapterItems <> invalid and m.playbackContent.chapterItems.Count() > 0 then
@@ -1577,7 +1602,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub updateChapterMarkers()
 
-    m.log.write("updateChapterMarkers")
+    logPlayerVerbose("updateChapterMarkers")
 
     positions = []
     if m.playbackContent.chapterItems <> invalid and m.playbackContent.chapterItems.Count() > 1 then
@@ -1598,7 +1623,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub openChapterList()
 
-    m.log.write("openChapterList")
+    logPlayerVerbose("openChapterList")
 
     if m.dialogRefs.chapterList = invalid then return
     if m.playbackContent.chapterItems = invalid or m.playbackContent.chapterItems.Count() <= 1 then return
@@ -1612,7 +1637,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub closeChapterList()
 
-    m.log.write("closeChapterList")
+    logPlayerVerbose("closeChapterList")
 
     if m.dialogRefs.chapterList <> invalid then m.dialogRefs.chapterList.callFunc("close")
 end sub
@@ -1622,7 +1647,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub updateChapterList()
 
-    m.log.write("updateChapterList")
+    logPlayerVerbose("updateChapterList")
 
     if m.dialogRefs.chapterList = invalid then return
 
@@ -1637,7 +1662,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub updateCurrentChapterStatus(currentTime = invalid as dynamic)
 
-    m.log.write("updateCurrentChapterStatus")
+    logPlayerVerbose("updateCurrentChapterStatus")
 
     if m.chapterStatus.deferUpdates = true then
         m.chapterStatus.pendingUpdate = true
@@ -1661,7 +1686,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub beginChapterStatusUpdateBatch()
 
-    m.log.write("beginChapterStatusUpdateBatch")
+    logPlayerVerbose("beginChapterStatusUpdateBatch")
 
     m.chapterStatus.deferUpdates = true
     m.chapterStatus.pendingUpdate = false
@@ -1672,7 +1697,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub endChapterStatusUpdateBatch()
 
-    m.log.write("endChapterStatusUpdateBatch")
+    logPlayerVerbose("endChapterStatusUpdateBatch")
 
     pendingUpdate = (m.chapterStatus.pendingUpdate = true)
     m.chapterStatus.deferUpdates = false
@@ -1686,7 +1711,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onChapterListClosed()
 
-    m.log.write("onChapterListClosed")
+    logPlayerVerbose("onChapterListClosed")
 
     focusChaptersButton()
 end sub
@@ -1696,7 +1721,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub focusChaptersButton()
 
-    m.log.write("focusChaptersButton")
+    logPlayerVerbose("focusChaptersButton")
 
     if m.playbackControls <> invalid and m.playbackControls.showChapters = true then updatePlaybackControlsFocus(3)
 end sub
@@ -1706,7 +1731,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onChapterSelected()
 
-    m.log.write("onChapterSelected")
+    logPlayerVerbose("onChapterSelected")
 
     if m.dialogRefs.chapterList = invalid then return
 
@@ -1732,7 +1757,7 @@ end sub
 '-------------------------------------------------------------------------------
 function getCurrentChapterIndex(currentTime = invalid as dynamic) as integer
 
-    m.log.write("getCurrentChapterIndex")
+    logPlayerVerbose("getCurrentChapterIndex")
 
     if m.playbackContent.chapterItems = invalid or m.playbackContent.chapterItems.Count() = 0 then return 0
 
@@ -1753,7 +1778,7 @@ end function
 '-------------------------------------------------------------------------------
 function getChapterStartPosition(chapter as dynamic) as integer
 
-    m.log.write("getChapterStartPosition")
+    logPlayerVerbose("getChapterStartPosition")
 
     if chapter = invalid then return 0
     if chapter.startOffset <> invalid then return int(val(chapter.startOffset.ToStr()))
@@ -1765,7 +1790,7 @@ end function
 '-------------------------------------------------------------------------------
 sub togglePlayPause()
 
-    m.log.write("togglePlayPause")
+    logPlayer("toggle play/pause")
 
     if m.playbackRefs.audioPlayer = invalid then return
 
@@ -1779,15 +1804,11 @@ sub togglePlayPause()
         setStatus("Paused")
     else
         m.playbackState.isPaused = false
-        restartScreensaverOverlayDelay()
-        disableScreenSaver()
         if m.playbackRefs.audioPlayer.state = "paused" then
             m.playbackRefs.audioPlayer.control = "resume"
         else
             m.playbackRefs.audioPlayer.control = "play"
         end if
-        startProgressTimer()
-        setStatus("Playing")
     end if
 
     updatePlayPauseButton()
@@ -1798,7 +1819,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub updatePlayPauseButton()
 
-    m.log.write("updatePlayPauseButton")
+    logPlayerVerbose("updatePlayPauseButton")
 
     if m.playbackControls = invalid then return
 
@@ -1810,7 +1831,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onProgressTimerFired()
 
-    m.log.write("onProgressTimerFired")
+    logPlayerVerbose("onProgressTimerFired")
 
     accumulatePlaybackListeningTime()
     position = getPlaybackCurrentTimeSeconds()
@@ -1836,7 +1857,7 @@ end sub
 '-------------------------------------------------------------------------------
 function isPlaybackCompleteAtPosition(position as integer) as boolean
 
-    m.log.write("isPlaybackCompleteAtPosition")
+    logPlayerVerbose("isPlaybackCompleteAtPosition")
 
     if m.playbackState.complete = true then return false
     if m.playbackState.hasStarted <> true then return false
@@ -1853,7 +1874,7 @@ end function
 '-------------------------------------------------------------------------------
 sub accumulatePlaybackListeningTime()
 
-    m.log.write("accumulatePlaybackListeningTime")
+    logPlayerVerbose("accumulatePlaybackListeningTime")
 
     if m.playbackRefs.audioPlayer = invalid then return
     if SafeString(m.playbackRefs.audioPlayer.state, "") <> "playing" then
@@ -1877,7 +1898,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub requestPeriodicPlaybackSync()
 
-    m.log.write("requestPeriodicPlaybackSync")
+    logPlayerVerbose("requestPeriodicPlaybackSync")
 
     if m.playbackState.isPaused = true then return
     if m.isClosing = true then return
@@ -1897,7 +1918,7 @@ end sub
 '-------------------------------------------------------------------------------
 function getCurrentPlaybackPosition() as integer
 
-    m.log.write("getCurrentPlaybackPosition")
+    logPlayerVerbose("getCurrentPlaybackPosition")
 
     if m.playbackRefs.audioPlayer = invalid or m.playbackRefs.audioPlayer.position = invalid then return 0
     return int(val(m.playbackRefs.audioPlayer.position.ToStr()))
@@ -1908,7 +1929,7 @@ end function
 '-------------------------------------------------------------------------------
 function getCurrentTrackPlaybackPosition() as integer
 
-    m.log.write("getCurrentTrackPlaybackPosition")
+    logPlayerVerbose("getCurrentTrackPlaybackPosition")
 
     position = getPlaybackCurrentTimeSeconds() - m.timeline.currentTrackStartPosition
     if position < 0 then position = 0
@@ -1920,7 +1941,7 @@ end function
 '-------------------------------------------------------------------------------
 sub setPlaybackVisualTarget(targetTime as dynamic)
 
-    m.log.write("setPlaybackVisualTarget")
+    logPlayerVerbose("setPlaybackVisualTarget")
 
     m.playbackSync.visualTargetSeconds = clampGlobalTime(targetTime)
     updateProgress(m.playbackSync.visualTargetSeconds, true)
@@ -1932,7 +1953,7 @@ end sub
 '-------------------------------------------------------------------------------
 function getPlaybackCurrentTimeSeconds() as integer
 
-    m.log.write("getPlaybackCurrentTimeSeconds")
+    logPlayerVerbose("getPlaybackCurrentTimeSeconds")
 
     if m.playbackSync.visualTargetSeconds <> invalid then
         actualTime = getActualPlaybackCurrentTimeSeconds()
@@ -1953,7 +1974,7 @@ end function
 '-------------------------------------------------------------------------------
 function getActualPlaybackCurrentTimeSeconds() as integer
 
-    m.log.write("getActualPlaybackCurrentTimeSeconds")
+    logPlayerVerbose("getActualPlaybackCurrentTimeSeconds")
 
     if m.playbackRefs.audioPlayer = invalid then return clampGlobalTime(m.timeline.currentTimeSeconds)
     if m.playbackContent.tracks = invalid or m.playbackContent.tracks.Count() = 0 then return clampGlobalTime(m.timeline.currentTimeSeconds)
@@ -1971,7 +1992,7 @@ end function
 '-------------------------------------------------------------------------------
 function getHlsPlaybackCurrentTime(currentPosition as integer) as integer
 
-    m.log.write("getHlsPlaybackCurrentTime")
+    logPlayerVerbose("getHlsPlaybackCurrentTime")
 
     currentTime = currentPosition
     if m.hlsRetry.startupSeekTargetSeconds = invalid then return clampGlobalTime(currentTime)
@@ -1990,7 +2011,7 @@ end function
 '-------------------------------------------------------------------------------
 function getPlaybackDurationSeconds() as integer
 
-    m.log.write("getPlaybackDurationSeconds")
+    logPlayerVerbose("getPlaybackDurationSeconds")
 
     if m.playbackContext.session <> invalid and m.playbackContext.session.duration <> invalid then
         return int(val(m.playbackContext.session.duration.ToStr()))
@@ -2004,7 +2025,7 @@ end function
 '-------------------------------------------------------------------------------
 function getPlaybackTimeListenedSeconds() as integer
 
-    m.log.write("getPlaybackTimeListenedSeconds")
+    logPlayerVerbose("getPlaybackTimeListenedSeconds")
 
     timeListened = int(m.playbackSync.listeningTimeSinceSync)
     if timeListened < 0 then return 0
@@ -2016,7 +2037,7 @@ end function
 '-------------------------------------------------------------------------------
 function getNowSeconds() as integer
 
-    m.log.write("getNowSeconds")
+    logPlayerVerbose("getNowSeconds")
 
     dateTime = CreateObject("roDateTime")
     return dateTime.AsSeconds()
@@ -2027,7 +2048,7 @@ end function
 '-------------------------------------------------------------------------------
 sub updateProgress(positionSeconds as integer, forceUpdate = false as boolean)
 
-    m.log.write("updateProgress")
+    logPlayerVerbose("updateProgress")
 
     if forceUpdate <> true and m.playbackState.hasStarted <> true then return
 
@@ -2042,7 +2063,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub updateTotalDuration()
 
-    m.log.write("updateTotalDuration")
+    logPlayerVerbose("updateTotalDuration")
 
     if m.playbackControls <> invalid then m.playbackControls.totalDurationSeconds = m.timeline.totalDurationSeconds
 end sub
@@ -2052,7 +2073,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub resetProgress()
 
-    m.log.write("resetProgress")
+    logPlayerVerbose("resetProgress")
 
     updateProgress(m.timeline.currentTimeSeconds, true)
 end sub
@@ -2062,7 +2083,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub startProgressTimer()
 
-    m.log.write("startProgressTimer")
+    logPlayerVerbose("startProgressTimer")
 
     if m.playbackSync.lastProgressTickAtSeconds <= 0 then m.playbackSync.lastProgressTickAtSeconds = getNowSeconds()
     if m.timerRefs.progressTimer <> invalid then m.timerRefs.progressTimer.control = "start"
@@ -2078,7 +2099,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub stopProgressTimer()
 
-    m.log.write("stopProgressTimer")
+    logPlayerVerbose("stopProgressTimer")
 
     if m.timerRefs.progressTimer <> invalid then m.timerRefs.progressTimer.control = "stop"
     m.playbackSync.lastProgressTickAtSeconds = 0
