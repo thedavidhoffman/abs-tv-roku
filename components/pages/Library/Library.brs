@@ -6,34 +6,65 @@ sub init()
     m.log = CreateLogger("Library", false)
     m.log.write("init")
 
+    initReferences()
+    initValues()
+    initHandlers()
+    applyDisplaySettings(m.top.displaySettings)
+end sub
+
+'-------------------------------------------------------------------------------
+' initReferences
+'-------------------------------------------------------------------------------
+sub initReferences()
     m.listView = m.top.findNode("listView")
     m.gridView = m.top.findNode("gridView")
-    m.activeView = "list"
-    m.syncingLibraryItems = false
-    m.loadRequest = invalid
-    m.syncedLoadRequestKey = ""
-    m.libraryItemsVersion = 0
-    m.allLibraryItemsVersion = 0
-    m.mediaProgressVersion = 0
-    m.syncedListLibraryItemsVersion = -1
-    m.syncedGridLibraryItemsVersion = -1
-    m.syncedGridAllLibraryItemsVersion = -1
-    m.syncedListMediaProgressVersion = -1
-    m.syncedGridMediaProgressVersion = -1
-    m.allLibraryItems = []
-    m.rootLibraryItems = []
-    m.itemBackStack = []
-    m.searchResults = []
-    m.gridContextTitle = ""
-    m.gridContextType = "root"
-    m.searchRequestCounter = 0
-    m.activeSearchRequestCounter = 0
-    m.seriesItemsRequestCounter = 0
-    m.itemsReloadedCounter = 0
-    m.mainListRestoredCounter = 0
-    m.appliedItemDisplay = invalid
-    m.appliedGridColumns = invalid
+end sub
 
+'-------------------------------------------------------------------------------
+' initValues
+'-------------------------------------------------------------------------------
+sub initValues()
+    m.viewState = {
+        activeView: "list"
+        syncingLibraryItems: false
+        syncedLoadRequestKey: ""
+        libraryItemsVersion: 0
+        allLibraryItemsVersion: 0
+        mediaProgressVersion: 0
+        syncedListLibraryItemsVersion: -1
+        syncedGridLibraryItemsVersion: -1
+        syncedGridAllLibraryItemsVersion: -1
+        syncedListMediaProgressVersion: -1
+        syncedGridMediaProgressVersion: -1
+    }
+    m.libraryState = {
+        loadRequest: invalid
+        allLibraryItems: []
+        rootLibraryItems: []
+        searchResults: []
+        itemBackStack: []
+    }
+    m.navigationState = {
+        gridContextTitle: ""
+        gridContextType: "root"
+    }
+    m.eventCounters = {
+        searchRequest: 0
+        activeSearchRequest: 0
+        seriesItemsRequest: 0
+        itemsReloaded: 0
+        mainListRestored: 0
+    }
+    m.appliedSettings = {
+        itemDisplay: invalid
+        gridColumns: invalid
+    }
+end sub
+
+'-------------------------------------------------------------------------------
+' initHandlers
+'-------------------------------------------------------------------------------
+sub initHandlers()
     if m.listView <> invalid then
         m.listView.observeField("libraryItems", "onListViewLibraryItemsChanged")
         m.listView.observeField("playSelected", "onListViewPlaySelected")
@@ -51,8 +82,6 @@ sub init()
         m.gridView.observeField("errorResponse", "onGridViewError")
         m.gridView.observeField("statusMessage", "onGridViewStatusMessageChanged")
     end if
-
-    applyDisplaySettings(m.top.displaySettings)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -63,13 +92,13 @@ sub onSearchRequestChanged()
     if request = invalid then return
 
     searchTerm = getText(request.searchTerm)
-    m.searchRequestCounter = m.searchRequestCounter + 1
-    m.activeSearchRequestCounter = m.searchRequestCounter
+    m.eventCounters.searchRequest = m.eventCounters.searchRequest + 1
+    m.eventCounters.activeSearchRequest = m.eventCounters.searchRequest
 
     navRequest = {
         action: "searchLibrary"
         searchTerm: searchTerm
-        searchRequestCounter: m.activeSearchRequestCounter
+        searchRequestCounter: m.eventCounters.activeSearchRequest
     }
     m.top.controllerSearchRequest = navRequest
 end sub
@@ -81,7 +110,7 @@ sub onLoadRequestChanged()
 
     m.log.write("onLoadRequestChanged")
 
-    m.loadRequest = m.top.loadRequest
+    m.libraryState.loadRequest = m.top.loadRequest
     syncLoadRequestToViews()
 end sub
 
@@ -89,12 +118,12 @@ end sub
 ' syncLoadRequestToViews
 '-------------------------------------------------------------------------------
 sub syncLoadRequestToViews()
-    loadRequestKey = getLoadRequestKey(m.loadRequest)
-    if m.syncedLoadRequestKey = loadRequestKey then return
+    loadRequestKey = getLoadRequestKey(m.libraryState.loadRequest)
+    if m.viewState.syncedLoadRequestKey = loadRequestKey then return
 
-    m.syncedLoadRequestKey = loadRequestKey
-    if m.listView <> invalid then m.listView.loadRequest = m.loadRequest
-    if m.gridView <> invalid then m.gridView.loadRequest = m.loadRequest
+    m.viewState.syncedLoadRequestKey = loadRequestKey
+    if m.listView <> invalid then m.listView.loadRequest = m.libraryState.loadRequest
+    if m.gridView <> invalid then m.gridView.loadRequest = m.libraryState.loadRequest
 end sub
 
 '-------------------------------------------------------------------------------
@@ -117,7 +146,7 @@ end sub
 ' syncLoadingToViews
 '-------------------------------------------------------------------------------
 sub syncLoadingToViews()
-    if m.activeView = "grid" then
+    if m.viewState.activeView = "grid" then
         if m.gridView <> invalid then m.gridView.loading = m.top.loading
         return
     end if
@@ -143,12 +172,12 @@ sub onRootLibraryItemsChanged()
     m.log.write("onRootLibraryItemsChanged")
 
     if m.top.rootLibraryItems = invalid then
-        m.rootLibraryItems = []
+        m.libraryState.rootLibraryItems = []
     else
-        m.rootLibraryItems = m.top.rootLibraryItems
+        m.libraryState.rootLibraryItems = m.top.rootLibraryItems
     end if
 
-    if m.gridContextType = "root" then restoreRootLibraryItems()
+    if m.navigationState.gridContextType = "root" then restoreRootLibraryItems()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -157,12 +186,12 @@ end sub
 sub onAllLibraryItemsChanged()
 
     m.log.write("onAllLibraryItemsChanged")
-    m.allLibraryItemsVersion = m.allLibraryItemsVersion + 1
+    m.viewState.allLibraryItemsVersion = m.viewState.allLibraryItemsVersion + 1
 
     if m.top.allLibraryItems = invalid then
-        m.allLibraryItems = []
+        m.libraryState.allLibraryItems = []
     else
-        m.allLibraryItems = m.top.allLibraryItems
+        m.libraryState.allLibraryItems = m.top.allLibraryItems
     end if
 
     syncAllLibraryItemsToActiveView()
@@ -172,13 +201,13 @@ end sub
 ' restoreRootLibraryItems
 '-------------------------------------------------------------------------------
 sub restoreRootLibraryItems()
-    m.itemBackStack = []
-    m.searchResults = []
-    m.top.searchResults = m.searchResults
-    m.gridContextTitle = ""
-    m.gridContextType = "root"
+    m.libraryState.itemBackStack = []
+    m.libraryState.searchResults = []
+    m.top.searchResults = m.libraryState.searchResults
+    m.navigationState.gridContextTitle = ""
+    m.navigationState.gridContextType = "root"
     syncGridContext()
-    m.top.libraryItems = m.rootLibraryItems
+    m.top.libraryItems = m.libraryState.rootLibraryItems
     publishItemsReloaded()
 end sub
 
@@ -205,15 +234,15 @@ end sub
 '-------------------------------------------------------------------------------
 sub storeSearchResults(response as object)
     if response.searchRequestCounter = invalid then return
-    if response.searchRequestCounter <> m.activeSearchRequestCounter then return
+    if response.searchRequestCounter <> m.eventCounters.activeSearchRequest then return
 
-    m.itemBackStack = []
-    m.searchResults = getResponseLibraryItems(response)
-    m.top.searchResults = m.searchResults
-    m.gridContextTitle = SearchRules_BuildContextTitle(response.searchTerm)
-    m.gridContextType = "search"
+    m.libraryState.itemBackStack = []
+    m.libraryState.searchResults = getResponseLibraryItems(response)
+    m.top.searchResults = m.libraryState.searchResults
+    m.navigationState.gridContextTitle = SearchRules_BuildContextTitle(response.searchTerm)
+    m.navigationState.gridContextType = "search"
     syncGridContext()
-    m.top.libraryItems = m.searchResults
+    m.top.libraryItems = m.libraryState.searchResults
 end sub
 
 '-------------------------------------------------------------------------------
@@ -221,16 +250,16 @@ end sub
 '-------------------------------------------------------------------------------
 sub storeSeriesItems(response as object)
     if m.top.libraryItems <> invalid then
-        m.itemBackStack.Push({
+        m.libraryState.itemBackStack.Push({
             items: m.top.libraryItems
             focusIndex: response.sourceItemIndex
-            contextTitle: m.gridContextTitle
-            contextType: m.gridContextType
+            contextTitle: m.navigationState.gridContextTitle
+            contextType: m.navigationState.gridContextType
         })
     end if
 
-    m.gridContextTitle = getText(response.title)
-    m.gridContextType = "series"
+    m.navigationState.gridContextTitle = getText(response.title)
+    m.navigationState.gridContextType = "series"
     syncGridContext()
     m.top.libraryItems = getResponseLibraryItems(response)
 end sub
@@ -247,8 +276,8 @@ end function
 ' publishItemsReloaded
 '-------------------------------------------------------------------------------
 sub publishItemsReloaded()
-    m.itemsReloadedCounter = m.itemsReloadedCounter + 1
-    m.top.itemsReloaded = m.itemsReloadedCounter
+    m.eventCounters.itemsReloaded = m.eventCounters.itemsReloaded + 1
+    m.top.itemsReloaded = m.eventCounters.itemsReloaded
 end sub
 
 '-------------------------------------------------------------------------------
@@ -269,12 +298,12 @@ sub applyDisplaySettings(settings as object)
 
     itemDisplay = getItemDisplaySetting(settings)
     gridColumns = getGridColumnsSetting(settings)
-    itemDisplayChanged = (m.appliedItemDisplay <> itemDisplay)
-    gridColumnsChanged = (m.appliedGridColumns <> gridColumns)
+    itemDisplayChanged = (m.appliedSettings.itemDisplay <> itemDisplay)
+    gridColumnsChanged = (m.appliedSettings.gridColumns <> gridColumns)
 
     if itemDisplayChanged = false and gridColumnsChanged = false then return
 
-    if gridColumnsChanged and m.activeView = "grid" and m.gridView <> invalid then m.gridView.displaySettings = settings
+    if gridColumnsChanged and m.viewState.activeView = "grid" and m.gridView <> invalid then m.gridView.displaySettings = settings
 
     if itemDisplayChanged then
         if itemDisplay = "grid" then
@@ -284,8 +313,8 @@ sub applyDisplaySettings(settings as object)
         end if
     end if
 
-    m.appliedItemDisplay = itemDisplay
-    m.appliedGridColumns = gridColumns
+    m.appliedSettings.itemDisplay = itemDisplay
+    m.appliedSettings.gridColumns = gridColumns
 end sub
 
 '-------------------------------------------------------------------------------
@@ -308,7 +337,7 @@ end function
 ' updateActiveView
 '-------------------------------------------------------------------------------
 sub updateActiveView(viewName as string)
-    m.activeView = viewName
+    m.viewState.activeView = viewName
     if m.listView <> invalid then m.listView.visible = (viewName = "list")
     if m.gridView <> invalid then m.gridView.visible = (viewName = "grid")
     syncGridContext()
@@ -332,7 +361,7 @@ end sub
 ' syncDisplaySettingsToActiveView
 '-------------------------------------------------------------------------------
 sub syncDisplaySettingsToActiveView()
-    if m.activeView <> "grid" then return
+    if m.viewState.activeView <> "grid" then return
     if m.gridView <> invalid then m.gridView.displaySettings = m.top.displaySettings
 end sub
 
@@ -343,15 +372,15 @@ sub syncLibraryItemsToActiveView()
     items = m.top.libraryItems
     if items = invalid then return
 
-    if m.activeView = "grid" then
-        if m.syncedGridLibraryItemsVersion = m.libraryItemsVersion then return
-        m.syncedGridLibraryItemsVersion = m.libraryItemsVersion
+    if m.viewState.activeView = "grid" then
+        if m.viewState.syncedGridLibraryItemsVersion = m.viewState.libraryItemsVersion then return
+        m.viewState.syncedGridLibraryItemsVersion = m.viewState.libraryItemsVersion
         if m.gridView <> invalid then m.gridView.libraryItems = items
         return
     end if
 
-    if m.syncedListLibraryItemsVersion = m.libraryItemsVersion then return
-    m.syncedListLibraryItemsVersion = m.libraryItemsVersion
+    if m.viewState.syncedListLibraryItemsVersion = m.viewState.libraryItemsVersion then return
+    m.viewState.syncedListLibraryItemsVersion = m.viewState.libraryItemsVersion
     if m.listView <> invalid then m.listView.libraryItems = items
 end sub
 
@@ -359,28 +388,30 @@ end sub
 ' syncAllLibraryItemsToActiveView
 '-------------------------------------------------------------------------------
 sub syncAllLibraryItemsToActiveView()
-    if m.activeView <> "grid" then return
+    if m.viewState.activeView <> "grid" then return
 
-    if m.syncedGridAllLibraryItemsVersion = m.allLibraryItemsVersion then return
-    if m.allLibraryItemsVersion = 0 and m.allLibraryItems.Count() = 0 then return
+    if m.viewState.syncedGridAllLibraryItemsVersion = m.viewState.allLibraryItemsVersion then return
+    if m.libraryState.allLibraryItems.Count() = 0 and m.viewState.syncedGridAllLibraryItemsVersion = -1 then return
 
-    m.syncedGridAllLibraryItemsVersion = m.allLibraryItemsVersion
-    if m.gridView <> invalid then m.gridView.allLibraryItems = m.allLibraryItems
+    m.viewState.syncedGridAllLibraryItemsVersion = m.viewState.allLibraryItemsVersion
+    if m.gridView <> invalid then m.gridView.allLibraryItems = m.libraryState.allLibraryItems
 end sub
 
 '-------------------------------------------------------------------------------
 ' syncMediaProgressToActiveView
 '-------------------------------------------------------------------------------
 sub syncMediaProgressToActiveView()
-    if m.activeView = "grid" then
-        if m.syncedGridMediaProgressVersion = m.mediaProgressVersion then return
-        m.syncedGridMediaProgressVersion = m.mediaProgressVersion
+    if m.viewState.mediaProgressVersion = 0 and m.top.mediaProgress = invalid then return
+
+    if m.viewState.activeView = "grid" then
+        if m.viewState.syncedGridMediaProgressVersion = m.viewState.mediaProgressVersion then return
+        m.viewState.syncedGridMediaProgressVersion = m.viewState.mediaProgressVersion
         if m.gridView <> invalid then m.gridView.mediaProgress = m.top.mediaProgress
         return
     end if
 
-    if m.syncedListMediaProgressVersion = m.mediaProgressVersion then return
-    m.syncedListMediaProgressVersion = m.mediaProgressVersion
+    if m.viewState.syncedListMediaProgressVersion = m.viewState.mediaProgressVersion then return
+    m.viewState.syncedListMediaProgressVersion = m.viewState.mediaProgressVersion
     if m.listView <> invalid then m.listView.mediaProgress = m.top.mediaProgress
 end sub
 
@@ -388,7 +419,7 @@ end sub
 ' onListViewLibraryItemsChanged
 '-------------------------------------------------------------------------------
 sub onListViewLibraryItemsChanged()
-    if m.syncingLibraryItems = true then return
+    if m.viewState.syncingLibraryItems = true then return
     if m.listView <> invalid then m.top.libraryItems = m.listView.libraryItems
 end sub
 
@@ -396,10 +427,10 @@ end sub
 ' onLibraryItemsChanged
 '-------------------------------------------------------------------------------
 sub onLibraryItemsChanged()
-    if m.syncingLibraryItems = true then return
+    if m.viewState.syncingLibraryItems = true then return
 
-    m.libraryItemsVersion = m.libraryItemsVersion + 1
-    m.syncingLibraryItems = true
+    m.viewState.libraryItemsVersion = m.viewState.libraryItemsVersion + 1
+    m.viewState.syncingLibraryItems = true
     items = m.top.libraryItems
 
     syncLoadRequestToViews()
@@ -408,7 +439,7 @@ sub onLibraryItemsChanged()
     syncMediaProgressToActiveView()
     syncLibraryItemsToActiveView()
 
-    m.syncingLibraryItems = false
+    m.viewState.syncingLibraryItems = false
     focusLibraryList()
 end sub
 
@@ -463,8 +494,8 @@ end sub
 sub requestSeriesItems(request as object)
     if request = invalid then return
 
-    m.seriesItemsRequestCounter = m.seriesItemsRequestCounter + 1
-    request.counter = m.seriesItemsRequestCounter
+    m.eventCounters.seriesItemsRequest = m.eventCounters.seriesItemsRequest + 1
+    request.counter = m.eventCounters.seriesItemsRequest
     m.top.seriesItemsRequest = request
 end sub
 
@@ -499,7 +530,7 @@ end sub
 ' onMediaProgressChanged
 '-------------------------------------------------------------------------------
 sub onMediaProgressChanged()
-    m.mediaProgressVersion = m.mediaProgressVersion + 1
+    m.viewState.mediaProgressVersion = m.viewState.mediaProgressVersion + 1
     syncMediaProgressToActiveView()
 end sub
 
@@ -557,8 +588,8 @@ end sub
 ' getActiveViewStatusMessage
 '-------------------------------------------------------------------------------
 function getActiveViewStatusMessage() as string
-    if m.activeView = "grid" and m.gridView <> invalid then return getText(m.gridView.statusMessage)
-    if m.activeView = "list" and m.listView <> invalid then return getText(m.listView.statusMessage)
+    if m.viewState.activeView = "grid" and m.gridView <> invalid then return getText(m.gridView.statusMessage)
+    if m.viewState.activeView = "list" and m.listView <> invalid then return getText(m.listView.statusMessage)
     return ""
 end function
 
@@ -578,7 +609,7 @@ sub focusLibraryList()
         return
     end if
 
-    if m.activeView = "grid" then
+    if m.viewState.activeView = "grid" then
         if m.gridView <> invalid then m.gridView.callFunc("focusLibraryList")
         return
     end if
@@ -590,7 +621,7 @@ end sub
 ' focusItemAtIndex
 '-------------------------------------------------------------------------------
 sub focusItemAtIndex(index as dynamic)
-    if m.activeView = "grid" and m.gridView <> invalid then
+    if m.viewState.activeView = "grid" and m.gridView <> invalid then
         m.gridView.callFunc("focusItemAtIndex", index)
         return
     end if
@@ -609,7 +640,7 @@ function handleBackNavigation() as boolean
     end if
 
     if hasBackStack() then
-        if m.activeView = "list" then return false
+        if m.viewState.activeView = "list" then return false
         if moveFocusToFirstGridItem() then return true
         if restorePreviousItems() then return true
     end if
@@ -624,12 +655,12 @@ end function
 sub resetDrilldown()
     if hasBackStack() = false then return
 
-    rootState = m.itemBackStack[0]
-    m.itemBackStack = []
+    rootState = m.libraryState.itemBackStack[0]
+    m.libraryState.itemBackStack = []
 
     if rootState <> invalid and rootState.items <> invalid then
-        m.gridContextTitle = ""
-        m.gridContextType = "root"
+        m.navigationState.gridContextTitle = ""
+        m.navigationState.gridContextType = "root"
         syncGridContext()
         m.top.libraryItems = rootState.items
     end if
@@ -639,12 +670,12 @@ end sub
 ' resetNavigationState
 '-------------------------------------------------------------------------------
 sub resetNavigationState()
-    m.activeSearchRequestCounter = m.activeSearchRequestCounter + 1
-    m.itemBackStack = []
-    m.searchResults = []
-    m.top.searchResults = m.searchResults
-    m.gridContextTitle = ""
-    m.gridContextType = "root"
+    m.eventCounters.activeSearchRequest = m.eventCounters.activeSearchRequest + 1
+    m.libraryState.itemBackStack = []
+    m.libraryState.searchResults = []
+    m.top.searchResults = m.libraryState.searchResults
+    m.navigationState.gridContextTitle = ""
+    m.navigationState.gridContextType = "root"
     syncGridContext()
     m.top.libraryItems = []
 end sub
@@ -666,14 +697,14 @@ end function
 function restorePreviousItems() as boolean
     if hasBackStack() = false then return false
 
-    lastIndex = m.itemBackStack.Count() - 1
-    previousState = m.itemBackStack[lastIndex]
-    m.itemBackStack.Delete(lastIndex)
+    lastIndex = m.libraryState.itemBackStack.Count() - 1
+    previousState = m.libraryState.itemBackStack[lastIndex]
+    m.libraryState.itemBackStack.Delete(lastIndex)
 
     m.top.libraryItems = previousState.items
-    m.gridContextTitle = getText(previousState.contextTitle)
-    m.gridContextType = getText(previousState.contextType)
-    if m.gridContextType = "" then m.gridContextType = "root"
+    m.navigationState.gridContextTitle = getText(previousState.contextTitle)
+    m.navigationState.gridContextType = getText(previousState.contextType)
+    if m.navigationState.gridContextType = "" then m.navigationState.gridContextType = "root"
     syncGridContext()
     focusItemAtIndex(previousState.focusIndex)
     return true
@@ -684,14 +715,14 @@ end function
 '-------------------------------------------------------------------------------
 sub syncGridContext()
     if m.listView <> invalid then
-        m.listView.contextTitle = m.gridContextTitle
-        m.listView.contextType = m.gridContextType
+        m.listView.contextTitle = m.navigationState.gridContextTitle
+        m.listView.contextType = m.navigationState.gridContextType
     end if
 
     if m.gridView = invalid then return
 
-    m.gridView.contextTitle = m.gridContextTitle
-    m.gridView.contextType = m.gridContextType
+    m.gridView.contextTitle = m.navigationState.gridContextTitle
+    m.gridView.contextType = m.navigationState.gridContextType
 end sub
 
 '-------------------------------------------------------------------------------
@@ -706,14 +737,14 @@ end function
 ' hasBackStack
 '-------------------------------------------------------------------------------
 function hasBackStack() as boolean
-    return m.itemBackStack <> invalid and m.itemBackStack.Count() > 0
+    return m.libraryState.itemBackStack <> invalid and m.libraryState.itemBackStack.Count() > 0
 end function
 
 '-------------------------------------------------------------------------------
 ' moveFocusToFirstGridItem
 '-------------------------------------------------------------------------------
 function moveFocusToFirstGridItem() as boolean
-    if m.activeView <> "grid" then return false
+    if m.viewState.activeView <> "grid" then return false
     if m.gridView = invalid then return false
 
     handled = m.gridView.callFunc("moveFocusToFirstItem")
@@ -724,17 +755,17 @@ end function
 ' isShowingSearchResults
 '-------------------------------------------------------------------------------
 function isShowingSearchResults() as boolean
-    return m.gridContextType = "search"
+    return m.navigationState.gridContextType = "search"
 end function
 
 '-------------------------------------------------------------------------------
 ' hasSearchContext
 '-------------------------------------------------------------------------------
 function hasSearchContext() as boolean
-    if m.gridContextType = "search" then return true
-    if m.itemBackStack = invalid then return false
+    if m.navigationState.gridContextType = "search" then return true
+    if m.libraryState.itemBackStack = invalid then return false
 
-    for each state in m.itemBackStack
+    for each state in m.libraryState.itemBackStack
         if state <> invalid and state.contextType = "search" then return true
     end for
 
@@ -761,6 +792,6 @@ end sub
 ' publishMainListRestored
 '-------------------------------------------------------------------------------
 sub publishMainListRestored()
-    m.mainListRestoredCounter = m.mainListRestoredCounter + 1
-    m.top.mainListRestored = m.mainListRestoredCounter
+    m.eventCounters.mainListRestored = m.eventCounters.mainListRestored + 1
+    m.top.mainListRestored = m.eventCounters.mainListRestored
 end sub
