@@ -152,6 +152,7 @@ end sub
 sub initLifecycleValues()
     m.closeRequestedCounter = 0
     m.isClosing = false
+    m.screensaverVisible = false
     m.focusRestore = {
         area: "controls"
         index: 0
@@ -342,8 +343,13 @@ sub onScreensaverOverlayShown()
 
     logPlayerVerbose("onScreensaverOverlayShown")
 
+    m.screensaverVisible = true
+
     ' dismiss description dialog
     m.metadata.callFunc("dismissDescriptionDialog")
+
+    ' dismiss the chapter dialog
+    closeChapterList()
 
 end sub
 
@@ -354,6 +360,7 @@ sub onScreensaverOverlayDismissed()
 
     logPlayerVerbose("onScreensaverOverlayDismissed")
 
+    m.screensaverVisible = false
     restoreFocusAfterScreensaverDismissed()
 end sub
 
@@ -1925,6 +1932,7 @@ sub onChapterListClosed()
     logPlayerVerbose("onChapterListClosed")
 
     if m.isClosing = true then return
+    if m.screensaverVisible = true then return
 
     focusChaptersButton()
 end sub
