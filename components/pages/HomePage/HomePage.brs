@@ -6,35 +6,55 @@ sub init()
     m.log = CreateLogger("HomePage", false)
     m.log.write("init")
 
+    initReferences()
+    initValues()
+    initHandlers()
+    applyGridLayout(m.top.displaySettings)
+end sub
+
+'-------------------------------------------------------------------------------
+' initReferences
+'-------------------------------------------------------------------------------
+sub initReferences()
     m.homeRowList = m.top.findNode("homeRowList")
     m.focusRetryTimer = m.top.findNode("focusRetryTimer")
     m.personalizedApiTask = m.top.findNode("personalizedApiTask")
-    m.shelfItemsByRow = []
-    m.playSelectedCounter = 0
-    m.firstItemFocusPending = false
-    m.focusRetryCount = 0
-    m.focusRetryMax = 12
-    m.backSelectedCounter = 0
-    m.upFromFirstRowSelectedCounter = 0
-    m.focusedItemNode = invalid
+end sub
+
+'-------------------------------------------------------------------------------
+' initValues
+'-------------------------------------------------------------------------------
+sub initValues()
+    m.shelfState = {
+        itemsByRow: []
+        focusedItemNode: invalid
+    }
+    m.eventCounters = {
+        playSelected: 0
+        backSelected: 0
+        upFromFirstRowSelected: 0
+    }
+    m.focusState = {
+        firstItemPending: false
+        retryCount: 0
+        retryMax: 12
+    }
     m.loadRequest = invalid
-    m.server = invalid
-    m.token = invalid
     m.isLoading = false
-    m.posterWidth = 280
-    m.appliedGridColumns = invalid
+    m.layoutState = {
+        posterWidth: 280
+        appliedGridColumns: invalid
+    }
+end sub
 
-    if m.homeRowList <> invalid then
-        m.homeRowList.observeField("itemSelected", "onItemSelected")
-        m.homeRowList.observeField("rowItemFocused", "onRowItemFocused")
-    end if
-
-    if m.personalizedApiTask <> invalid then
-        m.personalizedApiTask.observeField("response", "onPersonalizedApiResponse")
-    end if
-    if m.focusRetryTimer <> invalid then m.focusRetryTimer.observeField("fire", "onFocusRetryTimerFired")
-
-    applyGridLayout(m.top.displaySettings)
+'-------------------------------------------------------------------------------
+' initHandlers
+'-------------------------------------------------------------------------------
+sub initHandlers()
+    m.homeRowList.observeField("itemSelected", "onItemSelected")
+    m.homeRowList.observeField("rowItemFocused", "onRowItemFocused")
+    m.personalizedApiTask.observeField("response", "onPersonalizedApiResponse")
+    m.focusRetryTimer.observeField("fire", "onFocusRetryTimerFired")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -42,7 +62,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onDisplaySettingsChanged()
     gridColumns = getGridColumnsSetting(m.top.displaySettings)
-    if m.appliedGridColumns = gridColumns then return
+    if m.layoutState.appliedGridColumns = gridColumns then return
 
     applyGridLayout(m.top.displaySettings)
     renderPersonalizedShelves()
@@ -60,8 +80,8 @@ sub applyGridLayout(settings as dynamic)
     rowHeight = GridLayout_GetRowHeight(itemHeight)
     gutter = GridLayout_GetHorizontalGutter()
 
-    m.posterWidth = posterWidth
-    m.appliedGridColumns = getGridColumnsSetting(settings)
+    m.layoutState.posterWidth = posterWidth
+    m.layoutState.appliedGridColumns = getGridColumnsSetting(settings)
     m.homeRowList.itemSize = [1792, rowHeight]
     m.homeRowList.rowItemSize = [[posterWidth, itemHeight], [posterWidth, itemHeight], [posterWidth, itemHeight]]
     m.homeRowList.rowItemSpacing = [[gutter, 0], [gutter, 0], [gutter, 0]]
@@ -83,10 +103,6 @@ sub onLoadRequestChanged()
     m.log.write("onLoadRequestChanged")
 
     m.loadRequest = m.top.loadRequest
-    if m.loadRequest <> invalid then
-        m.server = m.loadRequest.server
-        m.token = m.loadRequest.token
-    end if
 
     renderPersonalizedShelves()
     loadPersonalizedShelves()
@@ -99,7 +115,7 @@ sub loadPersonalizedShelves()
 
     m.log.write("loadPersonalizedShelves")
 
-    if m.top.visible = true then m.firstItemFocusPending = true
+    if m.top.visible = true then m.focusState.firstItemPending = true
     m.isLoading = true
     setStatus("Loading...")
     
@@ -180,8 +196,8 @@ sub renderPersonalizedShelves()
     if m.homeRowList = invalid then return
 
     root = CreateObject("roSGNode", "ContentNode")
-    m.shelfItemsByRow = []
-    m.focusedItemNode = invalid
+    m.shelfState.itemsByRow = []
+    m.shelfState.focusedItemNode = invalid
 
     appendShelfRow(root, "continue-listening", "Continue Listening")
     appendShelfRow(root, "recently-added", "Recently Added")
@@ -190,7 +206,7 @@ sub renderPersonalizedShelves()
     m.homeRowList.content = root
     updateStatus(root.getChildCount())
 
-    if m.firstItemFocusPending = true and m.top.visible = true then
+    if m.focusState.firstItemPending = true and m.top.visible = true then
         if root.getChildCount() > 0 then
             requestFirstHomeItemFocus()
         else
@@ -226,13 +242,13 @@ sub appendShelfRow(root as object, shelfId as string, title as string)
         if item <> invalid and item.id <> invalid then
             node = CreateObject("roSGNode", "ContentNode")
             node.title = getLibraryItemTitle(item)
-            node.HDPosterUrl = Cover_BuildUrl(m.server, m.token, item.id, m.posterWidth)
+            node.HDPosterUrl = Cover_BuildUrl(m.loadRequest.server, m.loadRequest.token, item.id, m.layoutState.posterWidth)
             node.SDPosterUrl = node.HDPosterUrl
             progress = ProgressData_GetItemProgress(item, m.top.mediaProgress)
             metadata = getItemMetadata(item)
             node.AddFields({
                 author: getItemAuthor(metadata)
-                posterWidth: m.posterWidth
+                posterWidth: m.layoutState.posterWidth
                 progressPercent: progress.progress
                 progressCurrentTime: progress.currentTime
                 progressDuration: progress.duration
@@ -247,7 +263,7 @@ sub appendShelfRow(root as object, shelfId as string, title as string)
     if row.getChildCount() = 0 then return
 
     root.appendChild(row)
-    m.shelfItemsByRow.Push(itemsByIndex)
+    m.shelfState.itemsByRow.Push(itemsByIndex)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -291,14 +307,14 @@ sub setStatus(message as dynamic)
     m.top.statusMessage = text
     m.homeRowList.visible = (text = "")
 
-    if text <> "" and m.firstItemFocusPending = true and m.top.visible = true then focusHomeStatus()
+    if text <> "" and m.focusState.firstItemPending = true and m.top.visible = true then focusHomeStatus()
 end sub
 
 '-------------------------------------------------------------------------------
 ' focusHomePage
 '-------------------------------------------------------------------------------
 function focusHomePage() as boolean
-    m.firstItemFocusPending = true
+    m.focusState.firstItemPending = true
 
     if m.homeRowList <> invalid and m.homeRowList.visible = true then
         requestFirstHomeItemFocus()
@@ -320,11 +336,11 @@ end sub
 ' requestFirstHomeItemFocus
 '-------------------------------------------------------------------------------
 sub requestFirstHomeItemFocus()
-    m.firstItemFocusPending = true
+    m.focusState.firstItemPending = true
     applyFirstHomeItemFocus()
 
     if m.focusRetryTimer = invalid then return
-    m.focusRetryCount = 0
+    m.focusState.retryCount = 0
     m.focusRetryTimer.control = "stop"
     m.focusRetryTimer.control = "start"
 end sub
@@ -334,17 +350,17 @@ end sub
 '-------------------------------------------------------------------------------
 sub onFocusRetryTimerFired()
     if m.focusRetryTimer = invalid then return
-    if m.firstItemFocusPending <> true or m.top.visible <> true or m.homeRowList = invalid or m.homeRowList.visible <> true then
+    if m.focusState.firstItemPending <> true or m.top.visible <> true or m.homeRowList = invalid or m.homeRowList.visible <> true then
         finishFirstHomeItemFocus()
         return
     end if
 
     applyFirstHomeItemFocus()
-    m.focusRetryCount = m.focusRetryCount + 1
+    m.focusState.retryCount = m.focusState.retryCount + 1
 
     if isFocusedOnHomeItem(0, 0) and m.homeRowList.isInFocusChain() then
         finishFirstHomeItemFocus()
-    else if m.focusRetryCount >= m.focusRetryMax then
+    else if m.focusState.retryCount >= m.focusState.retryMax then
         finishFirstHomeItemFocus()
     end if
 end sub
@@ -353,7 +369,7 @@ end sub
 ' finishFirstHomeItemFocus
 '-------------------------------------------------------------------------------
 sub finishFirstHomeItemFocus()
-    m.firstItemFocusPending = false
+    m.focusState.firstItemPending = false
     if m.focusRetryTimer <> invalid then m.focusRetryTimer.control = "stop"
 end sub
 
@@ -392,16 +408,16 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
     if key = "up" and (isFocusedOnFirstRow() or isStatusFocused()) then
         finishFirstHomeItemFocus()
-        m.upFromFirstRowSelectedCounter = m.upFromFirstRowSelectedCounter + 1
-        m.top.upFromFirstRowSelected = m.upFromFirstRowSelectedCounter
+        m.eventCounters.upFromFirstRowSelected = m.eventCounters.upFromFirstRowSelected + 1
+        m.top.upFromFirstRowSelected = m.eventCounters.upFromFirstRowSelected
         return true
     end if
 
     if key <> "back" then return false
 
     finishFirstHomeItemFocus()
-    m.backSelectedCounter = m.backSelectedCounter + 1
-    m.top.backSelected = m.backSelectedCounter
+    m.eventCounters.backSelected = m.eventCounters.backSelected + 1
+    m.top.backSelected = m.eventCounters.backSelected
     return true
 end function
 
@@ -438,13 +454,13 @@ sub onItemSelected()
     item = getSelectedItem()
     if item = invalid or item.id = invalid then return
 
-    m.playSelectedCounter = m.playSelectedCounter + 1
+    m.eventCounters.playSelected = m.eventCounters.playSelected + 1
     m.top.playSelected = {
         id: item.id
         title: getLibraryItemTitle(item)
         details: getPlaybackDetails(item)
         startPositionSeconds: getPlaybackStartPosition(item)
-        counter: m.playSelectedCounter
+        counter: m.eventCounters.playSelected
     }
 end sub
 
@@ -459,10 +475,10 @@ end sub
 ' setFocusedItemNode
 '-------------------------------------------------------------------------------
 sub setFocusedItemNode(itemNode as dynamic)
-    if m.focusedItemNode <> invalid then m.focusedItemNode.focused = false
+    if m.shelfState.focusedItemNode <> invalid then m.shelfState.focusedItemNode.focused = false
 
-    m.focusedItemNode = itemNode
-    if m.focusedItemNode <> invalid then m.focusedItemNode.focused = true
+    m.shelfState.focusedItemNode = itemNode
+    if m.shelfState.focusedItemNode <> invalid then m.shelfState.focusedItemNode.focused = true
 end sub
 
 '-------------------------------------------------------------------------------
@@ -491,7 +507,7 @@ end function
 '-------------------------------------------------------------------------------
 function getSelectedItem() as dynamic
     if m.homeRowList = invalid then return invalid
-    if m.shelfItemsByRow = invalid then return invalid
+    if m.shelfState.itemsByRow = invalid then return invalid
 
     selected = m.homeRowList.rowItemSelected
     if selected = invalid or selected.Count() < 2 then return invalid
@@ -499,9 +515,9 @@ function getSelectedItem() as dynamic
     rowIndex = selected[0]
     itemIndex = selected[1]
     if rowIndex = invalid or itemIndex = invalid then return invalid
-    if rowIndex < 0 or rowIndex >= m.shelfItemsByRow.Count() then return invalid
+    if rowIndex < 0 or rowIndex >= m.shelfState.itemsByRow.Count() then return invalid
 
-    itemsByIndex = m.shelfItemsByRow[rowIndex]
+    itemsByIndex = m.shelfState.itemsByRow[rowIndex]
     if itemsByIndex = invalid then return invalid
     if itemIndex < 0 or itemIndex >= itemsByIndex.Count() then return invalid
 

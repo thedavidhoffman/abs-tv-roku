@@ -32,6 +32,7 @@
 - Prefer putting feature-specific API tasks, response handling, local loading state, and local navigation state inside the component that owns that feature. For example, Library should own library loading/drilldown, HomePage should own personalized shelf loading, Player should own playback session requests, and auth/session persistence should live in an auth-focused controller rather than in `MainScene`.
 - Component-to-`MainScene` communication should be narrow and event-like: selected item, auth error, close requested, or a completed high-level action. Avoid bubbling low-level task requests through `MainScene` when the originating component can own the task safely.
 - Pass session context down as explicit request data (`server`, `token`, `bookLibraryId`) instead of letting child components read global scene state.
+- When adding component variables, group two or more conceptually related values into a named state object instead of leaving them as separate loose `m.*` fields. When adding a new variable or changing an existing one, review the component's variable list for new grouping opportunities.
 - Extract shared pure logic into `/source` helpers when it is reused or when keeping it in a component would make the component responsible for unrelated calculations. Avoid abstractions that only replace one clear local boolean or one obvious call site.
 - After each architectural move, run validation before continuing so boundary mistakes are caught while the change is still small.
 
