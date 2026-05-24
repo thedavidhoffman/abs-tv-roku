@@ -140,6 +140,8 @@ sub rebuildSeriesRows(seriesRows as object)
 
     if m.seriesRowList = invalid then return
 
+    previousFocusedItemId = getFocusedSeriesItemId()
+    shouldRestoreFocus = m.seriesRowList.isInFocusChain()
     root = CreateObject("roSGNode", "ContentNode")
     m.seriesItemsByRow = []
     m.focusedItemNode = invalid
@@ -151,6 +153,7 @@ sub rebuildSeriesRows(seriesRows as object)
     end if
 
     m.seriesRowList.content = root
+    restoreFocusedSeriesItem(previousFocusedItemId, shouldRestoreFocus)
     updateStatus(root.getChildCount())
 
     if m.focusRequested = true and m.top.visible = true then focusSeriesPage()
@@ -308,6 +311,52 @@ function getFocusedItemNode() as dynamic
 end function
 
 '-------------------------------------------------------------------------------
+' getFocusedSeriesItemId
+'-------------------------------------------------------------------------------
+function getFocusedSeriesItemId() as dynamic
+    if m.seriesRowList = invalid then return invalid
+
+    item = getSeriesItemAtPosition(m.seriesRowList.rowItemFocused)
+    if item = invalid then return invalid
+    return item.id
+end function
+
+'-------------------------------------------------------------------------------
+' restoreFocusedSeriesItem
+'-------------------------------------------------------------------------------
+sub restoreFocusedSeriesItem(itemId as dynamic, shouldRestoreFocus as boolean)
+    if shouldRestoreFocus <> true then return
+    if itemId = invalid then return
+
+    position = findSeriesItemPositionById(itemId)
+    if position = invalid then return
+
+    m.seriesRowList.jumpToRowItem = position
+    m.seriesRowList.setFocus(true)
+    onRowItemFocused()
+end sub
+
+'-------------------------------------------------------------------------------
+' findSeriesItemPositionById
+'-------------------------------------------------------------------------------
+function findSeriesItemPositionById(itemId as dynamic) as dynamic
+    if itemId = invalid then return invalid
+    if m.seriesItemsByRow = invalid then return invalid
+
+    for rowIndex = 0 to m.seriesItemsByRow.Count() - 1
+        itemsByIndex = m.seriesItemsByRow[rowIndex]
+        if itemsByIndex <> invalid then
+            for itemIndex = 0 to itemsByIndex.Count() - 1
+                item = itemsByIndex[itemIndex]
+                if item <> invalid and item.id = itemId then return [rowIndex, itemIndex]
+            end for
+        end if
+    end for
+
+    return invalid
+end function
+
+'-------------------------------------------------------------------------------
 ' getSelectedItem
 '-------------------------------------------------------------------------------
 function getSelectedItem() as dynamic
@@ -319,6 +368,25 @@ function getSelectedItem() as dynamic
 
     rowIndex = selected[0]
     itemIndex = selected[1]
+    if rowIndex = invalid or itemIndex = invalid then return invalid
+    if rowIndex < 0 or rowIndex >= m.seriesItemsByRow.Count() then return invalid
+
+    itemsByIndex = m.seriesItemsByRow[rowIndex]
+    if itemsByIndex = invalid then return invalid
+    if itemIndex < 0 or itemIndex >= itemsByIndex.Count() then return invalid
+
+    return itemsByIndex[itemIndex]
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesItemAtPosition
+'-------------------------------------------------------------------------------
+function getSeriesItemAtPosition(position as dynamic) as dynamic
+    if m.seriesItemsByRow = invalid then return invalid
+    if position = invalid or position.Count() < 2 then return invalid
+
+    rowIndex = position[0]
+    itemIndex = position[1]
     if rowIndex = invalid or itemIndex = invalid then return invalid
     if rowIndex < 0 or rowIndex >= m.seriesItemsByRow.Count() then return invalid
 

@@ -28,3 +28,19 @@ Any podcast directories should not be listed.
 
 ## Library with no content
 Test a library with no content to make sure that screens and navigation all work correctly.
+
+## Player
+1. Play/pause.
+2. Restart.
+3. Tint.
+4. Scrub left/right on the progress bar using the playhead.
+5. Chapter navigation.
+6. Description highlight (only when the description is truncated).
+7. Description dialog.
+
+## Screensaver
+1. Configured screensaver displays at the configured time interval.
+2. Remote key events restart the screensaver delay timer.
+3. When the screensaver is displayed it should get focus. Any remote key events should dimiss the screensaver and not trigger any functionality on playback.
+4. If the description dialog is displayed and the screensaver kicks in, the description dialog should be dismissed.
+5. If the chapter dialog is displayed and the screensaver kicks in, the description dialog should be dismissed.

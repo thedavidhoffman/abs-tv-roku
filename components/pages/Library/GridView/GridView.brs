@@ -123,6 +123,8 @@ sub onLibraryItemsChanged()
 
     m.log.write("onLibraryItemsChanged")
 
+    previousFocusedItemId = getFocusedLibraryItemId()
+    shouldRestoreFocus = m.markupGrid.isInFocusChain()
     root = CreateObject("roSGNode", "ContentNode")
     items = m.top.libraryItems
     m.libraryItemsByIndex = []
@@ -157,6 +159,7 @@ sub onLibraryItemsChanged()
     end if
 
     m.markupGrid.content = root
+    restoreFocusedLibraryItem(previousFocusedItemId, shouldRestoreFocus)
     updateEmptyStatus()
 end sub
 
@@ -270,6 +273,47 @@ function getFocusedItemNode() as dynamic
     if itemIndex >= m.markupGrid.content.getChildCount() then return invalid
 
     return m.markupGrid.content.getChild(itemIndex)
+end function
+
+'-------------------------------------------------------------------------------
+' getFocusedLibraryItemId
+'-------------------------------------------------------------------------------
+function getFocusedLibraryItemId() as dynamic
+    if m.markupGrid = invalid then return invalid
+
+    item = getSelectedLibraryItem(m.markupGrid.itemFocused)
+    if item = invalid then return invalid
+    return item.id
+end function
+
+'-------------------------------------------------------------------------------
+' restoreFocusedLibraryItem
+'-------------------------------------------------------------------------------
+sub restoreFocusedLibraryItem(itemId as dynamic, shouldRestoreFocus as boolean)
+    if shouldRestoreFocus <> true then return
+    if itemId = invalid then return
+
+    itemIndex = findLibraryItemIndexById(itemId)
+    if itemIndex < 0 then return
+
+    m.markupGrid.jumpToItem = itemIndex
+    m.markupGrid.setFocus(true)
+    onItemFocused()
+end sub
+
+'-------------------------------------------------------------------------------
+' findLibraryItemIndexById
+'-------------------------------------------------------------------------------
+function findLibraryItemIndexById(itemId as dynamic) as integer
+    if itemId = invalid then return -1
+    if m.libraryItemsByIndex = invalid then return -1
+
+    for i = 0 to m.libraryItemsByIndex.Count() - 1
+        item = m.libraryItemsByIndex[i]
+        if item <> invalid and item.id = itemId then return i
+    end for
+
+    return -1
 end function
 
 '-------------------------------------------------------------------------------

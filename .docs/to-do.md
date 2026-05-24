@@ -13,3 +13,7 @@ v1.1.0 Release Notes
 - Substantial refactor of library component. Reduced start-up churn that was happening. Wasn't noticeable from a UI perspective, but the logs revealed some churn that needed to be addressed. Grouped/organized the local variables into logical/function groupings.
 
 - Replaced setting key string literals with string constants.
+
+- Fixed UI quirk when closing the player the `Chapters` button would get focus before the player closed. This wasn't a functional issue, just a weird UI quirk.
+
+-Fixed bug when closing the player the library grid/list or series view would set focus to the first title in the list. It now retains focus on the title that was selected for playback.
