@@ -1853,7 +1853,10 @@ sub closeChapterList()
 
     logPlayerVerbose("closeChapterList")
 
-    if m.dialogRefs.chapterList <> invalid then m.dialogRefs.chapterList.callFunc("close")
+    if m.dialogRefs.chapterList = invalid then return
+    if m.dialogRefs.chapterList.visible <> true then return
+
+    m.dialogRefs.chapterList.callFunc("close")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1920,6 +1923,8 @@ end sub
 sub onChapterListClosed()
 
     logPlayerVerbose("onChapterListClosed")
+
+    if m.isClosing = true then return
 
     focusChaptersButton()
 end sub
