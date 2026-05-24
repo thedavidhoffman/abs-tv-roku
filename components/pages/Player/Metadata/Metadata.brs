@@ -70,6 +70,13 @@ function focusDescription() as boolean
 end function
 
 '-------------------------------------------------------------------------------
+' dismissDescriptionDialog
+'-------------------------------------------------------------------------------
+sub dismissDescriptionDialog()
+    if m.descriptionLabel <> invalid then m.descriptionLabel.callFunc("dismissDialog")
+end sub
+
+'-------------------------------------------------------------------------------
 ' updateText
 '-------------------------------------------------------------------------------
 sub updateText()

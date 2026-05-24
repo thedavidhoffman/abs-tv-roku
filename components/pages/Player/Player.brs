@@ -172,6 +172,7 @@ sub initHandlers()
     m.playbackControls.observeField("selectedAction", "onPlaybackActionSelected")
     m.playbackControls.observeField("focusUpRequested", "onPlaybackControlsFocusUpRequested")
     m.playbackControls.observeField("scrubEvent", "onPlaybackControlsScrubEvent")
+    m.overlayRefs.screensaverOverlay.observeField("shownCounter", "onScreensaverOverlayShown")
     m.overlayRefs.screensaverOverlay.observeField("dismissedCounter", "onScreensaverOverlayDismissed")
 end sub
 
@@ -333,6 +334,18 @@ function recordScreensaverOverlayActivity() as boolean
     return wasVisible = true
 
 end function
+
+'-------------------------------------------------------------------------------
+' onScreensaverOverlayShown
+'-------------------------------------------------------------------------------
+sub onScreensaverOverlayShown()
+
+    logPlayerVerbose("onScreensaverOverlayShown")
+
+    ' dismiss description dialog
+    m.metadata.callFunc("dismissDescriptionDialog")
+
+end sub
 
 '-------------------------------------------------------------------------------
 ' onScreensaverOverlayDismissed

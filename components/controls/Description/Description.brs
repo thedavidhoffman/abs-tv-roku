@@ -188,6 +188,13 @@ sub onDescriptionDialogClosed()
 end sub
 
 '-------------------------------------------------------------------------------
+' dismissDialog
+'-------------------------------------------------------------------------------
+sub dismissDialog()
+    closeDescriptionDialog(false)
+end sub
+
+'-------------------------------------------------------------------------------
 ' closeDescriptionDialog
 '-------------------------------------------------------------------------------
 sub closeDescriptionDialog(returnFocus as boolean)

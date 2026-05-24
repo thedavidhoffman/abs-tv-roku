@@ -10,6 +10,7 @@
     <field id="numLines" type="integer" onChange="onNumLinesChanged" />
     <field id="isTruncated" type="boolean" />
     <field id="canAcceptFocus" type="boolean" />
+    <function name="dismissDialog" />
   </interface>
   <children>
     <Rectangle

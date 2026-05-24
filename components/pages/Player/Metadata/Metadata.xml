@@ -11,6 +11,7 @@
     <function name="descriptionHasFocus" />
     <function name="focusDescription" />
     <function name="canFocusDescription" />
+    <function name="dismissDescriptionDialog" />
   </interface>
   <children>
     <ScrollingLabel id="titleLabel" translation="[0,0]" maxWidth="1040" font="font:LargeBoldSystemFont" repeatCount="1" />

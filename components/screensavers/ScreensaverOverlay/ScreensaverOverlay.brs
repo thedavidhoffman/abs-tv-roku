@@ -11,6 +11,7 @@ sub init()
     m.activeScreensaver = invalid
     m.screensaverType = "off"
     m.screensaverEnabled = false
+    m.shownCounter = 0
     m.dismissedCounter = 0
 
     m.screensaverDelayTimer.observeField("fire", "onScreensaverDelayTimerFired")
@@ -136,6 +137,15 @@ sub showConfiguredScreensaver()
     m.screensaverLayer.appendChild(screensaver)
     m.activeScreensaver = screensaver
     m.top.setFocus(true)
+    publishShown()
+end sub
+
+'-------------------------------------------------------------------------------
+' publishShown
+'-------------------------------------------------------------------------------
+sub publishShown()
+    m.shownCounter = m.shownCounter + 1
+    m.top.shownCounter = m.shownCounter
 end sub
 
 '-------------------------------------------------------------------------------
