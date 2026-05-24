@@ -11,10 +11,22 @@ sub init()
     m.activeScreensaver = invalid
     m.screensaverType = "off"
     m.screensaverEnabled = false
+    m.dismissedCounter = 0
 
     m.screensaverDelayTimer.observeField("fire", "onScreensaverDelayTimerFired")
 
 end sub
+
+'-------------------------------------------------------------------------------
+' onKeyEvent
+'-------------------------------------------------------------------------------
+function onKeyEvent(key as string, press as boolean) as boolean
+    if press = false then return false
+    if isVisible() <> true then return false
+
+    recordActivity()
+    return true
+end function
 
 '-------------------------------------------------------------------------------
 ' startDelay
@@ -58,7 +70,10 @@ function recordActivity() as boolean
 
     wasVisible = isVisible()
 
-    if wasVisible then removeScreensaver()
+    if wasVisible then
+        removeScreensaver()
+        publishDismissed()
+    end if
     if m.screensaverEnabled <> true then return wasVisible
     startDelay()
 
@@ -120,6 +135,15 @@ sub showConfiguredScreensaver()
     if m.screensaverType = "bounce" then updateBounceScreensaverNode(screensaver)
     m.screensaverLayer.appendChild(screensaver)
     m.activeScreensaver = screensaver
+    m.top.setFocus(true)
+end sub
+
+'-------------------------------------------------------------------------------
+' publishDismissed
+'-------------------------------------------------------------------------------
+sub publishDismissed()
+    m.dismissedCounter = m.dismissedCounter + 1
+    m.top.dismissedCounter = m.dismissedCounter
 end sub
 
 '-------------------------------------------------------------------------------

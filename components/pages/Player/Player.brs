@@ -152,6 +152,10 @@ end sub
 sub initLifecycleValues()
     m.closeRequestedCounter = 0
     m.isClosing = false
+    m.focusRestore = {
+        area: "controls"
+        index: 0
+    }
 end sub
 
 '-------------------------------------------------------------------------------
@@ -168,6 +172,7 @@ sub initHandlers()
     m.playbackControls.observeField("selectedAction", "onPlaybackActionSelected")
     m.playbackControls.observeField("focusUpRequested", "onPlaybackControlsFocusUpRequested")
     m.playbackControls.observeField("scrubEvent", "onPlaybackControlsScrubEvent")
+    m.overlayRefs.screensaverOverlay.observeField("dismissedCounter", "onScreensaverOverlayDismissed")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -328,6 +333,44 @@ function recordScreensaverOverlayActivity() as boolean
     return wasVisible = true
 
 end function
+
+'-------------------------------------------------------------------------------
+' onScreensaverOverlayDismissed
+'-------------------------------------------------------------------------------
+sub onScreensaverOverlayDismissed()
+
+    logPlayerVerbose("onScreensaverOverlayDismissed")
+
+    restoreFocusAfterScreensaverDismissed()
+end sub
+
+'-------------------------------------------------------------------------------
+' restoreFocusAfterScreensaverDismissed
+'-------------------------------------------------------------------------------
+sub restoreFocusAfterScreensaverDismissed()
+
+    logPlayerVerbose("restoreFocusAfterScreensaverDismissed")
+
+    if m.isClosing = true then return
+
+    if isProgressScrubbing() then
+        if m.playbackControls <> invalid then m.playbackControls.callFunc("focusProgress")
+        return
+    end if
+
+    if m.focusRestore <> invalid and m.focusRestore.area = "description" then
+        if m.metadata <> invalid and m.metadata.callFunc("focusDescription") then return
+    end if
+
+    focusIndex = getPlaybackControlFocusIndex()
+    if m.focusRestore <> invalid and m.focusRestore.index <> invalid then focusIndex = int(m.focusRestore.index)
+    if focusIndex >= 0 then
+        focusPlaybackButton(focusIndex)
+        return
+    end if
+
+    m.top.setFocus(true)
+end sub
 
 '-------------------------------------------------------------------------------
 ' resetPlaybackSessionState
@@ -1409,7 +1452,13 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
     if m.metadata <> invalid and m.metadata.callFunc("descriptionHasFocus") then
         if key = "down" then
-            if m.playbackControls <> invalid then m.playbackControls.callFunc("focusProgressBar", getPlaybackCurrentTimeSeconds(), 0)
+            if m.playbackControls <> invalid then
+                m.focusRestore = {
+                    area: "controls"
+                    index: 0
+                }
+                m.playbackControls.callFunc("focusProgressBar", getPlaybackCurrentTimeSeconds(), 0)
+            end if
             return true
         end if
     end if
@@ -1438,6 +1487,10 @@ function focusDescriptionFromPlaybackControls() as boolean
     if m.metadata.callFunc("canFocusDescription") <> true then return false
 
     updatePlaybackControlsFocus(-1)
+    m.focusRestore = {
+        area: "description"
+        index: -1
+    }
     return m.metadata.callFunc("focusDescription")
 end function
 
@@ -1450,6 +1503,10 @@ sub focusPlaybackButton(index as integer)
     if index < 0 then index = 0
     playbackButtonCount = getPlaybackButtonCount()
     if index >= playbackButtonCount then index = playbackButtonCount - 1
+    m.focusRestore = {
+        area: "controls"
+        index: index
+    }
     updatePlaybackControlsFocus(index)
 
     if m.playbackControls <> invalid then m.playbackControls.callFunc("focusButton", index)
@@ -1536,7 +1593,13 @@ sub onPlaybackControlsFocusUpRequested()
 
     logPlayerVerbose("onPlaybackControlsFocusUpRequested")
 
-    if m.playbackControls <> invalid then m.playbackControls.callFunc("focusProgressBar", getPlaybackCurrentTimeSeconds(), getPlaybackControlFocusIndex())
+    if m.playbackControls <> invalid then
+        m.focusRestore = {
+            area: "controls"
+            index: getPlaybackControlFocusIndex()
+        }
+        m.playbackControls.callFunc("focusProgressBar", getPlaybackCurrentTimeSeconds(), getPlaybackControlFocusIndex())
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1564,6 +1627,7 @@ sub onPlaybackControlsScrubEvent()
     else if event.type = "cancel" then
         restoreScrubProgressIfActive()
     else if event.type = "cancelClose" then
+        if recordScreensaverOverlayActivity() then return
         closePlayer()
     end if
 end sub
