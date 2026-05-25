@@ -3,7 +3,6 @@
 '-------------------------------------------------------------------------------
 sub init()
     m.dialog = m.top.findNode("chapterDialog")
-    m.closedCounter = 0
     m.content = invalid
 
     if m.dialog <> invalid then m.dialog.observeField("closeRequested", "onDialogCloseRequested")
@@ -58,8 +57,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onDialogCloseRequested()
     m.top.visible = false
-    m.closedCounter = m.closedCounter + 1
-    m.top.closedCounter = m.closedCounter
+    m.top.closed = true
 end sub
 
 '-------------------------------------------------------------------------------

@@ -29,11 +29,6 @@ sub initValues()
         itemsByRow: []
         focusedItemNode: invalid
     }
-    m.eventCounters = {
-        playSelected: 0
-        backSelected: 0
-        upFromFirstRowSelected: 0
-    }
     m.focusState = {
         firstItemPending: false
         retryCount: 0
@@ -413,16 +408,14 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
     if key = "up" and (isFocusedOnFirstRow() or isStatusFocused()) then
         finishFirstHomeItemFocus()
-        m.eventCounters.upFromFirstRowSelected = m.eventCounters.upFromFirstRowSelected + 1
-        m.top.upFromFirstRowSelected = m.eventCounters.upFromFirstRowSelected
+        m.top.upFromFirstRowSelected = true
         return true
     end if
 
     if key <> "back" then return false
 
     finishFirstHomeItemFocus()
-    m.eventCounters.backSelected = m.eventCounters.backSelected + 1
-    m.top.backSelected = m.eventCounters.backSelected
+    m.top.backSelected = true
     return true
 end function
 
@@ -459,13 +452,11 @@ sub onItemSelected()
     item = getSelectedItem()
     if item = invalid or item.id = invalid then return
 
-    m.eventCounters.playSelected = m.eventCounters.playSelected + 1
     m.top.playSelected = {
         id: item.id
         title: getLibraryItemTitle(item)
         details: getPlaybackDetails(item)
         startPositionSeconds: getPlaybackStartPosition(item)
-        counter: m.eventCounters.playSelected
     }
 end sub
 

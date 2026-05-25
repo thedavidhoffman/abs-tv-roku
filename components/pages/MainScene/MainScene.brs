@@ -37,8 +37,6 @@ end sub
 '-------------------------------------------------------------------------------
 sub initValues()
     m.session = invalid
-    m.authResumeRequestCounter = 0
-    m.authLogoutRequestCounter = 0
     m.seriesRowsRequestCounter = 0
     m.inProgressRequestCounter = 0
     m.mediaProgress = []
@@ -149,8 +147,7 @@ end sub
 sub authRequestResumeSession()
     m.login.visible = false
     m.authenticatedContent.visible = false
-    m.authResumeRequestCounter = m.authResumeRequestCounter + 1
-    m.authController.resumeRequested = m.authResumeRequestCounter
+    m.authController.resumeRequested = true
 end sub
 
 '-------------------------------------------------------------------------------
@@ -223,8 +220,6 @@ sub authHandleLogoutPressed()
         if m.session.token <> invalid then request.token = m.session.token
         m.session.token = ""
     end if
-    m.authLogoutRequestCounter = m.authLogoutRequestCounter + 1
-    request.counter = m.authLogoutRequestCounter
     if m.authController <> invalid then m.authController.logoutRequest = request
 
     m.login.passwordValue = ""
@@ -480,7 +475,6 @@ sub searchHandleQuerySelected()
     if m.library <> invalid then
         m.library.searchRequest = {
             searchTerm: searchTerm
-            counter: selectedQuery.counter
         }
     end if
 end sub

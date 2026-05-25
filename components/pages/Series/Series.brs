@@ -8,9 +8,6 @@ sub init()
 
     m.seriesRowList = m.top.findNode("seriesRowList")
     m.seriesItemsByRow = []
-    m.playSelectedCounter = 0
-    m.backSelectedCounter = 0
-    m.upFromFirstRowSelectedCounter = 0
     m.focusRequested = false
     m.focusedItemNode = invalid
     m.hasSeriesRowsResponse = false
@@ -232,15 +229,13 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
     if key = "up" and (isFocusedOnFirstRow() or isStatusFocused()) then
-        m.upFromFirstRowSelectedCounter = m.upFromFirstRowSelectedCounter + 1
-        m.top.upFromFirstRowSelected = m.upFromFirstRowSelectedCounter
+        m.top.upFromFirstRowSelected = true
         return true
     end if
 
     if key <> "back" then return false
 
-    m.backSelectedCounter = m.backSelectedCounter + 1
-    m.top.backSelected = m.backSelectedCounter
+    m.top.backSelected = true
     return true
 end function
 
@@ -269,13 +264,11 @@ sub onItemSelected()
     item = getSelectedItem()
     if item = invalid or item.id = invalid then return
 
-    m.playSelectedCounter = m.playSelectedCounter + 1
     m.top.playSelected = {
         id: item.id
         title: getLibraryItemTitle(item)
         details: getPlaybackDetails(item)
         startPositionSeconds: getPlaybackStartPosition(item)
-        counter: m.playSelectedCounter
     }
 end sub
 

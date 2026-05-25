@@ -12,7 +12,7 @@
   <interface>
     <field id="playRequest" type="assocarray" onChange="onPlayRequestChanged" />
     <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
-    <field id="closeRequested" type="integer" />
+    <field id="closeRequested" type="boolean" alwaysNotify="true" />
     <field id="errorResponse" type="assocarray" />
   </interface>
   <children>

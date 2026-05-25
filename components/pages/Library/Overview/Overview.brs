@@ -5,9 +5,6 @@ sub init()
     initReferences()
 
     m.selectedItem = invalid
-    m.playSelectedCounter = 0
-    m.seriesActionSelectedCounter = 0
-    m.leftRequestedCounter = 0
     m.server = invalid
     m.token = invalid
 
@@ -385,22 +382,17 @@ end function
 '-------------------------------------------------------------------------------
 sub onPlayPressed()
     if isSeriesMode() then
-        m.seriesActionSelectedCounter = m.seriesActionSelectedCounter + 1
-        m.top.seriesActionSelected = {
-            counter: m.seriesActionSelectedCounter
-        }
+        m.top.seriesActionSelected = true
         return
     end if
 
     if m.selectedItem = invalid or m.selectedItem.id = invalid then return
 
-    m.playSelectedCounter = m.playSelectedCounter + 1
     m.top.playSelected = {
         id: m.selectedItem.id
         title: ItemMetadataParser_GetTitle(m.selectedItem)
         details: getPlaybackDetails(m.selectedItem)
         startPositionSeconds: getPlaybackStartPosition(m.selectedItem)
-        counter: m.playSelectedCounter
     }
 end sub
 
@@ -449,8 +441,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if m.playButton <> invalid and m.playButton.isInFocusChain() then
         if key = "left" then
             clearFocusVisual()
-            m.leftRequestedCounter = m.leftRequestedCounter + 1
-            m.top.leftRequested = m.leftRequestedCounter
+            m.top.leftRequested = true
             return true
         else if key = "down" then
             return focusDescription()

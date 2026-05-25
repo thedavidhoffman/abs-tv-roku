@@ -2,7 +2,7 @@
 <component name="DiagnosticsDialog" extends="Group" focusable="true">
   <script type="text/brightscript" uri="pkg:/components/pages/Diagnostics/DiagnosticsDialog.brs" />
   <interface>
-    <field id="closeRequested" type="integer" />
+    <field id="closeRequested" type="boolean" alwaysNotify="true" />
     <field id="cacheInfo" type="array" />
     <function name="openDiagnostics" />
   </interface>

@@ -2,7 +2,6 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.closeRequestedCounter = 0
     m.dialog = m.top.findNode("dialog")
     m.panel = m.top.findNode("panel")
     m.titleLabel = m.top.findNode("titleLabel")
@@ -11,9 +10,6 @@ sub init()
     m.footer = m.top.findNode("footer")
     m.saveButton = m.top.findNode("saveButton")
     m.cancelButton = m.top.findNode("cancelButton")
-    m.saveSelectedCounter = 0
-    m.cancelSelectedCounter = 0
-
     initStyle()
     updateDialogSize()
     updateTitle()
@@ -39,8 +35,7 @@ end sub
 sub closeDialog()
     if m.dialog <> invalid then m.dialog.visible = false
 
-    m.closeRequestedCounter = m.closeRequestedCounter + 1
-    m.top.closeRequested = m.closeRequestedCounter
+    m.top.closeRequested = true
     onCloseRequested()
 end sub
 
@@ -283,8 +278,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             if key = "up" then return focusContentLastField()
             if key = "right" then return focusCancelButton()
             if key = "OK" or key = "select" then
-                m.saveSelectedCounter = m.saveSelectedCounter + 1
-                m.top.saveSelected = m.saveSelectedCounter
+                m.top.saveSelected = true
                 onSaveSelected()
                 return true
             end if
@@ -294,8 +288,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             if key = "up" then return focusContentLastField()
             if key = "left" then return focusSaveButton()
             if key = "OK" or key = "select" then
-                m.cancelSelectedCounter = m.cancelSelectedCounter + 1
-                m.top.cancelSelected = m.cancelSelectedCounter
+                m.top.cancelSelected = true
                 closeDialog()
                 return true
             end if

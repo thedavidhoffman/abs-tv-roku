@@ -5,8 +5,8 @@
   <script type="text/brightscript" uri="pkg:/source/SearchRules.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/Search/Search.brs" />
   <interface>
-    <field id="closeRequested" type="integer" />
-    <field id="querySelected" type="assocarray" />
+    <field id="closeRequested" type="boolean" alwaysNotify="true" />
+    <field id="querySelected" type="assocarray" alwaysNotify="true" />
     <function name="openSearch" />
   </interface>
 </component>

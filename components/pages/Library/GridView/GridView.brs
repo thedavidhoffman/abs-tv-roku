@@ -9,9 +9,6 @@ sub init()
     m.markupGrid = m.top.findNode("markupGrid")
     m.contextTitleLabel = m.top.findNode("contextTitleLabel")
     m.libraryItemsByIndex = []
-    m.playSelectedCounter = 0
-    m.seriesSelectedCounter = 0
-    m.backFromFirstItemSelectedCounter = 0
     m.focusedItemNode = invalid
     m.allLibraryItemLookup = {}
     m.server = invalid
@@ -203,13 +200,11 @@ sub onPosterSelected()
 
     seriesId = getCollapsedSeriesId(item)
     if seriesId <> invalid then
-        m.seriesSelectedCounter = m.seriesSelectedCounter + 1
         m.top.seriesSelected = {
             seriesId: seriesId
             title: getCollapsedSeriesTitle(item)
             libraryItemIds: getCollapsedSeriesLibraryItemIds(item)
             itemIndex: m.markupGrid.itemSelected
-            counter: m.seriesSelectedCounter
         }
         return
     end if
@@ -219,13 +214,11 @@ sub onPosterSelected()
         return
     end if
 
-    m.playSelectedCounter = m.playSelectedCounter + 1
     m.top.playSelected = {
         id: item.id
         title: getLibraryItemTitle(item)
         details: getPlaybackDetails(item)
         startPositionSeconds: getPlaybackStartPosition(item)
-        counter: m.playSelectedCounter
     }
 end sub
 
@@ -488,8 +481,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
             return true
         end if
 
-        m.backFromFirstItemSelectedCounter = m.backFromFirstItemSelectedCounter + 1
-        m.top.backFromFirstItemSelected = m.backFromFirstItemSelectedCounter
+        m.top.backFromFirstItemSelected = true
         return true
     end if
 

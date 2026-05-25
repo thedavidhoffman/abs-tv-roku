@@ -14,9 +14,9 @@
     <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
     <field id="seriesRowsResponse" type="assocarray" onChange="onSeriesRowsResponseChanged" />
     <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />
-    <field id="playSelected" type="assocarray" />
-    <field id="backSelected" type="integer" />
-    <field id="upFromFirstRowSelected" type="integer" />
+    <field id="playSelected" type="assocarray" alwaysNotify="true" />
+    <field id="backSelected" type="boolean" alwaysNotify="true" />
+    <field id="upFromFirstRowSelected" type="boolean" alwaysNotify="true" />
     <field id="errorResponse" type="assocarray" />
     <field id="statusMessage" type="string" />
     <function name="focusSeriesPage" />

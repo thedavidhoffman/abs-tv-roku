@@ -52,8 +52,6 @@ sub initValues()
         searchRequest: 0
         activeSearchRequest: 0
         seriesItemsRequest: 0
-        itemsReloaded: 0
-        mainListRestored: 0
     }
     m.appliedSettings = {
         itemDisplay: invalid
@@ -276,8 +274,7 @@ end function
 ' publishItemsReloaded
 '-------------------------------------------------------------------------------
 sub publishItemsReloaded()
-    m.eventCounters.itemsReloaded = m.eventCounters.itemsReloaded + 1
-    m.top.itemsReloaded = m.eventCounters.itemsReloaded
+    m.top.itemsReloaded = true
 end sub
 
 '-------------------------------------------------------------------------------
@@ -793,6 +790,5 @@ end sub
 ' publishMainListRestored
 '-------------------------------------------------------------------------------
 sub publishMainListRestored()
-    m.eventCounters.mainListRestored = m.eventCounters.mainListRestored + 1
-    m.top.mainListRestored = m.eventCounters.mainListRestored
+    m.top.mainListRestored = true
 end sub

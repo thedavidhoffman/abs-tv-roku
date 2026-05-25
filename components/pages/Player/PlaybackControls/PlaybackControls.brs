@@ -38,13 +38,10 @@ end sub
 ' initValues
 '-------------------------------------------------------------------------------
 sub initValues()
-    m.actionCounter = 0
-    m.focusUpCounter = 0
     m.scrub = {
         isActive: false
         targetSeconds: 0
         returnFocusIndex: 0
-        eventCounter: 0
     }
     m.progressLayout = {
         barWidth: 1040
@@ -281,10 +278,8 @@ sub selectFocusedButton()
     action = getActionForIndex(m.top.focusedIndex)
     if action = "" then return
 
-    m.actionCounter = m.actionCounter + 1
     m.top.selectedAction = {
         action: action
-        counter: m.actionCounter
     }
 end sub
 
@@ -292,10 +287,8 @@ end sub
 ' requestFocusUp
 '-------------------------------------------------------------------------------
 sub requestFocusUp()
-    m.focusUpCounter = m.focusUpCounter + 1
     m.top.focusUpRequested = {
         focusedIndex: m.top.focusedIndex
-        counter: m.focusUpCounter
     }
 end sub
 
@@ -314,12 +307,10 @@ end sub
 ' emitScrubEvent
 '-------------------------------------------------------------------------------
 sub emitScrubEvent(eventType as string, nextFocus = "" as string)
-    m.scrub.eventCounter = m.scrub.eventCounter + 1
     event = {
         type: eventType
         targetSeconds: m.scrub.targetSeconds
         returnFocusIndex: m.scrub.returnFocusIndex
-        counter: m.scrub.eventCounter
     }
     if nextFocus <> "" then event.nextFocus = nextFocus
     m.top.scrubEvent = event

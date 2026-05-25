@@ -2,8 +2,6 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.closeRequestedCounter = 0
-    m.settingsSavedCounter = 0
     m.originalSettings = invalid
     m.dialog = m.top.findNode("settingsDialog")
 
@@ -49,8 +47,7 @@ sub saveSettings()
     keys = SettingsStore_Keys()
     SettingsStore_Save(settings[keys.seriesDisplay], settings[keys.itemDisplay], settings[keys.gridColumns], settings[keys.screensaverType], settings[keys.screensaverDelay])
     m.top.savedSettings = settings
-    m.settingsSavedCounter = m.settingsSavedCounter + 1
-    m.top.settingsSaved = m.settingsSavedCounter
+    m.top.settingsSaved = true
 end sub
 
 '-------------------------------------------------------------------------------
@@ -58,6 +55,5 @@ end sub
 '-------------------------------------------------------------------------------
 sub onDialogCloseRequested()
     saveSettings()
-    m.closeRequestedCounter = m.closeRequestedCounter + 1
-    m.top.closeRequested = m.closeRequestedCounter
+    m.top.closeRequested = true
 end sub

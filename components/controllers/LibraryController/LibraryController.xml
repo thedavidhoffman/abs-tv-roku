@@ -15,10 +15,10 @@
     <field id="seriesItemsRequest" type="assocarray" onChange="onSeriesItemsRequestChanged" />
     <field id="allLibraryItems" type="array" />
     <field id="libraryItems" type="array" />
-    <field id="libraryItemsChanged" type="integer" />
-    <field id="searchResponse" type="assocarray" />
-    <field id="seriesRowsResponse" type="assocarray" />
-    <field id="seriesItemsResponse" type="assocarray" />
+    <field id="libraryItemsChanged" type="boolean" alwaysNotify="true" />
+    <field id="searchResponse" type="assocarray" alwaysNotify="true" />
+    <field id="seriesRowsResponse" type="assocarray" alwaysNotify="true" />
+    <field id="seriesItemsResponse" type="assocarray" alwaysNotify="true" />
     <field id="loading" type="boolean" />
     <field id="errorResponse" type="assocarray" />
     <function name="reloadActiveLibrary" />

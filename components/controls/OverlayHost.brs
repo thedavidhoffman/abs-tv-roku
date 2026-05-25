@@ -4,7 +4,6 @@
 sub init()
     m.activeOverlay = invalid
     m.activeRequest = invalid
-    m.closedCounter = 0
 end sub
 
 '-------------------------------------------------------------------------------
@@ -64,10 +63,8 @@ sub onOverlayClosed()
     closedOverlay = m.activeOverlay
     closedRequest = m.activeRequest
     closeOverlay()
-    m.closedCounter = m.closedCounter + 1
     m.top.closed = {
         overlay: closedOverlay
         request: closedRequest
-        counter: m.closedCounter
     }
 end sub

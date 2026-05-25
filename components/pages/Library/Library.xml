@@ -18,14 +18,14 @@
     <field id="searchResults" type="array" />
     <field id="loading" type="boolean" onChange="onLoadingChanged" />
     <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />
-    <field id="playSelected" type="assocarray" />
+    <field id="playSelected" type="assocarray" alwaysNotify="true" />
     <field id="upFromFirstItemSelected" type="boolean" alwaysNotify="true" />
-    <field id="backFromFirstItemSelected" type="integer" />
-    <field id="mainListRestored" type="integer" />
+    <field id="backFromFirstItemSelected" type="boolean" alwaysNotify="true" />
+    <field id="mainListRestored" type="boolean" alwaysNotify="true" />
     <field id="controllerSearchRequest" type="assocarray" />
     <field id="seriesItemsRequest" type="assocarray" />
     <field id="errorResponse" type="assocarray" />
-    <field id="itemsReloaded" type="integer" />
+    <field id="itemsReloaded" type="boolean" alwaysNotify="true" />
     <field id="statusMessage" type="string" />
     <function name="focusLibraryList" />
     <function name="focusItemAtIndex" />

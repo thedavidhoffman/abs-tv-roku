@@ -2,8 +2,6 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.closeRequestedCounter = 0
-    m.querySelectedCounter = 0
     m.keyboardDialog = invalid
     m.isClosingDialog = false
     m.hasEmittedClose = false
@@ -39,10 +37,8 @@ sub onButtonSelected()
     if selectedIndex = 0 then
         query = SearchRules_NormalizeTerm(m.keyboardDialog.text)
         if Len(query) >= SearchRules_MinLength() then
-            m.querySelectedCounter = m.querySelectedCounter + 1
             m.top.querySelected = {
                 query: query
-                counter: m.querySelectedCounter
             }
         end if
     end if
@@ -80,6 +76,5 @@ sub emitCloseRequested()
     if m.isClosingDialog = false then m.isClosingDialog = true
 
     m.keyboardDialog = invalid
-    m.closeRequestedCounter = m.closeRequestedCounter + 1
-    m.top.closeRequested = m.closeRequestedCounter
+    m.top.closeRequested = true
 end sub

@@ -9,9 +9,6 @@ sub init()
     m.authApiTask = m.top.findNode("authApiTask")
     m.savedSession = AuthStore_Load()
     m.isResumingSession = false
-    m.loginRequiredCounter = 0
-    m.loginFailedCounter = 0
-    m.sessionExpiredCounter = 0
 
     if m.authApiTask <> invalid then m.authApiTask.observeField("response", "onAuthApiResponse")
     m.top.savedSession = m.savedSession
@@ -179,10 +176,8 @@ sub publishLoginRequired(message as string)
 
     m.log.write("publishLoginRequired")
 
-    m.loginRequiredCounter = m.loginRequiredCounter + 1
     m.top.loginRequired = {
         message: message
-        counter: m.loginRequiredCounter
     }
 end sub
 
@@ -193,10 +188,8 @@ sub publishLoginFailed(message as string)
 
     m.log.write("publishLoginFailed")
 
-    m.loginFailedCounter = m.loginFailedCounter + 1
     m.top.loginFailed = {
         message: message
-        counter: m.loginFailedCounter
     }
 end sub
 
@@ -209,9 +202,7 @@ sub publishSessionExpired(message as dynamic)
 
     clearSavedSession()
 
-    m.sessionExpiredCounter = m.sessionExpiredCounter + 1
     m.top.sessionExpired = {
         message: SafeString(message, "Your session expired. Please sign in again.")
-        counter: m.sessionExpiredCounter
     }
 end sub

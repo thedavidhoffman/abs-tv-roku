@@ -9,11 +9,7 @@ sub init()
     m.appliedSeriesDisplay = invalid
     m.cache = []
     m.requestGeneration = 0
-    m.libraryItemsChangedCounter = 0
     m.hasPublishedLibraryItems = false
-    m.searchResponseCounter = 0
-    m.seriesRowsResponseCounter = 0
-    m.seriesItemsResponseCounter = 0
     m.pendingSearchRequest = invalid
     m.pendingSeriesRowsRequest = invalid
     m.pendingSeriesItemsRequest = invalid
@@ -47,7 +43,6 @@ end sub
 sub publishSearchResponse(request as object)
     if request = invalid then return
 
-    m.searchResponseCounter = m.searchResponseCounter + 1
     searchTerm = SearchRules_NormalizeTerm(request.searchTerm)
 
     m.top.searchResponse = {
@@ -56,7 +51,6 @@ sub publishSearchResponse(request as object)
         searchTerm: searchTerm
         searchRequestCounter: request.searchRequestCounter
         requestGeneration: m.requestGeneration
-        counter: m.searchResponseCounter
         libraryItems: getSearchItemsFromCache(searchTerm)
     }
 end sub
@@ -82,13 +76,10 @@ end sub
 sub publishSeriesRowsResponse(request as object)
     if request = invalid then return
 
-    m.seriesRowsResponseCounter = m.seriesRowsResponseCounter + 1
-
     m.top.seriesRowsResponse = {
         ok: true
         action: "loadSeriesRows"
         requestGeneration: m.requestGeneration
-        counter: m.seriesRowsResponseCounter
         requestCounter: request.counter
         seriesRows: getSeriesRowsFromCache()
     }
@@ -115,7 +106,6 @@ end sub
 sub publishSeriesItemsResponse(request as object)
     if request = invalid then return
 
-    m.seriesItemsResponseCounter = m.seriesItemsResponseCounter + 1
     seriesId = request.seriesId
 
     m.top.seriesItemsResponse = {
@@ -126,7 +116,6 @@ sub publishSeriesItemsResponse(request as object)
         sourceItemIndex: request.sourceItemIndex
         sourceView: request.sourceView
         requestGeneration: m.requestGeneration
-        counter: m.seriesItemsResponseCounter
         libraryItems: getSeriesItemsFromCache(seriesId, request.libraryItemIds)
     }
 end sub
@@ -343,8 +332,7 @@ sub publishItems(items as object)
 
     m.top.libraryItems = items
     m.hasPublishedLibraryItems = true
-    m.libraryItemsChangedCounter = m.libraryItemsChangedCounter + 1
-    m.top.libraryItemsChanged = m.libraryItemsChangedCounter
+    m.top.libraryItemsChanged = true
 end sub
 
 '-------------------------------------------------------------------------------

@@ -10,9 +10,9 @@
     <field id="showButtons" type="boolean" onChange="onShowButtonsChanged" />
     <field id="saveButtonText" type="string" onChange="onButtonTextChanged" />
     <field id="cancelButtonText" type="string" onChange="onButtonTextChanged" />
-    <field id="saveSelected" type="integer" />
-    <field id="cancelSelected" type="integer" />
-    <field id="closeRequested" type="integer" />
+    <field id="saveSelected" type="boolean" alwaysNotify="true" />
+    <field id="cancelSelected" type="boolean" alwaysNotify="true" />
+    <field id="closeRequested" type="boolean" alwaysNotify="true" />
     <function name="openDialog" />
     <function name="closeDialog" />
     <function name="getContentComponent" />

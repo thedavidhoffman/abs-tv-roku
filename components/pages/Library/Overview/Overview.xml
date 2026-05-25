@@ -13,9 +13,9 @@
     <field id="item" type="assocarray" onChange="onItemChanged" />
     <field id="isSeries" type="boolean" onChange="onItemChanged" />
     <field id="mediaProgress" type="array" onChange="onItemChanged" />
-    <field id="playSelected" type="assocarray" />
-    <field id="seriesActionSelected" type="assocarray" />
-    <field id="leftRequested" type="integer" />
+    <field id="playSelected" type="assocarray" alwaysNotify="true" />
+    <field id="seriesActionSelected" type="boolean" alwaysNotify="true" />
+    <field id="leftRequested" type="boolean" alwaysNotify="true" />
     <function name="focusPlayButton" />
     <function name="clearFocusVisual" />
     <function name="isInFocusChain" />

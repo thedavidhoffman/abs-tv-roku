@@ -3,7 +3,6 @@
 '-------------------------------------------------------------------------------
 sub init()
     m.chapterList = m.top.findNode("chapterList")
-    m.selectionCounter = 0
     m.focusedChapterIndex = 0
 
     if m.chapterList <> invalid then
@@ -218,10 +217,8 @@ sub selectChapter(index as dynamic)
     if tracks = invalid then return
     if index < 0 or index >= tracks.Count() then return
 
-    m.selectionCounter = m.selectionCounter + 1
     m.top.selectedChapter = {
         index: index
-        counter: m.selectionCounter
     }
 end sub
 

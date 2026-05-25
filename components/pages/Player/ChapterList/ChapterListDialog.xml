@@ -7,8 +7,8 @@
     <field id="tracks" type="array" onChange="onTracksChanged" />
     <field id="currentTrackIndex" type="integer" onChange="onCurrentTrackIndexChanged" />
     <field id="audiobookTitle" type="string" onChange="onAudiobookTitleChanged" />
-    <field id="selectedChapter" type="assocarray" />
-    <field id="closedCounter" type="integer" />
+    <field id="selectedChapter" type="assocarray" alwaysNotify="true" />
+    <field id="closed" type="boolean" alwaysNotify="true" />
     <function name="open" />
     <function name="close" />
   </interface>

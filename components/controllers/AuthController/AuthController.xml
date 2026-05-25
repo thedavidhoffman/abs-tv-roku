@@ -9,13 +9,13 @@
   <script type="text/brightscript" uri="pkg:/components/controllers/AuthController/AuthController.brs" />
   <interface>
     <field id="loginRequest" type="assocarray" onChange="onLoginRequestChanged" />
-    <field id="logoutRequest" type="assocarray" onChange="onLogoutRequestChanged" />
-    <field id="resumeRequested" type="integer" onChange="onResumeRequested" />
+    <field id="logoutRequest" type="assocarray" alwaysNotify="true" onChange="onLogoutRequestChanged" />
+    <field id="resumeRequested" type="boolean" alwaysNotify="true" onChange="onResumeRequested" />
     <field id="savedSession" type="assocarray" />
-    <field id="authenticatedSession" type="assocarray" />
-    <field id="loginRequired" type="assocarray" />
-    <field id="loginFailed" type="assocarray" />
-    <field id="sessionExpired" type="assocarray" />
+    <field id="authenticatedSession" type="assocarray" alwaysNotify="true" />
+    <field id="loginRequired" type="assocarray" alwaysNotify="true" />
+    <field id="loginFailed" type="assocarray" alwaysNotify="true" />
+    <field id="sessionExpired" type="assocarray" alwaysNotify="true" />
     <function name="clearSavedSession" />
   </interface>
   <children>

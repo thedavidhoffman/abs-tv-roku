@@ -11,8 +11,6 @@ sub init()
     m.activeScreensaver = invalid
     m.screensaverType = "off"
     m.screensaverEnabled = false
-    m.shownCounter = 0
-    m.dismissedCounter = 0
 
     m.screensaverDelayTimer.observeField("fire", "onScreensaverDelayTimerFired")
 
@@ -144,16 +142,14 @@ end sub
 ' publishShown
 '-------------------------------------------------------------------------------
 sub publishShown()
-    m.shownCounter = m.shownCounter + 1
-    m.top.shownCounter = m.shownCounter
+    m.top.shown = true
 end sub
 
 '-------------------------------------------------------------------------------
 ' publishDismissed
 '-------------------------------------------------------------------------------
 sub publishDismissed()
-    m.dismissedCounter = m.dismissedCounter + 1
-    m.top.dismissedCounter = m.dismissedCounter
+    m.top.dismissed = true
 end sub
 
 '-------------------------------------------------------------------------------

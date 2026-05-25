@@ -5,7 +5,6 @@ sub init()
     m.bg = m.top.findNode("bg")
     m.activeBg = m.top.findNode("activeBg")
     m.textLabel = m.top.findNode("textLabel")
-    m.buttonSelectedCounter = 0
     if m.top.buttonWidth = invalid or m.top.buttonWidth <= 0 then m.top.buttonWidth = 300
     if m.top.buttonHeight = invalid or m.top.buttonHeight <= 0 then m.top.buttonHeight = 56
     if m.top.headerBgColor = invalid or m.top.headerBgColor = 0 then m.top.headerBgColor = &h12112BFF
@@ -123,8 +122,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
     if key = "OK" or key = "select" then
-        m.buttonSelectedCounter = m.buttonSelectedCounter + 1
-        m.top.buttonSelected = m.buttonSelectedCounter
+        m.top.buttonSelected = true
         return true
     end if
 

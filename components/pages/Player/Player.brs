@@ -150,7 +150,6 @@ end sub
 ' initLifecycleValues
 '-------------------------------------------------------------------------------
 sub initLifecycleValues()
-    m.closeRequestedCounter = 0
     m.isClosing = false
     m.screensaverVisible = false
     m.focusRestore = {
@@ -169,12 +168,12 @@ sub initHandlers()
     m.playbackRefs.audioPlayer.observeField("state", "onAudioStateChanged")
     m.playbackRefs.playbackApiTask.observeField("response", "onPlaybackApiResponse")
     m.dialogRefs.chapterList.observeField("selectedChapter", "onChapterSelected")
-    m.dialogRefs.chapterList.observeField("closedCounter", "onChapterListClosed")
+    m.dialogRefs.chapterList.observeField("closed", "onChapterListClosed")
     m.playbackControls.observeField("selectedAction", "onPlaybackActionSelected")
     m.playbackControls.observeField("focusUpRequested", "onPlaybackControlsFocusUpRequested")
     m.playbackControls.observeField("scrubEvent", "onPlaybackControlsScrubEvent")
-    m.overlayRefs.screensaverOverlay.observeField("shownCounter", "onScreensaverOverlayShown")
-    m.overlayRefs.screensaverOverlay.observeField("dismissedCounter", "onScreensaverOverlayDismissed")
+    m.overlayRefs.screensaverOverlay.observeField("shown", "onScreensaverOverlayShown")
+    m.overlayRefs.screensaverOverlay.observeField("dismissed", "onScreensaverOverlayDismissed")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1362,8 +1361,7 @@ sub finalizeClosePlayer()
     m.timeline.currentTimeSeconds = 0
     resetProgress()
     updateChaptersButtonVisibility()
-    m.closeRequestedCounter = m.closeRequestedCounter + 1
-    m.top.closeRequested = m.closeRequestedCounter
+    m.top.closeRequested = true
 end sub
 
 '-------------------------------------------------------------------------------

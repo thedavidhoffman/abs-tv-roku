@@ -2,7 +2,6 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.closeRequestedCounter = 0
     m.dialog = m.top.findNode("diagnosticsDialog")
     if m.dialog <> invalid then m.dialog.observeField("closeRequested", "onDialogCloseRequested")
 end sub
@@ -25,6 +24,5 @@ end sub
 ' onDialogCloseRequested
 '-------------------------------------------------------------------------------
 sub onDialogCloseRequested()
-    m.closeRequestedCounter = m.closeRequestedCounter + 1
-    m.top.closeRequested = m.closeRequestedCounter
+    m.top.closeRequested = true
 end sub

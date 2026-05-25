@@ -19,10 +19,10 @@
     <field id="loading" type="boolean" onChange="onLoadingChanged" />
     <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />
     <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
-    <field id="playSelected" type="assocarray" />
-    <field id="seriesSelected" type="assocarray" />
+    <field id="playSelected" type="assocarray" alwaysNotify="true" />
+    <field id="seriesSelected" type="assocarray" alwaysNotify="true" />
     <field id="upFromFirstItemSelected" type="boolean" alwaysNotify="true" />
-    <field id="backFromFirstItemSelected" type="integer" />
+    <field id="backFromFirstItemSelected" type="boolean" alwaysNotify="true" />
     <field id="errorResponse" type="assocarray" />
     <field id="statusMessage" type="string" />
     <function name="focusLibraryList" />

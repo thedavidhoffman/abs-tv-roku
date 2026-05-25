@@ -8,8 +8,8 @@
   <interface>
     <field id="playbackRequest" type="assocarray" />
     <field id="displaySettings" type="assocarray" />
-    <field id="shownCounter" type="integer" />
-    <field id="dismissedCounter" type="integer" />
+    <field id="shown" type="boolean" alwaysNotify="true" />
+    <field id="dismissed" type="boolean" alwaysNotify="true" />
     <function name="startDelay" />
     <function name="stopOverlay" />
     <function name="recordActivity" />
