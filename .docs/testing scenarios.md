@@ -44,6 +44,7 @@ Test a library with no content to make sure that screens and navigation all work
 6. Description highlight (only when the description is truncated).
 7. Description dialog.
 8. When the player is closed the item that had focus on the GridView, ListView or Series should still have focus.
+9. Play an entire title with a stopwatch running. Run for an hour and verify the times match (withing the slop tolerance of manually starting a stopwatch).
 
 ## Screensaver
 
