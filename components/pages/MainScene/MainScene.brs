@@ -1009,7 +1009,7 @@ sub overlayHandleClosed()
     end if
 
     if closed <> invalid and closed.request <> invalid and closed.request.id = "exit" and closed.overlay <> invalid then
-        if closed.overlay.confirmed <> invalid and closed.overlay.confirmed > 0 then
+        if closed.overlay.confirmed = true then
             m.top.closeRequested = true
             return
         end if

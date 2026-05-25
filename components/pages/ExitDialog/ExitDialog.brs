@@ -39,10 +39,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub confirmExit()
     closeDialogWithoutEvent()
-
-    if m.confirmedCounter = invalid then m.confirmedCounter = 0
-    m.confirmedCounter = m.confirmedCounter + 1
-    m.top.confirmed = m.confirmedCounter
+    m.top.confirmed = true
 end sub
 
 '-------------------------------------------------------------------------------
@@ -50,10 +47,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub cancelExit()
     closeDialogWithoutEvent()
-
-    if m.canceledCounter = invalid then m.canceledCounter = 0
-    m.canceledCounter = m.canceledCounter + 1
-    m.top.canceled = m.canceledCounter
+    m.top.canceled = true
 end sub
 
 '-------------------------------------------------------------------------------

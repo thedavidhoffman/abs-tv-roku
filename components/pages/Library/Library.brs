@@ -65,23 +65,23 @@ end sub
 ' initHandlers
 '-------------------------------------------------------------------------------
 sub initHandlers()
-    if m.listView <> invalid then
-        m.listView.observeField("libraryItems", "onListViewLibraryItemsChanged")
-        m.listView.observeField("playSelected", "onListViewPlaySelected")
-        m.listView.observeField("upFromFirstItemSelected", "onListViewUpFromFirstItemSelected")
-        m.listView.observeField("errorResponse", "onListViewError")
-        m.listView.observeField("seriesItemsRequest", "onListViewSeriesItemsRequest")
-        m.listView.observeField("statusMessage", "onListViewStatusMessageChanged")
-    end if
 
-    if m.gridView <> invalid then
-        m.gridView.observeField("playSelected", "onGridViewPlaySelected")
-        m.gridView.observeField("seriesSelected", "onGridViewSeriesSelected")
-        m.gridView.observeField("upFromFirstItemSelected", "onGridViewUpFromFirstItemSelected")
-        m.gridView.observeField("backFromFirstItemSelected", "onGridViewBackFromFirstItemSelected")
-        m.gridView.observeField("errorResponse", "onGridViewError")
-        m.gridView.observeField("statusMessage", "onGridViewStatusMessageChanged")
-    end if
+    m.listView.observeField("libraryItems", "onListViewLibraryItemsChanged")
+    m.listView.observeField("playSelected", "onListViewPlaySelected")
+    m.listView.observeField("upFromFirstItemSelected", "onListViewUpFromFirstItemSelected")
+    m.listView.observeField("errorResponse", "onListViewError")
+    m.listView.observeField("seriesItemsRequest", "onListViewSeriesItemsRequest")
+    m.listView.observeField("statusMessage", "onListViewStatusMessageChanged")
+
+
+
+    m.gridView.observeField("playSelected", "onGridViewPlaySelected")
+    m.gridView.observeField("seriesSelected", "onGridViewSeriesSelected")
+    m.gridView.observeField("upFromFirstItemSelected", "onGridViewUpFromFirstItemSelected")
+    m.gridView.observeField("backFromFirstItemSelected", "onGridViewBackFromFirstItemSelected")
+    m.gridView.observeField("errorResponse", "onGridViewError")
+    m.gridView.observeField("statusMessage", "onGridViewStatusMessageChanged")
+
 end sub
 
 '-------------------------------------------------------------------------------
@@ -122,8 +122,8 @@ sub syncLoadRequestToViews()
     if m.viewState.syncedLoadRequestKey = loadRequestKey then return
 
     m.viewState.syncedLoadRequestKey = loadRequestKey
-    if m.listView <> invalid then m.listView.loadRequest = m.libraryState.loadRequest
-    if m.gridView <> invalid then m.gridView.loadRequest = m.libraryState.loadRequest
+    m.listView.loadRequest = m.libraryState.loadRequest
+    m.gridView.loadRequest = m.libraryState.loadRequest
 end sub
 
 '-------------------------------------------------------------------------------
@@ -338,8 +338,8 @@ end function
 '-------------------------------------------------------------------------------
 sub updateActiveView(viewName as string)
     m.viewState.activeView = viewName
-    if m.listView <> invalid then m.listView.visible = (viewName = "list")
-    if m.gridView <> invalid then m.gridView.visible = (viewName = "grid")
+    m.listView.visible = (viewName = "list")
+    m.gridView.visible = (viewName = "grid")
     syncGridContext()
     hydrateActiveView()
     syncStatusMessage()
@@ -362,7 +362,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub syncDisplaySettingsToActiveView()
     if m.viewState.activeView <> "grid" then return
-    if m.gridView <> invalid then m.gridView.displaySettings = m.top.displaySettings
+    m.gridView.displaySettings = m.top.displaySettings
 end sub
 
 '-------------------------------------------------------------------------------
@@ -539,21 +539,21 @@ end sub
 '-------------------------------------------------------------------------------
 sub onGridViewBackFromFirstItemSelected()
     if handleBackNavigation() then return
-    if m.gridView <> invalid then m.top.backFromFirstItemSelected = m.gridView.backFromFirstItemSelected
+    m.top.backFromFirstItemSelected = m.gridView.backFromFirstItemSelected
 end sub
 
 '-------------------------------------------------------------------------------
 ' onListViewUpFromFirstItemSelected
 '-------------------------------------------------------------------------------
 sub onListViewUpFromFirstItemSelected()
-    if m.listView <> invalid then m.top.upFromFirstItemSelected = m.listView.upFromFirstItemSelected
+    m.top.upFromFirstItemSelected = m.listView.upFromFirstItemSelected
 end sub
 
 '-------------------------------------------------------------------------------
 ' onListViewError
 '-------------------------------------------------------------------------------
 sub onListViewError()
-    if m.listView <> invalid then m.top.errorResponse = m.listView.errorResponse
+    m.top.errorResponse = m.listView.errorResponse
 end sub
 
 '-------------------------------------------------------------------------------
@@ -567,7 +567,7 @@ end sub
 ' onGridViewError
 '-------------------------------------------------------------------------------
 sub onGridViewError()
-    if m.gridView <> invalid then m.top.errorResponse = m.gridView.errorResponse
+    m.top.errorResponse = m.gridView.errorResponse
 end sub
 
 '-------------------------------------------------------------------------------
@@ -588,8 +588,8 @@ end sub
 ' getActiveViewStatusMessage
 '-------------------------------------------------------------------------------
 function getActiveViewStatusMessage() as string
-    if m.viewState.activeView = "grid" and m.gridView <> invalid then return getText(m.gridView.statusMessage)
-    if m.viewState.activeView = "list" and m.listView <> invalid then return getText(m.listView.statusMessage)
+    if m.viewState.activeView = "grid" then return getText(m.gridView.statusMessage)
+    if m.viewState.activeView = "list" then return getText(m.listView.statusMessage)
     return ""
 end function
 
@@ -604,17 +604,18 @@ end function
 ' focusLibraryList
 '-------------------------------------------------------------------------------
 sub focusLibraryList()
+    
     if hasStatusMessage() then
         m.top.setFocus(true)
         return
     end if
 
     if m.viewState.activeView = "grid" then
-        if m.gridView <> invalid then m.gridView.callFunc("focusLibraryList")
+        m.gridView.callFunc("focusLibraryList")
         return
     end if
 
-    if m.listView <> invalid then m.listView.callFunc("focusLibraryList")
+    m.listView.callFunc("focusLibraryList")
 end sub
 
 '-------------------------------------------------------------------------------
