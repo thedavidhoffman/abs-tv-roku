@@ -6,11 +6,6 @@ sub init()
     rebuildFocusableHeaderButtons()
     initHandlers()
 
-    ' these are internal state trackers that fire complex objects
-    ' to event emitters, so we need separate internal vs external
-    ' mechanisms for these
-    m.currentLibrarySelectedCounter = 0
-    m.overlayRequestedCounter = 0
     m.usernameUpPressCount = 0
 
     initStyle()
@@ -173,7 +168,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
         return focusHeaderButtonByOffset(1)
     else if key = "down" then
         closeMenu()
-        m.top.downSelected = m.top.downSelected + 1
+        m.top.downSelected = true
         return true
     else if key = "back" then
         if m.top.menuOpen = true then
@@ -182,7 +177,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
         end if
 
         closeMenu()
-        m.top.backSelected = m.top.backSelected + 1
+        m.top.backSelected = true
         return true
     end if
 
@@ -203,13 +198,11 @@ function trackUsernameUpSequence() as boolean
 
     if m.usernameUpPressCount >= 5 then
         resetUsernameUpSequence()
-        m.overlayRequestedCounter = m.overlayRequestedCounter + 1
         m.top.overlayRequested = {
             id: "diagnostics"
             componentName: "DiagnosticsDialog"
             closeField: "closeRequested"
             openFunction: "openDiagnostics"
-            counter: m.overlayRequestedCounter
         }
     end if
 
@@ -333,9 +326,9 @@ function focusLibraryMenuButtonByOffset(offset as integer) as boolean
 end function
 
 '-------------------------------------------------------------------------------
-' onCloseMenuTokenChanged
+' onCloseMenuRequested
 '-------------------------------------------------------------------------------
-sub onCloseMenuTokenChanged()
+sub onCloseMenuRequested()
     closeMenu()
 end sub
 
@@ -370,7 +363,7 @@ end sub
 sub onHomePressed()
     closeMenu()
     setActiveHeaderButton("home")
-    m.top.homeSelected = m.top.homeSelected + 1
+    m.top.homeSelected = true
 end sub
 
 '-------------------------------------------------------------------------------
@@ -379,7 +372,7 @@ end sub
 sub onLibraryPressed()
     closeMenu()
     setActiveHeaderButton("library")
-    m.top.librarySelected = m.top.librarySelected + 1
+    m.top.librarySelected = true
 end sub
 
 '-------------------------------------------------------------------------------
@@ -388,7 +381,7 @@ end sub
 sub onSeriesPressed()
     closeMenu()
     setActiveHeaderButton("series")
-    m.top.seriesSelected = m.top.seriesSelected + 1
+    m.top.seriesSelected = true
 end sub
 
 '-------------------------------------------------------------------------------
@@ -396,7 +389,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onSearchPressed()
     closeMenu()
-    m.top.searchSelected = m.top.searchSelected + 1
+    m.top.searchSelected = true
 end sub
 
 '-------------------------------------------------------------------------------
@@ -404,13 +397,11 @@ end sub
 '-------------------------------------------------------------------------------
 sub onSettingsPressed()
     closeMenu()
-    m.overlayRequestedCounter = m.overlayRequestedCounter + 1
     m.top.overlayRequested = {
         id: "settings"
         componentName: "SettingsDialog"
         closeField: "closeRequested"
         openFunction: "openSettings"
-        counter: m.overlayRequestedCounter
     }
 end sub
 
@@ -447,7 +438,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onLogoutPressed()
     closeMenu()
-    m.top.logoutSelected = m.top.logoutSelected + 1
+    m.top.logoutSelected = true
 end sub
 
 '-------------------------------------------------------------------------------
@@ -613,11 +604,9 @@ sub onLibraryMenuItemPressed()
     setLibraryMenuOpen(false)
     m.currentLibraryButton.setFocus(true)
 
-    m.currentLibrarySelectedCounter = m.currentLibrarySelectedCounter + 1
     m.top.currentLibrarySelected = {
         id: selectedLibrary.id
         name: selectedLibrary.name
-        counter: m.currentLibrarySelectedCounter
     }
 end sub
 

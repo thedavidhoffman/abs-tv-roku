@@ -19,7 +19,7 @@
     <field id="loading" type="boolean" onChange="onLoadingChanged" />
     <field id="mediaProgress" type="array" onChange="onMediaProgressChanged" />
     <field id="playSelected" type="assocarray" />
-    <field id="upFromFirstItemSelected" type="integer" />
+    <field id="upFromFirstItemSelected" type="boolean" alwaysNotify="true" />
     <field id="backFromFirstItemSelected" type="integer" />
     <field id="mainListRestored" type="integer" />
     <field id="controllerSearchRequest" type="assocarray" />

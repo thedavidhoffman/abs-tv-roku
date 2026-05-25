@@ -11,7 +11,6 @@ sub init()
     m.libraryItemsByIndex = []
     m.playSelectedCounter = 0
     m.seriesSelectedCounter = 0
-    m.upFromFirstItemSelectedCounter = 0
     m.backFromFirstItemSelectedCounter = 0
     m.focusedItemNode = invalid
     m.allLibraryItemLookup = {}
@@ -496,8 +495,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
     if isIndexInFirstRow(itemIndex) = false then return false
 
-    m.upFromFirstItemSelectedCounter = m.upFromFirstItemSelectedCounter + 1
-    m.top.upFromFirstItemSelected = m.upFromFirstItemSelectedCounter
+    m.top.upFromFirstItemSelected = true
     return true
 end function
 

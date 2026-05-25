@@ -12,7 +12,6 @@ sub init()
     m.expandedSeriesIds = {}
     m.seriesItemsById = {}
     m.loadingSeriesId = invalid
-    m.upFromFirstItemSelectedCounter = 0
     m.activeOverviewKey = ""
     m.server = invalid
     m.token = invalid
@@ -880,8 +879,7 @@ function requestHeaderFocusFromFirstItem() as boolean
     currentIndex = getFocusedLibraryIndex()
     if currentIndex > 0 then return false
 
-    m.upFromFirstItemSelectedCounter = m.upFromFirstItemSelectedCounter + 1
-    m.top.upFromFirstItemSelected = m.upFromFirstItemSelectedCounter
+    m.top.upFromFirstItemSelected = true
     return true
 end function
 

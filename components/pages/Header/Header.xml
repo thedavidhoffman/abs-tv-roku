@@ -6,19 +6,19 @@
   <script type="text/brightscript" uri="pkg:/components/pages/Header/Header.brs" />
   <interface>
     <field id="menuOpen" type="boolean" />
-    <field id="closeMenuToken" type="integer" onChange="onCloseMenuTokenChanged" />
+    <field id="closeMenuRequested" type="boolean" alwaysNotify="true" onChange="onCloseMenuRequested" />
     <field id="username" type="string" onChange="onUsernameChanged" />
     <field id="libraries" type="array" onChange="onLibrariesChanged" />
     <field id="currentLibraryId" type="string" onChange="onCurrentLibraryIdChanged" />
-    <field id="homeSelected" type="integer" value="0" />
-    <field id="librarySelected" type="integer" value="0" />
-    <field id="seriesSelected" type="integer" value="0" />
-    <field id="searchSelected" type="integer" value="0" />
-    <field id="currentLibrarySelected" type="assocarray" />
-    <field id="downSelected" type="integer" value="0" />
-    <field id="backSelected" type="integer" value="0" />
-    <field id="logoutSelected" type="integer" value="0" />
-    <field id="overlayRequested" type="assocarray" />
+    <field id="homeSelected" type="boolean" alwaysNotify="true" />
+    <field id="librarySelected" type="boolean" alwaysNotify="true" />
+    <field id="seriesSelected" type="boolean" alwaysNotify="true" />
+    <field id="searchSelected" type="boolean" alwaysNotify="true" />
+    <field id="currentLibrarySelected" type="assocarray" alwaysNotify="true" />
+    <field id="downSelected" type="boolean" alwaysNotify="true" />
+    <field id="backSelected" type="boolean" alwaysNotify="true" />
+    <field id="logoutSelected" type="boolean" alwaysNotify="true" />
+    <field id="overlayRequested" type="assocarray" alwaysNotify="true" />
     <function name="focusHeader" />
     <function name="focusSettingsButton" />
     <function name="focusUserMenuButton" />

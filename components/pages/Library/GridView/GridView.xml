@@ -21,7 +21,7 @@
     <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
     <field id="playSelected" type="assocarray" />
     <field id="seriesSelected" type="assocarray" />
-    <field id="upFromFirstItemSelected" type="integer" />
+    <field id="upFromFirstItemSelected" type="boolean" alwaysNotify="true" />
     <field id="backFromFirstItemSelected" type="integer" />
     <field id="errorResponse" type="assocarray" />
     <field id="statusMessage" type="string" />

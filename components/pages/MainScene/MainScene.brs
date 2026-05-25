@@ -400,9 +400,7 @@ end sub
 sub headerCloseMenu()
     if m.header = invalid then return
 
-    if m.closeHeaderMenuToken = invalid then m.closeHeaderMenuToken = 0
-    m.closeHeaderMenuToken = m.closeHeaderMenuToken + 1
-    m.header.closeMenuToken = m.closeHeaderMenuToken
+    m.header.closeMenuRequested = true
 end sub
 
 '-------------------------------------------------------------------------------
