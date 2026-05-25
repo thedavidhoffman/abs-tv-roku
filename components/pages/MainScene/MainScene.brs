@@ -8,7 +8,7 @@ sub init()
     initHandlers()
     initSettings()
 
-    authPreloadSavedFields()
+    authSyncSavedSessionToLogin()
     authRequestResumeSession()
 
 end sub
@@ -37,7 +37,6 @@ end sub
 '-------------------------------------------------------------------------------
 sub initValues()
     m.session = invalid
-    m.loginActivationCounter = 0
     m.authResumeRequestCounter = 0
     m.authLogoutRequestCounter = 0
     m.seriesRowsRequestCounter = 0
@@ -56,6 +55,7 @@ sub initHandlers()
     m.authController.observeField("authenticatedSession", "authHandleAuthenticatedSession")
     m.authController.observeField("loginFailed", "authHandleLoginFailed")
     m.authController.observeField("loginRequired", "authHandleLoginRequired")
+    m.authController.observeField("savedSession", "authHandleSavedSessionChanged")
     m.authController.observeField("sessionExpired", "authHandleSessionExpired")
 
     m.header.observeField("backSelected", "headerHandleBackPressed")
@@ -137,28 +137,16 @@ end sub
 '===============================================================================
 
 '-------------------------------------------------------------------------------
-' authPreloadSavedFields
+' authSyncSavedSessionToLogin
 '-------------------------------------------------------------------------------
-sub authPreloadSavedFields()
-    if m.authController = invalid then return
-
-    savedSession = m.authController.savedSession
-    if savedSession = invalid then return
-
-    if savedSession.server <> invalid and savedSession.server <> "" then
-        m.login.serverValue = savedSession.server
-    end if
-    if savedSession.username <> invalid and savedSession.username <> "" then
-        m.login.usernameValue = savedSession.username
-    end if
+sub authSyncSavedSessionToLogin()
+    m.login.savedSession = m.authController.savedSession
 end sub
 
 '-------------------------------------------------------------------------------
 ' authRequestResumeSession
 '-------------------------------------------------------------------------------
 sub authRequestResumeSession()
-    if m.authController = invalid then return
-
     m.login.visible = false
     m.authenticatedContent.visible = false
     m.authResumeRequestCounter = m.authResumeRequestCounter + 1
@@ -169,10 +157,7 @@ end sub
 ' authHandleLoginRequested
 '-------------------------------------------------------------------------------
 sub authHandleLoginRequested()
-    request = m.login.loginRequested
-    if request = invalid then return
-
-    if m.authController <> invalid then m.authController.loginRequest = request
+    m.authController.loginRequest = m.login.loginRequested
 end sub
 
 '-------------------------------------------------------------------------------
@@ -183,8 +168,7 @@ sub authShowLogin(message as string)
     m.authenticatedContent.visible = false
     headerCloseMenu()
     m.login.statusMessage = message
-    m.loginActivationCounter = m.loginActivationCounter + 1
-    m.login.activationToken = m.loginActivationCounter
+    m.login.callFunc("activate")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -197,16 +181,16 @@ sub authStoreMediaProgress(mediaProgress as dynamic)
         m.mediaProgress = mediaProgress
     end if
 
-    if m.homePage <> invalid then m.homePage.mediaProgress = m.mediaProgress
-    if m.library <> invalid then m.library.mediaProgress = m.mediaProgress
-    if m.seriesPage <> invalid then m.seriesPage.mediaProgress = m.mediaProgress
+    m.homePage.mediaProgress = m.mediaProgress
+    m.library.mediaProgress = m.mediaProgress
+    m.seriesPage.mediaProgress = m.mediaProgress
 end sub
 
 '-------------------------------------------------------------------------------
 ' authHandleExpiredSession
 '-------------------------------------------------------------------------------
 sub authHandleExpiredSession(message as string)
-    if m.authController <> invalid then m.authController.callFunc("clearSavedSession")
+    m.authController.callFunc("clearSavedSession")
     if m.session <> invalid then m.session.token = ""
     m.login.passwordValue = ""
     authShowLogin(message)
@@ -277,6 +261,13 @@ sub authHandleLoginFailed()
     if response = invalid then return
 
     m.login.statusMessage = response.message
+end sub
+
+'-------------------------------------------------------------------------------
+' authHandleSavedSessionChanged
+'-------------------------------------------------------------------------------
+sub authHandleSavedSessionChanged()
+    authSyncSavedSessionToLogin()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1045,13 +1036,11 @@ end sub
 ' syncDisplaySettingsToComponents
 '-------------------------------------------------------------------------------
 sub syncDisplaySettingsToComponents()
-    if m.displaySettings = invalid then return
-
-    if m.homePage <> invalid then m.homePage.displaySettings = m.displaySettings
-    if m.library <> invalid then m.library.displaySettings = m.displaySettings
-    if m.libraryController <> invalid then m.libraryController.displaySettings = m.displaySettings
-    if m.seriesPage <> invalid then m.seriesPage.displaySettings = m.displaySettings
-    if m.player <> invalid then m.player.displaySettings = m.displaySettings
+    m.homePage.displaySettings = m.displaySettings
+    m.library.displaySettings = m.displaySettings
+    m.libraryController.displaySettings = m.displaySettings
+    m.seriesPage.displaySettings = m.displaySettings
+    m.player.displaySettings = m.displaySettings
 end sub
 
 '-------------------------------------------------------------------------------

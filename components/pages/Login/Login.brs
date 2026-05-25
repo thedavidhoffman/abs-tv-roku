@@ -16,6 +16,7 @@ sub init()
     ]
    
     m.activeKeyboardField = invalid
+    preloadSavedSession()
     syncFieldsFromState()
 end sub
 
@@ -41,6 +42,13 @@ sub onPasswordValueChanged()
 end sub
 
 '-------------------------------------------------------------------------------
+' onSavedSessionChanged
+'-------------------------------------------------------------------------------
+sub onSavedSessionChanged()
+    preloadSavedSession()
+end sub
+
+'-------------------------------------------------------------------------------
 ' onStatusMessageChanged
 '-------------------------------------------------------------------------------
 sub onStatusMessageChanged()
@@ -48,9 +56,9 @@ sub onStatusMessageChanged()
 end sub
 
 '-------------------------------------------------------------------------------
-' onActivationTokenChanged
+' activate
 '-------------------------------------------------------------------------------
-sub onActivationTokenChanged()
+sub activate()
     syncFieldsFromState()
     focusLoginField(0)
 end sub
@@ -75,6 +83,22 @@ sub onLoginPressed()
         username: username
         password: password
     }
+end sub
+
+'-------------------------------------------------------------------------------
+' preloadSavedSession
+'-------------------------------------------------------------------------------
+sub preloadSavedSession()
+    savedSession = m.top.savedSession
+    if savedSession = invalid then return
+
+    if savedSession.server <> invalid and savedSession.server <> "" then
+        m.top.serverValue = savedSession.server
+    end if
+
+    if savedSession.username <> invalid and savedSession.username <> "" then
+        m.top.usernameValue = savedSession.username
+    end if
 end sub
 
 '-------------------------------------------------------------------------------

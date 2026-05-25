@@ -7,9 +7,10 @@
     <field id="serverValue" type="string" onChange="onServerValueChanged" />
     <field id="usernameValue" type="string" onChange="onUsernameValueChanged" />
     <field id="passwordValue" type="string" onChange="onPasswordValueChanged" />
+    <field id="savedSession" type="assocarray" onChange="onSavedSessionChanged" />
     <field id="statusMessage" type="string" onChange="onStatusMessageChanged" />
-    <field id="activationToken" type="integer" onChange="onActivationTokenChanged" />
     <field id="loginRequested" type="assocarray" />
+    <function name="activate" />
   </interface>
   <children>
 
