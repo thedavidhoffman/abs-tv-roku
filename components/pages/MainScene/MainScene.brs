@@ -2,11 +2,40 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    initReferences()
-    initSettings()
-    initHandlers()
-    initStyle()
 
+    initReferences()
+    initValues()
+    initHandlers()
+    initSettings()
+
+    authPreloadSavedFields()
+    authRequestResumeSession()
+
+end sub
+
+'-------------------------------------------------------------------------------
+' initReferences
+'-------------------------------------------------------------------------------
+sub initReferences()
+    m.authenticatedContent = m.top.findNode("authenticatedContent")
+    m.authController = m.top.findNode("authController")
+    m.header = m.top.findNode("header")
+    m.homePage = m.top.findNode("homePage")
+    m.inProgressApiTask = m.top.findNode("inProgressApiTask")
+    m.library = m.top.findNode("library")
+    m.libraryController = m.top.findNode("libraryController")
+    m.login = m.top.findNode("login")
+    m.overlayHost = m.top.findNode("overlayHost")
+    m.player = m.top.findNode("player")
+    m.search = m.top.findNode("search")
+    m.seriesPage = m.top.findNode("seriesPage")
+    m.statusLabel = m.top.findNode("statusLabel")
+end sub
+
+'-------------------------------------------------------------------------------
+' initValues
+'-------------------------------------------------------------------------------
+sub initValues()
     m.session = invalid
     m.loginActivationCounter = 0
     m.authResumeRequestCounter = 0
@@ -17,9 +46,68 @@ sub init()
     m.focusSettingsAfterLibraryReload = false
     m.playerReturnTarget = ""
     m.playbackItemId = ""
+end sub
 
-    authPreloadSavedFields()
-    authRequestResumeSession()
+'-------------------------------------------------------------------------------
+' initHandlers
+'-------------------------------------------------------------------------------
+sub initHandlers()
+
+    m.authController.observeField("authenticatedSession", "authHandleAuthenticatedSession")
+    m.authController.observeField("loginFailed", "authHandleLoginFailed")
+    m.authController.observeField("loginRequired", "authHandleLoginRequired")
+    m.authController.observeField("sessionExpired", "authHandleSessionExpired")
+
+    m.header.observeField("backSelected", "headerHandleBackPressed")
+    m.header.observeField("currentLibrarySelected", "libraryHandleCurrentLibrarySelected")
+    m.header.observeField("downSelected", "headerHandleDownPressed")
+    m.header.observeField("homeSelected", "homeHandlePressed")
+    m.header.observeField("librarySelected", "libraryHandlePressed")
+    m.header.observeField("logoutSelected", "authHandleLogoutPressed")
+    m.header.observeField("overlayRequested", "overlayHandleRequested")
+    m.header.observeField("searchSelected", "searchHandlePressed")
+    m.header.observeField("seriesSelected", "seriesHandlePressed")
+
+    m.homePage.observeField("backSelected", "homeHandleBackSelected")
+    m.homePage.observeField("errorResponse", "homeHandleError")
+    m.homePage.observeField("playSelected", "homeHandlePlaySelected")
+    m.homePage.observeField("statusMessage", "homeHandleStatusMessageChanged")
+    m.homePage.observeField("upFromFirstRowSelected", "homeHandleUpFromFirstRowSelected")
+    
+    m.inProgressApiTask.observeField("response", "playbackHandleInProgressResponse")
+
+    m.library.observeField("backFromFirstItemSelected", "libraryHandleBackFromFirstItemSelected")
+    m.library.observeField("controllerSearchRequest", "libraryHandleSearchRequest")
+    m.library.observeField("errorResponse", "libraryHandleError")
+    m.library.observeField("itemsReloaded", "libraryHandleItemsReloaded")
+    m.library.observeField("mainListRestored", "libraryHandleMainListRestored")
+    m.library.observeField("playSelected", "libraryHandlePlaySelected")
+    m.library.observeField("seriesItemsRequest", "libraryHandleSeriesItemsRequest")
+    m.library.observeField("statusMessage", "libraryHandleStatusMessageChanged")
+    m.library.observeField("upFromFirstItemSelected", "libraryHandleUpFromFirstItemSelected")
+
+    m.libraryController.observeField("errorResponse", "libraryControllerHandleError")
+    m.libraryController.observeField("libraryItemsChanged", "libraryControllerHandleItemsChanged")
+    m.libraryController.observeField("loading", "libraryControllerHandleLoadingChanged")
+    m.libraryController.observeField("searchResponse", "libraryControllerHandleSearchResponse")
+    m.libraryController.observeField("seriesItemsResponse", "libraryControllerHandleSeriesItemsResponse")
+    m.libraryController.observeField("seriesRowsResponse", "libraryControllerHandleSeriesRowsResponse")
+
+    m.login.observeField("loginRequested", "authHandleLoginRequested")
+
+    m.overlayHost.observeField("closed", "overlayHandleClosed")
+
+    m.player.observeField("closeRequested", "playbackHandlePlayerCloseRequested")
+    m.player.observeField("errorResponse", "playbackHandlePlayerError")
+
+    m.search.observeField("querySelected", "searchHandleQuerySelected")
+
+    m.seriesPage.observeField("backSelected", "seriesHandleBackSelected")
+    m.seriesPage.observeField("errorResponse", "seriesHandleError")
+    m.seriesPage.observeField("playSelected", "seriesHandlePlaySelected")
+    m.seriesPage.observeField("statusMessage", "seriesHandleStatusMessageChanged")
+    m.seriesPage.observeField("upFromFirstRowSelected", "seriesHandleUpFromFirstRowSelected")
+    
 end sub
 
 '-------------------------------------------------------------------------------
@@ -31,94 +119,16 @@ sub initSettings()
 end sub
 
 '-------------------------------------------------------------------------------
-' initReferences
-'-------------------------------------------------------------------------------
-sub initReferences()
-    m.login = m.top.findNode("login")
-    m.authenticatedContent = m.top.findNode("authenticatedContent")
-    m.header = m.top.findNode("header")
-    m.homePage = m.top.findNode("homePage")
-    m.library = m.top.findNode("library")
-    m.seriesPage = m.top.findNode("seriesPage")
-    m.statusLabel = m.top.findNode("statusLabel")
-    m.search = m.top.findNode("search")
-    m.player = m.top.findNode("player")
-    m.overlayHost = m.top.findNode("overlayHost")
-    m.authController = m.top.findNode("authController")
-    m.libraryController = m.top.findNode("libraryController")
-    m.inProgressApiTask = m.top.findNode("inProgressApiTask")
-end sub
-
-'-------------------------------------------------------------------------------
-' initHandlers
-'-------------------------------------------------------------------------------
-sub initHandlers()
-    m.login.observeField("loginRequested", "authHandleLoginRequested")
-    m.header.observeField("homeSelected", "homeHandlePressed")
-    m.header.observeField("librarySelected", "libraryHandlePressed")
-    m.header.observeField("seriesSelected", "seriesHandlePressed")
-    m.header.observeField("searchSelected", "searchHandlePressed")
-    m.header.observeField("currentLibrarySelected", "libraryHandleCurrentLibrarySelected")
-    m.header.observeField("downSelected", "headerHandleDownPressed")
-    m.header.observeField("backSelected", "headerHandleBackPressed")
-    m.header.observeField("logoutSelected", "authHandleLogoutPressed")
-    m.header.observeField("overlayRequested", "overlayHandleRequested")
-    m.search.observeField("querySelected", "searchHandleQuerySelected")
-    m.homePage.observeField("backSelected", "homeHandleBackSelected")
-    m.homePage.observeField("upFromFirstRowSelected", "homeHandleUpFromFirstRowSelected")
-    m.homePage.observeField("playSelected", "homeHandlePlaySelected")
-    m.homePage.observeField("errorResponse", "homeHandleError")
-    m.homePage.observeField("statusMessage", "homeHandleStatusMessageChanged")
-    m.library.observeField("errorResponse", "libraryHandleError")
-    m.library.observeField("playSelected", "libraryHandlePlaySelected")
-    m.library.observeField("upFromFirstItemSelected", "libraryHandleUpFromFirstItemSelected")
-    m.library.observeField("backFromFirstItemSelected", "libraryHandleBackFromFirstItemSelected")
-    m.library.observeField("itemsReloaded", "libraryHandleItemsReloaded")
-    m.library.observeField("mainListRestored", "libraryHandleMainListRestored")
-    m.library.observeField("controllerSearchRequest", "libraryHandleSearchRequest")
-    m.library.observeField("seriesItemsRequest", "libraryHandleSeriesItemsRequest")
-    m.library.observeField("statusMessage", "libraryHandleStatusMessageChanged")
-    m.seriesPage.observeField("playSelected", "seriesHandlePlaySelected")
-    m.seriesPage.observeField("upFromFirstRowSelected", "seriesHandleUpFromFirstRowSelected")
-    m.seriesPage.observeField("backSelected", "seriesHandleBackSelected")
-    m.seriesPage.observeField("errorResponse", "seriesHandleError")
-    m.seriesPage.observeField("statusMessage", "seriesHandleStatusMessageChanged")
-    m.player.observeField("closeRequested", "playbackHandlePlayerCloseRequested")
-    m.player.observeField("errorResponse", "playbackHandlePlayerError")
-    m.overlayHost.observeField("closed", "overlayHandleClosed")
-    m.authController.observeField("authenticatedSession", "authHandleAuthenticatedSession")
-    m.authController.observeField("loginRequired", "authHandleLoginRequired")
-    m.authController.observeField("loginFailed", "authHandleLoginFailed")
-    m.authController.observeField("sessionExpired", "authHandleSessionExpired")
-    m.libraryController.observeField("libraryItemsChanged", "libraryControllerHandleItemsChanged")
-    m.libraryController.observeField("loading", "libraryControllerHandleLoadingChanged")
-    m.libraryController.observeField("searchResponse", "libraryControllerHandleSearchResponse")
-    m.libraryController.observeField("seriesItemsResponse", "libraryControllerHandleSeriesItemsResponse")
-    m.libraryController.observeField("seriesRowsResponse", "libraryControllerHandleSeriesRowsResponse")
-    m.libraryController.observeField("errorResponse", "libraryControllerHandleError")
-    if m.inProgressApiTask <> invalid then m.inProgressApiTask.observeField("response", "playbackHandleInProgressResponse")
-end sub
-
-'-------------------------------------------------------------------------------
-' initStyle
-'-------------------------------------------------------------------------------
-sub initStyle()
-    palette = Color()
-end sub
-
-'-------------------------------------------------------------------------------
 ' reloadHomeShelvesAfterPlayback
 '-------------------------------------------------------------------------------
 sub reloadHomeShelvesAfterPlayback()
-    if m.homePage <> invalid then m.homePage.callFunc("loadPersonalizedShelves")
+    m.homePage.callFunc("loadPersonalizedShelves")
 end sub
 
 '-------------------------------------------------------------------------------
 ' statusSetMessage
 '-------------------------------------------------------------------------------
 sub statusSetMessage(message as dynamic)
-    if m.statusLabel = invalid then return
-
     m.statusLabel.text = SafeString(message, "")
 end sub
 
@@ -293,30 +303,19 @@ sub navShowApp()
     headerCloseMenu()
 
     loadRequest = buildSessionLoadRequest()
-    
-    if m.header <> invalid then
-        m.header.visible = true
-        m.header.username = m.session.username
-        m.header.libraries = m.session.libraries
-        m.header.currentLibraryId = m.session.bookLibraryId
-    end if
-    
-    if m.homePage <> invalid then m.homePage.loadRequest = loadRequest
-    
-    if m.seriesPage <> invalid then
-        m.seriesPage.loadRequest = loadRequest
-    end if
+
+    m.header.visible = true
+    m.header.username = m.session.username
+    m.header.libraries = m.session.libraries
+    m.header.currentLibraryId = m.session.bookLibraryId
+
+    m.libraryController.loadRequest = loadRequest
+    m.homePage.loadRequest = loadRequest
+    m.library.loadRequest = loadRequest
+    m.seriesPage.loadRequest = loadRequest
     
     navShowHomePage()
     focusHomePage()
-    
-    if m.library <> invalid then
-        m.library.loadRequest = loadRequest
-    end if
-    
-    if m.libraryController <> invalid then
-        m.libraryController.loadRequest = loadRequest
-    end if
 
 end sub
 
@@ -324,26 +323,35 @@ end sub
 ' buildSessionLoadRequest
 '-------------------------------------------------------------------------------
 function buildSessionLoadRequest() as object
-    if m.session = invalid then return {}
+    
+    if m.session = invalid then THROW("[MainScene.buildSessionLoadRequest()] session is invalid.")
+    if m.session.server = invalid then THROW("[MainScene.buildSessionLoadRequest()] session.server is invalid.")
+    if m.session.token = invalid then THROW("[MainScene.buildSessionLoadRequest()] session.token is invalid.")
+    if m.session.bookLibraryId = invalid then THROW("[MainScene.buildSessionLoadRequest()] session.bookLibraryId is invalid.")
 
     return {
         server: m.session.server
         token: m.session.token
         bookLibraryId: m.session.bookLibraryId
     }
+
 end function
 
 '-------------------------------------------------------------------------------
 ' navShowHomePage
 '-------------------------------------------------------------------------------
 sub navShowHomePage()
-    if m.homePage <> invalid then m.homePage.visible = true
-    if m.seriesPage <> invalid then m.seriesPage.visible = false
-    if m.library <> invalid then
-        m.library.visible = false
-        m.library.callFunc("resetDrilldown")
-    end if
-    if m.homePage <> invalid then statusSetMessage(m.homePage.statusMessage)
+    
+    m.homePage.visible = true
+    m.seriesPage.visible = false
+    m.library.visible = false
+
+    ' this handles the scenario when the library is displaying grid view with
+    ' series collapsed, and the user drills down into a series
+    m.library.callFunc("resetDrilldown")
+
+    statusSetMessage(m.homePage.statusMessage)
+
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1046,6 +1054,7 @@ sub syncDisplaySettingsToComponents()
     if m.player <> invalid then m.player.displaySettings = m.displaySettings
 end sub
 
+'-------------------------------------------------------------------------------
 ' overlayOpenExitDialog
 '-------------------------------------------------------------------------------
 sub overlayOpenExitDialog()

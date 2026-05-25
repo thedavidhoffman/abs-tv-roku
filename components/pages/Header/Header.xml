@@ -10,14 +10,14 @@
     <field id="username" type="string" onChange="onUsernameChanged" />
     <field id="libraries" type="array" onChange="onLibrariesChanged" />
     <field id="currentLibraryId" type="string" onChange="onCurrentLibraryIdChanged" />
-    <field id="homeSelected" type="integer" />
-    <field id="librarySelected" type="integer" />
-    <field id="seriesSelected" type="integer" />
-    <field id="searchSelected" type="integer" />
+    <field id="homeSelected" type="integer" value="0" />
+    <field id="librarySelected" type="integer" value="0" />
+    <field id="seriesSelected" type="integer" value="0" />
+    <field id="searchSelected" type="integer" value="0" />
     <field id="currentLibrarySelected" type="assocarray" />
-    <field id="downSelected" type="integer" />
-    <field id="backSelected" type="integer" />
-    <field id="logoutSelected" type="integer" />
+    <field id="downSelected" type="integer" value="0" />
+    <field id="backSelected" type="integer" value="0" />
+    <field id="logoutSelected" type="integer" value="0" />
     <field id="overlayRequested" type="assocarray" />
     <function name="focusHeader" />
     <function name="focusSettingsButton" />

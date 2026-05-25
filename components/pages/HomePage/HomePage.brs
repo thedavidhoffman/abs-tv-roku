@@ -104,6 +104,11 @@ sub onLoadRequestChanged()
 
     m.loadRequest = m.top.loadRequest
 
+    if m.loadRequest = invalid then THROW("[HomePage.onLoadRequestChanged()] loadRequest is invalid.")
+    if m.loadRequest.server = invalid then THROW("[HomePage.onLoadRequestChanged()] loadRequest.server is invalid.")
+    if m.loadRequest.token = invalid then THROW("[HomePage.onLoadRequestChanged()] loadRequest.token is invalid.")
+    if m.loadRequest.bookLibraryId = invalid then THROW("[HomePage.onLoadRequestChanged()] loadRequest.bookLibraryId is invalid.")
+
     renderPersonalizedShelves()
     loadPersonalizedShelves()
 end sub
@@ -507,13 +512,18 @@ end function
 '-------------------------------------------------------------------------------
 function getSelectedItem() as dynamic
     if m.homeRowList = invalid then return invalid
+    return getShelfItemAtPosition(m.homeRowList.rowItemSelected)
+end function
+
+'-------------------------------------------------------------------------------
+' getShelfItemAtPosition
+'-------------------------------------------------------------------------------
+function getShelfItemAtPosition(position as dynamic) as dynamic
     if m.shelfState.itemsByRow = invalid then return invalid
+    if position = invalid or position.Count() < 2 then return invalid
 
-    selected = m.homeRowList.rowItemSelected
-    if selected = invalid or selected.Count() < 2 then return invalid
-
-    rowIndex = selected[0]
-    itemIndex = selected[1]
+    rowIndex = position[0]
+    itemIndex = position[1]
     if rowIndex = invalid or itemIndex = invalid then return invalid
     if rowIndex < 0 or rowIndex >= m.shelfState.itemsByRow.Count() then return invalid
 

@@ -3,16 +3,13 @@
 '-------------------------------------------------------------------------------
 sub init()
     initReferences()
+    rebuildFocusableHeaderButtons()
     initHandlers()
 
-    m.homeSelectedCounter = 0
-    m.librarySelectedCounter = 0
-    m.seriesSelectedCounter = 0
-    m.searchSelectedCounter = 0
+    ' these are internal state trackers that fire complex objects
+    ' to event emitters, so we need separate internal vs external
+    ' mechanisms for these
     m.currentLibrarySelectedCounter = 0
-    m.logoutSelectedCounter = 0
-    m.downSelectedCounter = 0
-    m.backSelectedCounter = 0
     m.overlayRequestedCounter = 0
     m.usernameUpPressCount = 0
 
@@ -42,16 +39,8 @@ sub initReferences()
     m.libraryMenuItems = m.top.findNode("libraryMenuItems")
     m.logoutButton = m.top.findNode("logoutButton")
     m.usernameUpSequenceTimer = m.top.findNode("usernameUpSequenceTimer")
+    m.focusableHeaderButtons = []
     m.libraryMenuButtons = []
-    m.headerButtons = [
-        m.currentLibraryButton    
-        m.homeButton
-        m.libraryButton
-        m.seriesButton
-        m.searchButton
-        m.settingsButton
-        m.userMenuButton
-    ]
 end sub
 
 '-------------------------------------------------------------------------------
@@ -66,7 +55,7 @@ sub initHandlers()
     m.currentLibraryButton.observeField("buttonSelected", "onCurrentLibraryPressed")
     m.userMenuButton.observeField("buttonSelected", "onUserMenuPressed")
     m.logoutButton.observeField("buttonSelected", "onLogoutPressed")
-    if m.usernameUpSequenceTimer <> invalid then m.usernameUpSequenceTimer.observeField("fire", "onUsernameUpSequenceTimerFired")
+    m.usernameUpSequenceTimer.observeField("fire", "onUsernameUpSequenceTimerFired")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -75,16 +64,15 @@ end sub
 sub initStyle()
     palette = Color()
     headerBgColor = palette.background.header
-    if m.headerBg <> invalid then m.headerBg.color = headerBgColor
-
-    if m.homeButton <> invalid then m.homeButton.headerBgColor = headerBgColor
-    if m.libraryButton <> invalid then m.libraryButton.headerBgColor = headerBgColor
-    if m.seriesButton <> invalid then m.seriesButton.headerBgColor = headerBgColor
-    if m.searchButton <> invalid then m.searchButton.headerBgColor = headerBgColor
-    if m.settingsButton <> invalid then m.settingsButton.headerBgColor = headerBgColor
-    if m.currentLibraryButton <> invalid then m.currentLibraryButton.headerBgColor = headerBgColor
-    if m.userMenuButton <> invalid then m.userMenuButton.headerBgColor = headerBgColor
-    if m.logoutButton <> invalid then m.logoutButton.headerBgColor = headerBgColor
+    m.headerBg.color = headerBgColor
+    m.homeButton.headerBgColor = headerBgColor
+    m.libraryButton.headerBgColor = headerBgColor
+    m.seriesButton.headerBgColor = headerBgColor
+    m.searchButton.headerBgColor = headerBgColor
+    m.settingsButton.headerBgColor = headerBgColor
+    m.currentLibraryButton.headerBgColor = headerBgColor
+    m.userMenuButton.headerBgColor = headerBgColor
+    m.logoutButton.headerBgColor = headerBgColor
 end sub
 
 '-------------------------------------------------------------------------------
@@ -93,7 +81,7 @@ end sub
 function focusHeader() as boolean
     closeMenu()
 
-    for each button in getFocusableHeaderButtons()
+    for each button in m.focusableHeaderButtons
         if button <> invalid then
             button.setFocus(true)
             return true
@@ -185,8 +173,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
         return focusHeaderButtonByOffset(1)
     else if key = "down" then
         closeMenu()
-        m.downSelectedCounter = m.downSelectedCounter + 1
-        m.top.downSelected = m.downSelectedCounter
+        m.top.downSelected = m.top.downSelected + 1
         return true
     else if key = "back" then
         if m.top.menuOpen = true then
@@ -195,8 +182,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
         end if
 
         closeMenu()
-        m.backSelectedCounter = m.backSelectedCounter + 1
-        m.top.backSelected = m.backSelectedCounter
+        m.top.backSelected = m.top.backSelected + 1
         return true
     end if
 
@@ -259,7 +245,7 @@ end sub
 ' focusHeaderButtonByOffset
 '-------------------------------------------------------------------------------
 function focusHeaderButtonByOffset(offset as integer) as boolean
-    headerButtons = getFocusableHeaderButtons()
+    headerButtons = m.focusableHeaderButtons
     if headerButtons = invalid or headerButtons.Count() = 0 then return false
 
     currentIndex = getFocusedHeaderButtonIndex()
@@ -286,27 +272,25 @@ function focusHeaderButtonByOffset(offset as integer) as boolean
 end function
 
 '-------------------------------------------------------------------------------
-' getFocusableHeaderButtons
+' rebuildFocusableHeaderButtons
 '-------------------------------------------------------------------------------
-function getFocusableHeaderButtons() as object
-    buttons = []
+sub rebuildFocusableHeaderButtons()
+    m.focusableHeaderButtons = []
 
-    if hasLibraryChoices() then buttons.Push(m.currentLibraryButton)
-    buttons.Push(m.homeButton)
-    buttons.Push(m.libraryButton)
-    buttons.Push(m.seriesButton)
-    buttons.Push(m.searchButton)
-    buttons.Push(m.settingsButton)
-    buttons.Push(m.userMenuButton)
-
-    return buttons
-end function
+    if hasLibraryChoices() then m.focusableHeaderButtons.Push(m.currentLibraryButton)
+    m.focusableHeaderButtons.Push(m.homeButton)
+    m.focusableHeaderButtons.Push(m.libraryButton)
+    m.focusableHeaderButtons.Push(m.seriesButton)
+    m.focusableHeaderButtons.Push(m.searchButton)
+    m.focusableHeaderButtons.Push(m.settingsButton)
+    m.focusableHeaderButtons.Push(m.userMenuButton)
+end sub
 
 '-------------------------------------------------------------------------------
 ' getFocusedHeaderButtonIndex
 '-------------------------------------------------------------------------------
 function getFocusedHeaderButtonIndex() as integer
-    headerButtons = getFocusableHeaderButtons()
+    headerButtons = m.focusableHeaderButtons
     if headerButtons = invalid then return -1
 
     for i = 0 to headerButtons.Count() - 1
@@ -367,6 +351,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onLibrariesChanged()
     updateCurrentLibraryButton()
+    rebuildFocusableHeaderButtons()
     updateNavGroupPosition()
     rebuildLibraryMenu()
 end sub
@@ -385,8 +370,7 @@ end sub
 sub onHomePressed()
     closeMenu()
     setActiveHeaderButton("home")
-    m.homeSelectedCounter = m.homeSelectedCounter + 1
-    m.top.homeSelected = m.homeSelectedCounter
+    m.top.homeSelected = m.top.homeSelected + 1
 end sub
 
 '-------------------------------------------------------------------------------
@@ -395,8 +379,7 @@ end sub
 sub onLibraryPressed()
     closeMenu()
     setActiveHeaderButton("library")
-    m.librarySelectedCounter = m.librarySelectedCounter + 1
-    m.top.librarySelected = m.librarySelectedCounter
+    m.top.librarySelected = m.top.librarySelected + 1
 end sub
 
 '-------------------------------------------------------------------------------
@@ -405,8 +388,7 @@ end sub
 sub onSeriesPressed()
     closeMenu()
     setActiveHeaderButton("series")
-    m.seriesSelectedCounter = m.seriesSelectedCounter + 1
-    m.top.seriesSelected = m.seriesSelectedCounter
+    m.top.seriesSelected = m.top.seriesSelected + 1
 end sub
 
 '-------------------------------------------------------------------------------
@@ -414,8 +396,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onSearchPressed()
     closeMenu()
-    m.searchSelectedCounter = m.searchSelectedCounter + 1
-    m.top.searchSelected = m.searchSelectedCounter
+    m.top.searchSelected = m.top.searchSelected + 1
 end sub
 
 '-------------------------------------------------------------------------------
@@ -445,11 +426,11 @@ end sub
 ' setActiveHeaderButton
 '-------------------------------------------------------------------------------
 sub setActiveHeaderButton(activeButtonName as string)
-    if m.homeButton <> invalid then m.homeButton.isActive = (activeButtonName = "home")
-    if m.libraryButton <> invalid then m.libraryButton.isActive = (activeButtonName = "library")
-    if m.seriesButton <> invalid then m.seriesButton.isActive = (activeButtonName = "series")
-    if m.searchButton <> invalid then m.searchButton.isActive = (activeButtonName = "search")
-    if m.settingsButton <> invalid then m.settingsButton.isActive = false
+    m.homeButton.isActive = (activeButtonName = "home")
+    m.libraryButton.isActive = (activeButtonName = "library")
+    m.seriesButton.isActive = (activeButtonName = "series")
+    m.searchButton.isActive = (activeButtonName = "search")
+    m.settingsButton.isActive = false
 end sub
 
 '-------------------------------------------------------------------------------
@@ -466,22 +447,26 @@ end sub
 '-------------------------------------------------------------------------------
 sub onLogoutPressed()
     closeMenu()
-    m.logoutSelectedCounter = m.logoutSelectedCounter + 1
-    m.top.logoutSelected = m.logoutSelectedCounter
+    m.top.logoutSelected = m.top.logoutSelected + 1
 end sub
 
+'-------------------------------------------------------------------------------
 ' closeMenu
 '-------------------------------------------------------------------------------
 sub closeMenu()
+
     wasLibraryMenuOpen = isLibraryMenuOpen()
     wasUserMenuOpen = m.top.menuOpen and wasLibraryMenuOpen = false
+    
     setMenuOpen(false)
     setLibraryMenuOpen(false)
+    
     if wasUserMenuOpen then
         m.userMenuButton.setFocus(true)
     else if wasLibraryMenuOpen then
         m.currentLibraryButton.setFocus(true)
     end if
+
 end sub
 
 '-------------------------------------------------------------------------------
@@ -548,13 +533,16 @@ end sub
 ' updateNavGroupPosition
 '-------------------------------------------------------------------------------
 sub updateNavGroupPosition()
-    if m.navGroup = invalid then return
 
+    ' x,y translations for the navGroup based on whether we have multiple
+    ' libraries (in which case the library button is displayed) or there
+    ' is only one library (in which case the library button is not displayed)
     if hasLibraryChoices() then
         m.navGroup.translation = [632, 22]
     else
         m.navGroup.translation = [526, 22]
     end if
+
 end sub
 
 '-------------------------------------------------------------------------------
