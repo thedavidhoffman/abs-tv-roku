@@ -12,8 +12,8 @@
     <field id="isPlaying" type="boolean" onChange="onIsPlayingChanged" />
     <field id="showChapters" type="boolean" onChange="onShowChaptersChanged" />
     <field id="focusedIndex" type="integer" onChange="onFocusedIndexChanged" />
-    <field id="selectedAction" type="assocarray" alwaysNotify="true" />
-    <field id="focusUpRequested" type="assocarray" alwaysNotify="true" />
+    <field id="selectedAction" type="string" alwaysNotify="true" />
+    <field id="focusUpRequested" type="boolean" alwaysNotify="true" />
     <field id="scrubEvent" type="assocarray" alwaysNotify="true" />
     <function name="handleKey" />
     <function name="focusProgressBar" />

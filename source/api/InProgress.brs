@@ -30,7 +30,6 @@ function InProgress_Load(request as object) as object
         status: result.status
         libraryItems: libraryItems
         mediaProgress: mediaProgress
-        requestCounter: request.counter
         sourceItemId: request.sourceItemId
     }
 end function

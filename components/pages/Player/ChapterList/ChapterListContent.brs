@@ -217,9 +217,7 @@ sub selectChapter(index as dynamic)
     if tracks = invalid then return
     if index < 0 or index >= tracks.Count() then return
 
-    m.top.selectedChapter = {
-        index: index
-    }
+    m.top.selectedChapter = index.ToStr()
 end sub
 
 '-------------------------------------------------------------------------------

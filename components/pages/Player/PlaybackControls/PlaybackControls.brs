@@ -278,18 +278,14 @@ sub selectFocusedButton()
     action = getActionForIndex(m.top.focusedIndex)
     if action = "" then return
 
-    m.top.selectedAction = {
-        action: action
-    }
+    m.top.selectedAction = action
 end sub
 
 '-------------------------------------------------------------------------------
 ' requestFocusUp
 '-------------------------------------------------------------------------------
 sub requestFocusUp()
-    m.top.focusUpRequested = {
-        focusedIndex: m.top.focusedIndex
-    }
+    m.top.focusUpRequested = true
 end sub
 
 '-------------------------------------------------------------------------------

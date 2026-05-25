@@ -9,9 +9,9 @@
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
-    <field id="searchRequest" type="assocarray" onChange="onSearchRequestChanged" />
-    <field id="searchResponse" type="assocarray" onChange="onSearchResponseChanged" />
-    <field id="seriesItemsResponse" type="assocarray" onChange="onSeriesItemsResponseChanged" />
+    <field id="searchRequest" type="assocarray" alwaysNotify="true" onChange="onSearchRequestChanged" />
+    <field id="searchResponse" type="assocarray" alwaysNotify="true" onChange="onSearchResponseChanged" />
+    <field id="seriesItemsResponse" type="assocarray" alwaysNotify="true" onChange="onSeriesItemsResponseChanged" />
     <field id="allLibraryItems" type="array" onChange="onAllLibraryItemsChanged" />
     <field id="rootLibraryItems" type="array" onChange="onRootLibraryItemsChanged" />
     <field id="libraryItems" type="array" onChange="onLibraryItemsChanged" />
@@ -22,8 +22,8 @@
     <field id="upFromFirstItemSelected" type="boolean" alwaysNotify="true" />
     <field id="backFromFirstItemSelected" type="boolean" alwaysNotify="true" />
     <field id="mainListRestored" type="boolean" alwaysNotify="true" />
-    <field id="controllerSearchRequest" type="assocarray" />
-    <field id="seriesItemsRequest" type="assocarray" />
+    <field id="controllerSearchRequest" type="assocarray" alwaysNotify="true" />
+    <field id="seriesItemsRequest" type="assocarray" alwaysNotify="true" />
     <field id="errorResponse" type="assocarray" />
     <field id="itemsReloaded" type="boolean" alwaysNotify="true" />
     <field id="statusMessage" type="string" />

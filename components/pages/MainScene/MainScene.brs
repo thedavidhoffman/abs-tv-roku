@@ -37,8 +37,6 @@ end sub
 '-------------------------------------------------------------------------------
 sub initValues()
     m.session = invalid
-    m.seriesRowsRequestCounter = 0
-    m.inProgressRequestCounter = 0
     m.mediaProgress = []
     m.focusSettingsAfterLibraryReload = false
     m.playerReturnTarget = ""
@@ -731,12 +729,7 @@ end sub
 sub requestSeriesRows()
     if m.libraryController = invalid then return
 
-    if m.seriesRowsRequestCounter = invalid then m.seriesRowsRequestCounter = 0
-    m.seriesRowsRequestCounter = m.seriesRowsRequestCounter + 1
-    m.libraryController.seriesRowsRequest = {
-        action: "loadSeriesRows"
-        counter: m.seriesRowsRequestCounter
-    }
+    m.libraryController.seriesRowsRequest = "loadSeriesRows"
 end sub
 
 '-------------------------------------------------------------------------------
@@ -840,13 +833,12 @@ sub playbackRefreshMediaProgress()
     if m.session = invalid then return
     if m.session.server = invalid or m.session.server = "" then return
     if m.session.token = invalid or m.session.token = "" then return
+    if m.playbackItemId = invalid or m.playbackItemId = "" then return
 
-    m.inProgressRequestCounter = m.inProgressRequestCounter + 1
     m.inProgressApiTask.request = {
         action: "loadInProgress"
         server: m.session.server
         token: m.session.token
-        counter: m.inProgressRequestCounter
         sourceItemId: m.playbackItemId
     }
     m.inProgressApiTask.control = "run"
@@ -858,7 +850,7 @@ end sub
 sub playbackHandleInProgressResponse()
     response = m.inProgressApiTask.response
     if response = invalid then return
-    if response.requestCounter <> invalid and response.requestCounter <> m.inProgressRequestCounter then return
+    if SafeString(response.sourceItemId, "") <> SafeString(m.playbackItemId, "") then return
 
     log = CreateLogger("MainScene playback progress refresh")
 

@@ -10,9 +10,9 @@
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />
-    <field id="searchRequest" type="assocarray" onChange="onSearchRequestChanged" />
-    <field id="seriesRowsRequest" type="assocarray" onChange="onSeriesRowsRequestChanged" />
-    <field id="seriesItemsRequest" type="assocarray" onChange="onSeriesItemsRequestChanged" />
+    <field id="searchRequest" type="assocarray" alwaysNotify="true" onChange="onSearchRequestChanged" />
+    <field id="seriesRowsRequest" type="string" alwaysNotify="true" onChange="onSeriesRowsRequestChanged" />
+    <field id="seriesItemsRequest" type="assocarray" alwaysNotify="true" onChange="onSeriesItemsRequestChanged" />
     <field id="allLibraryItems" type="array" />
     <field id="libraryItems" type="array" />
     <field id="libraryItemsChanged" type="boolean" alwaysNotify="true" />

@@ -47,11 +47,7 @@ sub initValues()
     m.navigationState = {
         gridContextTitle: ""
         gridContextType: "root"
-    }
-    m.eventCounters = {
-        searchRequest: 0
-        activeSearchRequest: 0
-        seriesItemsRequest: 0
+        activeSearchTerm: ""
     }
     m.appliedSettings = {
         itemDisplay: invalid
@@ -90,13 +86,11 @@ sub onSearchRequestChanged()
     if request = invalid then return
 
     searchTerm = getText(request.searchTerm)
-    m.eventCounters.searchRequest = m.eventCounters.searchRequest + 1
-    m.eventCounters.activeSearchRequest = m.eventCounters.searchRequest
+    m.navigationState.activeSearchTerm = searchTerm
 
     navRequest = {
         action: "searchLibrary"
         searchTerm: searchTerm
-        searchRequestCounter: m.eventCounters.activeSearchRequest
     }
     m.top.controllerSearchRequest = navRequest
 end sub
@@ -231,8 +225,7 @@ end sub
 ' storeSearchResults
 '-------------------------------------------------------------------------------
 sub storeSearchResults(response as object)
-    if response.searchRequestCounter = invalid then return
-    if response.searchRequestCounter <> m.eventCounters.activeSearchRequest then return
+    if getText(response.searchTerm) <> m.navigationState.activeSearchTerm then return
 
     m.libraryState.itemBackStack = []
     m.libraryState.searchResults = getResponseLibraryItems(response)
@@ -491,8 +484,6 @@ end sub
 sub requestSeriesItems(request as object)
     if request = invalid then return
 
-    m.eventCounters.seriesItemsRequest = m.eventCounters.seriesItemsRequest + 1
-    request.counter = m.eventCounters.seriesItemsRequest
     m.top.seriesItemsRequest = request
 end sub
 
@@ -668,12 +659,12 @@ end sub
 ' resetNavigationState
 '-------------------------------------------------------------------------------
 sub resetNavigationState()
-    m.eventCounters.activeSearchRequest = m.eventCounters.activeSearchRequest + 1
     m.libraryState.itemBackStack = []
     m.libraryState.searchResults = []
     m.top.searchResults = m.libraryState.searchResults
     m.navigationState.gridContextTitle = ""
     m.navigationState.gridContextType = "root"
+    m.navigationState.activeSearchTerm = ""
     syncGridContext()
     m.top.libraryItems = []
 end sub

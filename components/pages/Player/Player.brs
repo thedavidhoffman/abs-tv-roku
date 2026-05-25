@@ -1599,9 +1599,9 @@ sub onPlaybackActionSelected()
 
     if m.playbackControls = invalid then return
     selection = m.playbackControls.selectedAction
-    if selection = invalid or selection.action = invalid then return
+    if selection = invalid or selection = "" then return
 
-    activatePlaybackControlAction(selection.action)
+    activatePlaybackControlAction(selection)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -1955,9 +1955,9 @@ sub onChapterSelected()
     if m.dialogRefs.chapterList = invalid then return
 
     selection = m.dialogRefs.chapterList.selectedChapter
-    if selection = invalid or selection.index = invalid then return
+    if selection = invalid or selection = "" then return
 
-    index = selection.index
+    index = Val(selection)
     if m.playbackContent.chapterItems = invalid then return
     if index < 0 or index >= m.playbackContent.chapterItems.Count() then return
 

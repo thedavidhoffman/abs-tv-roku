@@ -49,7 +49,6 @@ sub publishSearchResponse(request as object)
         ok: true
         action: "searchLibrary"
         searchTerm: searchTerm
-        searchRequestCounter: request.searchRequestCounter
         requestGeneration: m.requestGeneration
         libraryItems: getSearchItemsFromCache(searchTerm)
     }
@@ -60,7 +59,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onSeriesRowsRequestChanged()
     request = m.top.seriesRowsRequest
-    if request = invalid then return
+    if request <> "loadSeriesRows" then return
 
     if hasAllLibraryCaches() = false then
         m.pendingSeriesRowsRequest = request
@@ -73,14 +72,13 @@ end sub
 '-------------------------------------------------------------------------------
 ' publishSeriesRowsResponse
 '-------------------------------------------------------------------------------
-sub publishSeriesRowsResponse(request as object)
-    if request = invalid then return
-
+sub publishSeriesRowsResponse(request as string)
+    if request <> "loadSeriesRows" then return
+    
     m.top.seriesRowsResponse = {
         ok: true
         action: "loadSeriesRows"
         requestGeneration: m.requestGeneration
-        requestCounter: request.counter
         seriesRows: getSeriesRowsFromCache()
     }
 end sub

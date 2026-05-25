@@ -6,7 +6,7 @@
   <interface>
     <field id="tracks" type="array" onChange="onTracksChanged" />
     <field id="currentTrackIndex" type="integer" onChange="onCurrentTrackIndexChanged" />
-    <field id="selectedChapter" type="assocarray" alwaysNotify="true" />
+    <field id="selectedChapter" type="string" alwaysNotify="true" />
     <function name="focusCurrentChapter" />
   </interface>
   <children>
