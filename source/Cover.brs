@@ -8,17 +8,17 @@ function Cover_BuildUrl(server as dynamic, token as dynamic, itemId as dynamic, 
     placeholder = "pkg:/images/placeholder-cover.png"
 
     if server = invalid then
-        log.write("server invalid, returning placeholder")
+        log.error("server invalid, returning placeholder")
         return placeholder
     end if
 
     if token = invalid then
-        log.write("token invalid, returning placeholder")
+        log.error("token invalid, returning placeholder")
         return placeholder
     end if
 
     if itemId = invalid then
-        log.write("itemId invalid, returning placeholder")
+        log.error("itemId invalid, returning placeholder")
         return placeholder
     end if
 
