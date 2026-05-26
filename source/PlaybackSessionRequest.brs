@@ -1,7 +1,7 @@
 '-------------------------------------------------------------------------------
 ' PlaybackSessionRequest_Build
 '-------------------------------------------------------------------------------
-function PlaybackSessionRequest_Build(action as string, playbackContext as dynamic, currentTime as integer, timeListened as integer, durationSeconds as integer, hasSyncedProgress as boolean, syncIntervalSeconds as integer, closeProgressSaveThresholdSeconds as integer) as dynamic
+function PlaybackSessionRequest_Build(action as string, playbackContext as dynamic, currentTime as integer, timeListened as integer, durationSeconds as integer, hasSyncedProgress as boolean, syncIntervalSeconds as integer, firstSyncThresholdSeconds as integer) as dynamic
     if playbackContext = invalid then return invalid
     if playbackContext.sessionId = invalid or playbackContext.sessionId = "" then return invalid
     if playbackContext.server = invalid or playbackContext.server = "" then return invalid
@@ -14,7 +14,7 @@ function PlaybackSessionRequest_Build(action as string, playbackContext as dynam
         sessionId: playbackContext.sessionId
     }
 
-    if PlaybackSessionRequest_ShouldSendProgress(action, timeListened, hasSyncedProgress, syncIntervalSeconds, closeProgressSaveThresholdSeconds) then
+    if PlaybackSessionRequest_ShouldSendProgress(action, timeListened, hasSyncedProgress, syncIntervalSeconds, firstSyncThresholdSeconds) then
         request.currentTime = currentTime
         request.timeListened = timeListened
         request.duration = durationSeconds
@@ -26,8 +26,8 @@ end function
 '-------------------------------------------------------------------------------
 ' PlaybackSessionRequest_ShouldSendProgress
 '-------------------------------------------------------------------------------
-function PlaybackSessionRequest_ShouldSendProgress(action as string, timeListened as integer, hasSyncedProgress as boolean, syncIntervalSeconds as integer, closeProgressSaveThresholdSeconds as integer) as boolean
+function PlaybackSessionRequest_ShouldSendProgress(action as string, timeListened as integer, hasSyncedProgress as boolean, syncIntervalSeconds as integer, firstSyncThresholdSeconds as integer) as boolean
     if action <> "closePlaybackSession" then return true
     if hasSyncedProgress then return timeListened >= syncIntervalSeconds
-    return timeListened >= closeProgressSaveThresholdSeconds
+    return timeListened >= firstSyncThresholdSeconds
 end function

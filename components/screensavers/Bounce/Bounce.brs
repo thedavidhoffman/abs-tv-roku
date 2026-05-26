@@ -1,24 +1,4 @@
-' This screensaver updates poster.translation from a repeating timer instead of
-' using Vector2DFieldInterpolator. The bounce is stateful: each frame clamps the
-' poster inside the screen bounds, flips velocity at edges, and continues from
-' the corrected position. A manual loop keeps that boundary logic explicit and
-' avoids coordinating separate animation legs and timers.
-
-' Vector2DFieldInterpolator is nice when you want SceneGraph to animate from A to B
-' over a known duration. But the bounce behavior is stateful: each frame needs to
-' check bounds, clamp position, flip velocity, and continue. A timer-driven manual 
-' position update is a reasonable fit, and it’s also easier to debug.
-
-' Tradeoff: the interpolator can be a bit smoother/cheaper for simple one-shot
-' animations, but this cover is a single poster moving at ~30 FPS, so manually
-' setting poster.translation is not a problem. For this screensaver, I’d actually
-'  prefer the manual loop because it removes the awkward "calculate next wall hit, 
-' animate there, wait for timer, restart" coordination that likely caused the 
-' corner-stuck behavior we saw that caused us to rewrite this away from using the
-' Vector2DFieldInterpolator
-
-
-' This implementation is based on:
+' this implementation is based on...
 ' https://prgreen.github.io/blog/2013/09/30/the-bouncing-dvd-logo-explained/
 
 '-------------------------------------------------------------------------------
@@ -27,7 +7,9 @@
 sub init()
     m.log = CreateLogger("Bounce", false)
     m.poster = m.top.findNode("poster")
-    m.bounceTimer = m.top.findNode("bounceTimer")
+    m.bounceAnimation = m.top.findNode("bounceAnimation")
+    m.bounceInterpolator = m.top.findNode("bounceInterpolator")
+    m.bounceLegTimer = m.top.findNode("bounceLegTimer")
 
     initValues()
     initHandlers()
@@ -43,10 +25,8 @@ sub initValues()
     m.screenHeight = 1080
     m.posterSize = 500
     m.bounceSpeedPixelsPerSecond = 130
-    m.frameSeconds = 0.033
     m.pi = 3.14159265
-    m.positionX = 0.0
-    m.positionY = 0.0
+    m.currentBounceEndPosition = invalid
     m.velocityX = 1.0
     m.velocityY = 1.0
 end sub
@@ -55,7 +35,7 @@ end sub
 ' initHandlers
 '-------------------------------------------------------------------------------
 sub initHandlers()
-    if m.bounceTimer <> invalid then m.bounceTimer.observeField("fire", "onBounceTimerFired")
+    if m.bounceLegTimer <> invalid then m.bounceLegTimer.observeField("fire", "onBounceLegTimerFired")
 end sub
 
 ' updatePoster
@@ -79,72 +59,116 @@ end sub
 ' startBounceFromCenter
 '-------------------------------------------------------------------------------
 sub startBounceFromCenter()
-    m.positionX = (m.screenWidth - m.posterSize) / 2
-    m.positionY = (m.screenHeight - m.posterSize) / 2
-    updatePosterPosition()
+    startPosition = [
+        int((m.screenWidth - m.posterSize) / 2)
+        int((m.screenHeight - m.posterSize) / 2)
+    ]
+    if m.poster <> invalid then m.poster.translation = startPosition
 
     angle = getRandomDiagonalAngle()
     m.velocityX = Cos(angle)
     m.velocityY = Sin(angle)
-    startBounceTimer()
+    startBounceLeg(startPosition)
 end sub
 
 '-------------------------------------------------------------------------------
-' startBounceTimer
+' onBounceLegTimerFired
 '-------------------------------------------------------------------------------
-sub startBounceTimer()
-    if m.bounceTimer = invalid then return
-
-    m.bounceTimer.control = "stop"
-    m.bounceTimer.control = "start"
-end sub
-
-'-------------------------------------------------------------------------------
-' onBounceTimerFired
-'-------------------------------------------------------------------------------
-sub onBounceTimerFired()
-    stepPixels = m.bounceSpeedPixelsPerSecond * m.frameSeconds
-    m.positionX = m.positionX + (m.velocityX * stepPixels)
-    m.positionY = m.positionY + (m.velocityY * stepPixels)
-
-    updateVelocityForBoundaryHit()
-    updatePosterPosition()
-end sub
-
-'-------------------------------------------------------------------------------
-' updatePosterPosition
-'-------------------------------------------------------------------------------
-sub updatePosterPosition()
+sub onBounceLegTimerFired()
     if m.poster = invalid then return
 
-    m.poster.translation = [
-        int(m.positionX)
-        int(m.positionY)
-    ]
+    currentPosition = m.currentBounceEndPosition
+    if currentPosition = invalid then return
+    m.poster.translation = currentPosition
+
+    updateVelocityForBoundaryHit(currentPosition)
+    startBounceLeg(currentPosition)
 end sub
+
+'-------------------------------------------------------------------------------
+' startBounceLeg
+'-------------------------------------------------------------------------------
+sub startBounceLeg(startPosition as object)
+    if m.bounceAnimation = invalid or m.bounceInterpolator = invalid then return
+
+    endPosition = getBoundaryPosition(startPosition)
+    duration = getLegDuration(startPosition, endPosition)
+    if duration < 0.1 then duration = 0.1
+    m.currentBounceEndPosition = endPosition
+
+    m.bounceAnimation.control = "stop"
+    m.bounceAnimation.duration = duration
+    m.bounceInterpolator.key = [0.0, 1.0]
+    m.bounceInterpolator.keyValue = [
+        [startPosition[0], startPosition[1]]
+        [endPosition[0], endPosition[1]]
+    ]
+    m.bounceAnimation.control = "start"
+
+    if m.bounceLegTimer <> invalid then
+        m.bounceLegTimer.control = "stop"
+        m.bounceLegTimer.duration = duration
+        m.bounceLegTimer.control = "start"
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' getBoundaryPosition
+'-------------------------------------------------------------------------------
+function getBoundaryPosition(startPosition as object) as object
+    maxX = m.screenWidth - m.posterSize
+    maxY = m.screenHeight - m.posterSize
+    startX = startPosition[0]
+    startY = startPosition[1]
+    timeToHitX = 100000.0
+    timeToHitY = 100000.0
+
+    if m.velocityX > 0 then
+        timeToHitX = (maxX - startX) / m.velocityX
+    else if m.velocityX < 0 then
+        timeToHitX = (0 - startX) / m.velocityX
+    end if
+
+    if m.velocityY > 0 then
+        timeToHitY = (maxY - startY) / m.velocityY
+    else if m.velocityY < 0 then
+        timeToHitY = (0 - startY) / m.velocityY
+    end if
+
+    travelTime = timeToHitX
+    if timeToHitY < travelTime then travelTime = timeToHitY
+    if travelTime < 0 then travelTime = 0
+
+    endX = startX + (m.velocityX * travelTime)
+    endY = startY + (m.velocityY * travelTime)
+
+    return [
+        clampInt(endX, 0, maxX)
+        clampInt(endY, 0, maxY)
+    ]
+end function
+
+'-------------------------------------------------------------------------------
+' getLegDuration
+'-------------------------------------------------------------------------------
+function getLegDuration(startPosition as object, endPosition as object) as float
+    deltaX = endPosition[0] - startPosition[0]
+    deltaY = endPosition[1] - startPosition[1]
+    distance = Sqr((deltaX * deltaX) + (deltaY * deltaY))
+
+    if m.bounceSpeedPixelsPerSecond < 1 then return 1.0
+    return distance / m.bounceSpeedPixelsPerSecond
+end function
 
 '-------------------------------------------------------------------------------
 ' updateVelocityForBoundaryHit
 '-------------------------------------------------------------------------------
-sub updateVelocityForBoundaryHit()
+sub updateVelocityForBoundaryHit(position as object)
     maxX = m.screenWidth - m.posterSize
     maxY = m.screenHeight - m.posterSize
 
-    if m.positionX <= 0 then
-        m.positionX = 0
-        if m.velocityX < 0 then m.velocityX = -m.velocityX
-    else if m.positionX >= maxX then
-        m.positionX = maxX
-        if m.velocityX > 0 then m.velocityX = -m.velocityX
-    end if
-
-    if m.positionY <= 0 then
-        m.positionY = 0
-        if m.velocityY < 0 then m.velocityY = -m.velocityY
-    else if m.positionY >= maxY then
-        m.positionY = maxY
-        if m.velocityY > 0 then m.velocityY = -m.velocityY
-    end if
+    if position[0] <= 0 or position[0] >= maxX then m.velocityX = -m.velocityX
+    if position[1] <= 0 or position[1] >= maxY then m.velocityY = -m.velocityY
 end sub
 
 '-------------------------------------------------------------------------------
@@ -159,4 +183,15 @@ function getRandomDiagonalAngle() as float
     if quadrant = 3 then return (5 * m.pi / 4) + angleOffset
 
     return (7 * m.pi / 4) + angleOffset
+end function
+
+'-------------------------------------------------------------------------------
+' clampInt
+'-------------------------------------------------------------------------------
+function clampInt(value as dynamic, minValue as integer, maxValue as integer) as integer
+    clampedValue = int(value)
+    if clampedValue < minValue then return minValue
+    if clampedValue > maxValue then return maxValue
+
+    return clampedValue
 end function

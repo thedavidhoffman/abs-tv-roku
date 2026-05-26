@@ -19,6 +19,9 @@
       height="500"
       uri="pkg:/images/placeholder-cover.png"
       loadDisplayMode="scaleToFit" />
-    <Timer id="bounceTimer" duration="0.033" repeat="true" />
+    <Animation id="bounceAnimation" easeFunction="linear">
+      <Vector2DFieldInterpolator id="bounceInterpolator" fieldToInterp="poster.translation" />
+    </Animation>
+    <Timer id="bounceLegTimer" repeat="false" />
   </children>
 </component>

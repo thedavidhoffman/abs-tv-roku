@@ -4,6 +4,7 @@
   <script type="text/brightscript" uri="pkg:/source/String.brs" />
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/Cover.brs" />
+  <script type="text/brightscript" uri="pkg:/source/ItemMetadataParser.brs" />
   <script type="text/brightscript" uri="pkg:/source/ProgressData.brs" />
   <script type="text/brightscript" uri="pkg:/source/LibraryItemLookup.brs" />
   <script type="text/brightscript" uri="pkg:/source/SeriesProgress.brs" />
