@@ -32,16 +32,20 @@ end function
 '-------------------------------------------------------------------------------
 sub startDelay()
 
-    m.log.write("startDelay")
-
-    stopDelayTimer()
-
     settings = getDisplaySettings()
     m.screensaverType = getScreensaverType(settings)
 
-    ' if the screensaver is already running, then return out
+    ' if no screensaver is configured, return out
     m.screensaverEnabled = (m.screensaverType <> "off")
-    if m.screensaverEnabled <> true then return
+
+    if m.screensaverEnabled <> true then 
+        m.log.write("no screen saver configured")
+        return
+    end if
+
+    m.log.write("startDelay")
+
+    stopDelayTimer()
 
     ' start the timer
     m.screensaverDelayTimer.duration = getScreensaverDelaySeconds(settings)
@@ -90,7 +94,7 @@ end function
 ' stopDelayTimer
 '-------------------------------------------------------------------------------
 sub stopDelayTimer()
-    if m.screensaverDelayTimer <> invalid then m.screensaverDelayTimer.control = "stop"
+    m.screensaverDelayTimer.control = "stop"
 end sub
 
 '-------------------------------------------------------------------------------
