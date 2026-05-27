@@ -35,10 +35,10 @@
     <AudioBadges id="audioBadges" translation="[120,704]" />
 
     <!-- metadata -->
-    <Metadata id="metadata" translation="[700,210]" />
+    <Metadata id="metadata" translation="[700,180]" />
 
     <!-- playback controls -->
-    <PlaybackControls id="playbackControls" translation="[700,664]" />
+    <PlaybackControls id="playbackControls" translation="[700,700]" />
 
     <!-- video player -->
     <!-- note: useing video player instead of audio player because video player supports suspending the screen saver -->

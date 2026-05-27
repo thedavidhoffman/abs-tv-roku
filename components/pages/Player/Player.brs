@@ -631,6 +631,7 @@ sub updateDetails(details as dynamic)
     if m.metadata <> invalid then
         m.metadata.authorText = "by " + FirstNonEmpty([details.authors], "Unknown")
         m.metadata.metadataText = getMetadataText(details)
+        m.metadata.narratorText = getNarratorText(details)
         m.metadata.descriptionText = description
     end if
     m.timeline.totalDurationSeconds = 0
@@ -648,6 +649,15 @@ function getMetadataText(details as dynamic) as string
     if year <> "" and category <> "" then return year + "  " + category
     if year <> "" then return year
     return category
+end function
+
+'-------------------------------------------------------------------------------
+' getNarratorText
+'-------------------------------------------------------------------------------
+function getNarratorText(details as dynamic) as string
+    narrators = SafeString(details.narrators, "")
+    if narrators = "" or narrators = "Unknown" then return ""
+    return "NARRATED BY: " + UCase(narrators)
 end function
 
 '-------------------------------------------------------------------------------

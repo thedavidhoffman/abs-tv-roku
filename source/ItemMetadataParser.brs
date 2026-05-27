@@ -35,6 +35,8 @@ end function
 ' ItemMetadataParser_GetNarrators
 '-------------------------------------------------------------------------------
 function ItemMetadataParser_GetNarrators(metadata as dynamic) as string
+    narrators = String_GetJoinedText(metadata.narrators)
+    if narrators <> "" then return narrators
     return FirstNonEmpty([metadata.narratorName, metadata.narrator], "Unknown")
 end function
 

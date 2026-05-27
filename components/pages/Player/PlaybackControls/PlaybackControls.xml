@@ -28,7 +28,7 @@
     <function name="hideScrubPreview" />
   </interface>
   <children>
-    <Label id="trackTitleLabel" translation="[0,0]" width="1040" />
+    <Label id="trackTitleLabel" translation="[0,0]" width="1040" font="font:SmallBoldSystemFont" />
     <Label id="statusLabel" translation="[0,60]" width="430" color="0xF2C879FF" />
     <MonospaceLabel id="chapterStatusLabel" translation="[320,70]" width="720" horizAlign="right" color="0xB7C5D4FF" font="font:TinySystemFont" characterWidth="20" />
 

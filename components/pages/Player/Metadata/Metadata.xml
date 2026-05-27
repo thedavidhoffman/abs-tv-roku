@@ -7,6 +7,7 @@
     <field id="titleText" type="string" onChange="onTitleTextChanged" />
     <field id="authorText" type="string" onChange="onAuthorTextChanged" />
     <field id="metadataText" type="string" onChange="onMetadataTextChanged" />
+    <field id="narratorText" type="string" onChange="onNarratorTextChanged" />
     <field id="descriptionText" type="string" onChange="onDescriptionTextChanged" />
     <function name="descriptionHasFocus" />
     <function name="focusDescription" />
@@ -17,6 +18,8 @@
     <ScrollingLabel id="titleLabel" translation="[0,0]" maxWidth="1040" font="font:LargeBoldSystemFont" repeatCount="1" />
     <Label id="authorLabel" translation="[0,50]" width="1040" color="0xB7C5D4FF" />
     <Label id="metadataLabel" translation="[0,100]" width="1040" color="0xB7C5D4FF" font="font:SmallestSystemFont" />
-    <Description id="description" translation="[0,179]" width="1040" numLines="5" />
+    <Rectangle id="hr" translation="[0,150]" width="1040" height="1" color="0xB7C5D4FF" />
+    <Label id="narratorLabel" translation="[0,180]" width="1040" color="0xB7C5D4FF" font="font:SmallestBoldSystemFont" />
+    <Description id="description" translation="[0,230]" width="1040" numLines="5" />
   </children>
 </component>

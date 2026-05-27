@@ -13,6 +13,7 @@ sub initReferences()
     m.titleLabel = m.top.findNode("titleLabel")
     m.authorLabel = m.top.findNode("authorLabel")
     m.metadataLabel = m.top.findNode("metadataLabel")
+    m.narratorLabel = m.top.findNode("narratorLabel")
     m.descriptionLabel = m.top.findNode("description")
 end sub
 
@@ -36,6 +37,13 @@ end sub
 '-------------------------------------------------------------------------------
 sub onMetadataTextChanged()
     setLabelText(m.metadataLabel, m.top.metadataText)
+end sub
+
+'-------------------------------------------------------------------------------
+' onNarratorTextChanged
+'-------------------------------------------------------------------------------
+sub onNarratorTextChanged()
+    setLabelText(m.narratorLabel, m.top.narratorText)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -83,6 +91,7 @@ sub updateText()
     setLabelText(m.titleLabel, m.top.titleText)
     setLabelText(m.authorLabel, m.top.authorText)
     setLabelText(m.metadataLabel, m.top.metadataText)
+    setLabelText(m.narratorLabel, m.top.narratorText)
     setLabelText(m.descriptionLabel, m.top.descriptionText)
 end sub
 
