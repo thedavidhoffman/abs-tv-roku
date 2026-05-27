@@ -25,6 +25,8 @@ sub initValues()
     m.screenHeight = 1080
     m.posterSize = 500
     m.bounceSpeedPixelsPerSecond = 130
+    m.boundaryEpsilon = 1
+    m.escapeStepPixels = 2
     m.pi = 3.14159265
     m.currentBounceEndPosition = invalid
     m.velocityX = 1.0
@@ -79,6 +81,7 @@ sub onBounceLegTimerFired()
 
     currentPosition = m.currentBounceEndPosition
     if currentPosition = invalid then return
+    currentPosition = snapPositionToBounds(currentPosition)
     m.poster.translation = currentPosition
 
     updateVelocityForBoundaryHit(currentPosition)
@@ -91,7 +94,14 @@ end sub
 sub startBounceLeg(startPosition as object)
     if m.bounceAnimation = invalid or m.bounceInterpolator = invalid then return
 
+    startPosition = snapPositionToBounds(startPosition)
+    updateVelocityForBoundaryHit(startPosition)
     endPosition = getBoundaryPosition(startPosition)
+    if positionsMatch(startPosition, endPosition) then
+        startPosition = getEscapedBoundaryPosition(startPosition)
+        if m.poster <> invalid then m.poster.translation = startPosition
+        endPosition = getBoundaryPosition(startPosition)
+    end if
     duration = getLegDuration(startPosition, endPosition)
     if duration < 0.1 then duration = 0.1
     m.currentBounceEndPosition = endPosition
@@ -167,9 +177,60 @@ sub updateVelocityForBoundaryHit(position as object)
     maxX = m.screenWidth - m.posterSize
     maxY = m.screenHeight - m.posterSize
 
-    if position[0] <= 0 or position[0] >= maxX then m.velocityX = -m.velocityX
-    if position[1] <= 0 or position[1] >= maxY then m.velocityY = -m.velocityY
+    if position[0] <= m.boundaryEpsilon then
+        if m.velocityX < 0 then m.velocityX = -m.velocityX
+    else if position[0] >= maxX - m.boundaryEpsilon then
+        if m.velocityX > 0 then m.velocityX = -m.velocityX
+    end if
+
+    if position[1] <= m.boundaryEpsilon then
+        if m.velocityY < 0 then m.velocityY = -m.velocityY
+    else if position[1] >= maxY - m.boundaryEpsilon then
+        if m.velocityY > 0 then m.velocityY = -m.velocityY
+    end if
 end sub
+
+'-------------------------------------------------------------------------------
+' snapPositionToBounds
+'-------------------------------------------------------------------------------
+function snapPositionToBounds(position as object) as object
+    maxX = m.screenWidth - m.posterSize
+    maxY = m.screenHeight - m.posterSize
+    x = position[0]
+    y = position[1]
+
+    if x <= m.boundaryEpsilon then x = 0
+    if x >= maxX - m.boundaryEpsilon then x = maxX
+    if y <= m.boundaryEpsilon then y = 0
+    if y >= maxY - m.boundaryEpsilon then y = maxY
+
+    return [
+        clampInt(x, 0, maxX)
+        clampInt(y, 0, maxY)
+    ]
+end function
+
+'-------------------------------------------------------------------------------
+' positionsMatch
+'-------------------------------------------------------------------------------
+function positionsMatch(left as object, right as object) as boolean
+    if left = invalid or right = invalid then return false
+
+    return left[0] = right[0] and left[1] = right[1]
+end function
+
+'-------------------------------------------------------------------------------
+' getEscapedBoundaryPosition
+'-------------------------------------------------------------------------------
+function getEscapedBoundaryPosition(position as object) as object
+    maxX = m.screenWidth - m.posterSize
+    maxY = m.screenHeight - m.posterSize
+
+    return [
+        clampInt(position[0] + (m.velocityX * m.escapeStepPixels), 0, maxX)
+        clampInt(position[1] + (m.velocityY * m.escapeStepPixels), 0, maxY)
+    ]
+end function
 
 '-------------------------------------------------------------------------------
 ' getRandomDiagonalAngle
