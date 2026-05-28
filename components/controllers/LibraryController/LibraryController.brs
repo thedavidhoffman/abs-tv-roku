@@ -246,7 +246,7 @@ sub handleLibraryItemsResponse(response as dynamic)
 
     if response.cacheKey = cacheKeyCollapsedSeries() then
         items = getResponseLibraryItems(response)
-        cacheSet(cacheKeyCollapsedSeries(), items)
+        cacheSet(cacheKeyCollapsedSeries(), sortCollapsedSeriesItems(items))
     else if response.cacheKey = cacheKeyAllTitles() then
         items = getResponseLibraryItems(response)
         cacheSet(cacheKeyAllTitles(), items)
@@ -354,6 +354,57 @@ end function
 function getResponseLibraryItems(response as dynamic) as object
     if response <> invalid and response.libraryItems <> invalid then return response.libraryItems
     return []
+end function
+
+'-------------------------------------------------------------------------------
+' sortCollapsedSeriesItems
+'-------------------------------------------------------------------------------
+function sortCollapsedSeriesItems(items as object) as object
+    sortedItems = []
+    if items = invalid then return sortedItems
+
+    for each item in items
+        sortedItems = insertCollapsedSeriesItem(sortedItems, item)
+    end for
+
+    return sortedItems
+end function
+
+'-------------------------------------------------------------------------------
+' insertCollapsedSeriesItem
+'-------------------------------------------------------------------------------
+function insertCollapsedSeriesItem(items as object, item as dynamic) as object
+    result = []
+    inserted = false
+    title = getCollapsedSeriesSortTitle(item)
+
+    for each existingItem in items
+        if inserted = false then
+            existingTitle = getCollapsedSeriesSortTitle(existingItem)
+            if String_NaturalCompare(title, existingTitle) < 0 then
+                result.Push(item)
+                inserted = true
+            end if
+        end if
+
+        result.Push(existingItem)
+    end for
+
+    if inserted = false then result.Push(item)
+    return result
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesSortTitle
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesSortTitle(item as dynamic) as string
+    if item <> invalid and item.collapsedSeries <> invalid then return getCollapsedSeriesTitle(item)
+    metadata = getItemMetadata(item)
+    return FirstNonEmpty([
+        metadata.title
+        item.title
+        item.name
+    ], "")
 end function
 
 '-------------------------------------------------------------------------------

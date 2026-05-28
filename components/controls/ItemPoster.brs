@@ -58,6 +58,7 @@ sub showContent()
 
     ' render based on itemContent being set
     applyLayoutForWidth(getPosterWidth())
+    applyTextStyle(item)
     m.poster.uri = getPosterUrl(item)
     m.titleText = getDisplayTitle(item)
     setLabelText(m.titleLabel, m.titleText)
@@ -104,6 +105,23 @@ function getPosterWidth() as integer
     if width = invalid or width < 1 then width = 280
     return width
 end function
+
+'-------------------------------------------------------------------------------
+' applyTextStyle
+'-------------------------------------------------------------------------------
+sub applyTextStyle(item as dynamic)
+    titleFont = "font:TinyBoldSystemFont"
+    authorFont = "font:TinySystemFont"
+
+    if item <> invalid and item.useLargeText = true then
+        titleFont = "font:MediumBoldSystemFont"
+        authorFont = "font:MediumSystemFont"
+    end if
+
+    if m.titleLabel <> invalid then m.titleLabel.font = titleFont
+    if m.scrollingTitleLabel <> invalid then m.scrollingTitleLabel.font = titleFont
+    if m.authorLabel <> invalid then m.authorLabel.font = authorFont
+end sub
 
 '-------------------------------------------------------------------------------
 ' getPosterUrl

@@ -48,6 +48,14 @@ function GridLayout_GetRowHeight(itemHeight as integer) as integer
 end function
 
 '-------------------------------------------------------------------------------
+' GridLayout_ShouldUseLargePosterText
+'-------------------------------------------------------------------------------
+function GridLayout_ShouldUseLargePosterText(columnCount as dynamic) as boolean
+    if columnCount = invalid then return false
+    return columnCount.ToStr() = "4"
+end function
+
+'-------------------------------------------------------------------------------
 ' GridLayout_GetHorizontalGutter
 '-------------------------------------------------------------------------------
 function GridLayout_GetHorizontalGutter() as integer

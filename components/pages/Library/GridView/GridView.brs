@@ -45,12 +45,18 @@ sub applyGridLayout(settings as dynamic)
     columnCount = GridLayout_GetColumnCount(settings)
     posterWidth = GridLayout_GetPosterWidth(columnCount)
     itemHeight = GridLayout_GetItemHeight(posterWidth)
+    rowSpacing = 34
+
+    ' In five-column mode, we add 5 to the row spacing to prevent
+    ' the third row appearing as a small sliver. This does not affect
+    ' 4 column or 6 column display.
+    if columnCount = 5 then rowSpacing = rowSpacing + 5
 
     m.posterWidth = posterWidth
     m.appliedGridColumns = getGridColumnsSetting(settings)
     m.markupGrid.numColumns = columnCount
     m.markupGrid.itemSize = [posterWidth, itemHeight]
-    m.markupGrid.itemSpacing = [GridLayout_GetHorizontalGutter(), 34]
+    m.markupGrid.itemSpacing = [GridLayout_GetHorizontalGutter(), rowSpacing]
 end sub
 
 '-------------------------------------------------------------------------------
@@ -138,6 +144,7 @@ sub onLibraryItemsChanged()
                 node.AddFields({
                     author: ItemMetadataParser_GetAuthor(metadata)
                     posterWidth: m.posterWidth
+                    useLargeText: GridLayout_ShouldUseLargePosterText(m.appliedGridColumns)
                     isSeriesItem: isSeriesItem(item)
                     collapsedSeries: item.collapsedSeries
                     seriesSequence: getSeriesSequence(item)

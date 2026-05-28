@@ -61,6 +61,98 @@ function String_CollapseWhitespace(value as string) as string
 end function
 
 '-------------------------------------------------------------------------------
+' String_NaturalCompare
+'-------------------------------------------------------------------------------
+function String_NaturalCompare(leftValue as dynamic, rightValue as dynamic) as integer
+    left = LCase(SafeString(leftValue, ""))
+    right = LCase(SafeString(rightValue, ""))
+    leftIndex = 1
+    rightIndex = 1
+
+    while leftIndex <= Len(left) and rightIndex <= Len(right)
+        leftChar = Mid(left, leftIndex, 1)
+        rightChar = Mid(right, rightIndex, 1)
+
+        if __String_IsDigit(leftChar) and __String_IsDigit(rightChar) then
+            comparison = __String_CompareNumberRuns(left, leftIndex, right, rightIndex)
+            if comparison <> 0 then return comparison
+
+            leftIndex = __String_GetDigitRunEnd(left, leftIndex) + 1
+            rightIndex = __String_GetDigitRunEnd(right, rightIndex) + 1
+        else
+            if leftChar < rightChar then return -1
+            if leftChar > rightChar then return 1
+
+            leftIndex = leftIndex + 1
+            rightIndex = rightIndex + 1
+        end if
+    end while
+
+    if leftIndex <= Len(left) then return 1
+    if rightIndex <= Len(right) then return -1
+    return 0
+end function
+
+'-------------------------------------------------------------------------------
+' __String_CompareNumberRuns
+'-------------------------------------------------------------------------------
+function __String_CompareNumberRuns(left as string, leftIndex as integer, right as string, rightIndex as integer) as integer
+    leftEnd = __String_GetDigitRunEnd(left, leftIndex)
+    rightEnd = __String_GetDigitRunEnd(right, rightIndex)
+    leftNumber = __String_TrimLeadingZeroes(Mid(left, leftIndex, leftEnd - leftIndex + 1))
+    rightNumber = __String_TrimLeadingZeroes(Mid(right, rightIndex, rightEnd - rightIndex + 1))
+
+    if Len(leftNumber) < Len(rightNumber) then return -1
+    if Len(leftNumber) > Len(rightNumber) then return 1
+
+    for i = 1 to Len(leftNumber)
+        leftChar = Mid(leftNumber, i, 1)
+        rightChar = Mid(rightNumber, i, 1)
+        if leftChar < rightChar then return -1
+        if leftChar > rightChar then return 1
+    end for
+
+    leftRunLength = leftEnd - leftIndex + 1
+    rightRunLength = rightEnd - rightIndex + 1
+    if leftRunLength < rightRunLength then return -1
+    if leftRunLength > rightRunLength then return 1
+    return 0
+end function
+
+'-------------------------------------------------------------------------------
+' __String_GetDigitRunEnd
+'-------------------------------------------------------------------------------
+function __String_GetDigitRunEnd(value as string, startIndex as integer) as integer
+    index = startIndex
+
+    while index <= Len(value) and __String_IsDigit(Mid(value, index, 1))
+        index = index + 1
+    end while
+
+    return index - 1
+end function
+
+'-------------------------------------------------------------------------------
+' __String_TrimLeadingZeroes
+'-------------------------------------------------------------------------------
+function __String_TrimLeadingZeroes(value as string) as string
+    index = 1
+
+    while index < Len(value) and Mid(value, index, 1) = "0"
+        index = index + 1
+    end while
+
+    return Mid(value, index)
+end function
+
+'-------------------------------------------------------------------------------
+' __String_IsDigit
+'-------------------------------------------------------------------------------
+function __String_IsDigit(value as string) as boolean
+    return value >= "0" and value <= "9"
+end function
+
+'-------------------------------------------------------------------------------
 ' String_StripHtmlMarkup
 '-------------------------------------------------------------------------------
 function String_StripHtmlMarkup(value as dynamic) as string

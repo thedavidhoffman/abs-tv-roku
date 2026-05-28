@@ -249,6 +249,7 @@ sub appendShelfRow(root as object, shelfId as string, title as string)
             node.AddFields({
                 author: ItemMetadataParser_GetAuthor(metadata)
                 posterWidth: m.layoutState.posterWidth
+                useLargeText: GridLayout_ShouldUseLargePosterText(m.layoutState.appliedGridColumns)
                 progressPercent: progress.progress
                 progressCurrentTime: progress.currentTime
                 progressDuration: progress.duration

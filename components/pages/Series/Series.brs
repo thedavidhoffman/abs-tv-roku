@@ -181,6 +181,7 @@ sub appendSeriesRow(root as object, seriesRow as dynamic)
             node.AddFields({
                 author: ItemMetadataParser_GetAuthor(metadata)
                 posterWidth: m.posterWidth
+                useLargeText: GridLayout_ShouldUseLargePosterText(m.appliedGridColumns)
                 seriesSequence: getSeriesSequence(item, seriesRow.seriesId)
                 showSeriesSequence: true
                 progressPercent: progress.progress
