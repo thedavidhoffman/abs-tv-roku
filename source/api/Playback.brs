@@ -70,7 +70,7 @@ function Playback_Start(request as object) as object
     ' chapters are the navigation/display units. Player uses them for the Chapters list and the right-aligned
     ' chapter title/status. They may not match audio files. A single audio file can have many chapters, and a
     ' multi-file book can have chapters that cross or differ from track boundaries.
-    chapters = __MapChapters(playbackSession)
+    chapters = __MapChapters(playbackSession, tracks, log)
 
     ' playback data
     action = "startPlayback"
@@ -397,7 +397,7 @@ end function
 '-------------------------------------------------------------------------------
 ' __MapChapters
 '-------------------------------------------------------------------------------
-function __MapChapters(session as dynamic) as object
+function __MapChapters(session as dynamic, tracks as dynamic, log as object) as object
     chapters = []
     if session = invalid or session.chapters = invalid or session.chapters.Count() = 0 then return chapters
 
@@ -418,7 +418,81 @@ function __MapChapters(session as dynamic) as object
         end if
     end for
 
+    ' Some ABS playback sessions can return a partial chapter list whose first
+    ' chapter starts at 0 even though it maps to a later audio file. In that case
+    ' use audio tracks as chapter items so navigation still covers the full book.
+    if __ShouldUseTracksAsChapters(chapters, tracks, session) then
+        log.error("session chapters appear partial; using audio tracks as chapter items")
+        return __MapTracksAsChapters(tracks)
+    end if
+
     return chapters
+end function
+
+'-------------------------------------------------------------------------------
+' __ShouldUseTracksAsChapters
+'-------------------------------------------------------------------------------
+function __ShouldUseTracksAsChapters(chapters as dynamic, tracks as dynamic, session as dynamic) as boolean
+    if chapters = invalid or tracks = invalid then return false
+    if chapters.Count() = 0 or tracks.Count() = 0 then return false
+    if chapters.Count() >= tracks.Count() then return false
+
+    chapterCoverage = __GetChapterCoverageSeconds(chapters)
+    mediaDuration = __GetMediaDurationSeconds(session, tracks)
+    if mediaDuration <= 0 then return false
+
+    return chapterCoverage < (mediaDuration * 0.9)
+end function
+
+'-------------------------------------------------------------------------------
+' __MapTracksAsChapters
+'-------------------------------------------------------------------------------
+function __MapTracksAsChapters(tracks as dynamic) as object
+    chapters = []
+    if tracks = invalid then return chapters
+
+    for i = 0 to tracks.Count() - 1
+        track = tracks[i]
+        if track <> invalid then
+            chapters.Push({
+                index: i
+                title: SafeString(track.title, "Track " + (i + 1).ToStr())
+                startOffset: __GetNumber(track.startOffset)
+                durationSeconds: __GetNumber(track.durationSeconds)
+                isChapter: true
+                source: "track"
+            })
+        end if
+    end for
+
+    return chapters
+end function
+
+'-------------------------------------------------------------------------------
+' __GetChapterCoverageSeconds
+'-------------------------------------------------------------------------------
+function __GetChapterCoverageSeconds(chapters as dynamic) as float
+    if chapters = invalid or chapters.Count() = 0 then return 0
+
+    lastChapter = chapters[chapters.Count() - 1]
+    if lastChapter = invalid then return 0
+
+    return __GetNumber(lastChapter.startOffset) + __GetNumber(lastChapter.durationSeconds)
+end function
+
+'-------------------------------------------------------------------------------
+' __GetMediaDurationSeconds
+'-------------------------------------------------------------------------------
+function __GetMediaDurationSeconds(session as dynamic, tracks as dynamic) as float
+    if session <> invalid and session.duration <> invalid then return __GetNumber(session.duration)
+    if tracks = invalid then return 0
+
+    duration = 0.0
+    for each track in tracks
+        if track <> invalid then duration = duration + __GetNumber(track.durationSeconds)
+    end for
+
+    return duration
 end function
 
 '-------------------------------------------------------------------------------
