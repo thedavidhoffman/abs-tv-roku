@@ -1154,7 +1154,7 @@ sub closePlayer()
     stopProgressTimer()
     enableScreenSaver()
     closeChapterList()
-    setStatus("Stopping...")
+    if m.playbackState.complete <> true then setStatus("Stopping...")
 
     PlayerAudio_Stop()
 
