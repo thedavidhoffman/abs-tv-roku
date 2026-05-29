@@ -67,7 +67,8 @@ function LibraryItems_Load(request as object) as object
         if results = invalid or results.Count() = 0 then
             keepLoading = false
         else
-            for each item in results
+            mappedItems = LibraryItemMapper_Map(results)
+            for each item in mappedItems
                 allItems.Push(item)
             end for
 
