@@ -87,8 +87,7 @@ function __LibraryItemMapper_MapMetadata(metadata as dynamic) as object
         narrators: metadata.narrators
         narratorName: metadata.narratorName
         narrator: metadata.narrator
-        'description: metadata.description
-        description: ""
+        description: metadata.description
         subtitle: metadata.subtitle
         publisher: metadata.publisher
         publishedYear: metadata.publishedYear
