@@ -86,8 +86,6 @@ end function
 ' initStyle
 '-------------------------------------------------------------------------------
 sub initStyle()
-    colors = Color()
-
     if m.footer <> invalid then m.footer.color = &h00000040
     if m.titleRule <> invalid then m.titleRule.color = &hF3F7FB33
 end sub

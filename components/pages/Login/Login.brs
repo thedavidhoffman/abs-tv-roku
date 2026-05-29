@@ -132,7 +132,7 @@ end function
 ' openKeyboardDialog
 '-------------------------------------------------------------------------------
 sub openKeyboardDialog(fieldName as string)
-    keyboardDialog = CreateObject("roSGNode", "KeyboardDialog")
+    keyboardDialog = CreateObject("roSGNode", "StandardKeyboardDialog")
     keyboardDialog.buttons = ["Save", "Cancel"]
     keyboardDialog.observeField("buttonSelected", "onKeyboardDialogButtonSelected")
 
