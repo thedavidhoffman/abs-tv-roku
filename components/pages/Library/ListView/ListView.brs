@@ -429,20 +429,11 @@ end function
 function getListRowTitle(row as object) as string
     item = row.item
     if getCollapsedSeriesId(item) <> invalid then
-        return getSeriesListTitle(item)
+        return getCollapsedSeriesTitle(item)
     end if
 
     if row.child = true then return "    " + getBookListTitle(item, row.seriesId)
     return ItemMetadataParser_GetTitle(item)
-end function
-
-'-------------------------------------------------------------------------------
-' getSeriesListTitle
-'-------------------------------------------------------------------------------
-function getSeriesListTitle(item as dynamic) as string
-    title = getCollapsedSeriesTitle(item)
-
-    return title
 end function
 
 '-------------------------------------------------------------------------------
@@ -470,33 +461,6 @@ function getBookListTitle(item as dynamic, seriesId as dynamic) as string
     sequence = getSeriesSequence(item, seriesId)
     if sequence <> "" then return "#" + sequence + "  " + title
     return title
-end function
-
-'-------------------------------------------------------------------------------
-' getCollapsedSeriesCountText
-'-------------------------------------------------------------------------------
-function getCollapsedSeriesCountText(item as dynamic) as string
-    count = getCollapsedSeriesBookCount(item)
-    if count <= 0 then return ""
-    if count = 1 then return "(1 book)"
-    return "(" + count.ToStr() + " books)"
-end function
-
-'-------------------------------------------------------------------------------
-' getCollapsedSeriesBookCount
-'-------------------------------------------------------------------------------
-function getCollapsedSeriesBookCount(item as dynamic) as integer
-    if item = invalid or item.collapsedSeries = invalid then return 0
-
-    collapsedSeries = item.collapsedSeries
-    countValue = invalid
-    if collapsedSeries.numBooks <> invalid then countValue = collapsedSeries.numBooks
-    if countValue = invalid and collapsedSeries.bookCount <> invalid then countValue = collapsedSeries.bookCount
-    if countValue = invalid and collapsedSeries.count <> invalid then countValue = collapsedSeries.count
-    if countValue = invalid and collapsedSeries.numItems <> invalid then countValue = collapsedSeries.numItems
-    if countValue = invalid then return 0
-
-    return int(val(countValue.ToStr()))
 end function
 
 '-------------------------------------------------------------------------------

@@ -130,9 +130,17 @@ function __LibraryItemMapper_MapCollapsedSeries(collapsedSeries as dynamic) as o
         nameIgnorePrefix: collapsedSeries.nameIgnorePrefix
         name: collapsedSeries.name
         title: collapsedSeries.title
-        numBooks: collapsedSeries.numBooks
-        bookCount: collapsedSeries.bookCount
-        count: collapsedSeries.count
-        numItems: collapsedSeries.numItems
+        numBooks: __LibraryItemMapper_GetCollapsedSeriesBookCount(collapsedSeries)
     }
+end function
+
+'-------------------------------------------------------------------------------
+' __LibraryItemMapper_GetCollapsedSeriesBookCount
+'-------------------------------------------------------------------------------
+function __LibraryItemMapper_GetCollapsedSeriesBookCount(collapsedSeries as dynamic) as dynamic
+    if collapsedSeries.numBooks <> invalid then return collapsedSeries.numBooks
+    if collapsedSeries.bookCount <> invalid then return collapsedSeries.bookCount
+    if collapsedSeries.count <> invalid then return collapsedSeries.count
+    if collapsedSeries.numItems <> invalid then return collapsedSeries.numItems
+    return invalid
 end function
