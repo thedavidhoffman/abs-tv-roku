@@ -352,7 +352,7 @@ end function
 '-------------------------------------------------------------------------------
 sub updateProgressFill(item as dynamic)
     if m.progressFill = invalid then return
-    if item = invalid or shouldShowProgressBar(item) <> true then
+    if m.top.showProgressBar <> true  then
         m.progressFill.visible = false
         return
     end if
@@ -376,14 +376,6 @@ sub updateProgressFill(item as dynamic)
     m.progressFill.width = fillWidth
     m.progressFill.visible = true
 end sub
-
-'-------------------------------------------------------------------------------
-' shouldShowProgressBar
-'-------------------------------------------------------------------------------
-function shouldShowProgressBar(item as dynamic) as boolean
-    if m.top.showProgressBar <> true then return false
-    return true
-end function
 
 '-------------------------------------------------------------------------------
 ' getPercentComplete

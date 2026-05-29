@@ -421,7 +421,6 @@ sub onLibraryItemsChanged()
 
     m.viewState.libraryItemsVersion = m.viewState.libraryItemsVersion + 1
     m.viewState.syncingLibraryItems = true
-    items = m.top.libraryItems
 
     syncLoadRequestToViews()
     syncAllLibraryItemsToActiveView()

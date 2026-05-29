@@ -8,7 +8,6 @@ sub init()
     m.server = invalid
     m.token = invalid
 
-    initStyle()
     clearFocusVisual()
     onItemChanged()
 end sub
@@ -50,14 +49,6 @@ function getSeriesPosterSlots() as object
 
     return slots
 end function
-
-'-------------------------------------------------------------------------------
-' initStyle
-'-------------------------------------------------------------------------------
-sub initStyle()
-    palette = Color()
-
-end sub
 
 '-------------------------------------------------------------------------------
 ' onLoadRequestChanged

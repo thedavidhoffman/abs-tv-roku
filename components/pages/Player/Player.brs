@@ -571,7 +571,7 @@ sub handleStartPlaybackResponse(response as dynamic)
     m.playbackContext.session = response.playbackSession
     m.playbackContext.sessionId = response.playbackSessionId
     m.recovery.isHlsTranscode = response.isHlsTranscode = true
-    m.timeline.currentTimeSeconds = getStartPlaybackCurrentTime(response)
+    m.timeline.currentTimeSeconds = getStartPlaybackCurrentTime()
     if m.recovery.isHlsTranscode = true then logPlayer("HLS stream global start offset=0")
     m.timeline.totalDurationSeconds = getStartPlaybackDuration(response)
     updateTotalDuration()
@@ -582,7 +582,7 @@ end sub
 '-------------------------------------------------------------------------------
 ' getStartPlaybackCurrentTime
 '-------------------------------------------------------------------------------
-function getStartPlaybackCurrentTime(response as dynamic) as integer
+function getStartPlaybackCurrentTime() as integer
 
     logPlayerVerbose("getStartPlaybackCurrentTime")
 
