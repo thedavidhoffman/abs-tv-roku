@@ -5,7 +5,7 @@ import rokuDeploy from 'roku-deploy';
 const rootDir = process.cwd();
 const outDir = path.join(rootDir, 'out');
 const stagingDir = path.join(rootDir, 'build', 'staging');
-const outFile = 'ABSTV';
+const manifestPath = path.join(rootDir, 'manifest');
 
 const files = [
   'components/**/*',
@@ -13,6 +13,21 @@ const files = [
   'source/**/*',
   'manifest'
 ];
+
+function getManifestValue(manifest, key) {
+  const match = manifest.match(new RegExp(`^${key}=(\\d+)$`, 'm'));
+  if (!match) {
+    throw new Error(`Unable to find ${key} in manifest.`);
+  }
+
+  return match[1];
+}
+
+const manifest = await fs.readFile(manifestPath, 'utf8');
+const majorVersion = getManifestValue(manifest, 'major_version');
+const minorVersion = getManifestValue(manifest, 'minor_version');
+const buildVersion = getManifestValue(manifest, 'build_version');
+const outFile = `abstv.${majorVersion}.${minorVersion}.${buildVersion}`;
 
 await fs.mkdir(outDir, { recursive: true });
 

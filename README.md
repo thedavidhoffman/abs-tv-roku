@@ -8,7 +8,9 @@ Forks are part of open source but if your goal is to fix bugs, add features, or 
 
 This is a Roku app that connects to an [Audiobookshelf](https://www.audiobookshelf.org/) server to play audiobooks on a Roku device, bringing your audiobook library to your television. As far as I'm aware, this is the only Roku app for ABS. _This project is not affiliated with Audiobookshelf._
 
+```
 NOTE: this app currently does not support: podcasts, collections, or playlists.
+```
 
 ![ABSTV library grid view](.preview-images/abstv-library-grid-view.jpg)
 
@@ -16,12 +18,11 @@ NOTE: this app currently does not support: podcasts, collections, or playlists.
 
 ![ABSTV player](.preview-images/abstv-player.jpg)
 
-## Table of Contents
+## Legal/Policies
 
-- [Installing](#installing)
-- [AI Usage Disclaimer](#ai-usage-disclaimer)
-- [Privacy Policy](#privacy-policy)
-- [Wishlist](#wishlist)
+- [License](LICENSE.md)
+- [Privacy Policy](PRIVACY-POLICY.md)
+- [Terms of Use](TERMS-OF-USE.md)
 
 ## Installing
 
@@ -57,23 +58,4 @@ After installation, ABSTV will be available from the Roku home screen.
 ## AI Usage Disclaimer
 
 This app was built with Codex, but it was not simply “vibe coded.” As a senior software engineer, I used AI to accelerate development while staying deeply involved in the implementation. The commit history on this repository reflects an active, hands-on process of guiding the work, refining generated code, making design decisions, and shaping the project toward a deliberate standard within the constraints of Roku’s BrightScript ecosystem.
-
-## Privacy Policy
-
-- No analytics or tracking services are used.
-- No personal data is collected.
-- The only information stored by this app on your Roku device are:
-  - Your username, user id, and authentication token required to communicate with the ABS server.
-  - Application settings.
-- No data is shared with third parties.
-
-## Wishlist
-
-Things I hope to add support to this app for in the future.
-
-- localization
-- themes
-- usage stat page
-- collections
-- playlists
 

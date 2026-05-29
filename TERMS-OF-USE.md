@@ -1,6 +1,6 @@
 # Terms Of Use
 
-These Terms Of Use apply to ABSTV, an unofficial Roku client for connecting to an Audiobookshelf server that you provide.
+These Terms Of Use apply to ABSTV, a Roku client for connecting to a self-hosted Audiobookshelf server. This app is not affiliated with Audiobookself.
 
 ## Use Of The App
 

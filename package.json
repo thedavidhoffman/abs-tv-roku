@@ -13,9 +13,10 @@
   "scripts": {
     "clean": "npx rimraf build/ out/",
     "validate": "npx bsc --rootDir . --stagingFolder build/staging",
-    "build": "npm run clean && npm run validate",
-    "package": "npm run clean && npm run validate && node ./scripts/package.mjs",
-    "deploy": "npm run validate && node ./scripts/deploy.mjs",
+    "increment-build-version": "node ./scripts/increment-build-version.mjs",
+    "build": "npm run increment-build-version && npm run clean && npm run validate",
+    "package": "npm run build && node ./scripts/package.mjs",
+    "deploy": "npm run increment-build-version && npm run validate && node ./scripts/deploy.mjs",
     "logviewer": "node ./scripts/logviewer.mjs"
   },
   "keywords": [
