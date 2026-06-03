@@ -30,7 +30,7 @@ ABSTV is available in the Roku channel store.
 
 ## Legal/Policies
 
-- [License](LICENSE.md)
+- [License](LICENSE)
 - [Privacy Policy](PRIVACY-POLICY.md)
 - [Terms of Use](TERMS-OF-USE.md)
 
