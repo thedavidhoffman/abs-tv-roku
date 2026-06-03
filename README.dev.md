@@ -48,24 +48,34 @@ npm run validate
 Runs the BrightScript compiler validation step. This checks the Roku app from the repo root and stages compiler output under `build/staging`.
 
 ```
+npm run increment-build-version
+```
+
+Increments `build_version` in `manifest` by 1. This command is run automatically by `npm run build`, `npm run package`, and `npm run deploy`.
+
+```
 npm run build
 ```
 
-Cleans generated output and runs validation. Use this when you want a fresh local validation pass without creating the final `ABSTV.zip` package.
+Increments `build_version` in `manifest`, cleans generated output, and runs validation. Use `npm run validate` instead when you want a non-mutating validation pass.
 
 ```
 npm run package
 ```
 
-Cleans, validates, and creates a Roku package:
+Increments `build_version`, cleans, validates, and creates a Roku package.
 
-The package script uses `scripts/package.mjs` and writes the packaged channel to `out/ABSTV.zip`.
+The package script uses `scripts/package.mjs` and writes the packaged channel to a versioned zip using the manifest version:
+
+```text
+out/abstv.<major_version>.<minor_version>.<build_version>.zip
+```
 
 ```
 npm run deploy
 ```
 
-Validates and deploys the app to the Roku device configured in `rokudeploy.json`. Use this when you want to push the current app to a physical Roku device.
+Increments `build_version`, validates, and deploys the app to the Roku device configured in `rokudeploy.json`. Use this when you want to push the current app to a physical Roku device.
 
 ```
 npm run logviewer

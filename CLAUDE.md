@@ -4,19 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Is
 
-ABSTV is a Roku SceneGraph app (BrightScript + XML) that connects to an [Audiobookshelf](https://www.audiobookshelf.org/) server to browse and play audiobooks on Roku TVs. It is side-loaded (not in the Roku channel store). The app has no unit test framework — validation is done via BrightScript compiler and manual testing on a Roku device.
+ABSTV is a Roku SceneGraph app (BrightScript + XML) that connects to an [Audiobookshelf](https://www.audiobookshelf.org/) server to browse and play audiobooks on Roku TVs. The app has no unit test framework; validation is done via BrightScript compiler and manual testing on a Roku device.
 
 ## Commands
 
 ```bash
-npm run validate    # BrightScript type/syntax check (bsc compiler), output to build/staging
-npm run build       # clean + validate
-npm run package     # create deployable ZIP → out/ABSTV.zip
-npm run deploy      # deploy ZIP to Roku device (requires rokudeploy.json)
-npm run clean       # remove build/staging directories
+npm run validate                 # BrightScript type/syntax check, output to build/staging
+npm run increment-build-version  # increment build_version in manifest by 1
+npm run build                    # increment build_version + clean + validate
+npm run package                  # build + create out/abstv.<major>.<minor>.<build>.zip
+npm run deploy                   # increment build_version + validate + deploy to Roku device
+npm run clean                    # remove build/ and out/
+npm run logviewer                # start browser-based Roku log viewer
 ```
 
-Deployment requires copying `rokudeploy.example.json` to `rokudeploy.json` and filling in the Roku device IP and dev password.
+Deployment requires copying `rokudeploy.example.json` to `rokudeploy.json` and filling in the Roku device IP and developer password.
+
+Use `npm run validate` for a non-mutating check. `build`, `package`, and `deploy` modify `manifest` by incrementing `build_version`.
 
 VS Code tasks (Ctrl+Shift+B): validate, package, deploy, clean-staging.
 
@@ -24,24 +28,24 @@ VS Code tasks (Ctrl+Shift+B): validate, package, deploy, clean-staging.
 
 ## Architecture
 
-### Thread model
+### Thread Model
 
 Roku SceneGraph has two threads: the **render thread** (all component `.brs` files) and the **task thread** (`components/tasks/AppTask`). Network calls must run in the task thread. UI components communicate with `AppTask` by writing a `request` associative array and setting `control = "run"`, then observing the `response` field for results. `AppTask` dispatches on `request.action` to the appropriate API helper in `source/api/`.
 
-### Key components
+### Key Components
 
-- **`source/main.brs`** — Creates `roSGScreen`, instantiates `MainScene`, enters the event loop.
-- **`components/pages/MainScene/`** — App shell: top-level routing between Login/HomePage/Library/Player, global focus recovery, auth lifecycle (resume, expiration, logout), and app exit.
-- **`components/controllers/AuthController/`** — Auth state machine; reads/writes the Roku registry via `source/store/AuthStore.brs`.
-- **`components/pages/Player/`** — Audiobook playback UI (~1,300 lines). Uses a hidden Roku `Video` node (not `Audio`) so it can set `disableScreenSaver`; the node must keep `enableUI="false"` and configure content as `contentType = "audio"`. **Do not swap it for an `Audio` node** without handling screensaver suppression another way.
-- **`components/tasks/AppTask`** — Background task; supported actions: `login`, `authorize`, `logout`, `loadLibrary`, `startPlayback`. See [.docs/application.md](.docs/application.md) for the full interface contract.
-- **`source/api/`** — Pure API call helpers (HttpClient, Authentication, Libraries, LibraryItems, Item, Series, Playback, etc.).
-- **`source/mappers/`** — Map raw Audiobookshelf API responses to app-level structs.
-- **`source/store/`** — Roku registry persistence (`AuthStore`, `SettingsStore`).
+- **`source/main.brs`** - Creates `roSGScreen`, enables Roku memory warning monitoring, instantiates `MainScene`, and enters the event loop.
+- **`components/pages/MainScene/`** - App shell: top-level routing between Login/HomePage/Library/Player, global focus recovery, auth lifecycle (resume, expiration, logout), and app exit.
+- **`components/controllers/AuthController/`** - Auth state machine; reads/writes the Roku registry via `source/store/AuthStore.brs`.
+- **`components/pages/Player/`** - Audiobook playback UI. Uses a hidden Roku `Video` node (not `Audio`) so it can set `disableScreenSaver`; the node must keep `enableUI="false"` and configure content as `contentType = "audio"`. **Do not swap it for an `Audio` node** without handling screensaver suppression another way.
+- **`components/tasks/AppTask`** - Background task; dispatches request actions including `login`, `authorize`, `logout`, `loadLibraries`, `loadLibrary`, `loadSeries`, `loadInProgress`, `loadPersonalized`, and playback actions. See `components/tasks/AppTask.brs` for the current dispatch table.
+- **`source/api/`** - API call helpers (HttpClient, Authentication, Libraries, LibraryItems, Item, Series, Playback, etc.).
+- **`source/mappers/`** - Map raw Audiobookshelf API responses to app-level structs and reduced cache shapes.
+- **`source/store/`** - Roku registry persistence (`AuthStore`, `SettingsStore`).
 
-### Component ownership
+### Component Ownership
 
-Each feature component owns its own API calls, loading state, and local navigation state — don't route those through `MainScene`. Communication up to `MainScene` should be narrow and event-like (item selected, auth error, close requested). Pass session context down explicitly as `server`, `token`, and `bookLibraryId` request fields; don't let child components read global scene state.
+Each feature component owns its own API calls, loading state, and local navigation state; don't route those through `MainScene`. Communication up to `MainScene` should be narrow and event-like (item selected, auth error, close requested). Pass session context down explicitly as `server`, `token`, and `bookLibraryId` request fields; don't let child components read global scene state.
 
 Extract shared pure logic into `/source` helpers only when it is genuinely reused across components, or when keeping it in a component would make that component responsible for unrelated calculations.
 
@@ -49,24 +53,34 @@ Extract shared pure logic into `/source` helpers only when it is genuinely reuse
 
 ### BrightScript
 
-- `/source` public helpers: module-style prefix — `AuthStore_Load`, `Playback_Start`.
-- `/source` file-internal helpers: `__` prefix — `__GetCollapseSeriesQueryValue`.
-- Component-local functions in `components/`: plain behavioral names — `initStyle`, `onKeyEvent`.
-- Color fields: integer hex literals — `m.title.color = &h0F1A2AFF` (not string `"0x0F1A2AFF"`).
+- `/source` public helpers: module-style prefix, such as `AuthStore_Load` or `Playback_Start`.
+- `/source` file-internal helpers: `__` prefix, such as `__GetCollapseSeriesQueryValue`.
+- Component-local functions in `components/`: plain behavioral names, such as `initStyle` or `onKeyEvent`.
+- Color fields: integer hex literals, such as `m.title.color = &h0F1A2AFF` (not string `"0x0F1A2AFF"`).
+- Do not use `FormatJson()` for outbound API request bodies when key casing matters; Roku lowercases JSON object keys during serialization.
 
 ### XML
 
-- Literal color attribute values: `0x` prefix — `color="0xF3F7FBFF"`.
+- Literal color attribute values: `0x` prefix, such as `color="0xF3F7FBFF"`.
 
-### Comment headers
+### Comment Headers
 
-Every function definition in a source file gets a three-line comment header:
+BrightScript functions generally use a three-line comment header:
+
 ```brightscript
 '-------------------------------------------------------------------------------
 ' functionName
 '-------------------------------------------------------------------------------
 ```
-Lines 1 and 3 are `'` followed by dashes to column 80. Line 2 is `' ` followed by the exact function name.
+
+For `src/config.js`, this header format is required for every function definition. Elsewhere, follow the surrounding file style and keep headers aligned with the exact function name when adding or moving functions.
+
+## Packaging And Release Notes
+
+- `scripts/increment-build-version.mjs` increments `manifest` `build_version`.
+- `scripts/package.mjs` names packages from manifest version fields: `out/abstv.<major_version>.<minor_version>.<build_version>.zip`.
+- Keep `RELEASE-NOTES.md`, `PRIVACY-POLICY.md`, and `TERMS-OF-USE.md` aligned with certification-facing changes.
+- The manifest currently declares `rsg_version=1.3`; Roku Developer Dashboard minimum firmware should be 15.1 or greater for certification.
 
 ## External References
 
@@ -75,4 +89,4 @@ Lines 1 and 3 are `'` followed by dashes to column 80. Line 2 is `' ` followed b
 - Roku SceneGraph samples: https://github.com/rokudev/samples
 - Roku reference docs: https://developer.roku.com/en-au/docs/references/references-overview.md
 
-Before changing Audiobookshelf API calls, playback-session handling, media metadata mapping, or chapter behavior, review the linked API docs for the relevant endpoint/response shape.
+Before changing Audiobookshelf API calls, playback-session handling, media metadata mapping, playlist behavior, or chapter behavior, review the linked API docs for the relevant endpoint/response shape.
