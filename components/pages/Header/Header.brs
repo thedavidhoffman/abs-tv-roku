@@ -12,7 +12,9 @@ sub init()
     updateUserMenuButton()
     updateCurrentLibraryButton()
     setActiveHeaderButton("home")
-    setMenuOpen(false)
+    closeAccountMenu()
+    closeLibraryMenu()
+    syncMenuOpen()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -28,15 +30,10 @@ sub initReferences()
     m.settingsButton = m.top.findNode("settingsButton")
     m.currentLibraryButton = m.top.findNode("currentLibraryButton")
     m.userMenuButton = m.top.findNode("userMenuButton")
-    m.menuPanel = m.top.findNode("menuPanel")
-    m.libraryMenuPanel = m.top.findNode("libraryMenuPanel")
-    m.libraryMenuBg = m.top.findNode("libraryMenuBg")
-    m.libraryMenuItems = m.top.findNode("libraryMenuItems")
-    m.yourStatsButton = m.top.findNode("yourStatsButton")
-    m.logoutButton = m.top.findNode("logoutButton")
+    m.accountDropdownMenu = m.top.findNode("accountDropdownMenu")
+    m.libraryDropdownMenu = m.top.findNode("libraryDropdownMenu")
     m.usernameUpSequenceTimer = m.top.findNode("usernameUpSequenceTimer")
     m.focusableHeaderButtons = []
-    m.libraryMenuButtons = []
 end sub
 
 '-------------------------------------------------------------------------------
@@ -50,8 +47,8 @@ sub initHandlers()
     m.settingsButton.observeField("buttonSelected", "onSettingsPressed")
     m.currentLibraryButton.observeField("buttonSelected", "onCurrentLibraryPressed")
     m.userMenuButton.observeField("buttonSelected", "onUserMenuPressed")
-    m.yourStatsButton.observeField("buttonSelected", "onYourStatsPressed")
-    m.logoutButton.observeField("buttonSelected", "onLogoutPressed")
+    m.accountDropdownMenu.observeField("selectedItem", "onAccountDropdownItemSelected")
+    m.libraryDropdownMenu.observeField("selectedItem", "onLibraryDropdownItemSelected")
     m.usernameUpSequenceTimer.observeField("fire", "onUsernameUpSequenceTimerFired")
 end sub
 
@@ -69,8 +66,9 @@ sub initStyle()
     m.settingsButton.headerBgColor = headerBgColor
     m.currentLibraryButton.headerBgColor = headerBgColor
     m.userMenuButton.headerBgColor = headerBgColor
-    m.yourStatsButton.headerBgColor = headerBgColor
-    m.logoutButton.headerBgColor = headerBgColor
+    m.accountDropdownMenu.headerBgColor = headerBgColor
+    m.libraryDropdownMenu.headerBgColor = headerBgColor
+    m.accountDropdownMenu.items = getAccountDropdownItems()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -165,13 +163,13 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if press = false then return false
 
     if isLibraryMenuOpen() then
-        if key = "up" then return focusLibraryMenuButtonByOffset(-1)
-        if key = "down" then return focusLibraryMenuButtonByOffset(1)
+        if key = "up" then return m.libraryDropdownMenu.callFunc("focusByOffset", -1)
+        if key = "down" then return m.libraryDropdownMenu.callFunc("focusByOffset", 1)
     end if
 
     if m.top.menuOpen = true then
-        if key = "up" then return focusUserMenuButtonByOffset(-1)
-        if key = "down" then return focusUserMenuButtonByOffset(1)
+        if key = "up" then return m.accountDropdownMenu.callFunc("focusByOffset", -1)
+        if key = "down" then return m.accountDropdownMenu.callFunc("focusByOffset", 1)
     end if
 
     if key = "up" then return trackUsernameUpSequence()
@@ -314,61 +312,6 @@ function getFocusedHeaderButtonIndex() as integer
 end function
 
 '-------------------------------------------------------------------------------
-' focusUserMenuButtonByOffset
-'-------------------------------------------------------------------------------
-function focusUserMenuButtonByOffset(offset as integer) as boolean
-    menuButtons = [m.yourStatsButton, m.logoutButton]
-    currentIndex = getFocusedUserMenuButtonIndex(menuButtons)
-    if currentIndex < 0 then
-        if m.yourStatsButton <> invalid then m.yourStatsButton.setFocus(true)
-        return true
-    end if
-
-    nextIndex = currentIndex + offset
-    lastIndex = menuButtons.Count() - 1
-
-    if nextIndex < 0 then
-        nextIndex = lastIndex
-    else if nextIndex > lastIndex then
-        nextIndex = 0
-    end if
-
-    nextButton = menuButtons[nextIndex]
-    if nextButton = invalid then return false
-
-    nextButton.setFocus(true)
-    return true
-end function
-
-'-------------------------------------------------------------------------------
-' focusLibraryMenuButtonByOffset
-'-------------------------------------------------------------------------------
-function focusLibraryMenuButtonByOffset(offset as integer) as boolean
-    if m.libraryMenuButtons = invalid or m.libraryMenuButtons.Count() = 0 then return false
-
-    currentIndex = getFocusedLibraryMenuButtonIndex()
-    if currentIndex < 0 then
-        focusCurrentLibraryMenuButton()
-        return true
-    end if
-
-    nextIndex = currentIndex + offset
-    lastIndex = m.libraryMenuButtons.Count() - 1
-
-    if nextIndex < 0 then
-        nextIndex = lastIndex
-    else if nextIndex > lastIndex then
-        nextIndex = 0
-    end if
-
-    nextItem = m.libraryMenuButtons[nextIndex]
-    if nextItem = invalid or nextItem.button = invalid then return false
-
-    nextItem.button.setFocus(true)
-    return true
-end function
-
-'-------------------------------------------------------------------------------
 ' onCloseMenuRequested
 '-------------------------------------------------------------------------------
 sub onCloseMenuRequested()
@@ -389,7 +332,7 @@ sub onLibrariesChanged()
     updateCurrentLibraryButton()
     rebuildFocusableHeaderButtons()
     updateNavGroupPosition()
-    rebuildLibraryMenu()
+    updateLibraryDropdownItems()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -453,7 +396,13 @@ end sub
 '-------------------------------------------------------------------------------
 sub onCurrentLibraryPressed()
     if hasLibraryChoices() = false then return
-    setLibraryMenuOpen(not isLibraryMenuOpen())
+    closeAccountMenu()
+    if m.libraryDropdownMenu = invalid then return
+
+    wasOpen = isLibraryMenuOpen()
+    m.libraryDropdownMenu.callFunc("toggleMenu")
+    syncMenuOpen()
+    if wasOpen = false and isLibraryMenuOpen() then focusCurrentLibraryMenuButton()
 end sub
 
 '-------------------------------------------------------------------------------
@@ -472,25 +421,43 @@ end sub
 ' onUserMenuPressed
 '-------------------------------------------------------------------------------
 sub onUserMenuPressed()
-    setLibraryMenuOpen(false)
-    setMenuOpen(not m.top.menuOpen)
-    if m.top.menuOpen then m.yourStatsButton.setFocus(true)
+    closeLibraryMenu()
+    if m.accountDropdownMenu = invalid then return
+
+    m.accountDropdownMenu.callFunc("toggleMenu")
+    syncMenuOpen()
 end sub
 
 '-------------------------------------------------------------------------------
-' onYourStatsPressed
+' onAccountDropdownItemSelected
 '-------------------------------------------------------------------------------
-sub onYourStatsPressed()
+sub onAccountDropdownItemSelected()
+    selectedItem = m.accountDropdownMenu.selectedItem
+    if selectedItem = invalid then return
+
     closeMenu()
-    m.top.yourStatsSelected = true
+    if selectedItem.id = "yourStats" then
+        m.top.yourStatsSelected = true
+    else if selectedItem.id = "logout" then
+        m.top.logoutSelected = true
+    end if
 end sub
 
 '-------------------------------------------------------------------------------
-' onLogoutPressed
+' onLibraryDropdownItemSelected
 '-------------------------------------------------------------------------------
-sub onLogoutPressed()
-    closeMenu()
-    m.top.logoutSelected = true
+sub onLibraryDropdownItemSelected()
+    selectedItem = m.libraryDropdownMenu.selectedItem
+    if selectedItem = invalid then return
+
+    closeLibraryMenu()
+    syncMenuOpen()
+    m.currentLibraryButton.setFocus(true)
+
+    m.top.currentLibrarySelected = {
+        id: selectedItem.id
+        name: selectedItem.text
+    }
 end sub
 
 '-------------------------------------------------------------------------------
@@ -499,10 +466,11 @@ end sub
 sub closeMenu()
 
     wasLibraryMenuOpen = isLibraryMenuOpen()
-    wasUserMenuOpen = m.top.menuOpen and wasLibraryMenuOpen = false
+    wasUserMenuOpen = isAccountMenuOpen()
     
-    setMenuOpen(false)
-    setLibraryMenuOpen(false)
+    closeAccountMenu()
+    closeLibraryMenu()
+    syncMenuOpen()
     
     if wasUserMenuOpen then
         m.userMenuButton.setFocus(true)
@@ -513,35 +481,38 @@ sub closeMenu()
 end sub
 
 '-------------------------------------------------------------------------------
-' setMenuOpen
+' closeAccountMenu
 '-------------------------------------------------------------------------------
-sub setMenuOpen(isOpen as boolean)
-    if isOpen then setLibraryMenuOpen(false)
-    m.top.menuOpen = isOpen
-    if m.menuPanel <> invalid then m.menuPanel.visible = isOpen
+sub closeAccountMenu()
+    if m.accountDropdownMenu <> invalid then m.accountDropdownMenu.callFunc("closeMenu")
 end sub
 
 '-------------------------------------------------------------------------------
-' setLibraryMenuOpen
+' closeLibraryMenu
 '-------------------------------------------------------------------------------
-sub setLibraryMenuOpen(isOpen as boolean)
-    if isOpen and hasLibraryChoices() = false then isOpen = false
+sub closeLibraryMenu()
+    if m.libraryDropdownMenu <> invalid then m.libraryDropdownMenu.callFunc("closeMenu")
+end sub
 
-    wasOpen = isLibraryMenuOpen()
-    if isOpen then setMenuOpen(false)
-    if m.libraryMenuPanel <> invalid then m.libraryMenuPanel.visible = isOpen
-    if isOpen or wasOpen then m.top.menuOpen = isOpen
-
-    if isOpen and m.libraryMenuButtons <> invalid and m.libraryMenuButtons.Count() > 0 then
-        focusCurrentLibraryMenuButton()
-    end if
+'-------------------------------------------------------------------------------
+' syncMenuOpen
+'-------------------------------------------------------------------------------
+sub syncMenuOpen()
+    m.top.menuOpen = isAccountMenuOpen() or isLibraryMenuOpen()
 end sub
 
 '-------------------------------------------------------------------------------
 ' isLibraryMenuOpen
 '-------------------------------------------------------------------------------
 function isLibraryMenuOpen() as boolean
-    return m.libraryMenuPanel <> invalid and m.libraryMenuPanel.visible = true
+    return m.libraryDropdownMenu <> invalid and m.libraryDropdownMenu.isOpen = true
+end function
+
+'-------------------------------------------------------------------------------
+' isAccountMenuOpen
+'-------------------------------------------------------------------------------
+function isAccountMenuOpen() as boolean
+    return m.accountDropdownMenu <> invalid and m.accountDropdownMenu.isOpen = true
 end function
 
 '-------------------------------------------------------------------------------
@@ -571,6 +542,16 @@ sub updateCurrentLibraryButton()
     m.currentLibraryButton.text = getCurrentLibraryName()
     m.currentLibraryButton.visible = hasLibraryChoices()
 end sub
+
+'-------------------------------------------------------------------------------
+' getAccountDropdownItems
+'-------------------------------------------------------------------------------
+function getAccountDropdownItems() as object
+    return [
+        { id: "yourStats", text: "Your Stats" }
+        { id: "logout", text: "Logout" }
+    ]
+end function
 
 '-------------------------------------------------------------------------------
 ' updateNavGroupPosition
@@ -609,135 +590,61 @@ function getCurrentLibraryName() as string
 end function
 
 '-------------------------------------------------------------------------------
-' rebuildLibraryMenu
+' updateLibraryDropdownItems
 '-------------------------------------------------------------------------------
-sub rebuildLibraryMenu()
-    if m.libraryMenuItems = invalid then return
-
-    childCount = m.libraryMenuItems.getChildCount()
-    if childCount > 0 then m.libraryMenuItems.removeChildrenIndex(childCount, 0)
-    m.libraryMenuButtons = []
-
+sub updateLibraryDropdownItems()
     libraries = m.top.libraries
-    if libraries = invalid then return
+    items = []
 
-    index = 0
-    for each library in libraries
-        if library <> invalid and library.id <> invalid then
-            button = CreateObject("roSGNode", "HeaderButton")
-            button.id = "libraryMenuButton" + index.ToStr()
-            button.translation = [0, index * 66]
-            button.buttonWidth = 300
-            button.buttonHeight = 56
-            button.textAlign = "left"
-            button.textInset = 18
-            button.text = FirstNonEmpty([library.name], "Library")
-            button.headerBgColor = m.headerBg.color
-            button.observeField("buttonSelected", "onLibraryMenuItemPressed")
-            m.libraryMenuItems.appendChild(button)
-            m.libraryMenuButtons.Push({
-                button: button
-                library: library
-            })
-            index = index + 1
-        end if
-    end for
+    if libraries <> invalid then
+        for each library in libraries
+            if library <> invalid and library.id <> invalid then
+                items.Push({
+                    id: library.id
+                    text: FirstNonEmpty([library.name], "Library")
+                    payload: library
+                })
+            end if
+        end for
+    end if
 
-    if m.libraryMenuBg <> invalid then m.libraryMenuBg.height = 36 + (index * 66)
+    if m.libraryDropdownMenu <> invalid then m.libraryDropdownMenu.items = items
 end sub
-
-'-------------------------------------------------------------------------------
-' onLibraryMenuItemPressed
-'-------------------------------------------------------------------------------
-sub onLibraryMenuItemPressed()
-    selectedLibrary = getFocusedLibraryMenuItem()
-    if selectedLibrary = invalid then return
-
-    setLibraryMenuOpen(false)
-    m.currentLibraryButton.setFocus(true)
-
-    m.top.currentLibrarySelected = {
-        id: selectedLibrary.id
-        name: selectedLibrary.name
-    }
-end sub
-
-'-------------------------------------------------------------------------------
-' getFocusedLibraryMenuItem
-'-------------------------------------------------------------------------------
-function getFocusedLibraryMenuItem() as dynamic
-    if m.libraryMenuButtons = invalid then return invalid
-
-    for each item in m.libraryMenuButtons
-        if item <> invalid and item.button <> invalid and item.button.isInFocusChain() then
-            return item.library
-        end if
-    end for
-
-    return invalid
-end function
-
-'-------------------------------------------------------------------------------
-' getFocusedLibraryMenuButtonIndex
-'-------------------------------------------------------------------------------
-function getFocusedLibraryMenuButtonIndex() as integer
-    if m.libraryMenuButtons = invalid then return -1
-
-    for i = 0 to m.libraryMenuButtons.Count() - 1
-        item = m.libraryMenuButtons[i]
-        if item <> invalid and item.button <> invalid and item.button.isInFocusChain() then return i
-    end for
-
-    return -1
-end function
 
 '-------------------------------------------------------------------------------
 ' focusCurrentLibraryMenuButton
 '-------------------------------------------------------------------------------
 sub focusCurrentLibraryMenuButton()
-    if m.libraryMenuButtons = invalid then return
+    if m.libraryDropdownMenu = invalid then return
 
-    fallbackButton = invalid
-    for each item in m.libraryMenuButtons
-        if item <> invalid and item.button <> invalid then
-            if fallbackButton = invalid then fallbackButton = item.button
-            if item.library <> invalid and item.library.id = m.top.currentLibraryId then
-                item.button.setFocus(true)
-                return
-            end if
+    if m.top.currentLibraryId <> invalid and m.top.currentLibraryId <> "" then
+        if m.libraryDropdownMenu.callFunc("focusItemById", m.top.currentLibraryId) then return
+    end if
+
+    libraries = m.top.libraries
+    if libraries <> invalid and libraries.Count() > 0 and libraries[0] <> invalid then
+        if libraries[0].id <> invalid then
+            if m.libraryDropdownMenu.callFunc("focusItemById", libraries[0].id) then return
         end if
-    end for
+    end if
 
-    if fallbackButton <> invalid then fallbackButton.setFocus(true)
+    m.libraryDropdownMenu.callFunc("focusFirstItem")
 end sub
 
 '-------------------------------------------------------------------------------
 ' isLibraryMenuInFocusChain
 '-------------------------------------------------------------------------------
 function isLibraryMenuInFocusChain() as boolean
-    return getFocusedLibraryMenuItem() <> invalid
+    if m.libraryDropdownMenu = invalid then return false
+
+    return m.libraryDropdownMenu.callFunc("isMenuFocused")
 end function
 
 '-------------------------------------------------------------------------------
 ' isUserMenuInFocusChain
 '-------------------------------------------------------------------------------
 function isUserMenuInFocusChain() as boolean
-    if m.yourStatsButton <> invalid and m.yourStatsButton.isInFocusChain() then return true
-    if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return true
+    if m.accountDropdownMenu = invalid then return false
 
-    return false
-end function
-
-'-------------------------------------------------------------------------------
-' getFocusedUserMenuButtonIndex
-'-------------------------------------------------------------------------------
-function getFocusedUserMenuButtonIndex(menuButtons as object) as integer
-    if menuButtons = invalid then return -1
-
-    for i = 0 to menuButtons.Count() - 1
-        button = menuButtons[i]
-        if button <> invalid and button.isInFocusChain() then return i
-    end for
-
-    return -1
+    return m.accountDropdownMenu.callFunc("isMenuFocused")
 end function
