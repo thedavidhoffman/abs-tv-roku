@@ -20,7 +20,7 @@
       <HomePage id="homePage" visible="false" />
       <Library id="library" visible="false" />
       <Series id="seriesPage" visible="false" />
-      <YourStats id="yourStatsPage" visible="false" />
+      <Group id="dynamicPageHost" />
       <StatusLabel id="statusLabel" visible="false" />
       <Header id="header" visible="false" />
 

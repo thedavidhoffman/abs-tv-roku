@@ -30,7 +30,8 @@ sub initReferences()
     m.search = m.top.findNode("search")
     m.seriesPage = m.top.findNode("seriesPage")
     m.statusLabel = m.top.findNode("statusLabel")
-    m.yourStatsPage = m.top.findNode("yourStatsPage")
+    m.dynamicPageHost = m.top.findNode("dynamicPageHost")
+    m.yourStatsPage = invalid
 end sub
 
 '-------------------------------------------------------------------------------
@@ -106,10 +107,6 @@ sub initHandlers()
     m.seriesPage.observeField("statusMessage", "seriesHandleStatusMessageChanged")
     m.seriesPage.observeField("upFromFirstRowSelected", "seriesHandleUpFromFirstRowSelected")
 
-    m.yourStatsPage.observeField("backSelected", "yourStatsHandleBackSelected")
-    m.yourStatsPage.observeField("errorResponse", "yourStatsHandleError")
-    m.yourStatsPage.observeField("statusMessage", "yourStatsHandleStatusMessageChanged")
-    
 end sub
 
 '-------------------------------------------------------------------------------
@@ -303,7 +300,6 @@ sub navShowApp()
     m.homePage.loadRequest = loadRequest
     m.library.loadRequest = loadRequest
     m.seriesPage.loadRequest = loadRequest
-    m.yourStatsPage.loadRequest = loadRequest
     
     navShowHomePage()
     focusHomePage()
@@ -375,6 +371,7 @@ end sub
 ' navShowYourStatsPage
 '-------------------------------------------------------------------------------
 sub navShowYourStatsPage()
+    ensureYourStatsPage()
     if m.homePage <> invalid then m.homePage.visible = false
     if m.library <> invalid then
         m.library.visible = false
@@ -383,6 +380,22 @@ sub navShowYourStatsPage()
     if m.seriesPage <> invalid then m.seriesPage.visible = false
     if m.yourStatsPage <> invalid then m.yourStatsPage.visible = true
     statusSetMessage("")
+end sub
+
+'-------------------------------------------------------------------------------
+' ensureYourStatsPage
+'-------------------------------------------------------------------------------
+sub ensureYourStatsPage()
+    if m.yourStatsPage <> invalid then return
+
+    m.yourStatsPage = CreateObject("roSGNode", "YourStats")
+    m.yourStatsPage.id = "yourStatsPage"
+    m.yourStatsPage.visible = false
+    m.yourStatsPage.observeField("backSelected", "yourStatsHandleBackSelected")
+    m.yourStatsPage.observeField("errorResponse", "yourStatsHandleError")
+    m.yourStatsPage.observeField("statusMessage", "yourStatsHandleStatusMessageChanged")
+    m.yourStatsPage.loadRequest = buildSessionLoadRequest()
+    m.dynamicPageHost.appendChild(m.yourStatsPage)
 end sub
 
 '-------------------------------------------------------------------------------
