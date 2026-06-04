@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="StatCard" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/YourStats/StatCard/StatCard.brs" />
+  <interface>
+    <field id="valueText" type="string" onChange="onDataChanged" />
+    <field id="labelText" type="string" onChange="onDataChanged" />
+  </interface>
+  <children>
+    <Rectangle id="background" width="278" height="128" color="0xFFFFFF10" />
+    <Label
+      id="valueLabel"
+      translation="[22,18]"
+      width="234"
+      height="58"
+      horizAlign="left"
+      vertAlign="center"
+      color="0xF3F7FBFF"
+      font="font:LargeBoldSystemFont" />
+    <Label
+      id="textLabel"
+      translation="[22,78]"
+      width="244"
+      height="32"
+      horizAlign="left"
+      vertAlign="center"
+      color="0x8DA0B5FF"
+      font="font:TinySystemFont" />
+  </children>
+</component>

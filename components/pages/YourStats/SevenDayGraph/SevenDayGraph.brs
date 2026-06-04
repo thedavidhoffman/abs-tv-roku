@@ -103,7 +103,7 @@ sub renderGrid(axisMax as integer)
         m.gridLayer.appendChild(line)
 
         label = CreateObject("roSGNode", "Label")
-        label.translation = [0, y - 16]
+        label.translation = [-10, y - 16]
         label.width = m.layoutState.left - 8
         label.height = 32
         label.horizAlign = "right"

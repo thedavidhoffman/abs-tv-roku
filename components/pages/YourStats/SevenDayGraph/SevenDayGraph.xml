@@ -18,7 +18,6 @@
       text="Minutes Listened (last 7 days)"
       horizAlign="left"
       vertAlign="center"
-      color="0xF3F7FBFF"
       font="font:LargeBoldSystemFont" />
     <Group id="gridLayer" />
     <Group id="lineLayer" />

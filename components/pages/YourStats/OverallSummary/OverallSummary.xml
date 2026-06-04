@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="OverallSummary" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/String.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Format.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/YourStats/OverallSummary/OverallSummary.brs" />
+  <interface>
+    <field id="stats" type="assocarray" onChange="onStatsChanged" />
+  </interface>
+  <children>
+    <StatCard id="streakCard" translation="[0,0]" labelText="Days in a row" />
+    <StatCard id="daysCard" translation="[309,0]" labelText="Days listened" />
+    <StatCard id="minutesCard" translation="[618,0]" labelText="Total minutes" />
+  </children>
+</component>

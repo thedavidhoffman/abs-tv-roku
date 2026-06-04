@@ -2,77 +2,13 @@
 <component name="WeeklySummary" extends="Group">
   <script type="text/brightscript" uri="pkg:/source/String.brs" />
   <script type="text/brightscript" uri="pkg:/source/Format.brs" />
-  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
   <script type="text/brightscript" uri="pkg:/components/pages/YourStats/WeeklySummary/WeeklySummary.brs" />
   <interface>
     <field id="stats" type="assocarray" onChange="onStatsChanged" />
   </interface>
   <children>
-    <Group id="totalGroup" translation="[0,0]">
-      <Rectangle width="278" height="128" color="0xFFFFFF10" />
-      <Label
-        id="totalValueLabel"
-        translation="[22,18]"
-        width="234"
-        height="58"
-        horizAlign="left"
-        vertAlign="center"
-        color="0xF3F7FBFF"
-        font="font:LargeBoldSystemFont" />
-      <Label
-        id="totalTextLabel"
-        translation="[22,78]"
-        width="234"
-        height="32"
-        text="Week total minutes"
-        horizAlign="left"
-        vertAlign="center"
-        color="0x8DA0B5FF"
-        font="font:TinySystemFont" />
-    </Group>
-    <Group id="averageGroup" translation="[309,0]">
-      <Rectangle width="278" height="128" color="0xFFFFFF10" />
-      <Label
-        id="averageValueLabel"
-        translation="[22,18]"
-        width="234"
-        height="58"
-        horizAlign="left"
-        vertAlign="center"
-        color="0xF3F7FBFF"
-        font="font:LargeBoldSystemFont" />
-      <Label
-        id="averageTextLabel"
-        translation="[22,78]"
-        width="244"
-        height="32"
-        text="Daily average minutes"
-        horizAlign="left"
-        vertAlign="center"
-        color="0x8DA0B5FF"
-        font="font:TinySystemFont" />
-    </Group>
-    <Group id="bestGroup" translation="[618,0]">
-      <Rectangle width="278" height="128" color="0xFFFFFF10" />
-      <Label
-        id="bestValueLabel"
-        translation="[22,18]"
-        width="234"
-        height="58"
-        horizAlign="left"
-        vertAlign="center"
-        color="0xF3F7FBFF"
-        font="font:LargeBoldSystemFont" />
-      <Label
-        id="bestTextLabel"
-        translation="[22,78]"
-        width="234"
-        height="32"
-        text="Best day minutes"
-        horizAlign="left"
-        vertAlign="center"
-        color="0x8DA0B5FF"
-        font="font:TinySystemFont" />
-    </Group>
+    <StatCard id="totalCard" translation="[0,0]" labelText="Week total minutes" />
+    <StatCard id="averageCard" translation="[309,0]" labelText="Daily average minutes" />
+    <StatCard id="bestCard" translation="[618,0]" labelText="Best day minutes" />
   </children>
 </component>

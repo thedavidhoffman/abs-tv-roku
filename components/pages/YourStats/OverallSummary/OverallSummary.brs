@@ -10,9 +10,9 @@ end sub
 ' initReferences
 '-------------------------------------------------------------------------------
 sub initReferences()
-    m.totalCard = m.top.findNode("totalCard")
-    m.averageCard = m.top.findNode("averageCard")
-    m.bestCard = m.top.findNode("bestCard")
+    m.streakCard = m.top.findNode("streakCard")
+    m.daysCard = m.top.findNode("daysCard")
+    m.minutesCard = m.top.findNode("minutesCard")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -26,33 +26,81 @@ end sub
 ' renderSummary
 '-------------------------------------------------------------------------------
 sub renderSummary()
-    summary = buildWeeklySummary(m.top.stats)
-    m.totalCard.valueText = formatNumber(summary.totalMinutes)
-    m.averageCard.valueText = formatNumber(summary.averageMinutes)
-    m.bestCard.valueText = formatNumber(summary.bestMinutes)
+    summary = buildOverallSummary(m.top.stats)
+    m.streakCard.valueText = formatNumber(summary.daysInARow)
+    m.daysCard.valueText = formatNumber(summary.daysListened)
+    m.minutesCard.valueText = formatNumber(summary.totalMinutes)
 end sub
 
 '-------------------------------------------------------------------------------
-' buildWeeklySummary
+' buildOverallSummary
 '-------------------------------------------------------------------------------
-function buildWeeklySummary(stats as dynamic) as object
-    points = buildSevenDayPoints(stats)
-    totalMinutes = 0
-    bestMinutes = 0
+function buildOverallSummary(stats as dynamic) as object
+    days = invalid
+    if stats <> invalid then days = stats.days
 
-    for each point in points
-        totalMinutes = totalMinutes + point.minutes
-        if point.minutes > bestMinutes then bestMinutes = point.minutes
+    dates = getSortedDateKeys(days)
+    totalSeconds = getTotalSeconds(stats, days, dates)
+    daysListened = 0
+
+    for each dateText in dates
+        if getSecondsForDate(days, dateText) > 0 then daysListened = daysListened + 1
     end for
 
-    averageMinutes = 0
-    if points.Count() > 0 then averageMinutes = int((totalMinutes + (points.Count() / 2)) / points.Count())
-
     return {
-        totalMinutes: totalMinutes
-        averageMinutes: averageMinutes
-        bestMinutes: bestMinutes
+        daysInARow: getDaysInARow(days, dates)
+        daysListened: daysListened
+        totalMinutes: int(totalSeconds / 60)
     }
+end function
+
+'-------------------------------------------------------------------------------
+' getTotalSeconds
+'-------------------------------------------------------------------------------
+function getTotalSeconds(stats as dynamic, days as dynamic, dates as object) as integer
+    if stats <> invalid and stats.totalTime <> invalid then return int(stats.totalTime)
+
+    totalSeconds = 0
+    for each dateText in dates
+        totalSeconds = totalSeconds + getSecondsForDate(days, dateText)
+    end for
+
+    return totalSeconds
+end function
+
+'-------------------------------------------------------------------------------
+' getDaysInARow
+'-------------------------------------------------------------------------------
+function getDaysInARow(days as dynamic, dates as object) as integer
+    if dates.Count() = 0 then return 0
+
+    latestListeningDate = ""
+    for i = dates.Count() - 1 to 0 step -1
+        if getSecondsForDate(days, dates[i]) > 0 then
+            latestListeningDate = dates[i]
+            exit for
+        end if
+    end for
+
+    if latestListeningDate = "" then return 0
+
+    streak = 0
+    serial = dateToSerial(latestListeningDate)
+    while getSecondsForDate(days, serialToDate(serial)) > 0
+        streak = streak + 1
+        serial = serial - 1
+    end while
+
+    return streak
+end function
+
+'-------------------------------------------------------------------------------
+' getSecondsForDate
+'-------------------------------------------------------------------------------
+function getSecondsForDate(days as dynamic, dateText as string) as integer
+    if days = invalid or days[dateText] = invalid then return 0
+
+    return int(days[dateText])
 end function
 
 '-------------------------------------------------------------------------------
@@ -68,48 +116,6 @@ function formatNumber(value as integer) as string
     end while
 
     return text + formatted
-end function
-
-'-------------------------------------------------------------------------------
-' buildSevenDayPoints
-'-------------------------------------------------------------------------------
-function buildSevenDayPoints(stats as dynamic) as object
-    days = invalid
-    if stats <> invalid then days = stats.days
-
-    dates = getSortedDateKeys(days)
-    if dates.Count() = 0 then return buildEmptyPoints()
-
-    latestSerial = dateToSerial(dates[dates.Count() - 1])
-    points = []
-    for offset = 6 to 0 step -1
-        serial = latestSerial - offset
-        dateText = serialToDate(serial)
-        seconds = 0
-        if days <> invalid and days[dateText] <> invalid then seconds = int(days[dateText])
-        points.Push({ minutes: roundSecondsToMinutes(seconds) })
-    end for
-
-    return points
-end function
-
-'-------------------------------------------------------------------------------
-' roundSecondsToMinutes
-'-------------------------------------------------------------------------------
-function roundSecondsToMinutes(seconds as integer) as integer
-    return int((seconds + 30) / 60)
-end function
-
-'-------------------------------------------------------------------------------
-' buildEmptyPoints
-'-------------------------------------------------------------------------------
-function buildEmptyPoints() as object
-    points = []
-    for i = 0 to 6
-        points.Push({ minutes: 0 })
-    end for
-
-    return points
 end function
 
 '-------------------------------------------------------------------------------

@@ -16,8 +16,9 @@
   </interface>
   <children>
     <Group id="statsContent">
-      <SevenDayGraph id="sevenDayGraph" translation="[64,144]" graphWidth="896" graphHeight="560" />
-      <WeeklySummary id="weeklySummary" translation="[64,730]" />
+      <OverallSummary id="overallSummary" translation="[64,144]" />
+      <SevenDayGraph id="sevenDayGraph" translation="[64,300]" graphWidth="896" graphHeight="560" />
+      <WeeklySummary id="weeklySummary" translation="[64,880]" />
       <RecentSessions id="recentSessions" translation="[1000,144]" />
     </Group>
     <AppTask id="yourStatsApiTask" />

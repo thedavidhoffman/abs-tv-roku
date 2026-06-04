@@ -16,6 +16,7 @@ end sub
 sub initReferences()
     m.titleLabel = m.top.findNode("titleLabel")
     m.statsContent = m.top.findNode("statsContent")
+    m.overallSummary = m.top.findNode("overallSummary")
     m.sevenDayGraph = m.top.findNode("sevenDayGraph")
     m.weeklySummary = m.top.findNode("weeklySummary")
     m.recentSessions = m.top.findNode("recentSessions")
@@ -95,6 +96,7 @@ sub onYourStatsApiResponse()
     end if
 
     m.top.stats = response.stats
+    if m.overallSummary <> invalid then m.overallSummary.stats = response.stats
     if m.sevenDayGraph <> invalid then m.sevenDayGraph.stats = response.stats
     if m.weeklySummary <> invalid then m.weeklySummary.stats = response.stats
     if m.recentSessions <> invalid then m.recentSessions.sessions = getRecentSessions(response.stats)
