@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="RecentSessionListItem" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Format.brs" />
+  <script type="text/brightscript" uri="pkg:/source/String.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/YourStats/RecentSessions/RecentSessionListItem.brs" />
+  <interface>
+    <field id="itemContent" type="node" onChange="showContent" />
+    <field id="focusPercent" type="float" onChange="focusPercentChanged" />
+  </interface>
+  <children>
+    <Rectangle
+      id="focusBg"
+      width="860"
+      height="300"
+      color="0xFFFFFF14"
+      visible="false" />
+    <ItemPoster id="poster" translation="[10,10]" posterWidth="280" showText="false" showProgressBar="false" />
+    <Label
+      id="titleLabel"
+      translation="[314,39]"
+      width="530"
+      height="44"
+      maxLines="1"
+      color="0xF3F7FBFF"
+      font="font:MediumBoldSystemFont" />
+    <Label
+      id="authorLabel"
+      translation="[314,87]"
+      width="530"
+      height="36"
+      maxLines="1"
+      color="0xB7C5D4FF"
+      font="font:SmallSystemFont" />
+    <Label
+      id="dateLabel"
+      translation="[314,133]"
+      width="530"
+      height="32"
+      maxLines="1"
+      color="0x8DA0B5FF"
+      font="font:TinySystemFont" />
+    <Label
+      id="durationLabel"
+      translation="[314,195]"
+      width="530"
+      height="44"
+      maxLines="1"
+      color="0xF3F7FBFF"
+      font="font:MediumBoldSystemFont" />
+    <Label
+      id="deviceLabel"
+      translation="[314,239]"
+      width="530"
+      height="30"
+      maxLines="1"
+      color="0x8DA0B5FF"
+      font="font:TinySystemFont" />
+  </children>
+</component>

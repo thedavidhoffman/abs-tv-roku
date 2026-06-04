@@ -1,0 +1,262 @@
+'-------------------------------------------------------------------------------
+' init
+'-------------------------------------------------------------------------------
+sub init()
+    initReferences()
+    initStyle()
+    renderSessions()
+end sub
+
+'-------------------------------------------------------------------------------
+' initReferences
+'-------------------------------------------------------------------------------
+sub initReferences()
+    m.titleLabel = m.top.findNode("titleLabel")
+    m.sessionsList = m.top.findNode("sessionsList")
+end sub
+
+'-------------------------------------------------------------------------------
+' initStyle
+'-------------------------------------------------------------------------------
+sub initStyle()
+    palette = Color()
+    m.titleLabel.color = palette.text.heading
+end sub
+
+'-------------------------------------------------------------------------------
+' onDataChanged
+'-------------------------------------------------------------------------------
+sub onDataChanged()
+    renderSessions()
+end sub
+
+'-------------------------------------------------------------------------------
+' renderSessions
+'-------------------------------------------------------------------------------
+sub renderSessions()
+    if m.sessionsList = invalid then return
+
+    root = CreateObject("roSGNode", "ContentNode")
+    sessions = m.top.sessions
+    if sessions = invalid then sessions = []
+
+    for each session in sessions
+        if session <> invalid then root.appendChild(buildSessionNode(session))
+    end for
+
+    m.sessionsList.content = root
+end sub
+
+'-------------------------------------------------------------------------------
+' focusRecentSessions
+'-------------------------------------------------------------------------------
+function focusRecentSessions() as boolean
+    if canFocusSessionsList() = false then return false
+
+    m.sessionsList.setFocus(true)
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' focusFirstRecentSession
+'-------------------------------------------------------------------------------
+function focusFirstRecentSession() as boolean
+    if canFocusSessionsList() = false then return false
+
+    m.sessionsList.jumpToItem = 0
+    m.sessionsList.setFocus(true)
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' canFocusSessionsList
+'-------------------------------------------------------------------------------
+function canFocusSessionsList() as boolean
+    if m.sessionsList = invalid then return false
+    if m.sessionsList.content = invalid then return false
+    if m.sessionsList.content.getChildCount() <= 0 then return false
+
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' isListFocused
+'-------------------------------------------------------------------------------
+function isListFocused() as boolean
+    return m.sessionsList <> invalid and m.sessionsList.isInFocusChain()
+end function
+
+'-------------------------------------------------------------------------------
+' buildSessionNode
+'-------------------------------------------------------------------------------
+function buildSessionNode(session as dynamic) as object
+    node = CreateObject("roSGNode", "ContentNode")
+    title = getSessionTitle(session)
+    author = getSessionAuthor(session)
+    coverUrl = getSessionCoverUrl(session)
+
+    node.title = title
+    node.HDPosterUrl = coverUrl
+    node.SDPosterUrl = coverUrl
+    node.AddFields({
+        author: author
+        posterWidth: 280
+        showSeriesSequence: false
+        showText: false
+        showProgressBar: false
+        sessionDateText: getSessionTimestamp(session)
+        sessionDurationText: formatListeningDuration(session.timeListening)
+        sessionDeviceText: getDeviceText(session.deviceInfo)
+    })
+
+    return node
+end function
+
+'-------------------------------------------------------------------------------
+' getDeviceText
+'-------------------------------------------------------------------------------
+function getDeviceText(deviceInfo as dynamic) as string
+    if deviceInfo = invalid then return ""
+
+    clientName = FirstNonEmpty([deviceInfo.clientName], "")
+    model = FirstNonEmpty([deviceInfo.model], "")
+
+    if clientName <> "" and model <> "" then return clientName + " • " + model
+
+    return clientName + model
+end function
+
+'-------------------------------------------------------------------------------
+' getSessionTitle
+'-------------------------------------------------------------------------------
+function getSessionTitle(session as dynamic) as string
+    metadata = getSessionMetadata(session)
+    return FirstNonEmpty([session.displayTitle, metadata.title], "Untitled")
+end function
+
+'-------------------------------------------------------------------------------
+' getSessionAuthor
+'-------------------------------------------------------------------------------
+function getSessionAuthor(session as dynamic) as string
+    metadata = getSessionMetadata(session)
+    joinedAuthors = getAuthorNamesText(metadata.authors)
+    return FirstNonEmpty([session.displayAuthor, metadata.authorName, metadata.author, joinedAuthors], "Unknown")
+end function
+
+'-------------------------------------------------------------------------------
+' getAuthorNamesText
+'-------------------------------------------------------------------------------
+function getAuthorNamesText(authors as dynamic) as string
+    if authors = invalid then return ""
+    if Type(authors) <> "roArray" then return String_GetJoinedText(authors)
+
+    names = []
+    for each author in authors
+        if author <> invalid then
+            if Type(author) = "roAssociativeArray" then
+                name = FirstNonEmpty([author.name], "")
+            else
+                name = String_Trim(author.ToStr())
+            end if
+
+            if name <> "" then names.Push(name)
+        end if
+    end for
+
+    return String_GetJoinedText(names)
+end function
+
+'-------------------------------------------------------------------------------
+' getSessionMetadata
+'-------------------------------------------------------------------------------
+function getSessionMetadata(session as dynamic) as dynamic
+    if session <> invalid and session.mediaMetadata <> invalid then return session.mediaMetadata
+
+    return {}
+end function
+
+'-------------------------------------------------------------------------------
+' getSessionCoverUrl
+'-------------------------------------------------------------------------------
+function getSessionCoverUrl(session as dynamic) as string
+    request = m.top.loadRequest
+    if request = invalid then return "pkg:/images/placeholder-cover.png"
+
+    itemId = invalid
+    if session <> invalid then itemId = session.libraryItemId
+    return Cover_BuildUrl(request.server, request.token, itemId, 280)
+end function
+
+'-------------------------------------------------------------------------------
+' getSessionTimestamp
+'-------------------------------------------------------------------------------
+function getSessionTimestamp(session as dynamic) as string
+    if session = invalid then return ""
+
+    epochValue = session.startedAt
+    if epochValue = invalid then epochValue = session.updatedAt
+    if epochValue <> invalid then return formatEpochTimestamp(epochValue)
+
+    return SafeString(session.date, "")
+end function
+
+'-------------------------------------------------------------------------------
+' formatEpochTimestamp
+'-------------------------------------------------------------------------------
+function formatEpochTimestamp(value as dynamic) as string
+    seconds = Val(value.ToStr())
+    if seconds <= 0 then return ""
+    if seconds > 9999999999 then seconds = seconds / 1000
+
+    dateTime = CreateObject("roDateTime")
+    dateTime.FromSeconds(int(seconds))
+    dateTime.ToLocalTime()
+
+    return pad2(dateTime.GetMonth()) + "/" + pad2(dateTime.GetDayOfMonth()) + "/" + dateTime.GetYear().ToStr() + " • " + formatHour(dateTime.GetHours()) + ":" + pad2(dateTime.GetMinutes()) + " " + getMeridiem(dateTime.GetHours())
+end function
+
+'-------------------------------------------------------------------------------
+' formatListeningDuration
+'-------------------------------------------------------------------------------
+function formatListeningDuration(secondsValue as dynamic) as string
+    seconds = 0
+    if secondsValue <> invalid then seconds = int(Val(secondsValue.ToStr()))
+
+    minutes = int(seconds / 60)
+    if minutes < 1 and seconds > 0 then minutes = 1
+
+    if minutes < 60 then return minutes.ToStr() + " min"
+
+    hours = int(minutes / 60)
+    remainingMinutes = minutes mod 60
+    return hours.ToStr() + " hrs " + remainingMinutes.ToStr() + " min"
+end function
+
+'-------------------------------------------------------------------------------
+' formatHour
+'-------------------------------------------------------------------------------
+function formatHour(hour as integer) as string
+    displayHour = hour mod 12
+    if displayHour = 0 then displayHour = 12
+
+    return displayHour.ToStr()
+end function
+
+'-------------------------------------------------------------------------------
+' getMeridiem
+'-------------------------------------------------------------------------------
+function getMeridiem(hour as integer) as string
+    if hour >= 12 then return "PM"
+
+    return "AM"
+end function
+
+'-------------------------------------------------------------------------------
+' pad2
+'-------------------------------------------------------------------------------
+function pad2(value as dynamic) as string
+    text = int(Val(value.ToStr())).ToStr()
+    if Len(text) < 2 then return "0" + text
+
+    return text
+end function

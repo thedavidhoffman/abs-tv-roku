@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="RecentSessions" extends="Group" focusable="true">
+  <script type="text/brightscript" uri="pkg:/source/Format.brs" />
+  <script type="text/brightscript" uri="pkg:/source/String.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Cover.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/YourStats/RecentSessions/RecentSessions.brs" />
+  <interface>
+    <field id="loadRequest" type="assocarray" onChange="onDataChanged" />
+    <field id="sessions" type="array" onChange="onDataChanged" />
+    <function name="focusRecentSessions" />
+    <function name="focusFirstRecentSession" />
+    <function name="isListFocused" />
+  </interface>
+  <children>
+    <Label
+      id="titleLabel"
+      translation="[0,0]"
+      width="856"
+      height="48"
+      text="Recent Sessions"
+      horizAlign="left"
+      vertAlign="center"
+      color="0xF3F7FBFF"
+      font="font:LargeBoldSystemFont" />
+    <MarkupList
+      id="sessionsList"
+      translation="[0,72]"
+      itemComponentName="RecentSessionListItem"
+      itemSize="[860,300]"
+      numRows="3"
+      drawFocusFeedback="false"
+      vertFocusAnimationStyle="fixedFocus" />
+  </children>
+</component>

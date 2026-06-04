@@ -249,7 +249,7 @@ function __BuildPlaybackStartBody(forceTranscode = false as boolean, forceDirect
     return {
         deviceInfo: {
             clientName: "ABSTV"
-            clientVersion: "0.1.0"
+            clientVersion: "1.1.2"
             manufacturer: "Roku"
             model: modelDisplayName + " " + model
         }

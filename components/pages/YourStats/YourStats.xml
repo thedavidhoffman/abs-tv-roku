@@ -15,17 +15,10 @@
     <function name="loadStats" />
   </interface>
   <children>
-    <Label
-      id="titleLabel"
-      translation="[64,144]"
-      width="1792"
-      height="56"
-      text="Your Stats"
-      horizAlign="left"
-      vertAlign="center"
-      color="0xF6F7FBFF"
-      font="font:LargeBoldSystemFont" />
-    <SevenDayGraph id="sevenDayGraph" translation="[64,220]" graphWidth="896" graphHeight="560" />
+    <Group id="statsContent">
+      <SevenDayGraph id="sevenDayGraph" translation="[64,144]" graphWidth="896" graphHeight="560" />
+      <RecentSessions id="recentSessions" translation="[1000,144]" />
+    </Group>
     <AppTask id="yourStatsApiTask" />
   </children>
 </component>

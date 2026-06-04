@@ -15,7 +15,9 @@ end sub
 '-------------------------------------------------------------------------------
 sub initReferences()
     m.titleLabel = m.top.findNode("titleLabel")
+    m.statsContent = m.top.findNode("statsContent")
     m.sevenDayGraph = m.top.findNode("sevenDayGraph")
+    m.recentSessions = m.top.findNode("recentSessions")
     m.yourStatsApiTask = m.top.findNode("yourStatsApiTask")
 end sub
 
@@ -26,6 +28,7 @@ sub initValues()
     m.requestState = {
         loadRequest: invalid
         isLoading: false
+        hasFocusedInitialSession: false
     }
 end sub
 
@@ -49,6 +52,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub onLoadRequestChanged()
     m.requestState.loadRequest = m.top.loadRequest
+    if m.recentSessions <> invalid then m.recentSessions.loadRequest = m.top.loadRequest
 end sub
 
 '-------------------------------------------------------------------------------
@@ -64,7 +68,8 @@ sub loadStats()
     if m.yourStatsApiTask = invalid then return
 
     m.requestState.isLoading = true
-    m.top.statusMessage = "Loading..."
+    m.requestState.hasFocusedInitialSession = false
+    setStatus("Loading...")
     m.yourStatsApiTask.request = {
         action: "loadYourStats"
         server: loadRequest.server
@@ -83,22 +88,73 @@ sub onYourStatsApiResponse()
     m.requestState.isLoading = false
 
     if response.ok <> true then
-        m.top.statusMessage = SafeString(response.errorMessage, "Unable to load your stats.")
+        setStatus(SafeString(response.errorMessage, "Unable to load your stats."))
         m.top.errorResponse = response
         return
     end if
 
     m.top.stats = response.stats
     if m.sevenDayGraph <> invalid then m.sevenDayGraph.stats = response.stats
-    m.top.statusMessage = ""
+    if m.recentSessions <> invalid then m.recentSessions.sessions = getRecentSessions(response.stats)
+    setStatus("")
+    if m.top.visible = true and m.requestState.hasFocusedInitialSession = false then
+        if focusFirstRecentSession() then m.requestState.hasFocusedInitialSession = true
+    end if
 end sub
+
+'-------------------------------------------------------------------------------
+' setStatus
+'-------------------------------------------------------------------------------
+sub setStatus(message as dynamic)
+    text = SafeString(message, "")
+    m.top.statusMessage = text
+    if m.statsContent <> invalid then m.statsContent.visible = (text = "")
+end sub
+
+'-------------------------------------------------------------------------------
+' getRecentSessions
+'-------------------------------------------------------------------------------
+function getRecentSessions(stats as dynamic) as object
+    if stats <> invalid and stats.recentSessions <> invalid then return stats.recentSessions
+
+    return []
+end function
 
 '-------------------------------------------------------------------------------
 ' focusYourStats
 '-------------------------------------------------------------------------------
 function focusYourStats() as boolean
+    if focusRecentSessions() then return true
+
     m.top.setFocus(true)
     return true
+end function
+
+'-------------------------------------------------------------------------------
+' focusRecentSessions
+'-------------------------------------------------------------------------------
+function focusRecentSessions() as boolean
+    if m.recentSessions = invalid then return false
+
+    return m.recentSessions.callFunc("focusRecentSessions")
+end function
+
+'-------------------------------------------------------------------------------
+' focusFirstRecentSession
+'-------------------------------------------------------------------------------
+function focusFirstRecentSession() as boolean
+    if m.recentSessions = invalid then return false
+
+    return m.recentSessions.callFunc("focusFirstRecentSession")
+end function
+
+'-------------------------------------------------------------------------------
+' isRecentSessionsFocused
+'-------------------------------------------------------------------------------
+function isRecentSessionsFocused() as boolean
+    if m.recentSessions = invalid then return false
+
+    return m.recentSessions.callFunc("isListFocused")
 end function
 
 '-------------------------------------------------------------------------------
@@ -110,6 +166,10 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if key = "back" or key = "up" then
         m.top.backSelected = true
         return true
+    end if
+
+    if key = "right" or key = "down" then
+        if isRecentSessionsFocused() = false and focusRecentSessions() then return true
     end if
 
     return false
