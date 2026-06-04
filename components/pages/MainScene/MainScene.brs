@@ -164,6 +164,7 @@ end sub
 sub authShowLogin(message as string)
     m.login.visible = true
     m.authenticatedContent.visible = false
+    resetDynamicPages()
     headerCloseMenu()
     m.login.statusMessage = message
     m.login.callFunc("activate")
@@ -287,6 +288,7 @@ sub navShowApp()
     
     m.login.visible = false
     m.authenticatedContent.visible = true
+    resetDynamicPages()
     headerCloseMenu()
 
     loadRequest = buildSessionLoadRequest()
@@ -304,6 +306,15 @@ sub navShowApp()
     navShowHomePage()
     focusHomePage()
 
+end sub
+
+'-------------------------------------------------------------------------------
+' resetDynamicPages
+'-------------------------------------------------------------------------------
+sub resetDynamicPages()
+    m.yourStatsPage = invalid
+    childCount = m.dynamicPageHost.getChildCount()
+    if childCount > 0 then m.dynamicPageHost.removeChildrenIndex(childCount, 0)
 end sub
 
 '-------------------------------------------------------------------------------
