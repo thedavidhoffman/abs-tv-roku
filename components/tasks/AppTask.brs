@@ -30,6 +30,8 @@ sub executeRequest()
         m.top.response = InProgress_Load(request)
     else if action = "loadPersonalized" then
         m.top.response = Personalized_Load(request)
+    else if action = "loadYourStats" then
+        m.top.response = YourStats_Load(request)
     else if action = "startPlayback" then
         m.top.response = Playback_Start(request)
     else if action = "syncPlaybackSession" then

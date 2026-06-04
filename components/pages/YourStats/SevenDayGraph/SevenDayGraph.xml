@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="SevenDayGraph" extends="Group">
+  <script type="text/brightscript" uri="pkg:/source/Format.brs" />
+  <script type="text/brightscript" uri="pkg:/source/String.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/YourStats/SevenDayGraph/SevenDayGraph.brs" />
+  <interface>
+    <field id="stats" type="assocarray" onChange="onStatsChanged" />
+    <field id="graphWidth" type="float" value="896" onChange="onDimensionsChanged" />
+    <field id="graphHeight" type="float" value="560" onChange="onDimensionsChanged" />
+  </interface>
+  <children>
+    <Label
+      id="titleLabel"
+      translation="[0,0]"
+      width="896"
+      height="48"
+      text="Minutes Listening (last 7 days)"
+      horizAlign="left"
+      vertAlign="center"
+      color="0xF3F7FBFF"
+      font="font:LargeBoldSystemFont" />
+    <Group id="gridLayer" />
+    <Group id="lineLayer" />
+    <Group id="markerLayer" />
+    <Group id="labelLayer" />
+  </children>
+</component>

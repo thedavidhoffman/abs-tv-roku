@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component name="YourStats" extends="Group" focusable="true">
+  <script type="text/brightscript" uri="pkg:/source/Format.brs" />
+  <script type="text/brightscript" uri="pkg:/source/String.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
+  <script type="text/brightscript" uri="pkg:/components/pages/YourStats/YourStats.brs" />
+  <interface>
+    <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
+    <field id="stats" type="assocarray" />
+    <field id="errorResponse" type="assocarray" />
+    <field id="statusMessage" type="string" />
+    <field id="backSelected" type="boolean" alwaysNotify="true" />
+    <function name="focusYourStats" />
+    <function name="loadStats" />
+  </interface>
+  <children>
+    <Label
+      id="titleLabel"
+      translation="[64,144]"
+      width="1792"
+      height="56"
+      text="Your Stats"
+      horizAlign="left"
+      vertAlign="center"
+      color="0xF6F7FBFF"
+      font="font:LargeBoldSystemFont" />
+    <SevenDayGraph id="sevenDayGraph" translation="[64,220]" graphWidth="896" graphHeight="560" />
+    <AppTask id="yourStatsApiTask" />
+  </children>
+</component>

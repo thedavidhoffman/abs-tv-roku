@@ -30,6 +30,7 @@ sub initReferences()
     m.search = m.top.findNode("search")
     m.seriesPage = m.top.findNode("seriesPage")
     m.statusLabel = m.top.findNode("statusLabel")
+    m.yourStatsPage = m.top.findNode("yourStatsPage")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -63,6 +64,7 @@ sub initHandlers()
     m.header.observeField("overlayRequested", "overlayHandleRequested")
     m.header.observeField("searchSelected", "searchHandlePressed")
     m.header.observeField("seriesSelected", "seriesHandlePressed")
+    m.header.observeField("yourStatsSelected", "yourStatsHandlePressed")
 
     m.homePage.observeField("backSelected", "homeHandleBackSelected")
     m.homePage.observeField("errorResponse", "homeHandleError")
@@ -103,6 +105,10 @@ sub initHandlers()
     m.seriesPage.observeField("playSelected", "seriesHandlePlaySelected")
     m.seriesPage.observeField("statusMessage", "seriesHandleStatusMessageChanged")
     m.seriesPage.observeField("upFromFirstRowSelected", "seriesHandleUpFromFirstRowSelected")
+
+    m.yourStatsPage.observeField("backSelected", "yourStatsHandleBackSelected")
+    m.yourStatsPage.observeField("errorResponse", "yourStatsHandleError")
+    m.yourStatsPage.observeField("statusMessage", "yourStatsHandleStatusMessageChanged")
     
 end sub
 
@@ -297,6 +303,7 @@ sub navShowApp()
     m.homePage.loadRequest = loadRequest
     m.library.loadRequest = loadRequest
     m.seriesPage.loadRequest = loadRequest
+    m.yourStatsPage.loadRequest = loadRequest
     
     navShowHomePage()
     focusHomePage()
@@ -329,6 +336,7 @@ sub navShowHomePage()
     m.homePage.visible = true
     m.seriesPage.visible = false
     m.library.visible = false
+    if m.yourStatsPage <> invalid then m.yourStatsPage.visible = false
 
     ' this handles the scenario when the library is displaying grid view with
     ' series collapsed, and the user drills down into a series
@@ -344,6 +352,7 @@ end sub
 sub navShowLibraryPage()
     if m.homePage <> invalid then m.homePage.visible = false
     if m.seriesPage <> invalid then m.seriesPage.visible = false
+    if m.yourStatsPage <> invalid then m.yourStatsPage.visible = false
     if m.library <> invalid then m.library.visible = true
     if m.library <> invalid then statusSetMessage(m.library.statusMessage)
 end sub
@@ -353,12 +362,27 @@ end sub
 '-------------------------------------------------------------------------------
 sub navShowSeriesPage()
     if m.homePage <> invalid then m.homePage.visible = false
+    if m.yourStatsPage <> invalid then m.yourStatsPage.visible = false
     if m.library <> invalid then
         m.library.visible = false
         m.library.callFunc("resetDrilldown")
     end if
     if m.seriesPage <> invalid then m.seriesPage.visible = true
     if m.seriesPage <> invalid then statusSetMessage(m.seriesPage.statusMessage)
+end sub
+
+'-------------------------------------------------------------------------------
+' navShowYourStatsPage
+'-------------------------------------------------------------------------------
+sub navShowYourStatsPage()
+    if m.homePage <> invalid then m.homePage.visible = false
+    if m.library <> invalid then
+        m.library.visible = false
+        m.library.callFunc("resetDrilldown")
+    end if
+    if m.seriesPage <> invalid then m.seriesPage.visible = false
+    if m.yourStatsPage <> invalid then m.yourStatsPage.visible = true
+    statusSetMessage("")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -377,6 +401,11 @@ sub headerHandleDownPressed()
 
     if m.seriesPage <> invalid and m.seriesPage.visible then
         focusSeriesPage()
+        return
+    end if
+
+    if m.yourStatsPage <> invalid and m.yourStatsPage.visible then
+        focusYourStatsPage()
     end if
 end sub
 
@@ -435,6 +464,13 @@ sub focusSeriesPage()
 end sub
 
 '-------------------------------------------------------------------------------
+' focusYourStatsPage
+'-------------------------------------------------------------------------------
+sub focusYourStatsPage()
+    if m.yourStatsPage <> invalid then m.yourStatsPage.callFunc("focusYourStats")
+end sub
+
+'-------------------------------------------------------------------------------
 ' focusSettingsButton
 '-------------------------------------------------------------------------------
 sub focusSettingsButton()
@@ -475,6 +511,42 @@ sub searchHandleQuerySelected()
             searchTerm: searchTerm
         }
     end if
+end sub
+
+'-------------------------------------------------------------------------------
+' yourStatsHandlePressed
+'-------------------------------------------------------------------------------
+sub yourStatsHandlePressed()
+    headerCloseMenu()
+    if m.library <> invalid then m.library.callFunc("resetSearchResults")
+    if m.header <> invalid then m.header.callFunc("activateUserMenuButton")
+    navShowYourStatsPage()
+    if m.yourStatsPage <> invalid then m.yourStatsPage.callFunc("loadStats")
+    focusYourStatsPage()
+end sub
+
+'-------------------------------------------------------------------------------
+' yourStatsHandleBackSelected
+'-------------------------------------------------------------------------------
+sub yourStatsHandleBackSelected()
+    focusHeader()
+end sub
+
+'-------------------------------------------------------------------------------
+' yourStatsHandleError
+'-------------------------------------------------------------------------------
+sub yourStatsHandleError()
+    handleComponentError(m.yourStatsPage.errorResponse)
+end sub
+
+'-------------------------------------------------------------------------------
+' yourStatsHandleStatusMessageChanged
+'-------------------------------------------------------------------------------
+sub yourStatsHandleStatusMessageChanged()
+    if m.yourStatsPage = invalid then return
+    if m.yourStatsPage.visible <> true then return
+
+    statusSetMessage(m.yourStatsPage.statusMessage)
 end sub
 
 '===============================================================================
@@ -571,6 +643,7 @@ sub libraryHandleCurrentLibrarySelected()
         m.seriesPage.callFunc("resetSeriesRows")
         m.seriesPage.loadRequest = loadRequest
     end if
+    if m.yourStatsPage <> invalid then m.yourStatsPage.loadRequest = loadRequest
     if m.libraryController <> invalid then m.libraryController.loadRequest = loadRequest
     if m.seriesPage <> invalid and m.seriesPage.visible = true then requestSeriesRows()
 end sub

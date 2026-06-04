@@ -32,6 +32,7 @@ sub initReferences()
     m.libraryMenuPanel = m.top.findNode("libraryMenuPanel")
     m.libraryMenuBg = m.top.findNode("libraryMenuBg")
     m.libraryMenuItems = m.top.findNode("libraryMenuItems")
+    m.yourStatsButton = m.top.findNode("yourStatsButton")
     m.logoutButton = m.top.findNode("logoutButton")
     m.usernameUpSequenceTimer = m.top.findNode("usernameUpSequenceTimer")
     m.focusableHeaderButtons = []
@@ -49,6 +50,7 @@ sub initHandlers()
     m.settingsButton.observeField("buttonSelected", "onSettingsPressed")
     m.currentLibraryButton.observeField("buttonSelected", "onCurrentLibraryPressed")
     m.userMenuButton.observeField("buttonSelected", "onUserMenuPressed")
+    m.yourStatsButton.observeField("buttonSelected", "onYourStatsPressed")
     m.logoutButton.observeField("buttonSelected", "onLogoutPressed")
     m.usernameUpSequenceTimer.observeField("fire", "onUsernameUpSequenceTimerFired")
 end sub
@@ -67,6 +69,7 @@ sub initStyle()
     m.settingsButton.headerBgColor = headerBgColor
     m.currentLibraryButton.headerBgColor = headerBgColor
     m.userMenuButton.headerBgColor = headerBgColor
+    m.yourStatsButton.headerBgColor = headerBgColor
     m.logoutButton.headerBgColor = headerBgColor
 end sub
 
@@ -133,6 +136,14 @@ function activateSearchButton() as boolean
 end function
 
 '-------------------------------------------------------------------------------
+' activateUserMenuButton
+'-------------------------------------------------------------------------------
+function activateUserMenuButton() as boolean
+    setActiveHeaderButton("userMenu")
+    return true
+end function
+
+'-------------------------------------------------------------------------------
 ' isSearchButtonActive
 '-------------------------------------------------------------------------------
 function isSearchButtonActive() as boolean
@@ -156,6 +167,11 @@ function onKeyEvent(key as string, press as boolean) as boolean
     if isLibraryMenuOpen() then
         if key = "up" then return focusLibraryMenuButtonByOffset(-1)
         if key = "down" then return focusLibraryMenuButtonByOffset(1)
+    end if
+
+    if m.top.menuOpen = true then
+        if key = "up" then return focusUserMenuButtonByOffset(-1)
+        if key = "down" then return focusUserMenuButtonByOffset(1)
     end if
 
     if key = "up" then return trackUsernameUpSequence()
@@ -292,9 +308,36 @@ function getFocusedHeaderButtonIndex() as integer
     end for
 
     if isLibraryMenuInFocusChain() and hasLibraryChoices() then return 0
-    if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return headerButtons.Count() - 1
+    if isUserMenuInFocusChain() then return headerButtons.Count() - 1
 
     return -1
+end function
+
+'-------------------------------------------------------------------------------
+' focusUserMenuButtonByOffset
+'-------------------------------------------------------------------------------
+function focusUserMenuButtonByOffset(offset as integer) as boolean
+    menuButtons = [m.yourStatsButton, m.logoutButton]
+    currentIndex = getFocusedUserMenuButtonIndex(menuButtons)
+    if currentIndex < 0 then
+        if m.yourStatsButton <> invalid then m.yourStatsButton.setFocus(true)
+        return true
+    end if
+
+    nextIndex = currentIndex + offset
+    lastIndex = menuButtons.Count() - 1
+
+    if nextIndex < 0 then
+        nextIndex = lastIndex
+    else if nextIndex > lastIndex then
+        nextIndex = 0
+    end if
+
+    nextButton = menuButtons[nextIndex]
+    if nextButton = invalid then return false
+
+    nextButton.setFocus(true)
+    return true
 end function
 
 '-------------------------------------------------------------------------------
@@ -422,6 +465,7 @@ sub setActiveHeaderButton(activeButtonName as string)
     m.seriesButton.isActive = (activeButtonName = "series")
     m.searchButton.isActive = (activeButtonName = "search")
     m.settingsButton.isActive = false
+    m.userMenuButton.isActive = (activeButtonName = "userMenu")
 end sub
 
 '-------------------------------------------------------------------------------
@@ -430,7 +474,15 @@ end sub
 sub onUserMenuPressed()
     setLibraryMenuOpen(false)
     setMenuOpen(not m.top.menuOpen)
-    if m.top.menuOpen then m.logoutButton.setFocus(true)
+    if m.top.menuOpen then m.yourStatsButton.setFocus(true)
+end sub
+
+'-------------------------------------------------------------------------------
+' onYourStatsPressed
+'-------------------------------------------------------------------------------
+sub onYourStatsPressed()
+    closeMenu()
+    m.top.yourStatsSelected = true
 end sub
 
 '-------------------------------------------------------------------------------
@@ -664,4 +716,28 @@ end sub
 '-------------------------------------------------------------------------------
 function isLibraryMenuInFocusChain() as boolean
     return getFocusedLibraryMenuItem() <> invalid
+end function
+
+'-------------------------------------------------------------------------------
+' isUserMenuInFocusChain
+'-------------------------------------------------------------------------------
+function isUserMenuInFocusChain() as boolean
+    if m.yourStatsButton <> invalid and m.yourStatsButton.isInFocusChain() then return true
+    if m.logoutButton <> invalid and m.logoutButton.isInFocusChain() then return true
+
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' getFocusedUserMenuButtonIndex
+'-------------------------------------------------------------------------------
+function getFocusedUserMenuButtonIndex(menuButtons as object) as integer
+    if menuButtons = invalid then return -1
+
+    for i = 0 to menuButtons.Count() - 1
+        button = menuButtons[i]
+        if button <> invalid and button.isInFocusChain() then return i
+    end for
+
+    return -1
 end function

@@ -19,6 +19,7 @@
   <script type="text/brightscript" uri="pkg:/source/api/Series.brs" />
   <script type="text/brightscript" uri="pkg:/source/api/InProgress.brs" />
   <script type="text/brightscript" uri="pkg:/source/api/Personalized.brs" />
+  <script type="text/brightscript" uri="pkg:/source/api/YourStats.brs" />
   <script type="text/brightscript" uri="pkg:/source/api/Authentication.brs" />
   <script type="text/brightscript" uri="pkg:/source/api/Playback.brs" />
   <script type="text/brightscript" uri="pkg:/components/tasks/AppTask.brs" />

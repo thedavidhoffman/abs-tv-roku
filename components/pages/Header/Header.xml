@@ -17,6 +17,7 @@
     <field id="currentLibrarySelected" type="assocarray" alwaysNotify="true" />
     <field id="downSelected" type="boolean" alwaysNotify="true" />
     <field id="backSelected" type="boolean" alwaysNotify="true" />
+    <field id="yourStatsSelected" type="boolean" alwaysNotify="true" />
     <field id="logoutSelected" type="boolean" alwaysNotify="true" />
     <field id="overlayRequested" type="assocarray" alwaysNotify="true" />
     <function name="focusHeader" />
@@ -26,6 +27,7 @@
     <function name="activateLibraryButton" />
     <function name="activateSeriesButton" />
     <function name="activateSearchButton" />
+    <function name="activateUserMenuButton" />
     <function name="isSearchButtonActive" />
   </interface>
   <children>
@@ -53,8 +55,9 @@
     <Clock id="clock" translation="[1680,30]" clockWidth="176" clockHeight="40" color="0xF6F7FBFF" />
 
     <Group id="menuPanel" visible="false" translation="[1520,102]">
-      <Rectangle width="260" height="94" color="0x132235FF" />
-      <HeaderButton id="logoutButton" translation="[20,18]" buttonWidth="220" buttonHeight="56" text="Logout" />
+      <Rectangle width="260" height="160" color="0x132235FF" />
+      <HeaderButton id="yourStatsButton" translation="[20,18]" buttonWidth="220" buttonHeight="56" text="Your Stats" textAlign="left" textInset="18" />
+      <HeaderButton id="logoutButton" translation="[20,84]" buttonWidth="220" buttonHeight="56" text="Logout" textAlign="left" textInset="18" />
     </Group>
 
     <Group id="libraryMenuPanel" visible="false" translation="[300,102]">

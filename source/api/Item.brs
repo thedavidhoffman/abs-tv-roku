@@ -8,14 +8,13 @@
 ' Item_Load
 '-------------------------------------------------------------------------------
 function Item_Load(request as object) as object
-    log = CreateLogger("(API) Item_Load")
+    log = CreateLogger("(API) Item_Load", false)
 
     server = request.server
     token = request.token
     itemId = request.itemId
 
     if itemId = invalid or itemId = "" then
-        log.flush()
         return { ok: false, errorMessage: "No audiobook was selected." }
     end if
 
@@ -23,8 +22,6 @@ function Item_Load(request as object) as object
     log.write(itemUrl)
 
     result = HttpClient_Request(itemUrl, "GET", token, invalid)
-    
-    log.flush()
 
     return result
 end function
