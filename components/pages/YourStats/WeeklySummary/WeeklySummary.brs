@@ -1,0 +1,194 @@
+'-------------------------------------------------------------------------------
+' init
+'-------------------------------------------------------------------------------
+sub init()
+    initReferences()
+    initStyle()
+    renderSummary()
+end sub
+
+'-------------------------------------------------------------------------------
+' initReferences
+'-------------------------------------------------------------------------------
+sub initReferences()
+    m.totalValueLabel = m.top.findNode("totalValueLabel")
+    m.averageValueLabel = m.top.findNode("averageValueLabel")
+    m.bestValueLabel = m.top.findNode("bestValueLabel")
+    m.totalTextLabel = m.top.findNode("totalTextLabel")
+    m.averageTextLabel = m.top.findNode("averageTextLabel")
+    m.bestTextLabel = m.top.findNode("bestTextLabel")
+end sub
+
+'-------------------------------------------------------------------------------
+' initStyle
+'-------------------------------------------------------------------------------
+sub initStyle()
+    palette = Color()
+    m.totalValueLabel.color = palette.text.heading
+    m.averageValueLabel.color = palette.text.heading
+    m.bestValueLabel.color = palette.text.heading
+    m.totalTextLabel.color = palette.text.secondary
+    m.averageTextLabel.color = palette.text.secondary
+    m.bestTextLabel.color = palette.text.secondary
+end sub
+
+'-------------------------------------------------------------------------------
+' onStatsChanged
+'-------------------------------------------------------------------------------
+sub onStatsChanged()
+    renderSummary()
+end sub
+
+'-------------------------------------------------------------------------------
+' renderSummary
+'-------------------------------------------------------------------------------
+sub renderSummary()
+    summary = buildWeeklySummary(m.top.stats)
+    m.totalValueLabel.text = formatNumber(summary.totalMinutes)
+    m.averageValueLabel.text = formatNumber(summary.averageMinutes)
+    m.bestValueLabel.text = formatNumber(summary.bestMinutes)
+end sub
+
+'-------------------------------------------------------------------------------
+' buildWeeklySummary
+'-------------------------------------------------------------------------------
+function buildWeeklySummary(stats as dynamic) as object
+    points = buildSevenDayPoints(stats)
+    totalMinutes = 0
+    bestMinutes = 0
+
+    for each point in points
+        totalMinutes = totalMinutes + point.minutes
+        if point.minutes > bestMinutes then bestMinutes = point.minutes
+    end for
+
+    averageMinutes = 0
+    if points.Count() > 0 then averageMinutes = int((totalMinutes + (points.Count() / 2)) / points.Count())
+
+    return {
+        totalMinutes: totalMinutes
+        averageMinutes: averageMinutes
+        bestMinutes: bestMinutes
+    }
+end function
+
+'-------------------------------------------------------------------------------
+' formatNumber
+'-------------------------------------------------------------------------------
+function formatNumber(value as integer) as string
+    text = value.ToStr()
+    formatted = ""
+
+    while Len(text) > 3
+        formatted = "," + Right(text, 3) + formatted
+        text = Left(text, Len(text) - 3)
+    end while
+
+    return text + formatted
+end function
+
+'-------------------------------------------------------------------------------
+' buildSevenDayPoints
+'-------------------------------------------------------------------------------
+function buildSevenDayPoints(stats as dynamic) as object
+    days = invalid
+    if stats <> invalid then days = stats.days
+
+    dates = getSortedDateKeys(days)
+    if dates.Count() = 0 then return buildEmptyPoints()
+
+    latestSerial = dateToSerial(dates[dates.Count() - 1])
+    points = []
+    for offset = 6 to 0 step -1
+        serial = latestSerial - offset
+        dateText = serialToDate(serial)
+        seconds = 0
+        if days <> invalid and days[dateText] <> invalid then seconds = int(days[dateText])
+        points.Push({ minutes: int(seconds / 60) })
+    end for
+
+    return points
+end function
+
+'-------------------------------------------------------------------------------
+' buildEmptyPoints
+'-------------------------------------------------------------------------------
+function buildEmptyPoints() as object
+    points = []
+    for i = 0 to 6
+        points.Push({ minutes: 0 })
+    end for
+
+    return points
+end function
+
+'-------------------------------------------------------------------------------
+' getSortedDateKeys
+'-------------------------------------------------------------------------------
+function getSortedDateKeys(days as dynamic) as object
+    dates = []
+    if days = invalid then return dates
+
+    for each key in days
+        keyText = SafeString(key, "")
+        if Len(keyText) = 10 then dates.Push(keyText)
+    end for
+
+    dates.Sort()
+    return dates
+end function
+
+'-------------------------------------------------------------------------------
+' dateToSerial
+'-------------------------------------------------------------------------------
+function dateToSerial(dateText as string) as integer
+    year = Val(Mid(dateText, 1, 4))
+    month = Val(Mid(dateText, 6, 2))
+    day = Val(Mid(dateText, 9, 2))
+
+    if month <= 2 then year = year - 1
+    era = int(year / 400)
+    yearOfEra = year - (era * 400)
+    monthPrime = month
+    if monthPrime > 2 then
+        monthPrime = monthPrime - 3
+    else
+        monthPrime = monthPrime + 9
+    end if
+
+    dayOfYear = int(((153 * monthPrime) + 2) / 5) + day - 1
+    dayOfEra = (yearOfEra * 365) + int(yearOfEra / 4) - int(yearOfEra / 100) + dayOfYear
+
+    return (era * 146097) + dayOfEra - 719468
+end function
+
+'-------------------------------------------------------------------------------
+' serialToDate
+'-------------------------------------------------------------------------------
+function serialToDate(serial as integer) as string
+    z = serial + 719468
+    era = int(z / 146097)
+    dayOfEra = z - (era * 146097)
+    yearOfEra = int((dayOfEra - int(dayOfEra / 1460) + int(dayOfEra / 36524) - int(dayOfEra / 146096)) / 365)
+    year = yearOfEra + (era * 400)
+    dayOfYear = dayOfEra - ((365 * yearOfEra) + int(yearOfEra / 4) - int(yearOfEra / 100))
+    monthPrime = int(((5 * dayOfYear) + 2) / 153)
+    day = dayOfYear - int(((153 * monthPrime) + 2) / 5) + 1
+    month = monthPrime + 3
+    if month > 12 then month = month - 12
+    if month <= 2 then year = year + 1
+
+    return pad2(year, 4) + "-" + pad2(month, 2) + "-" + pad2(day, 2)
+end function
+
+'-------------------------------------------------------------------------------
+' pad2
+'-------------------------------------------------------------------------------
+function pad2(value as integer, width as integer) as string
+    text = value.ToStr()
+    while Len(text) < width
+        text = "0" + text
+    end while
+
+    return text
+end function

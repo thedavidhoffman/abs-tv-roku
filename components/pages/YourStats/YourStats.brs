@@ -17,6 +17,7 @@ sub initReferences()
     m.titleLabel = m.top.findNode("titleLabel")
     m.statsContent = m.top.findNode("statsContent")
     m.sevenDayGraph = m.top.findNode("sevenDayGraph")
+    m.weeklySummary = m.top.findNode("weeklySummary")
     m.recentSessions = m.top.findNode("recentSessions")
     m.yourStatsApiTask = m.top.findNode("yourStatsApiTask")
 end sub
@@ -95,6 +96,7 @@ sub onYourStatsApiResponse()
 
     m.top.stats = response.stats
     if m.sevenDayGraph <> invalid then m.sevenDayGraph.stats = response.stats
+    if m.weeklySummary <> invalid then m.weeklySummary.stats = response.stats
     if m.recentSessions <> invalid then m.recentSessions.sessions = getRecentSessions(response.stats)
     setStatus("")
     if m.top.visible = true and m.requestState.hasFocusedInitialSession = false then
