@@ -6,7 +6,7 @@ function Playback_CreateLogger(suffix = "" as string) as object
     label = "Playback"
     if suffix <> invalid and suffix <> "" then label = label + "::" + suffix
 
-    return CreateLogger(label, false)
+    return CreateLogger(label)
 
 end function
 

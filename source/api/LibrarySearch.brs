@@ -8,7 +8,7 @@
 '-------------------------------------------------------------------------------
 function LibrarySearch_Search(request as object) as object
 
-    log = CreateLogger("(API) LibrarySearch_Search", false)
+    log = CreateLogger("(API) LibrarySearch_Search")
 
     server = request.server
     token = request.token
@@ -38,7 +38,6 @@ function LibrarySearch_Search(request as object) as object
     end if
 
     if bookLibraryId = invalid or bookLibraryId = "" then
-        log.flush()
         return { ok: false, errorMessage: "No book library was found for this account." }
     end if
 
@@ -49,11 +48,8 @@ function LibrarySearch_Search(request as object) as object
     result = HttpClient_Request(searchUrl, "GET", token, invalid)
 
     if result.ok <> true then
-        log.flush()
         return result
     end if
-
-    log.flush()
 
     return {
         ok: true

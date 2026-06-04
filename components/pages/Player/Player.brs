@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 sub init()
     
-    m.log = CreateLogger("Player", false)
+    m.log = CreateLogger("Player")
     m.verboseLogging = false
     logPlayerVerbose("init")
 

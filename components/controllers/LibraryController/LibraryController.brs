@@ -490,7 +490,7 @@ end function
 ' cacheLog
 '-------------------------------------------------------------------------------
 sub cacheLog()
-    log = CreateLogger("LibraryController", false)
+    log = CreateLogger("LibraryController")
 
     log.write("cache")
     if m.cache = invalid or m.cache.Count() = 0 then

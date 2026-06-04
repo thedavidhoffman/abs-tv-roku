@@ -2,7 +2,7 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.log = CreateLogger("YourStats", false)
+    m.log = CreateLogger("YourStats")
 
     initReferences()
     initValues()

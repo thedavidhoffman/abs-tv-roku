@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = CreateLogger("Series", false)
+    m.log = CreateLogger("Series")
     m.log.write("init")
 
     m.seriesRowList = m.top.findNode("seriesRowList")

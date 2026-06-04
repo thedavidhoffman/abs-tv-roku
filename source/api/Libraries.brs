@@ -15,13 +15,7 @@ function Libraries_Load(server as string, token as dynamic) as object
     log.write(librariesUrl)
 
     result = HttpClient_Request(librariesUrl, "GET", token, invalid)
-        
-    if result.ok <> true then
-        log.flush()
-        return result
-    end if
-
-    log.flush()
+    if result.ok <> true then return result
 
     libraries = LibraryMapper_Map(result.data)
 

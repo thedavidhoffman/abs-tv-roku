@@ -8,7 +8,7 @@
 '-------------------------------------------------------------------------------
 function YourStats_Load(request as object) as object
 
-    log = CreateLogger("(API) YourStats_Load", false)
+    log = CreateLogger("(API) YourStats_Load")
 
     server = request.server
     token = request.token

@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = CreateLogger("Library", false)
+    m.log = CreateLogger("Library")
     m.log.write("init")
 
     initReferences()

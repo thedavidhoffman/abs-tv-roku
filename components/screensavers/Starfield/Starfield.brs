@@ -2,7 +2,7 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.log = CreateLogger("Starfield", false)
+    m.log = CreateLogger("Starfield")
     m.starLayer = m.top.findNode("starLayer")
     m.starTimer = m.top.findNode("starTimer")
 

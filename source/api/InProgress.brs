@@ -9,20 +9,17 @@ function InProgress_Load(request as object) as object
 
     inProgressUrl = server + "/api/me/items-in-progress?limit=100"
     result = HttpClient_Request(inProgressUrl, "GET", token, invalid)
+
     log.write(inProgressUrl)
     log.write("status = " + SafeString(result.status, ""))
-    if result.ok <> true then
-        log.flush()
-        return result
-    end if
+
+    if result.ok <> true then return result
 
     libraryItems = []
     if result.data <> invalid and result.data.libraryItems <> invalid then libraryItems = result.data.libraryItems
     mediaProgress = MediaProgressMapper_MapInProgressItems(libraryItems)
     sourceProgress = __InProgress_LoadSourceProgress(server, token, request.sourceItemId, log)
     if sourceProgress <> invalid then mediaProgress.Push(sourceProgress)
-
-    log.flush()
 
     return {
         ok: true
@@ -32,6 +29,7 @@ function InProgress_Load(request as object) as object
         mediaProgress: mediaProgress
         sourceItemId: request.sourceItemId
     }
+    
 end function
 
 '-------------------------------------------------------------------------------

@@ -8,7 +8,7 @@
 ' Item_Load
 '-------------------------------------------------------------------------------
 function Item_Load(request as object) as object
-    log = CreateLogger("(API) Item_Load", false)
+    log = CreateLogger("(API) Item_Load")
 
     server = request.server
     token = request.token
@@ -19,9 +19,9 @@ function Item_Load(request as object) as object
     end if
 
     itemUrl = server + "/api/items/" + itemId
-    log.write(itemUrl)
-
     result = HttpClient_Request(itemUrl, "GET", token, invalid)
+
+    log.write(itemUrl)
 
     return result
 end function
@@ -30,7 +30,7 @@ end function
 ' Item_LogTracks
 '-------------------------------------------------------------------------------
 sub Item_LogTracks(item as dynamic)
-    log = CreateLogger("(API) Item_LogTracks")
+    log = CreateBufferedLogger("(API) Item_LogTracks")
 
     if item = invalid then
         log.write("No item payload available for track data.")

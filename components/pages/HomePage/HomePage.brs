@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = CreateLogger("HomePage", false)
+    m.log = CreateLogger("HomePage")
     m.log.write("init")
 
     initReferences()

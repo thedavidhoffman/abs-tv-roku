@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 function Cover_BuildUrl(server as dynamic, token as dynamic, itemId as dynamic, width as integer) as string
 
-    log = CreateLogger("Cover_BuildUrl", false)
+    log = CreateLogger("Cover_BuildUrl")
 
     placeholder = "pkg:/images/placeholder-cover.png"
 

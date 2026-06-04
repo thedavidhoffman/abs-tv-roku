@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 function HttpClient_Request(url as String, method as String, token as Dynamic, body as Dynamic) as Object
 
-    log = CreateLogger("HttpClient_Request", false)
+    log = CreateLogger("HttpClient_Request")
 
     if url = invalid or url = "" then
         message = "Invalid http request: url is invalid."

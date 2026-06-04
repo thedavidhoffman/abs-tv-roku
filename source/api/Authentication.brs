@@ -9,20 +9,16 @@ function Authentication_Login(request as object) as object
     body = __BuildLoginBodyJson(request)
     loginUrl = server + "/login"
     result = HttpClient_Request(loginUrl, "POST", invalid, body)
+
     log.write(loginUrl)
     log.write("status = " + SafeString(result.status, ""))
-    if result.ok <> true then
-        log.flush()
-        return result
-    end if
+
+    if result.ok <> true then return result
     payload = result.data
 
     if payload = invalid or payload.user = invalid or payload.user.token = invalid then
-        log.flush()
         return { ok: false, errorMessage: "The server response did not include a token." }
     end if
-
-    log.flush()
 
     return {
         ok: true
@@ -30,6 +26,7 @@ function Authentication_Login(request as object) as object
         server: server
         payload: payload
     }
+    
 end function
 
 '-------------------------------------------------------------------------------
@@ -47,7 +44,7 @@ end function
 '-------------------------------------------------------------------------------
 function Authentication_AuthorizeToken(request as object) as object
 
-    log = CreateLogger("(API) Authentication_AuthorizeToken")
+    log = CreateBufferedLogger("(API) Authentication_AuthorizeToken")
 
     server = request.server
     authorizeUrl = server + "/api/authorize"
@@ -74,7 +71,7 @@ end function
 ' Authentication_Logout
 '-------------------------------------------------------------------------------
 function Authentication_Logout(request as object) as object
-    log = CreateLogger("(API) Authentication_Logout")
+    log = CreateBufferedLogger("(API) Authentication_Logout")
     server = request.server
     logoutUrl = server + "/logout"
     result = HttpClient_Request(logoutUrl, "POST", request.token, "")

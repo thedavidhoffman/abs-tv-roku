@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = CreateLogger("ListView", false)
+    m.log = CreateLogger("ListView")
     m.log.write("init")
 
     initReferences()

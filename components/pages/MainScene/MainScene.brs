@@ -925,7 +925,7 @@ sub playbackHandleInProgressResponse()
     if response = invalid then return
     if SafeString(response.sourceItemId, "") <> SafeString(m.playbackItemId, "") then return
 
-    log = CreateLogger("MainScene playback progress refresh")
+    log = CreateBufferedLogger("MainScene playback progress refresh")
 
     if response.ok <> true then
         log.write("status = " + SafeString(response.status, ""))

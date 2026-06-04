@@ -23,16 +23,11 @@ function Personalized_Load(request as object) as object
         
         authResult = HttpClient_Request(authorizeUrl, "POST", token, "")
         
-        if authResult.ok <> true then
-            log.flush()
-            return authResult
-        end if
-        
+        if authResult.ok <> true then return authResult        
         bookLibraryId = Session_ResolveBookLibraryId(authResult.data)
     end if
 
     if bookLibraryId = invalid or bookLibraryId = "" then
-        log.flush()
         return { ok: false, errorMessage: "No book library was found for this account." }
     end if
 
@@ -42,11 +37,8 @@ function Personalized_Load(request as object) as object
     result = HttpClient_Request(personalizedUrl, "GET", token, invalid)
     
     if result.ok <> true then
-        log.flush()
         return result
     end if
-
-    log.flush()
 
     return {
         ok: true
@@ -54,4 +46,5 @@ function Personalized_Load(request as object) as object
         bookLibraryId: bookLibraryId
         shelves: result.data
     }
+    
 end function

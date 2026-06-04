@@ -5,7 +5,7 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.log = CreateLogger("Bounce", false)
+    m.log = CreateLogger("Bounce")
     m.poster = m.top.findNode("poster")
     m.bounceAnimation = m.top.findNode("bounceAnimation")
     m.bounceInterpolator = m.top.findNode("bounceInterpolator")

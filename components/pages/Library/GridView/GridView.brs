@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = CreateLogger("GridView", false)
+    m.log = CreateLogger("GridView")
     m.log.write("init")
 
     m.markupGrid = m.top.findNode("markupGrid")

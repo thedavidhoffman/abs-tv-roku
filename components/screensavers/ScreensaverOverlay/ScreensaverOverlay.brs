@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = CreateLogger("ScreensaverOverlay", false)
+    m.log = CreateLogger("ScreensaverOverlay")
     m.log.write("init")
 
     m.screensaverDelayTimer = m.top.findNode("screensaverDelayTimer")

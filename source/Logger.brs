@@ -10,11 +10,29 @@
 '-------------------------------------------------------------------------------
 ' CreateLogger
 '-------------------------------------------------------------------------------
-function CreateLogger(label = "" as string, buffered = true as boolean) as object
+function CreateLogger(label = "" as string) as object
 
     log = {
         label: label
-        buffered: buffered
+        buffered: false
+        write: __Logger_Write
+        writeBracketed: __Logger_WriteBracketed
+        writeJson: __Logger_WriteJson
+        error: __Logger_Error
+    }
+
+    return log
+
+end function
+
+'-------------------------------------------------------------------------------
+' CreateBufferedLogger
+'-------------------------------------------------------------------------------
+function CreateBufferedLogger(label = "" as string) as object
+
+    log = {
+        label: label
+        buffered: true
         buffer: []
         write: __Logger_Write
         writeBracketed: __Logger_WriteBracketed

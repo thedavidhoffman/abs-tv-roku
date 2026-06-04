@@ -18,7 +18,6 @@ function LibraryItems_Load(request as object) as object
 
     if request.collapseSeries = invalid then
         log.error("Missing collapseSeries for library load request, defaulting to false/0.")
-        log.flush()
     else
         if request.collapseSeries = true then collapseSeries = "1"
     end if
@@ -31,7 +30,6 @@ function LibraryItems_Load(request as object) as object
         authResult = HttpClient_Request(authorizeUrl, "POST", token, "")
         
         if authResult.ok <> true then
-            log.flush()
             return __AttachLibraryItemsRequestMetadata(authResult, request)
         end if
 
@@ -40,7 +38,6 @@ function LibraryItems_Load(request as object) as object
     end if
 
     if bookLibraryId = invalid or bookLibraryId = "" then
-        log.flush()
         return __AttachLibraryItemsRequestMetadata({ ok: false, errorMessage: "No book library was found for this account." }, request)
     end if
 
@@ -57,7 +54,6 @@ function LibraryItems_Load(request as object) as object
         libraryResult = HttpClient_Request(libraryUrl, "GET", token, invalid)
         
         if libraryResult.ok <> true then
-            log.flush()
             return __AttachLibraryItemsRequestMetadata(libraryResult, request)
         end if
 
@@ -76,8 +72,6 @@ function LibraryItems_Load(request as object) as object
             keepLoading = (results.Count() = limit)
         end if
     end while
-
-    log.flush()
 
     return __AttachLibraryItemsRequestMetadata({
         ok: true

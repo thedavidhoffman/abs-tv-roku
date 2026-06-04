@@ -3,7 +3,7 @@
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = CreateLogger("AuthController", false)
+    m.log = CreateLogger("AuthController")
     m.log.write("init")
 
     m.authApiTask = m.top.findNode("authApiTask")
