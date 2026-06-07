@@ -30,7 +30,7 @@ VS Code tasks (Ctrl+Shift+B): validate, package, deploy, clean-staging.
 
 ### Thread Model
 
-Roku SceneGraph has two threads: the **render thread** (all component `.brs` files) and the **task thread** (`components/tasks/AppTask`). Network calls must run in the task thread. UI components communicate with `AppTask` by writing a `request` associative array and setting `control = "run"`, then observing the `response` field for results. `AppTask` dispatches on `request.action` to the appropriate API helper in `source/api/`.
+Roku SceneGraph has two threads: the **render thread** (all component `.brs` files) and the **task thread** (`components/tasks/*Task`). Network calls must run in a task thread. UI components communicate with a domain-specific task by writing a `request` associative array and setting `control = "run"`, then observing the `response` field for results. Task components call the appropriate API helper in `source/api/`.
 
 ### Key Components
 
@@ -38,7 +38,7 @@ Roku SceneGraph has two threads: the **render thread** (all component `.brs` fil
 - **`components/pages/MainScene/`** - App shell: top-level routing between Login/HomePage/Library/Player, global focus recovery, auth lifecycle (resume, expiration, logout), and app exit.
 - **`components/controllers/AuthController/`** - Auth state machine; reads/writes the Roku registry via `source/store/AuthStore.brs`.
 - **`components/pages/Player/`** - Audiobook playback UI. Uses a hidden Roku `Video` node (not `Audio`) so it can set `disableScreenSaver`; the node must keep `enableUI="false"` and configure content as `contentType = "audio"`. **Do not swap it for an `Audio` node** without handling screensaver suppression another way.
-- **`components/tasks/AppTask`** - Background task; dispatches request actions including `login`, `authorize`, `logout`, `loadLibraries`, `loadLibrary`, `loadSeries`, `loadInProgress`, `loadPersonalized`, and playback actions. See `components/tasks/AppTask.brs` for the current dispatch table.
+- **`components/tasks/*Task`** - Background task components split by API domain, such as auth, library items, personalized shelves, playback, in-progress refresh, and stats.
 - **`source/api/`** - API call helpers (HttpClient, Authentication, Libraries, LibraryItems, Item, Series, Playback, etc.).
 - **`source/mappers/`** - Map raw Audiobookshelf API responses to app-level structs and reduced cache shapes.
 - **`source/store/`** - Roku registry persistence (`AuthStore`, `SettingsStore`).

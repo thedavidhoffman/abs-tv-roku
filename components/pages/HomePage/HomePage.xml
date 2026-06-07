@@ -39,6 +39,6 @@
       drawFocusFeedback="true"
       vertFocusAnimationStyle="fixedFocus" />
     <Timer id="focusRetryTimer" duration="0.1" repeat="true" />
-    <AppTask id="personalizedApiTask" />
+    <PersonalizedTask id="personalizedApiTask" />
   </children>
 </component>

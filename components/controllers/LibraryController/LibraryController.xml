@@ -26,7 +26,7 @@
     <function name="getCacheInfo" />
   </interface>
   <children>
-    <AppTask id="allItemsTask" />
-    <AppTask id="collapsedItemsTask" />
+    <LibraryItemsTask id="allItemsTask" />
+    <LibraryItemsTask id="collapsedItemsTask" />
   </children>
 </component>

@@ -19,6 +19,6 @@
     <function name="clearSavedSession" />
   </interface>
   <children>
-    <AppTask id="authApiTask" />
+    <AuthTask id="authApiTask" />
   </children>
 </component>

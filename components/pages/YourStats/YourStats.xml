@@ -21,6 +21,6 @@
       <WeeklySummary id="weeklySummary" translation="[64,880]" />
       <RecentSessions id="recentSessions" translation="[1000,144]" />
     </Group>
-    <AppTask id="yourStatsApiTask" />
+    <YourStatsTask id="yourStatsApiTask" />
   </children>
 </component>

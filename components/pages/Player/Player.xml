@@ -64,7 +64,7 @@
     <Timer id="hlsRetryTimer" duration="2" repeat="false" />
 
     <!-- api task -->
-    <AppTask id="playbackApiTask" />
+    <PlaybackTask id="playbackApiTask" />
 
   </children>
 </component>
