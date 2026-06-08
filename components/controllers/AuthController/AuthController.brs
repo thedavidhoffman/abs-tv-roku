@@ -7,10 +7,13 @@ sub init()
     m.log.write("init")
 
     m.authApiTask = m.top.findNode("authApiTask")
+    m.librariesApiTask = m.top.findNode("librariesApiTask")
     m.savedSession = AuthStore_Load()
     m.isResumingSession = false
+    m.pendingAuthResponse = invalid
 
     if m.authApiTask <> invalid then m.authApiTask.observeField("response", "onAuthApiResponse")
+    if m.librariesApiTask <> invalid then m.librariesApiTask.observeField("response", "onLibrariesApiResponse")
     m.top.savedSession = m.savedSession
 end sub
 
@@ -76,6 +79,7 @@ sub clearSavedSession()
     m.log.write("clearSavedSession")
 
     AuthStore_Clear(false)
+    m.pendingAuthResponse = invalid
     if m.savedSession <> invalid then m.savedSession.token = ""
     m.top.savedSession = m.savedSession
 end sub
@@ -118,9 +122,35 @@ sub onAuthApiResponse()
     if response.ok <> true then
         handleAuthError(response, action)
     else if action = "login" or action = "authorize" then
-        m.isResumingSession = false
-        storeAuthenticatedSession(response)
+        loadLibrariesForSession(response)
     end if
+end sub
+
+'-------------------------------------------------------------------------------
+' onLibrariesApiResponse
+'-------------------------------------------------------------------------------
+sub onLibrariesApiResponse()
+
+    m.log.write("onLibrariesApiResponse")
+
+    response = m.librariesApiTask.response
+    if response = invalid then return
+
+    pendingResponse = m.pendingAuthResponse
+    pendingAction = getAuthResponseAction(pendingResponse)
+
+    if response.ok <> true then
+        m.pendingAuthResponse = invalid
+        handleAuthError(response, pendingAction)
+        return
+    end if
+
+    if pendingResponse = invalid then return
+
+    pendingResponse.libraries = response.libraries
+    m.pendingAuthResponse = invalid
+    m.isResumingSession = false
+    storeAuthenticatedSession(pendingResponse)
 end sub
 
 '-------------------------------------------------------------------------------
@@ -136,6 +166,43 @@ function getAuthResponseAction(response as dynamic) as string
     end if
 
     return ""
+end function
+
+'-------------------------------------------------------------------------------
+' loadLibrariesForSession
+'-------------------------------------------------------------------------------
+sub loadLibrariesForSession(response as object)
+
+    m.log.write("loadLibrariesForSession")
+
+    if m.librariesApiTask = invalid then
+        handleAuthError({ ok: false, errorMessage: "Unable to load libraries." }, getAuthResponseAction(response))
+        return
+    end if
+
+    token = getAuthenticatedResponseToken(response)
+    if token = invalid or token = "" then
+        handleAuthError({ ok: false, errorMessage: "The server response did not include a token." }, getAuthResponseAction(response))
+        return
+    end if
+
+    m.pendingAuthResponse = response
+    m.librariesApiTask.request = {
+        action: "loadLibraries"
+        server: response.server
+        token: token
+    }
+    m.librariesApiTask.control = "run"
+end sub
+
+'-------------------------------------------------------------------------------
+' getAuthenticatedResponseToken
+'-------------------------------------------------------------------------------
+function getAuthenticatedResponseToken(response as dynamic) as dynamic
+    if response = invalid then return invalid
+    if response.token <> invalid then return response.token
+    if response.payload <> invalid and response.payload.user <> invalid then return response.payload.user.token
+    return invalid
 end function
 
 '-------------------------------------------------------------------------------

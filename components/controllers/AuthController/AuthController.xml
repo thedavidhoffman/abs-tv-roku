@@ -20,5 +20,6 @@
   </interface>
   <children>
     <AuthTask id="authApiTask" />
+    <LibrariesTask id="librariesApiTask" />
   </children>
 </component>
