@@ -50,7 +50,7 @@ function startPlayback(request as object) as object
     log.write("executing............")
 
     ' validate request parameters
-    validationResult = __ValidateStartRequest(request, log)
+    validationResult = validateStartRequest(request, log)
     if validationResult.ok <> true then return validationResult
 
     ' local working vars
@@ -67,8 +67,8 @@ function startPlayback(request as object) as object
     ' Build request JSON with Json.brs helpers instead of FormatJson(), because Roku
     ' lowercases object keys during serialization and ABS requires exact key casing
     ' for fields such as supportedMimeTypes.
-    bodyData = __BuildPlaybackStartBody(forceTranscode, forceDirectPlay)
-    body = __BuildPlaybackStartBodyJson(bodyData)
+    bodyData = buildPlaybackStartBody(forceTranscode, forceDirectPlay)
+    body = buildPlaybackStartBodyJson(bodyData)
 
     ' build the POST url
     playbackUrl = server + "/api/items/" + itemId + "/play"
@@ -93,7 +93,7 @@ function startPlayback(request as object) as object
 
     ' tracks are the playable audio units. Player uses them to decide what URL to load, what stream format
     ' to use, how to map global ABS time to a Roku track seek position, and how to advance between direct-play files.
-    tracks = __MapTracks(server, token, playbackSession, log)
+    tracks = mapTracks(server, token, playbackSession, log)
     if tracks.Count() = 0 then
         return { ok: false, action: "startPlayback", errorMessage: "No playable audio tracks were returned." }
     end if
@@ -101,15 +101,15 @@ function startPlayback(request as object) as object
     ' chapters are the navigation/display units. Player uses them for the Chapters list and the right-aligned
     ' chapter title/status. They may not match audio files. A single audio file can have many chapters, and a
     ' multi-file book can have chapters that cross or differ from track boundaries.
-    chapters = __MapChapters(playbackSession, tracks, log)
+    chapters = mapChapters(playbackSession, tracks, log)
 
     ' playback data
     action = "startPlayback"
-    playbackSessionId = __GetSessionId(playbackSession)
-    currentTime = __GetNumber(playbackSession.currentTime)
-    duration = __GetNumber(playbackSession.duration)
-    playMethod = __GetInteger(playbackSession.playMethod, -1)
-    isHlsTranscode = __IsSessionHlsTranscode(playbackSession, tracks)
+    playbackSessionId = getSessionId(playbackSession)
+    currentTime = getNumber(playbackSession.currentTime)
+    duration = getNumber(playbackSession.duration)
+    playMethod = getInteger(playbackSession.playMethod, -1)
+    isHlsTranscode = isSessionHlsTranscode(playbackSession, tracks)
     if forceDirectPlay = true and isHlsTranscode = true then log.error("Force direct play request returned an HLS/transcode session.")
 
     ' logging
@@ -124,10 +124,10 @@ function startPlayback(request as object) as object
     log.write("      isHlsTranscode = " + SafeString(isHlsTranscode))
     log.write("      requestCounter = " + SafeString(request.requestCounter))
 
-    __LogTracks(log, tracks)
-    __LogAudioTrackDetails(log, playbackSession)
-    __LogSourceAudioFiles(log, playbackSession)
-    __LogChapters(log, chapters)
+    logTracks(log, tracks)
+    logAudioTrackDetails(log, playbackSession)
+    logSourceAudioFiles(log, playbackSession)
+    logChapters(log, chapters)
 
     return {
         ok: true
@@ -168,13 +168,13 @@ function closePlaybackSession(request as object) as object
         }
     end if
 
-    body = __BuildPlaybackProgressBodyJson(request)
+    body = buildPlaybackProgressBodyJson(request)
 
-    __LogPlaybackProgressRequest(log, sessionId, request)
+    logPlaybackProgressRequest(log, sessionId, request)
 
     result = HttpClient_Request(server + "/api/session/" + sessionId.ToStr() + "/close", "POST", token, body)
     result.action = "closePlaybackSession"
-    __LogPlaybackSessionResponse(log, "close", sessionId, result)
+    logPlaybackSessionResponse(log, "close", sessionId, result)
 
     return result
 
@@ -195,22 +195,22 @@ function syncPlaybackSession(request as object) as object
         return { ok: false, action: "syncPlaybackSession", errorMessage: "No playback session was available to sync." }
     end if
 
-    body = __BuildPlaybackProgressBodyJson(request)
+    body = buildPlaybackProgressBodyJson(request)
 
-    __LogPlaybackProgressRequest(log, sessionId, request)
+    logPlaybackProgressRequest(log, sessionId, request)
 
     result = HttpClient_Request(server + "/api/session/" + sessionId.ToStr() + "/sync", "POST", token, body)
     result.action = "syncPlaybackSession"
-    '__LogPlaybackSessionResponse(log, "sync", sessionId, result)
+    'logPlaybackSessionResponse(log, "sync", sessionId, result)
 
     return result
 
 end function
 
 '-------------------------------------------------------------------------------
-' __BuildPlaybackProgressBodyJson
+' buildPlaybackProgressBodyJson
 '-------------------------------------------------------------------------------
-function __BuildPlaybackProgressBodyJson(request as dynamic) as string
+function buildPlaybackProgressBodyJson(request as dynamic) as string
     parts = []
     if request.currentTime <> invalid then parts.Push(Json_NumberPair("currentTime", request.currentTime))
     if request.timeListened <> invalid then parts.Push(Json_NumberPair("timeListened", request.timeListened))
@@ -219,9 +219,9 @@ function __BuildPlaybackProgressBodyJson(request as dynamic) as string
 end function
 
 '-------------------------------------------------------------------------------
-' __LogPlaybackProgressRequest
+' logPlaybackProgressRequest
 '-------------------------------------------------------------------------------
-sub __LogPlaybackProgressRequest(log as object, sessionId as dynamic, request as dynamic)
+sub logPlaybackProgressRequest(log as object, sessionId as dynamic, request as dynamic)
     if request.currentTime = invalid and request.timeListened = invalid and request.duration = invalid then
         log.write("sessionId=" + sessionId.ToStr() + " progressData=omitted")
         return
@@ -231,9 +231,9 @@ sub __LogPlaybackProgressRequest(log as object, sessionId as dynamic, request as
 end sub
 
 '-------------------------------------------------------------------------------
-' __LogPlaybackSessionResponse
+' logPlaybackSessionResponse
 '-------------------------------------------------------------------------------
-sub __LogPlaybackSessionResponse(log as object, operation as string, sessionId as dynamic, result as dynamic)
+sub logPlaybackSessionResponse(log as object, operation as string, sessionId as dynamic, result as dynamic)
     if log = invalid then return
 
     status = "invalid"
@@ -250,29 +250,29 @@ sub __LogPlaybackSessionResponse(log as object, operation as string, sessionId a
 end sub
 
 '-------------------------------------------------------------------------------
-' __ValidateStartRequest
+' validateStartRequest
 '-------------------------------------------------------------------------------
-function __ValidateStartRequest(request as dynamic, log as object) as object
-    if request = invalid then return __ValidationError(log, "Invalid playback request: request is invalid.")
-    if Type(request) <> "roAssociativeArray" then return __ValidationError(log, "Invalid playback request: request type is " + Type(request) + ".")
-    if request.server = invalid or request.server = "" then return __ValidationError(log, "Invalid playback request: server is missing.")
-    if request.token = invalid or request.token = "" then return __ValidationError(log, "Invalid playback request: token is missing.")
-    if request.itemId = invalid or request.itemId = "" then return __ValidationError(log, "Invalid playback request: itemId is missing.")
+function validateStartRequest(request as dynamic, log as object) as object
+    if request = invalid then return validationError(log, "Invalid playback request: request is invalid.")
+    if Type(request) <> "roAssociativeArray" then return validationError(log, "Invalid playback request: request type is " + Type(request) + ".")
+    if request.server = invalid or request.server = "" then return validationError(log, "Invalid playback request: server is missing.")
+    if request.token = invalid or request.token = "" then return validationError(log, "Invalid playback request: token is missing.")
+    if request.itemId = invalid or request.itemId = "" then return validationError(log, "Invalid playback request: itemId is missing.")
     return { ok: true }
 end function
 
 '-------------------------------------------------------------------------------
-' __ValidationError
+' validationError
 '-------------------------------------------------------------------------------
-function __ValidationError(log as object, message as string) as object
+function validationError(log as object, message as string) as object
     log.error(message)
     return { ok: false, action: "startPlayback", errorMessage: message }
 end function
 
 '-------------------------------------------------------------------------------
-' __BuildPlaybackStartBody
+' buildPlaybackStartBody
 '-------------------------------------------------------------------------------
-function __BuildPlaybackStartBody(forceTranscode = false as boolean, forceDirectPlay = false as boolean) as object
+function buildPlaybackStartBody(forceTranscode = false as boolean, forceDirectPlay = false as boolean) as object
     deviceInfo = CreateObject("roDeviceInfo")
     model = deviceInfo.GetModel()
     modelDisplayName = deviceInfo.GetModelDisplayName()
@@ -286,15 +286,15 @@ function __BuildPlaybackStartBody(forceTranscode = false as boolean, forceDirect
         }
         forceDirectPlay: forceDirectPlay
         forceTranscode: forceTranscode
-        supportedMimeTypes: __GetSupportedMimeTypes(forceTranscode)
+        supportedMimeTypes: getSupportedMimeTypes(forceTranscode)
         mediaPlayer: "roku"
     }
 end function
 
 '-------------------------------------------------------------------------------
-' __BuildPlaybackStartBodyJson
+' buildPlaybackStartBodyJson
 '-------------------------------------------------------------------------------
-function __BuildPlaybackStartBodyJson(bodyData as object) as string
+function buildPlaybackStartBodyJson(bodyData as object) as string
     deviceInfo = bodyData.deviceInfo
     deviceInfoParts = [
         Json_Pair("clientName", deviceInfo.clientName)
@@ -315,9 +315,9 @@ function __BuildPlaybackStartBodyJson(bodyData as object) as string
 end function
 
 '-------------------------------------------------------------------------------
-' __GetSupportedMimeTypes
+' getSupportedMimeTypes
 '-------------------------------------------------------------------------------
-function __GetSupportedMimeTypes(includeHls as boolean) as object
+function getSupportedMimeTypes(includeHls as boolean) as object
     mimeTypes = [
         "audio/mpeg"
         "audio/mp3"
@@ -341,14 +341,14 @@ function __GetSupportedMimeTypes(includeHls as boolean) as object
 end function
 
 '-------------------------------------------------------------------------------
-' __MapTracks
+' mapTracks
 '-------------------------------------------------------------------------------
-function __MapTracks(server as string, token as dynamic, session as dynamic, log as object) as object
+function mapTracks(server as string, token as dynamic, session as dynamic, log as object) as object
     mappedTracks = []
     tracks = invalid
     if session <> invalid then tracks = session.audioTracks
-    audioFiles = __GetSourceAudioFiles(session)
-    sessionId = __GetSessionId(session)
+    audioFiles = getSourceAudioFiles(session)
+    sessionId = getSessionId(session)
 
     log.write("playback mapping audioTracks=" + Array_GetCount(tracks).ToStr())
 
@@ -357,25 +357,25 @@ function __MapTracks(server as string, token as dynamic, session as dynamic, log
     for i = 0 to tracks.Count() - 1
         track = tracks[i]
         if track <> invalid then
-            url = __BuildTrackUrl(server, token, sessionId, track)
+            url = buildTrackUrl(server, token, sessionId, track)
             if url <> "" then
-                trackIndex = __GetTrackIndex(track, i)
-                sourceAudioFile = __GetSourceAudioFile(audioFiles, trackIndex, i)
+                trackIndex = getTrackIndex(track, i)
+                sourceAudioFile = getSourceAudioFile(audioFiles, trackIndex, i)
                 mappedTracks.Push({
                     index: trackIndex
                     url: url
-                    title: __GetTrackTitle(track, i)
-                    startOffset: __GetNumber(track.startOffset)
-                    durationSeconds: __GetNumber(track.duration)
+                    title: getTrackTitle(track, i)
+                    startOffset: getNumber(track.startOffset)
+                    durationSeconds: getNumber(track.duration)
                     contentUrl: SafeString(track.contentUrl, "")
-                    mimeType: __GetTrackMimeType(track)
-                    isHls: __IsHlsTrack(track)
-                    codec: __GetSourceAudioFileField(sourceAudioFile, "codec")
-                    bitRate: __GetSourceAudioFileField(sourceAudioFile, "bitRate")
-                    channels: __GetSourceAudioFileField(sourceAudioFile, "channels")
-                    channelLayout: __GetSourceAudioFileField(sourceAudioFile, "channelLayout")
-                    sampleRate: __GetSourceAudioFileField(sourceAudioFile, "sampleRate")
-                    format: __GetSourceAudioFileField(sourceAudioFile, "format")
+                    mimeType: getTrackMimeType(track)
+                    isHls: isHlsTrack(track)
+                    codec: getSourceAudioFileField(sourceAudioFile, "codec")
+                    bitRate: getSourceAudioFileField(sourceAudioFile, "bitRate")
+                    channels: getSourceAudioFileField(sourceAudioFile, "channels")
+                    channelLayout: getSourceAudioFileField(sourceAudioFile, "channelLayout")
+                    sampleRate: getSourceAudioFileField(sourceAudioFile, "sampleRate")
+                    format: getSourceAudioFileField(sourceAudioFile, "format")
                 })
             end if
         end if
@@ -385,9 +385,9 @@ function __MapTracks(server as string, token as dynamic, session as dynamic, log
 end function
 
 '-------------------------------------------------------------------------------
-' __GetSourceAudioFiles
+' getSourceAudioFiles
 '-------------------------------------------------------------------------------
-function __GetSourceAudioFiles(session as dynamic) as dynamic
+function getSourceAudioFiles(session as dynamic) as dynamic
     if session <> invalid and session.libraryItem <> invalid and session.libraryItem.media <> invalid then
         return session.libraryItem.media.audioFiles
     end if
@@ -396,13 +396,13 @@ function __GetSourceAudioFiles(session as dynamic) as dynamic
 end function
 
 '-------------------------------------------------------------------------------
-' __GetSourceAudioFile
+' getSourceAudioFile
 '-------------------------------------------------------------------------------
-function __GetSourceAudioFile(audioFiles as dynamic, trackIndex as integer, fallbackIndex as integer) as dynamic
+function getSourceAudioFile(audioFiles as dynamic, trackIndex as integer, fallbackIndex as integer) as dynamic
     if audioFiles = invalid or audioFiles.Count() = 0 then return invalid
 
     for each audioFile in audioFiles
-        if audioFile <> invalid and audioFile.index <> invalid and __GetInteger(audioFile.index, -1) = trackIndex then
+        if audioFile <> invalid and audioFile.index <> invalid and getInteger(audioFile.index, -1) = trackIndex then
             return audioFile
         end if
     end for
@@ -412,9 +412,9 @@ function __GetSourceAudioFile(audioFiles as dynamic, trackIndex as integer, fall
 end function
 
 '-------------------------------------------------------------------------------
-' __GetSourceAudioFileField
+' getSourceAudioFileField
 '-------------------------------------------------------------------------------
-function __GetSourceAudioFileField(audioFile as dynamic, fieldName as string) as dynamic
+function getSourceAudioFileField(audioFile as dynamic, fieldName as string) as dynamic
     if audioFile = invalid then return invalid
     fieldValue = audioFile[fieldName]
     if fieldValue <> invalid then return fieldValue
@@ -426,22 +426,22 @@ function __GetSourceAudioFileField(audioFile as dynamic, fieldName as string) as
 end function
 
 '-------------------------------------------------------------------------------
-' __MapChapters
+' mapChapters
 '-------------------------------------------------------------------------------
-function __MapChapters(session as dynamic, tracks as dynamic, log as object) as object
+function mapChapters(session as dynamic, tracks as dynamic, log as object) as object
     chapters = []
     if session = invalid or session.chapters = invalid or session.chapters.Count() = 0 then return chapters
 
     for i = 0 to session.chapters.Count() - 1
         chapter = session.chapters[i]
         if chapter <> invalid then
-            startTime = __GetChapterStart(chapter)
-            endTime = __GetChapterEnd(chapter, session, i)
+            startTime = getChapterStart(chapter)
+            endTime = getChapterEnd(chapter, session, i)
             duration = endTime - startTime
             if duration < 0 then duration = 0
             chapters.Push({
                 index: i
-                title: __GetChapterTitle(chapter, i)
+                title: getChapterTitle(chapter, i)
                 startOffset: startTime
                 durationSeconds: duration
                 isChapter: true
@@ -452,33 +452,33 @@ function __MapChapters(session as dynamic, tracks as dynamic, log as object) as 
     ' Some ABS playback sessions can return a partial chapter list whose first
     ' chapter starts at 0 even though it maps to a later audio file. In that case
     ' use audio tracks as chapter items so navigation still covers the full book.
-    if __ShouldUseTracksAsChapters(chapters, tracks, session) then
+    if shouldUseTracksAsChapters(chapters, tracks, session) then
         log.error("session chapters appear partial; using audio tracks as chapter items")
-        return __MapTracksAsChapters(tracks)
+        return mapTracksAsChapters(tracks)
     end if
 
     return chapters
 end function
 
 '-------------------------------------------------------------------------------
-' __ShouldUseTracksAsChapters
+' shouldUseTracksAsChapters
 '-------------------------------------------------------------------------------
-function __ShouldUseTracksAsChapters(chapters as dynamic, tracks as dynamic, session as dynamic) as boolean
+function shouldUseTracksAsChapters(chapters as dynamic, tracks as dynamic, session as dynamic) as boolean
     if chapters = invalid or tracks = invalid then return false
     if chapters.Count() = 0 or tracks.Count() = 0 then return false
     if chapters.Count() >= tracks.Count() then return false
 
-    chapterCoverage = __GetChapterCoverageSeconds(chapters)
-    mediaDuration = __GetMediaDurationSeconds(session, tracks)
+    chapterCoverage = getChapterCoverageSeconds(chapters)
+    mediaDuration = getMediaDurationSeconds(session, tracks)
     if mediaDuration <= 0 then return false
 
     return chapterCoverage < (mediaDuration * 0.9)
 end function
 
 '-------------------------------------------------------------------------------
-' __MapTracksAsChapters
+' mapTracksAsChapters
 '-------------------------------------------------------------------------------
-function __MapTracksAsChapters(tracks as dynamic) as object
+function mapTracksAsChapters(tracks as dynamic) as object
     chapters = []
     if tracks = invalid then return chapters
 
@@ -488,8 +488,8 @@ function __MapTracksAsChapters(tracks as dynamic) as object
             chapters.Push({
                 index: i
                 title: SafeString(track.title, "Track " + (i + 1).ToStr())
-                startOffset: __GetNumber(track.startOffset)
-                durationSeconds: __GetNumber(track.durationSeconds)
+                startOffset: getNumber(track.startOffset)
+                durationSeconds: getNumber(track.durationSeconds)
                 isChapter: true
                 source: "track"
             })
@@ -500,49 +500,49 @@ function __MapTracksAsChapters(tracks as dynamic) as object
 end function
 
 '-------------------------------------------------------------------------------
-' __GetChapterCoverageSeconds
+' getChapterCoverageSeconds
 '-------------------------------------------------------------------------------
-function __GetChapterCoverageSeconds(chapters as dynamic) as float
+function getChapterCoverageSeconds(chapters as dynamic) as float
     if chapters = invalid or chapters.Count() = 0 then return 0
 
     lastChapter = chapters[chapters.Count() - 1]
     if lastChapter = invalid then return 0
 
-    return __GetNumber(lastChapter.startOffset) + __GetNumber(lastChapter.durationSeconds)
+    return getNumber(lastChapter.startOffset) + getNumber(lastChapter.durationSeconds)
 end function
 
 '-------------------------------------------------------------------------------
-' __GetMediaDurationSeconds
+' getMediaDurationSeconds
 '-------------------------------------------------------------------------------
-function __GetMediaDurationSeconds(session as dynamic, tracks as dynamic) as float
-    if session <> invalid and session.duration <> invalid then return __GetNumber(session.duration)
+function getMediaDurationSeconds(session as dynamic, tracks as dynamic) as float
+    if session <> invalid and session.duration <> invalid then return getNumber(session.duration)
     if tracks = invalid then return 0
 
     duration = 0.0
     for each track in tracks
-        if track <> invalid then duration = duration + __GetNumber(track.durationSeconds)
+        if track <> invalid then duration = duration + getNumber(track.durationSeconds)
     end for
 
     return duration
 end function
 
 '-------------------------------------------------------------------------------
-' __BuildTrackUrl
+' buildTrackUrl
 '-------------------------------------------------------------------------------
-function __BuildTrackUrl(server as string, token as dynamic, sessionId as dynamic, track as dynamic) as string
+function buildTrackUrl(server as string, token as dynamic, sessionId as dynamic, track as dynamic) as string
     contentUrl = SafeString(track.contentUrl, "")
     if contentUrl = "" then return ""
 
-    if __IsHlsUrl(contentUrl) then return __BuildAuthenticatedContentUrl(server, token, contentUrl)
-    if sessionId <> invalid and sessionId <> "" then return server + "/public/session/" + sessionId.ToStr() + "/track/" + __GetTrackIndex(track, 0).ToStr()
+    if isHlsUrl(contentUrl) then return buildAuthenticatedContentUrl(server, token, contentUrl)
+    if sessionId <> invalid and sessionId <> "" then return server + "/public/session/" + sessionId.ToStr() + "/track/" + getTrackIndex(track, 0).ToStr()
 
-    return __BuildAuthenticatedContentUrl(server, token, contentUrl)
+    return buildAuthenticatedContentUrl(server, token, contentUrl)
 end function
 
 '-------------------------------------------------------------------------------
-' __BuildAuthenticatedContentUrl
+' buildAuthenticatedContentUrl
 '-------------------------------------------------------------------------------
-function __BuildAuthenticatedContentUrl(server as string, token as dynamic, contentUrl as string) as string
+function buildAuthenticatedContentUrl(server as string, token as dynamic, contentUrl as string) as string
     if Instr(1, LCase(contentUrl), "http://") <> 1 and Instr(1, LCase(contentUrl), "https://") <> 1 then
         if Left(contentUrl, 1) <> "/" then contentUrl = "/" + contentUrl
         contentUrl = server + contentUrl
@@ -557,9 +557,9 @@ function __BuildAuthenticatedContentUrl(server as string, token as dynamic, cont
 end function
 
 '-------------------------------------------------------------------------------
-' __LogTracks
+' logTracks
 '-------------------------------------------------------------------------------
-sub __LogTracks(log as object, tracks as dynamic)
+sub logTracks(log as object, tracks as dynamic)
     log.write("Mapped tracks:")
 
     if tracks = invalid or tracks.Count() = 0 then
@@ -585,9 +585,9 @@ sub __LogTracks(log as object, tracks as dynamic)
 end sub
 
 '-------------------------------------------------------------------------------
-' __LogAudioTrackDetails
+' logAudioTrackDetails
 '-------------------------------------------------------------------------------
-sub __LogAudioTrackDetails(log as object, session as dynamic)
+sub logAudioTrackDetails(log as object, session as dynamic)
     log.write("Audio track details:")
 
     tracks = invalid
@@ -601,11 +601,11 @@ sub __LogAudioTrackDetails(log as object, session as dynamic)
         track = tracks[i]
         if track <> invalid then
             parts = [i.ToStr()]
-            __PushLogField(parts, "index", track.index)
-            __PushLogField(parts, "contentUrl", track.contentUrl)
-            __PushLogField(parts, "mimeType", track.mimeType)
-            __PushLogField(parts, "duration", track.duration)
-            __PushTrackMetadataFields(parts, track.metadata)
+            pushLogField(parts, "index", track.index)
+            pushLogField(parts, "contentUrl", track.contentUrl)
+            pushLogField(parts, "mimeType", track.mimeType)
+            pushLogField(parts, "duration", track.duration)
+            pushTrackMetadataFields(parts, track.metadata)
             log.writeBracketed(parts)
         else
             log.write("    invalid track")
@@ -614,9 +614,9 @@ sub __LogAudioTrackDetails(log as object, session as dynamic)
 end sub
 
 '-------------------------------------------------------------------------------
-' __LogSourceAudioFiles
+' logSourceAudioFiles
 '-------------------------------------------------------------------------------
-sub __LogSourceAudioFiles(log as object, session as dynamic)
+sub logSourceAudioFiles(log as object, session as dynamic)
     log.write("Source audio files:")
 
     audioFiles = invalid
@@ -633,20 +633,20 @@ sub __LogSourceAudioFiles(log as object, session as dynamic)
         file = audioFiles[i]
         if file <> invalid then
             parts = [i.ToStr()]
-            __PushLogField(parts, "index", file.index)
-            __PushLogField(parts, "title", file.title)
-            __PushLogField(parts, "contentUrl", file.contentUrl)
-            __PushLogField(parts, "mimeType", file.mimeType)
-            __PushLogField(parts, "startOffset", file.startOffset)
-            __PushLogField(parts, "duration", file.duration)
-            __PushLogField(parts, "format", file.format)
-            __PushLogField(parts, "bitRate", file.bitRate)
-            __PushLogField(parts, "sampleRate", file.sampleRate)
-            __PushLogField(parts, "channels", file.channels)
-            __PushLogField(parts, "channelLayout", file.channelLayout)
-            __PushLogField(parts, "codec", file.codec)
-            __PushLogField(parts, "timeBase", file.timeBase)
-            __PushTrackMetadataFields(parts, file.metadata)
+            pushLogField(parts, "index", file.index)
+            pushLogField(parts, "title", file.title)
+            pushLogField(parts, "contentUrl", file.contentUrl)
+            pushLogField(parts, "mimeType", file.mimeType)
+            pushLogField(parts, "startOffset", file.startOffset)
+            pushLogField(parts, "duration", file.duration)
+            pushLogField(parts, "format", file.format)
+            pushLogField(parts, "bitRate", file.bitRate)
+            pushLogField(parts, "sampleRate", file.sampleRate)
+            pushLogField(parts, "channels", file.channels)
+            pushLogField(parts, "channelLayout", file.channelLayout)
+            pushLogField(parts, "codec", file.codec)
+            pushLogField(parts, "timeBase", file.timeBase)
+            pushTrackMetadataFields(parts, file.metadata)
             log.writeBracketed(parts)
         else
             log.write("    invalid file")
@@ -655,33 +655,33 @@ sub __LogSourceAudioFiles(log as object, session as dynamic)
 end sub
 
 '-------------------------------------------------------------------------------
-' __PushTrackMetadataFields
+' pushTrackMetadataFields
 '-------------------------------------------------------------------------------
-sub __PushTrackMetadataFields(parts as object, metadata as dynamic)
+sub pushTrackMetadataFields(parts as object, metadata as dynamic)
     if metadata = invalid then return
 
-    __PushLogField(parts, "filename", metadata.filename)
-    __PushLogField(parts, "ext", metadata.ext)
-    __PushLogField(parts, "size", metadata.size)
-    __PushLogField(parts, "bitRate", metadata.bitRate)
-    __PushLogField(parts, "sampleRate", metadata.sampleRate)
-    __PushLogField(parts, "channels", metadata.channels)
-    __PushLogField(parts, "codec", metadata.codec)
-    __PushLogField(parts, "format", metadata.format)
+    pushLogField(parts, "filename", metadata.filename)
+    pushLogField(parts, "ext", metadata.ext)
+    pushLogField(parts, "size", metadata.size)
+    pushLogField(parts, "bitRate", metadata.bitRate)
+    pushLogField(parts, "sampleRate", metadata.sampleRate)
+    pushLogField(parts, "channels", metadata.channels)
+    pushLogField(parts, "codec", metadata.codec)
+    pushLogField(parts, "format", metadata.format)
 end sub
 
 '-------------------------------------------------------------------------------
-' __PushLogField
+' pushLogField
 '-------------------------------------------------------------------------------
-sub __PushLogField(parts as object, name as string, value as dynamic)
+sub pushLogField(parts as object, name as string, value as dynamic)
     if value = invalid then return
     parts.Push(name + "=" + SafeString(value))
 end sub
 
 '-------------------------------------------------------------------------------
-' __LogChapters
+' logChapters
 '-------------------------------------------------------------------------------
-sub __LogChapters(log as object, chapters as dynamic)
+sub logChapters(log as object, chapters as dynamic)
     log.write("Mapped chapters:")
 
     if chapters = invalid or chapters.Count() = 0 then
@@ -706,50 +706,50 @@ sub __LogChapters(log as object, chapters as dynamic)
 end sub
 
 '-------------------------------------------------------------------------------
-' __IsSessionHlsTranscode
+' isSessionHlsTranscode
 '-------------------------------------------------------------------------------
-function __IsSessionHlsTranscode(session as dynamic, tracks as object) as boolean
-    if session <> invalid and session.playMethod <> invalid and __GetInteger(session.playMethod, -1) <> 0 then return true
+function isSessionHlsTranscode(session as dynamic, tracks as object) as boolean
+    if session <> invalid and session.playMethod <> invalid and getInteger(session.playMethod, -1) <> 0 then return true
     if tracks <> invalid and tracks.Count() = 1 and tracks[0] <> invalid and tracks[0].isHls = true then return true
     return false
 end function
 
 '-------------------------------------------------------------------------------
-' __IsHlsTrack
+' isHlsTrack
 '-------------------------------------------------------------------------------
-function __IsHlsTrack(track as dynamic) as boolean
+function isHlsTrack(track as dynamic) as boolean
     if track = invalid then return false
-    return __IsHlsUrl(SafeString(track.contentUrl, ""))
+    return isHlsUrl(SafeString(track.contentUrl, ""))
 end function
 
 '-------------------------------------------------------------------------------
-' __IsHlsUrl
+' isHlsUrl
 '-------------------------------------------------------------------------------
-function __IsHlsUrl(url as string) as boolean
+function isHlsUrl(url as string) as boolean
     text = LCase(url)
     return Instr(1, text, "/hls") > 0 or Instr(1, text, ".m3u8") > 0
 end function
 
 '-------------------------------------------------------------------------------
-' __GetSessionId
+' getSessionId
 '-------------------------------------------------------------------------------
-function __GetSessionId(session as dynamic) as dynamic
+function getSessionId(session as dynamic) as dynamic
     if session = invalid then return invalid
     return session.id
 end function
 
 '-------------------------------------------------------------------------------
-' __GetTrackIndex
+' getTrackIndex
 '-------------------------------------------------------------------------------
-function __GetTrackIndex(track as dynamic, fallbackIndex as integer) as integer
-    if track <> invalid and track.index <> invalid then return __GetInteger(track.index, fallbackIndex)
+function getTrackIndex(track as dynamic, fallbackIndex as integer) as integer
+    if track <> invalid and track.index <> invalid then return getInteger(track.index, fallbackIndex)
     return fallbackIndex
 end function
 
 '-------------------------------------------------------------------------------
-' __GetTrackTitle
+' getTrackTitle
 '-------------------------------------------------------------------------------
-function __GetTrackTitle(track as dynamic, index as integer) as string
+function getTrackTitle(track as dynamic, index as integer) as string
     if track <> invalid then
         title = FirstNonEmpty([track.title, track.name], "")
         if title <> "" and title <> "Audiobook" then return title
@@ -759,56 +759,54 @@ function __GetTrackTitle(track as dynamic, index as integer) as string
 end function
 
 '-------------------------------------------------------------------------------
-' __GetTrackMimeType
+' getTrackMimeType
 '-------------------------------------------------------------------------------
-function __GetTrackMimeType(track as dynamic) as string
+function getTrackMimeType(track as dynamic) as string
     if track <> invalid and track.mimeType <> invalid then return SafeString(track.mimeType, "audio/mpeg")
     return "audio/mpeg"
 end function
 
 '-------------------------------------------------------------------------------
-' __GetChapterStart
+' getChapterStart
 '-------------------------------------------------------------------------------
-function __GetChapterStart(chapter as dynamic) as float
-    if chapter.start <> invalid then return __GetNumber(chapter.start)
-    if chapter.startTime <> invalid then return __GetNumber(chapter.startTime)
-    if chapter.startOffset <> invalid then return __GetNumber(chapter.startOffset)
+function getChapterStart(chapter as dynamic) as float
+    if chapter.start <> invalid then return getNumber(chapter.start)
+    if chapter.startTime <> invalid then return getNumber(chapter.startTime)
+    if chapter.startOffset <> invalid then return getNumber(chapter.startOffset)
     return 0
 end function
 
 '-------------------------------------------------------------------------------
-' __GetChapterEnd
+' getChapterEnd
 '-------------------------------------------------------------------------------
-function __GetChapterEnd(chapter as dynamic, session as dynamic, index as integer) as float
-    if chapter.end <> invalid then return __GetNumber(chapter.end)
-    if chapter.endTime <> invalid then return __GetNumber(chapter.endTime)
-    if chapter.duration <> invalid then return __GetChapterStart(chapter) + __GetNumber(chapter.duration)
-    if session <> invalid and session.chapters <> invalid and index + 1 < session.chapters.Count() then return __GetChapterStart(session.chapters[index + 1])
-    if session <> invalid and session.duration <> invalid then return __GetNumber(session.duration)
-    return __GetChapterStart(chapter)
+function getChapterEnd(chapter as dynamic, session as dynamic, index as integer) as float
+    if chapter.end <> invalid then return getNumber(chapter.end)
+    if chapter.endTime <> invalid then return getNumber(chapter.endTime)
+    if chapter.duration <> invalid then return getChapterStart(chapter) + getNumber(chapter.duration)
+    if session <> invalid and session.chapters <> invalid and index + 1 < session.chapters.Count() then return getChapterStart(session.chapters[index + 1])
+    if session <> invalid and session.duration <> invalid then return getNumber(session.duration)
+    return getChapterStart(chapter)
 end function
 
 '-------------------------------------------------------------------------------
-' __GetChapterTitle
+' getChapterTitle
 '-------------------------------------------------------------------------------
-function __GetChapterTitle(chapter as dynamic, index as integer) as string
+function getChapterTitle(chapter as dynamic, index as integer) as string
     return FirstNonEmpty([chapter.title, chapter.name], "Chapter " + (index + 1).ToStr())
 end function
 
 '-------------------------------------------------------------------------------
-' __GetNumber
+' getNumber
 '-------------------------------------------------------------------------------
-function __GetNumber(value as dynamic) as float
+function getNumber(value as dynamic) as float
     if value = invalid then return 0
     return val(value.ToStr())
 end function
 
 '-------------------------------------------------------------------------------
-' __GetInteger
+' getInteger
 '-------------------------------------------------------------------------------
-function __GetInteger(value as dynamic, fallback as integer) as integer
+function getInteger(value as dynamic, fallback as integer) as integer
     if value = invalid then return fallback
     return int(val(value.ToStr()))
 end function
-
-
