@@ -381,34 +381,67 @@ function sortCollapsedSeriesItems(items as object) as object
     if items = invalid then return sortedItems
 
     for each item in items
-        sortedItems = insertCollapsedSeriesItem(sortedItems, item)
+        sortedItems.Push(item)
     end for
 
-    return sortedItems
+    if sortedItems.Count() <= 1 then return sortedItems
+    return mergeSortCollapsedSeriesItems(sortedItems)
 end function
 
 '-------------------------------------------------------------------------------
-' insertCollapsedSeriesItem
+' mergeSortCollapsedSeriesItems
 '-------------------------------------------------------------------------------
-function insertCollapsedSeriesItem(items as object, item as dynamic) as object
-    result = []
-    inserted = false
-    title = getCollapsedSeriesSortTitle(item)
+function mergeSortCollapsedSeriesItems(items as object) as object
+    itemCount = items.Count()
+    if itemCount <= 1 then return items
 
-    for each existingItem in items
-        if inserted = false then
-            existingTitle = getCollapsedSeriesSortTitle(existingItem)
-            if String_NaturalCompare(title, existingTitle) < 0 then
-                result.Push(item)
-                inserted = true
-            end if
+    midpoint = int(itemCount / 2)
+    leftItems = []
+    rightItems = []
+
+    for i = 0 to itemCount - 1
+        if i < midpoint then
+            leftItems.Push(items[i])
+        else
+            rightItems.Push(items[i])
         end if
-
-        result.Push(existingItem)
     end for
 
-    if inserted = false then result.Push(item)
-    return result
+    return mergeCollapsedSeriesItems(mergeSortCollapsedSeriesItems(leftItems), mergeSortCollapsedSeriesItems(rightItems))
+end function
+
+'-------------------------------------------------------------------------------
+' mergeCollapsedSeriesItems
+'-------------------------------------------------------------------------------
+function mergeCollapsedSeriesItems(leftItems as object, rightItems as object) as object
+    mergedItems = []
+    leftIndex = 0
+    rightIndex = 0
+
+    while leftIndex < leftItems.Count() and rightIndex < rightItems.Count()
+        leftTitle = getCollapsedSeriesSortTitle(leftItems[leftIndex])
+        rightTitle = getCollapsedSeriesSortTitle(rightItems[rightIndex])
+
+        if String_NaturalCompare(leftTitle, rightTitle) <= 0 then
+            mergedItems.Push(leftItems[leftIndex])
+            leftIndex = leftIndex + 1
+        else
+            mergedItems.Push(rightItems[rightIndex])
+            rightIndex = rightIndex + 1
+        end if
+    end while
+
+    while leftIndex < leftItems.Count()
+        mergedItems.Push(leftItems[leftIndex])
+        leftIndex = leftIndex + 1
+    end while
+
+    while rightIndex < rightItems.Count()
+        mergedItems.Push(rightItems[rightIndex])
+        rightIndex = rightIndex + 1
+    end while
+
+    return mergedItems
 end function
 
 '-------------------------------------------------------------------------------
