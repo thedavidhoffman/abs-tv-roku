@@ -30,7 +30,7 @@ VS Code tasks (Ctrl+Shift+B): validate, package, deploy, clean-staging.
 
 ### Thread Model
 
-Roku SceneGraph has two threads: the **render thread** (all component `.brs` files) and the **task thread** (`components/tasks/*Task`). Network calls must run in a task thread. UI components communicate with a domain-specific task by writing a `request` associative array and setting `control = "run"`, then observing the `response` field for results. Task components call the appropriate API helper in `source/api/`.
+Roku SceneGraph has two threads: the **render thread** (all component `.brs` files) and the **task thread** (`components/tasks/*Task`). Network calls must run in a task thread. UI components communicate with a domain-specific task by writing a `request` associative array and setting `control = "run"`, then observing the `response` field for results. Endpoint-specific Audiobookshelf API logic lives inside the task that owns the async request.
 
 ### Key Components
 
@@ -38,8 +38,8 @@ Roku SceneGraph has two threads: the **render thread** (all component `.brs` fil
 - **`components/pages/MainScene/`** - App shell: top-level routing between Login/HomePage/Library/Player, global focus recovery, auth lifecycle (resume, expiration, logout), and app exit.
 - **`components/controllers/AuthController/`** - Auth state machine; reads/writes the Roku registry via `source/store/AuthStore.brs`.
 - **`components/pages/Player/`** - Audiobook playback UI. Uses a hidden Roku `Video` node (not `Audio`) so it can set `disableScreenSaver`; the node must keep `enableUI="false"` and configure content as `contentType = "audio"`. **Do not swap it for an `Audio` node** without handling screensaver suppression another way.
-- **`components/tasks/*Task`** - Background task components split by API domain, such as auth, library items, personalized shelves, playback, in-progress refresh, and stats.
-- **`source/api/`** - API call helpers (HttpClient, Authentication, Libraries, LibraryItems, Item, Series, Playback, etc.).
+- **`components/tasks/*Task`** - Background task components split by API domain. Endpoint-specific Audiobookshelf API calls live in the task that owns the async request.
+- **`source/api/`** - Shared API infrastructure, currently `HttpClient`.
 - **`source/mappers/`** - Map raw Audiobookshelf API responses to app-level structs and reduced cache shapes.
 - **`source/store/`** - Roku registry persistence (`AuthStore`, `SettingsStore`).
 
@@ -53,7 +53,7 @@ Extract shared pure logic into `/source` helpers only when it is genuinely reuse
 
 ### BrightScript
 
-- `/source` public helpers: module-style prefix, such as `AuthStore_Load` or `Playback_Start`.
+- `/source` public helpers: module-style prefix, such as `AuthStore_Load` or `SettingsStore_Load`.
 - `/source` file-internal helpers: `__` prefix, such as `__GetCollapseSeriesQueryValue`.
 - Component-local functions in `components/`: plain behavioral names, such as `initStyle` or `onKeyEvent`.
 - Color fields: integer hex literals, such as `m.title.color = &h0F1A2AFF` (not string `"0x0F1A2AFF"`).

@@ -6,8 +6,6 @@
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/api/HttpClient.brs" />
   <script type="text/brightscript" uri="pkg:/source/mappers/LibraryMapper.brs" />
-  <script type="text/brightscript" uri="pkg:/source/api/Libraries.brs" />
-  <script type="text/brightscript" uri="pkg:/source/api/Authentication.brs" />
   <script type="text/brightscript" uri="pkg:/components/tasks/AuthTask/AuthTask.brs" />
   <interface>
     <field id="request" type="assocarray" />

@@ -5,7 +5,6 @@
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/api/HttpClient.brs" />
   <script type="text/brightscript" uri="pkg:/source/mappers/MediaProgressMapper.brs" />
-  <script type="text/brightscript" uri="pkg:/source/api/InProgress.brs" />
   <script type="text/brightscript" uri="pkg:/components/tasks/InProgressTask/InProgressTask.brs" />
   <interface>
     <field id="request" type="assocarray" />

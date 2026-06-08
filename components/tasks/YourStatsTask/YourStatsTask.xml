@@ -4,7 +4,6 @@
   <script type="text/brightscript" uri="pkg:/source/String.brs" />
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/api/HttpClient.brs" />
-  <script type="text/brightscript" uri="pkg:/source/api/YourStats.brs" />
   <script type="text/brightscript" uri="pkg:/components/tasks/YourStatsTask/YourStatsTask.brs" />
   <interface>
     <field id="request" type="assocarray" />
