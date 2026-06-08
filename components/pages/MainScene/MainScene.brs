@@ -40,6 +40,15 @@ end sub
 sub initValues()
     m.session = invalid
     m.mediaProgress = []
+    m.navState = {
+        activePage: ""
+        pages: {
+            home: "home"
+            library: "library"
+            series: "series"
+            yourStats: "yourStats"
+        }
+    }
     m.focusSettingsAfterLibraryReload = false
     m.playerReturnTarget = ""
     m.playbackItemId = ""
@@ -313,6 +322,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub resetDynamicPages()
     m.yourStatsPage = invalid
+    m.navState.activePage = ""
     childCount = m.dynamicPageHost.getChildCount()
     if childCount > 0 then m.dynamicPageHost.removeChildrenIndex(childCount, 0)
 end sub
@@ -339,58 +349,61 @@ end function
 ' navShowHomePage
 '-------------------------------------------------------------------------------
 sub navShowHomePage()
-    
-    m.homePage.visible = true
-    m.seriesPage.visible = false
-    m.library.visible = false
-    if m.yourStatsPage <> invalid then m.yourStatsPage.visible = false
-
-    ' this handles the scenario when the library is displaying grid view with
-    ' series collapsed, and the user drills down into a series
-    m.library.callFunc("resetDrilldown")
-
-    statusSetMessage(m.homePage.statusMessage)
-
+    showPage(m.navState.pages.home)
 end sub
 
 '-------------------------------------------------------------------------------
 ' navShowLibraryPage
 '-------------------------------------------------------------------------------
 sub navShowLibraryPage()
-    if m.homePage <> invalid then m.homePage.visible = false
-    if m.seriesPage <> invalid then m.seriesPage.visible = false
-    if m.yourStatsPage <> invalid then m.yourStatsPage.visible = false
-    if m.library <> invalid then m.library.visible = true
-    if m.library <> invalid then statusSetMessage(m.library.statusMessage)
+    showPage(m.navState.pages.library)
 end sub
 
 '-------------------------------------------------------------------------------
 ' navShowSeriesPage
 '-------------------------------------------------------------------------------
 sub navShowSeriesPage()
-    if m.homePage <> invalid then m.homePage.visible = false
-    if m.yourStatsPage <> invalid then m.yourStatsPage.visible = false
-    if m.library <> invalid then
-        m.library.visible = false
-        m.library.callFunc("resetDrilldown")
-    end if
-    if m.seriesPage <> invalid then m.seriesPage.visible = true
-    if m.seriesPage <> invalid then statusSetMessage(m.seriesPage.statusMessage)
+    showPage(m.navState.pages.series)
 end sub
 
 '-------------------------------------------------------------------------------
 ' navShowYourStatsPage
 '-------------------------------------------------------------------------------
 sub navShowYourStatsPage()
-    ensureYourStatsPage()
-    if m.homePage <> invalid then m.homePage.visible = false
-    if m.library <> invalid then
-        m.library.visible = false
-        m.library.callFunc("resetDrilldown")
+    showPage(m.navState.pages.yourStats)
+end sub
+
+'-------------------------------------------------------------------------------
+' showPage
+'-------------------------------------------------------------------------------
+sub showPage(pageId as string)
+    if pageId = m.navState.pages.yourStats then ensureYourStatsPage()
+
+    m.navState.activePage = pageId
+
+    if m.homePage <> invalid then m.homePage.visible = (pageId = m.navState.pages.home)
+    if m.library <> invalid then m.library.visible = (pageId = m.navState.pages.library)
+    if m.seriesPage <> invalid then m.seriesPage.visible = (pageId = m.navState.pages.series)
+    if m.yourStatsPage <> invalid then m.yourStatsPage.visible = (pageId = m.navState.pages.yourStats)
+
+    if pageId <> m.navState.pages.library and m.library <> invalid then m.library.callFunc("resetDrilldown")
+
+    updatePageStatus(pageId)
+end sub
+
+'-------------------------------------------------------------------------------
+' updatePageStatus
+'-------------------------------------------------------------------------------
+sub updatePageStatus(pageId as string)
+    if pageId = m.navState.pages.home and m.homePage <> invalid then
+        statusSetMessage(m.homePage.statusMessage)
+    else if pageId = m.navState.pages.library and m.library <> invalid then
+        statusSetMessage(m.library.statusMessage)
+    else if pageId = m.navState.pages.series and m.seriesPage <> invalid then
+        statusSetMessage(m.seriesPage.statusMessage)
+    else
+        statusSetMessage("")
     end if
-    if m.seriesPage <> invalid then m.seriesPage.visible = false
-    if m.yourStatsPage <> invalid then m.yourStatsPage.visible = true
-    statusSetMessage("")
 end sub
 
 '-------------------------------------------------------------------------------
