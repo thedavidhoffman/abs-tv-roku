@@ -73,7 +73,7 @@ sub loadStats()
     m.requestState.hasFocusedInitialSession = false
     setStatus("Loading...")
     m.yourStatsApiTask.request = {
-        action: "loadYourStats"
+        action: "fetchListeningStats"
         server: loadRequest.server
         token: loadRequest.token
     }

@@ -2,6 +2,8 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+    m.log = CreateLogger("PlaybackTask")
+    m.log.write("init")
     m.top.functionName = "executeRequest"
 end sub
 

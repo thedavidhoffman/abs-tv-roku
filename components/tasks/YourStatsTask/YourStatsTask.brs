@@ -2,6 +2,8 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+    m.log = CreateLogger("YourStatsTask")
+    m.log.write("init")
     m.top.functionName = "executeRequest"
 end sub
 
@@ -15,32 +17,26 @@ sub executeRequest()
         return
     end if
 
-    m.top.response = loadYourStats(request)
+    m.top.response = fetchListeningStats(request)
 end sub
 
 '-------------------------------------------------------------------------------
-' loadYourStats
+' fetchListeningStats
 '-------------------------------------------------------------------------------
-function loadYourStats(request as object) as object
+function fetchListeningStats(request as object) as object
 
-    log = CreateLogger("(API) loadYourStats")
+    statsUrl = request.server + "/api/me/listening-stats"
+    m.log.write(statsUrl)
 
-    server = request.server
-    token = request.token
+    result = HttpClient_Request(statsUrl, "GET", request.token, invalid)
 
-    statsUrl = server + "/api/me/listening-stats"
-    log.write(statsUrl)
-
-    result = HttpClient_Request(statsUrl, "GET", token, invalid)
-
-    if result.ok <> true then
-        return result
-    end if
+    if result.ok <> true then return result
 
     return {
         ok: true
-        action: "loadYourStats"
+        action: "fetchListeningStats"
         status: result.status
         stats: result.data
     }
+
 end function

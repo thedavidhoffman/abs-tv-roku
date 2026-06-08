@@ -6,6 +6,8 @@
 ' init
 '-------------------------------------------------------------------------------
 sub init()
+    m.log = CreateLogger("PersonalizedTask")
+    m.log.write("init")
     m.top.functionName = "executeRequest"
 end sub
 
@@ -19,37 +21,29 @@ sub executeRequest()
         return
     end if
 
-    m.top.response = loadPersonalized(request)
+    m.top.response = fetchPersonalizedShelves(request)
 end sub
 
 '-------------------------------------------------------------------------------
-' loadPersonalized
+' fetchPersonalizedShelves
 '-------------------------------------------------------------------------------
-function loadPersonalized(request as object) as object
+function fetchPersonalizedShelves(request as object) as object
 
-    log = CreateLogger("(API) loadPersonalized")
-
-    server = request.server
-    token = request.token
-    bookLibraryId = request.bookLibraryId
-
-    if bookLibraryId = invalid or bookLibraryId = "" then
+    if request.bookLibraryId = invalid or request.bookLibraryId = "" then
         return { ok: false, errorMessage: "No book library was found for this account." }
     end if
 
-    personalizedUrl = server + "/api/libraries/" + bookLibraryId + "/personalized"
-    log.write(personalizedUrl)
+    personalizedUrl = request.server + "/api/libraries/" + request.bookLibraryId + "/personalized"
+    m.log.write(personalizedUrl)
 
-    result = HttpClient_Request(personalizedUrl, "GET", token, invalid)
+    result = HttpClient_Request(personalizedUrl, "GET", request.token, invalid)
     
-    if result.ok <> true then
-        return result
-    end if
-
+    if result.ok <> true then return result
+    
     return {
         ok: true
-        action: "loadPersonalized"
-        bookLibraryId: bookLibraryId
+        action: "fetchPersonalizedShelves"
+        bookLibraryId: request.bookLibraryId
         shelves: result.data
     }
     

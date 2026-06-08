@@ -120,7 +120,7 @@ sub loadPersonalizedShelves()
     setStatus("Loading...")
     
     runPersonalizedApiRequest({
-        action: "loadPersonalized"
+        action: "fetchPersonalizedShelves"
         server: m.loadRequest.server
         token: m.loadRequest.token
         bookLibraryId: m.loadRequest.bookLibraryId

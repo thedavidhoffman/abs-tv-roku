@@ -39,7 +39,7 @@ Roku SceneGraph has two threads: the **render thread** (all component `.brs` fil
 - **`components/controllers/AuthController/`** - Auth state machine; reads/writes the Roku registry via `source/store/AuthStore.brs`.
 - **`components/pages/Player/`** - Audiobook playback UI. Uses a hidden Roku `Video` node (not `Audio`) so it can set `disableScreenSaver`; the node must keep `enableUI="false"` and configure content as `contentType = "audio"`. **Do not swap it for an `Audio` node** without handling screensaver suppression another way.
 - **`components/tasks/*Task`** - Background task components split by API domain. Endpoint-specific Audiobookshelf API calls live in the task that owns the async request.
-- **`source/api/`** - Shared API infrastructure, currently `HttpClient`.
+- **`source/HttpClient.brs`** - Shared HTTP request infrastructure for task-owned API calls.
 - **`source/mappers/`** - Map raw Audiobookshelf API responses to app-level structs and reduced cache shapes.
 - **`source/store/`** - Roku registry persistence (`AuthStore`, `SettingsStore`).
 
