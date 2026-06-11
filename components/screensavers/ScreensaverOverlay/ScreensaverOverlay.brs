@@ -216,7 +216,8 @@ function getScreensaverDelaySeconds(settings as dynamic) as integer
     if settings = invalid then return 60
 
     keys = SettingsStore_Keys()
-    delayMinutes = int(val(SafeString(settings[keys.screensaverDelay], "1")))
+    screensaverDelay = settings[keys.screensaverDelay]
+    delayMinutes = Number_ToInteger(screensaverDelay, 1)
     if delayMinutes <> 1 and delayMinutes <> 5 and delayMinutes <> 15 and delayMinutes <> 30 then delayMinutes = 1
 
     return delayMinutes * 60

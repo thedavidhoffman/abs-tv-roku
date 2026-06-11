@@ -13,7 +13,7 @@ end function
 function PlaybackTrackTime_ClampGlobalTime(timeSeconds as dynamic, durationSeconds as integer) as integer
     if timeSeconds = invalid then timeSeconds = 0
 
-    result = int(val(timeSeconds.ToStr()))
+    result = Number_ToInteger(timeSeconds)
     if result < 0 then result = 0
     if durationSeconds > 0 and result > durationSeconds then result = durationSeconds
 
@@ -132,7 +132,7 @@ end function
 function PlaybackTrackTime_GetTrackDurationSeconds(track as dynamic) as integer
     if track = invalid then return 0
     if track.durationSeconds = invalid then return 0
-    return int(val(track.durationSeconds.ToStr()))
+    return Number_ToInteger(track.durationSeconds)
 end function
 
 '-------------------------------------------------------------------------------
@@ -140,7 +140,7 @@ end function
 '-------------------------------------------------------------------------------
 function PlaybackTrackTime_GetTrackStartPosition(track as dynamic) as integer
     if track = invalid then return 0
-    if track.startOffset <> invalid then return int(val(track.startOffset.ToStr()))
+    if track.startOffset <> invalid then return Number_ToInteger(track.startOffset)
     return 0
 end function
 

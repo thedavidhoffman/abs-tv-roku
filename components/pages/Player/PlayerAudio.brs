@@ -11,7 +11,7 @@ end function
 '-------------------------------------------------------------------------------
 function PlayerAudio_GetPosition() as integer
     if m.playbackRefs.audioPlayer = invalid or m.playbackRefs.audioPlayer.position = invalid then return 0
-    return int(val(m.playbackRefs.audioPlayer.position.ToStr()))
+    return Number_ToInteger(m.playbackRefs.audioPlayer.position)
 end function
 
 '-------------------------------------------------------------------------------

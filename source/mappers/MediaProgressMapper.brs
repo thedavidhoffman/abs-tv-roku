@@ -67,14 +67,14 @@ function __MediaProgressMapper_MapProgress(progress as dynamic, item as dynamic)
     if itemId = invalid or itemId = "" then itemId = __MediaProgressMapper_GetItemId(item)
     if itemId = invalid or itemId = "" then return invalid
 
-    duration = __MediaProgressMapper_GetNumber(progress.duration)
+    duration = Number_ToFloat(progress.duration)
     if duration <= 0 then duration = __MediaProgressMapper_GetItemDuration(item)
 
     return {
         itemId: itemId
         duration: duration
-        progress: __MediaProgressMapper_GetNumber(progress.progress)
-        currentTime: __MediaProgressMapper_GetNumber(progress.currentTime)
+        progress: Number_ToFloat(progress.progress)
+        currentTime: Number_ToFloat(progress.currentTime)
         isFinished: __MediaProgressMapper_GetBoolean(progress.isFinished)
     }
 end function
@@ -160,20 +160,12 @@ function __MediaProgressMapper_HasProgressFields(progress as dynamic) as boolean
 end function
 
 '-------------------------------------------------------------------------------
-' __MediaProgressMapper_GetNumber
-'-------------------------------------------------------------------------------
-function __MediaProgressMapper_GetNumber(value as dynamic) as float
-    if value = invalid then return 0
-    return val(value.ToStr())
-end function
-
-'-------------------------------------------------------------------------------
 ' __MediaProgressMapper_GetItemDuration
 '-------------------------------------------------------------------------------
 function __MediaProgressMapper_GetItemDuration(item as dynamic) as float
     if item = invalid then return 0
-    if item.duration <> invalid then return __MediaProgressMapper_GetNumber(item.duration)
-    if item.media <> invalid and item.media.duration <> invalid then return __MediaProgressMapper_GetNumber(item.media.duration)
+    if item.duration <> invalid then return Number_ToFloat(item.duration)
+    if item.media <> invalid and item.media.duration <> invalid then return Number_ToFloat(item.media.duration)
 
     return 0
 end function

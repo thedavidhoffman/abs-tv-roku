@@ -101,14 +101,18 @@ function startPlayback(request as object) as object
     ' chapters are the navigation/display units. Player uses them for the Chapters list and the right-aligned
     ' chapter title/status. They may not match audio files. A single audio file can have many chapters, and a
     ' multi-file book can have chapters that cross or differ from track boundaries.
-    chapters = mapChapters(playbackSession, tracks, log)
+    chapters = PlaybackChapterMapper_MapSessionChapters(playbackSession)
+    if PlaybackChapterMapper_ShouldUseTracks(chapters, tracks, playbackSession) then
+        log.error("session chapters appear partial; using audio tracks as chapter items")
+        chapters = PlaybackChapterMapper_MapTracks(tracks)
+    end if
 
     ' playback data
     action = "startPlayback"
     playbackSessionId = getSessionId(playbackSession)
-    currentTime = getNumber(playbackSession.currentTime)
-    duration = getNumber(playbackSession.duration)
-    playMethod = getInteger(playbackSession.playMethod, -1)
+    currentTime = Number_ToFloat(playbackSession.currentTime)
+    duration = Number_ToFloat(playbackSession.duration)
+    playMethod = Number_ToInteger(playbackSession.playMethod, -1)
     isHlsTranscode = isSessionHlsTranscode(playbackSession, tracks)
     if forceDirectPlay = true and isHlsTranscode = true then log.error("Force direct play request returned an HLS/transcode session.")
 
@@ -365,8 +369,8 @@ function mapTracks(server as string, token as dynamic, session as dynamic, log a
                     index: trackIndex
                     url: url
                     title: getTrackTitle(track, i)
-                    startOffset: getNumber(track.startOffset)
-                    durationSeconds: getNumber(track.duration)
+                    startOffset: Number_ToFloat(track.startOffset)
+                    durationSeconds: Number_ToFloat(track.duration)
                     contentUrl: SafeString(track.contentUrl, "")
                     mimeType: getTrackMimeType(track)
                     isHls: isHlsTrack(track)
@@ -402,7 +406,7 @@ function getSourceAudioFile(audioFiles as dynamic, trackIndex as integer, fallba
     if audioFiles = invalid or audioFiles.Count() = 0 then return invalid
 
     for each audioFile in audioFiles
-        if audioFile <> invalid and audioFile.index <> invalid and getInteger(audioFile.index, -1) = trackIndex then
+        if audioFile <> invalid and audioFile.index <> invalid and Number_ToInteger(audioFile.index, -1) = trackIndex then
             return audioFile
         end if
     end for
@@ -423,107 +427,6 @@ function getSourceAudioFileField(audioFile as dynamic, fieldName as string) as d
     if metadata <> invalid then return metadata[fieldName]
 
     return invalid
-end function
-
-'-------------------------------------------------------------------------------
-' mapChapters
-'-------------------------------------------------------------------------------
-function mapChapters(session as dynamic, tracks as dynamic, log as object) as object
-    chapters = []
-    if session = invalid or session.chapters = invalid or session.chapters.Count() = 0 then return chapters
-
-    for i = 0 to session.chapters.Count() - 1
-        chapter = session.chapters[i]
-        if chapter <> invalid then
-            startTime = getChapterStart(chapter)
-            endTime = getChapterEnd(chapter, session, i)
-            duration = endTime - startTime
-            if duration < 0 then duration = 0
-            chapters.Push({
-                index: i
-                title: getChapterTitle(chapter, i)
-                startOffset: startTime
-                durationSeconds: duration
-                isChapter: true
-            })
-        end if
-    end for
-
-    ' Some ABS playback sessions can return a partial chapter list whose first
-    ' chapter starts at 0 even though it maps to a later audio file. In that case
-    ' use audio tracks as chapter items so navigation still covers the full book.
-    if shouldUseTracksAsChapters(chapters, tracks, session) then
-        log.error("session chapters appear partial; using audio tracks as chapter items")
-        return mapTracksAsChapters(tracks)
-    end if
-
-    return chapters
-end function
-
-'-------------------------------------------------------------------------------
-' shouldUseTracksAsChapters
-'-------------------------------------------------------------------------------
-function shouldUseTracksAsChapters(chapters as dynamic, tracks as dynamic, session as dynamic) as boolean
-    if chapters = invalid or tracks = invalid then return false
-    if chapters.Count() = 0 or tracks.Count() = 0 then return false
-    if chapters.Count() >= tracks.Count() then return false
-
-    chapterCoverage = getChapterCoverageSeconds(chapters)
-    mediaDuration = getMediaDurationSeconds(session, tracks)
-    if mediaDuration <= 0 then return false
-
-    return chapterCoverage < (mediaDuration * 0.9)
-end function
-
-'-------------------------------------------------------------------------------
-' mapTracksAsChapters
-'-------------------------------------------------------------------------------
-function mapTracksAsChapters(tracks as dynamic) as object
-    chapters = []
-    if tracks = invalid then return chapters
-
-    for i = 0 to tracks.Count() - 1
-        track = tracks[i]
-        if track <> invalid then
-            chapters.Push({
-                index: i
-                title: SafeString(track.title, "Track " + (i + 1).ToStr())
-                startOffset: getNumber(track.startOffset)
-                durationSeconds: getNumber(track.durationSeconds)
-                isChapter: true
-                source: "track"
-            })
-        end if
-    end for
-
-    return chapters
-end function
-
-'-------------------------------------------------------------------------------
-' getChapterCoverageSeconds
-'-------------------------------------------------------------------------------
-function getChapterCoverageSeconds(chapters as dynamic) as float
-    if chapters = invalid or chapters.Count() = 0 then return 0
-
-    lastChapter = chapters[chapters.Count() - 1]
-    if lastChapter = invalid then return 0
-
-    return getNumber(lastChapter.startOffset) + getNumber(lastChapter.durationSeconds)
-end function
-
-'-------------------------------------------------------------------------------
-' getMediaDurationSeconds
-'-------------------------------------------------------------------------------
-function getMediaDurationSeconds(session as dynamic, tracks as dynamic) as float
-    if session <> invalid and session.duration <> invalid then return getNumber(session.duration)
-    if tracks = invalid then return 0
-
-    duration = 0.0
-    for each track in tracks
-        if track <> invalid then duration = duration + getNumber(track.durationSeconds)
-    end for
-
-    return duration
 end function
 
 '-------------------------------------------------------------------------------
@@ -709,7 +612,7 @@ end sub
 ' isSessionHlsTranscode
 '-------------------------------------------------------------------------------
 function isSessionHlsTranscode(session as dynamic, tracks as object) as boolean
-    if session <> invalid and session.playMethod <> invalid and getInteger(session.playMethod, -1) <> 0 then return true
+    if session <> invalid and session.playMethod <> invalid and Number_ToInteger(session.playMethod, -1) <> 0 then return true
     if tracks <> invalid and tracks.Count() = 1 and tracks[0] <> invalid and tracks[0].isHls = true then return true
     return false
 end function
@@ -742,7 +645,7 @@ end function
 ' getTrackIndex
 '-------------------------------------------------------------------------------
 function getTrackIndex(track as dynamic, fallbackIndex as integer) as integer
-    if track <> invalid and track.index <> invalid then return getInteger(track.index, fallbackIndex)
+    if track <> invalid and track.index <> invalid then return Number_ToInteger(track.index, fallbackIndex)
     return fallbackIndex
 end function
 
@@ -766,47 +669,3 @@ function getTrackMimeType(track as dynamic) as string
     return "audio/mpeg"
 end function
 
-'-------------------------------------------------------------------------------
-' getChapterStart
-'-------------------------------------------------------------------------------
-function getChapterStart(chapter as dynamic) as float
-    if chapter.start <> invalid then return getNumber(chapter.start)
-    if chapter.startTime <> invalid then return getNumber(chapter.startTime)
-    if chapter.startOffset <> invalid then return getNumber(chapter.startOffset)
-    return 0
-end function
-
-'-------------------------------------------------------------------------------
-' getChapterEnd
-'-------------------------------------------------------------------------------
-function getChapterEnd(chapter as dynamic, session as dynamic, index as integer) as float
-    if chapter.end <> invalid then return getNumber(chapter.end)
-    if chapter.endTime <> invalid then return getNumber(chapter.endTime)
-    if chapter.duration <> invalid then return getChapterStart(chapter) + getNumber(chapter.duration)
-    if session <> invalid and session.chapters <> invalid and index + 1 < session.chapters.Count() then return getChapterStart(session.chapters[index + 1])
-    if session <> invalid and session.duration <> invalid then return getNumber(session.duration)
-    return getChapterStart(chapter)
-end function
-
-'-------------------------------------------------------------------------------
-' getChapterTitle
-'-------------------------------------------------------------------------------
-function getChapterTitle(chapter as dynamic, index as integer) as string
-    return FirstNonEmpty([chapter.title, chapter.name], "Chapter " + (index + 1).ToStr())
-end function
-
-'-------------------------------------------------------------------------------
-' getNumber
-'-------------------------------------------------------------------------------
-function getNumber(value as dynamic) as float
-    if value = invalid then return 0
-    return val(value.ToStr())
-end function
-
-'-------------------------------------------------------------------------------
-' getInteger
-'-------------------------------------------------------------------------------
-function getInteger(value as dynamic, fallback as integer) as integer
-    if value = invalid then return fallback
-    return int(val(value.ToStr()))
-end function

@@ -383,23 +383,16 @@ end sub
 function getPercentComplete(item as dynamic) as float
     if item = invalid then return 0
 
-    progress = getNumber(item.progressPercent)
+    progress = Number_ToFloat(item.progressPercent)
     if progress > 0 then return clampPercent(progress)
 
-    duration = getNumber(item.progressDuration)
+    duration = Number_ToFloat(item.progressDuration)
     if duration <= 0 then return 0
 
-    currentTime = getNumber(item.progressCurrentTime)
+    currentTime = Number_ToFloat(item.progressCurrentTime)
     return clampPercent(currentTime / duration)
 end function
 
-'-------------------------------------------------------------------------------
-' getNumber
-'-------------------------------------------------------------------------------
-function getNumber(value as dynamic) as float
-    if value = invalid then return 0
-    return val(value.ToStr())
-end function
 
 '-------------------------------------------------------------------------------
 ' clampPercent

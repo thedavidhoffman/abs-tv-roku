@@ -89,5 +89,5 @@ function getInteger(track as dynamic, fieldName as string) as integer
     value = track[fieldName]
     if value = invalid then return 0
 
-    return int(val(value.ToStr()))
+    return Number_ToInteger(value)
 end function

@@ -5,7 +5,7 @@ function MediaProgressLookup_GetStartPosition(item as dynamic, mediaProgress as 
     if item = invalid then return 0
 
     if item.startPositionSeconds <> invalid then
-        startPosition = int(val(item.startPositionSeconds.ToStr()))
+        startPosition = Number_ToInteger(item.startPositionSeconds)
         if startPosition > 0 then return startPosition
     end if
 
@@ -31,14 +31,14 @@ function __MediaProgressLookup_GetCurrentTime(itemId as dynamic, mediaProgress a
             if progress.isFinished = true then return 0
 
             currentTime = 0
-            if progress.currentTime <> invalid then currentTime = int(val(progress.currentTime.ToStr()))
+            if progress.currentTime <> invalid then currentTime = Number_ToInteger(progress.currentTime)
             if currentTime > 0 then return currentTime
 
             duration = 0
-            if progress.duration <> invalid then duration = val(progress.duration.ToStr())
+            if progress.duration <> invalid then duration = Number_ToFloat(progress.duration)
 
             progressValue = 0
-            if progress.progress <> invalid then progressValue = val(progress.progress.ToStr())
+            if progress.progress <> invalid then progressValue = Number_ToFloat(progress.progress)
             if duration > 0 and progressValue > 0 then
                 if progressValue > 1 then progressValue = progressValue / 100
                 if progressValue > 1 then progressValue = 1

@@ -50,7 +50,7 @@ function __SeriesProgress_GetChildDuration(item as dynamic, progress as object) 
     if duration = invalid and item <> invalid then duration = item.duration
     if duration = invalid then return 0
 
-    return val(duration.ToStr())
+    return Number_ToFloat(duration)
 end function
 
 '-------------------------------------------------------------------------------

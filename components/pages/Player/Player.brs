@@ -600,7 +600,7 @@ function clampStartPlaybackTime(timeSeconds as dynamic) as integer
 
     logPlayerVerbose("clampStartPlaybackTime")
 
-    startTime = int(val(timeSeconds.ToStr()))
+    startTime = Number_ToInteger(timeSeconds)
     if startTime < 0 then return 0
     return startTime
 end function
@@ -612,8 +612,8 @@ function getStartPlaybackDuration(response as dynamic) as integer
 
     logPlayerVerbose("getStartPlaybackDuration")
 
-    if response <> invalid and response.duration <> invalid then return int(val(response.duration.ToStr()))
-    if response <> invalid and response.playbackSession <> invalid and response.playbackSession.duration <> invalid then return int(val(response.playbackSession.duration.ToStr()))
+    if response <> invalid and response.duration <> invalid then return Number_ToInteger(response.duration)
+    if response <> invalid and response.playbackSession <> invalid and response.playbackSession.duration <> invalid then return Number_ToInteger(response.playbackSession.duration)
     return 0
 end function
 
@@ -800,7 +800,7 @@ function getRequestStartPosition(request as dynamic) as integer
     logPlayerVerbose("getRequestStartPosition")
 
     if request = invalid or request.startPositionSeconds = invalid then return 0
-    startPosition = int(val(request.startPositionSeconds.ToStr()))
+    startPosition = Number_ToInteger(request.startPositionSeconds)
     if startPosition < 0 then return 0
     return startPosition
 end function
@@ -909,7 +909,7 @@ function getInitialTrackSeekPosition() as integer
 
     logPlayerVerbose("getInitialTrackSeekPosition")
 
-    if m.timeline.pendingSeekSeconds <> invalid then return int(val(m.timeline.pendingSeekSeconds.ToStr()))
+    if m.timeline.pendingSeekSeconds <> invalid then return Number_ToInteger(m.timeline.pendingSeekSeconds)
     return getTrackSeekPosition(m.timeline.currentTrackIndex, m.timeline.currentTimeSeconds)
 end function
 
@@ -1045,7 +1045,7 @@ sub applyPendingInitialSeek()
     if m.playbackRefs.audioPlayer = invalid then return
     if m.timeline.pendingSeekSeconds = invalid then return
 
-    seekPosition = int(val(m.timeline.pendingSeekSeconds.ToStr()))
+    seekPosition = Number_ToInteger(m.timeline.pendingSeekSeconds)
     m.timeline.pendingSeekSeconds = invalid
     PlayerAudio_Seek(seekPosition)
     logPlayer("applied pending seek=" + seekPosition.ToStr() + " state=" + PlayerAudio_GetState())
@@ -1224,7 +1224,7 @@ sub requestSyncPlaybackSession(reason = "" as string, currentTimeOverride = inva
 
     if reason <> "" then request.reason = reason
     logPlayer("request sync playback session reason=" + SafeString(reason, ""))
-    if request.currentTime <> invalid then m.playbackSync.lastSyncedCurrentTimeSeconds = int(val(request.currentTime.ToStr()))
+    if request.currentTime <> invalid then m.playbackSync.lastSyncedCurrentTimeSeconds = Number_ToInteger(request.currentTime)
     m.playbackSync.listeningTimeSinceSync = 0
     m.playbackSync.lastSyncAtSeconds = getNowSeconds()
     runPlaybackApiRequest(request)
@@ -1240,7 +1240,7 @@ function buildPlaybackSessionRequest(action as string, currentTimeOverride = inv
     if hasPlaybackSessionRequestContext() <> true then return invalid
 
     currentTime = getPlaybackCurrentTimeSeconds()
-    if currentTimeOverride <> invalid then currentTime = int(val(currentTimeOverride.ToStr()))
+    if currentTimeOverride <> invalid then currentTime = Number_ToInteger(currentTimeOverride)
     timeListened = getPlaybackTimeListenedSeconds()
     shouldSendProgress = shouldSendPlaybackProgressData(action, timeListened)
     if shouldSendProgress <> true then
@@ -1957,7 +1957,7 @@ function getPlaybackDurationSeconds() as integer
     logPlayerVerbose("getPlaybackDurationSeconds")
 
     if m.playbackContext.session <> invalid and m.playbackContext.session.duration <> invalid then
-        return int(val(m.playbackContext.session.duration.ToStr()))
+        return Number_ToInteger(m.playbackContext.session.duration)
     end if
 
     return PlaybackTrackTime_GetPlaybackDurationSeconds(m.playbackContent.tracks, m.timeline.totalDurationSeconds)

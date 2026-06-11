@@ -63,7 +63,7 @@ end function
 '-------------------------------------------------------------------------------
 function PlaybackChapters_GetStartPosition(chapter as dynamic) as integer
     if chapter = invalid then return 0
-    if chapter.startOffset <> invalid then return int(val(chapter.startOffset.ToStr()))
+    if chapter.startOffset <> invalid then return Number_ToInteger(chapter.startOffset)
     return 0
 end function
 
@@ -73,5 +73,6 @@ end function
 function PlaybackChapters_GetPositionAtIndex(startPositions as dynamic, index as integer) as integer
     if startPositions = invalid then return 0
     if index < 0 or index >= startPositions.Count() then return 0
-    return int(val(startPositions[index].ToStr()))
+    return Number_ToInteger(startPositions[index])
 end function
+

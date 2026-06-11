@@ -168,7 +168,7 @@ end function
 function getTrackDurationSeconds(track as dynamic) as integer
     if track = invalid then return 0
     if track.durationSeconds = invalid then return 0
-    return int(val(track.durationSeconds.ToStr()))
+    return Number_ToInteger(track.durationSeconds)
 end function
 
 '-------------------------------------------------------------------------------

@@ -44,7 +44,7 @@ function ProgressData_GetPlaybackStartPosition(item as dynamic, mediaProgress as
     if progress = invalid then return 0
     if progress.isFinished = true then return 0
 
-    currentTime = int(val(progress.currentTime.ToStr()))
+    currentTime = Number_ToInteger(progress.currentTime)
     if currentTime > 0 then return currentTime
 
     return ProgressData_GetDerivedCurrentTime(progress.progress, progress.duration)
@@ -54,10 +54,10 @@ end function
 ' ProgressData_GetDerivedCurrentTime
 '-------------------------------------------------------------------------------
 function ProgressData_GetDerivedCurrentTime(progressValue as dynamic, durationValue as dynamic) as integer
-    duration = val(durationValue.ToStr())
+    duration = Number_ToFloat(durationValue)
     if duration <= 0 then return 0
 
-    progress = val(progressValue.ToStr())
+    progress = Number_ToFloat(progressValue)
     if progress <= 0 then return 0
     if progress > 1 then progress = progress / 100
     if progress > 1 then progress = 1
@@ -114,7 +114,7 @@ function __ProgressData_GetNumberFromFields(value as dynamic, fieldNames as obje
 
     for each fieldName in fieldNames
         fieldValue = value[fieldName]
-        if fieldValue <> invalid then return __ProgressData_GetNumber(fieldValue)
+        if fieldValue <> invalid then return Number_ToFloat(fieldValue)
     end for
 
     return 0
@@ -132,14 +132,6 @@ function __ProgressData_GetBooleanFromFields(value as dynamic, fieldNames as obj
     end for
 
     return false
-end function
-
-'-------------------------------------------------------------------------------
-' __ProgressData_GetNumber
-'-------------------------------------------------------------------------------
-function __ProgressData_GetNumber(value as dynamic) as float
-    if value = invalid then return 0
-    return val(value.ToStr())
 end function
 
 '-------------------------------------------------------------------------------

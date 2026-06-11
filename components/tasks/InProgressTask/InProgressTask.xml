@@ -4,6 +4,7 @@
   <script type="text/brightscript" uri="pkg:/source/String.brs" />
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/HttpClient.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Number.brs" />
   <script type="text/brightscript" uri="pkg:/source/mappers/MediaProgressMapper.brs" />
   <script type="text/brightscript" uri="pkg:/components/tasks/InProgressTask/InProgressTask.brs" />
   <interface>

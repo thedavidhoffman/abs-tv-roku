@@ -130,7 +130,7 @@ function ItemMetadataParser_GetDurationSeconds(item as dynamic) as integer
     if duration = invalid and item <> invalid then duration = item.duration
     if duration = invalid then return 0
 
-    return int(val(duration.ToStr()))
+    return Number_ToInteger(duration)
 end function
 
 '-------------------------------------------------------------------------------

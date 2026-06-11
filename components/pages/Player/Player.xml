@@ -5,6 +5,7 @@
   <script type="text/brightscript" uri="pkg:/source/Color.brs" />
   <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
   <script type="text/brightscript" uri="pkg:/source/Cover.brs" />
+  <script type="text/brightscript" uri="pkg:/source/Number.brs" />
   <script type="text/brightscript" uri="pkg:/source/PlaybackTrackTime.brs" />
   <script type="text/brightscript" uri="pkg:/source/PlaybackChapters.brs" />
   <script type="text/brightscript" uri="pkg:/source/ItemMetadataParser.brs" />
