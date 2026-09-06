@@ -8,7 +8,7 @@ import "pkg:/source/store/SettingsStore.bs"
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = Logger.CreateLogger("ScreensaverOverlay")
+    m.log = new Logger("ScreensaverOverlay")
     m.log.write("init")
 
     m.screensaverDelayTimer = m.top.findNode("screensaverDelayTimer")
@@ -43,7 +43,7 @@ sub startDelay()
     ' if no screensaver is configured, return out
     m.screensaverEnabled = (m.screensaverType <> "off")
 
-    if m.screensaverEnabled <> true then 
+    if m.screensaverEnabled <> true then
         m.log.write("no screen saver configured")
         return
     end if
@@ -55,7 +55,7 @@ sub startDelay()
     ' start the timer
     m.screensaverDelayTimer.duration = getScreensaverDelaySeconds(settings)
     m.screensaverDelayTimer.control = "start"
-    
+
 end sub
 
 '-------------------------------------------------------------------------------
@@ -198,7 +198,8 @@ end sub
 ' getScreensaverType
 '-------------------------------------------------------------------------------
 function getScreensaverType(settings as dynamic) as string
-    if settings = invalid then return "off"    screensaverType = Format.SafeString(settings[SettingsStore.Keys.ScreensaverType], "off")
+    if settings = invalid then return "off"
+    screensaverType = Format.SafeString(settings[SettingsStore.Keys.ScreensaverType], "off")
     if screensaverType = "bounce" or screensaverType = "starfield" then return screensaverType
 
     return "off"
@@ -215,7 +216,8 @@ end function
 ' getScreensaverDelaySeconds
 '-------------------------------------------------------------------------------
 function getScreensaverDelaySeconds(settings as dynamic) as integer
-    if settings = invalid then return 60    screensaverDelay = settings[SettingsStore.Keys.ScreensaverDelay]
+    if settings = invalid then return 60
+    screensaverDelay = settings[SettingsStore.Keys.ScreensaverDelay]
     delayMinutes = Number.ToInteger(screensaverDelay, 1)
     if delayMinutes <> 1 and delayMinutes <> 5 and delayMinutes <> 15 and delayMinutes <> 30 then delayMinutes = 1
 

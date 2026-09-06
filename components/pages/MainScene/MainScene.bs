@@ -88,7 +88,7 @@ sub initHandlers()
     m.homePage.observeField("playSelected", "homeHandlePlaySelected")
     m.homePage.observeField("statusMessage", "homeHandleStatusMessageChanged")
     m.homePage.observeField("upFromFirstRowSelected", "homeHandleUpFromFirstRowSelected")
-    
+
     m.inProgressApiTask.observeField("response", "playbackHandleInProgressResponse")
 
     m.library.observeField("backFromFirstItemSelected", "libraryHandleBackFromFirstItemSelected")
@@ -301,7 +301,7 @@ end sub
 ' navShowApp
 '-------------------------------------------------------------------------------
 sub navShowApp()
-    
+
     m.login.visible = false
     m.authenticatedContent.visible = true
     resetDynamicPages()
@@ -318,7 +318,7 @@ sub navShowApp()
     m.homePage.loadRequest = loadRequest
     m.library.loadRequest = loadRequest
     m.seriesPage.loadRequest = loadRequest
-    
+
     navShowHomePage()
     focusHomePage()
 
@@ -338,7 +338,7 @@ end sub
 ' buildSessionLoadRequest
 '-------------------------------------------------------------------------------
 function buildSessionLoadRequest() as object
-    
+
     if m.session = invalid then THROW("[MainScene.buildSessionLoadRequest()] session is invalid.")
     if m.session.server = invalid then THROW("[MainScene.buildSessionLoadRequest()] session.server is invalid.")
     if m.session.token = invalid then THROW("[MainScene.buildSessionLoadRequest()] session.token is invalid.")
@@ -920,7 +920,7 @@ end sub
 ' playbackHandlePlayerCloseRequested
 '-------------------------------------------------------------------------------
 sub playbackHandlePlayerCloseRequested()
-    
+
     m.player.visible = false
     m.authenticatedContent.visible = true
     reloadHomeShelvesAfterPlayback()
@@ -969,12 +969,11 @@ sub playbackHandleInProgressResponse()
     if response = invalid then return
     if Format.SafeString(response.sourceItemId, "") <> Format.SafeString(m.playbackItemId, "") then return
 
-    log = Logger.CreateBufferedLogger("MainScene playback progress refresh")
+    log = new Logger("MainScene playback progress refresh")
 
     if response.ok <> true then
         log.write("status = " + Format.SafeString(response.status, ""))
         log.write("error = " + Format.SafeString(response.errorMessage, "Unable to refresh media progress."))
-        log.flush()
         handleComponentError(response)
         return
     end if
@@ -989,7 +988,6 @@ sub playbackHandleInProgressResponse()
     log.write("items returned = " + libraryItemCount.ToStr())
     log.write("progress updated = " + updatedCount.ToStr())
     log.write("played item found = " + mediaProgressContainsItem(response.mediaProgress, response.sourceItemId).ToStr())
-    log.flush()
 end sub
 
 '-------------------------------------------------------------------------------

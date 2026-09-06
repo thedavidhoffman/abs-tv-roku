@@ -470,11 +470,11 @@ sub closeMenu()
 
     wasLibraryMenuOpen = isLibraryMenuOpen()
     wasUserMenuOpen = isAccountMenuOpen()
-    
+
     closeAccountMenu()
     closeLibraryMenu()
     syncMenuOpen()
-    
+
     if wasUserMenuOpen then
         m.userMenuButton.setFocus(true)
     else if wasLibraryMenuOpen then

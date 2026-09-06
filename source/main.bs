@@ -2,7 +2,7 @@ sub Main()
     screen = CreateObject("roSGScreen")
     port = CreateObject("roMessagePort")
     screen.SetMessagePort(port)
-    
+
     ' required for Roku app certification
     memoryMonitor = CreateObject("roAppMemoryMonitor")
     memoryMonitor.SetMessagePort(port)

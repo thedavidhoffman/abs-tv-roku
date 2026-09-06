@@ -11,7 +11,7 @@ import "pkg:/source/store/SettingsStore.bs"
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = Logger.CreateLogger("HomePage")
+    m.log = new Logger("HomePage")
     m.log.write("init")
 
     initReferences()
@@ -93,7 +93,8 @@ end sub
 '-------------------------------------------------------------------------------
 ' getGridColumnsSetting
 '-------------------------------------------------------------------------------
-function getGridColumnsSetting(settings as dynamic) as string    return SettingsStore.GetSettingValue(settings, SettingsStore.Keys.GridColumns)
+function getGridColumnsSetting(settings as dynamic) as string
+    return SettingsStore.GetSettingValue(settings, SettingsStore.Keys.GridColumns)
 end function
 
 '-------------------------------------------------------------------------------
@@ -124,7 +125,7 @@ sub loadPersonalizedShelves()
     if m.top.visible = true then m.focusState.firstItemPending = true
     m.isLoading = true
     setStatus("Loading...")
-    
+
     runPersonalizedApiRequest({
         action: "fetchPersonalizedShelves"
         server: m.loadRequest.server

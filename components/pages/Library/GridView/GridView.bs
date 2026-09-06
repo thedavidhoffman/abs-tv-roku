@@ -14,7 +14,7 @@ import "pkg:/source/store/SettingsStore.bs"
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = Logger.CreateLogger("GridView")
+    m.log = new Logger("GridView")
     m.log.write("init")
 
     m.markupGrid = m.top.findNode("markupGrid")
@@ -73,7 +73,8 @@ end sub
 '-------------------------------------------------------------------------------
 ' getGridColumnsSetting
 '-------------------------------------------------------------------------------
-function getGridColumnsSetting(settings as dynamic) as string    return SettingsStore.GetSettingValue(settings, SettingsStore.Keys.GridColumns)
+function getGridColumnsSetting(settings as dynamic) as string
+    return SettingsStore.GetSettingValue(settings, SettingsStore.Keys.GridColumns)
 end function
 
 '-------------------------------------------------------------------------------

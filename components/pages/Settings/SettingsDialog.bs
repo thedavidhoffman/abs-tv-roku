@@ -44,7 +44,8 @@ sub saveSettings()
 
     settings = content.callFunc("getSettingsValues")
     if settings = invalid then return
-    if SettingsStore.AreEqual(settings, m.originalSettings) then return    SettingsStore.Save(settings[SettingsStore.Keys.SeriesDisplay], settings[SettingsStore.Keys.ItemDisplay], settings[SettingsStore.Keys.GridColumns], settings[SettingsStore.Keys.ScreensaverType], settings[SettingsStore.Keys.ScreensaverDelay])
+    if SettingsStore.AreEqual(settings, m.originalSettings) then return
+    SettingsStore.Save(settings[SettingsStore.Keys.SeriesDisplay], settings[SettingsStore.Keys.ItemDisplay], settings[SettingsStore.Keys.GridColumns], settings[SettingsStore.Keys.ScreensaverType], settings[SettingsStore.Keys.ScreensaverDelay])
     m.top.savedSettings = settings
     m.top.settingsSaved = true
 end sub

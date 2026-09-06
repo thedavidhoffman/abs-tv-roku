@@ -10,7 +10,8 @@ namespace GridLayout
         columns = 6
 
         if settings <> invalid then
-            value = invalid        if settings[SettingsStore.Keys.GridColumns] <> invalid then value = settings[SettingsStore.Keys.GridColumns]
+            value = invalid
+        if settings[SettingsStore.Keys.GridColumns] <> invalid then value = settings[SettingsStore.Keys.GridColumns]
 
             if value <> invalid then columns = Number.ToInteger(value)
         end if

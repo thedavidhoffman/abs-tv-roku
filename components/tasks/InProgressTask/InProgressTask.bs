@@ -7,7 +7,7 @@ import "pkg:/source/mappers/MediaProgressMapper.bs"
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.log = Logger.CreateLogger("InProgressTask")
+    m.log = new Logger("InProgressTask")
     m.log.write("init")
     m.top.functionName = "executeRequest"
 end sub
@@ -30,7 +30,7 @@ end sub
 '-------------------------------------------------------------------------------
 function loadInProgress(request as object) as object
 
-    log = Logger.CreateLogger("(API) loadInProgress")
+    log = new Logger("(API) loadInProgress")
     server = request.server
     token = request.token
 
@@ -56,7 +56,7 @@ function loadInProgress(request as object) as object
         mediaProgress: mediaProgress
         sourceItemId: request.sourceItemId
     }
-    
+
 end function
 
 '-------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ function loadSourceProgress(server as string, token as dynamic, sourceItemId as 
     log.write(progressUrl)
 
     result = HttpClient.Request(progressUrl, "GET", token, invalid)
-    
+
     if result.ok <> true then return invalid
 
     return MediaProgressMapper.MapProgressItem(result.data)

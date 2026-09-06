@@ -6,7 +6,7 @@ import "pkg:/source/Logger.bs"
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.log = Logger.CreateLogger("YourStats")
+    m.log = new Logger("YourStats")
 
     initReferences()
     initValues()

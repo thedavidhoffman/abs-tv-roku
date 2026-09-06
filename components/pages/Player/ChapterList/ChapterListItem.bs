@@ -28,12 +28,12 @@ end sub
 '-------------------------------------------------------------------------------
 ' focusPercentChanged
 '-------------------------------------------------------------------------------
-function focusPercentChanged() 
+function focusPercentChanged()
     if m.top.focusPercent > 0
         m.title.color = &h0F1A2AFF
         m.duration.color = &h0F1A2AFF
-    else 
+    else
         m.title.color = &hF3F7FBFF
         m.duration.color = &h8DA0B5FF
-    end if 
+    end if
 end function

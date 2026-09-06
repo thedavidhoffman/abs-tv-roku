@@ -6,7 +6,7 @@ import "pkg:/source/mappers/LibraryItemMapper.bs"
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.log = Logger.CreateLogger("LibraryItemsTask")
+    m.log = new Logger("LibraryItemsTask")
     m.log.write("init")
     m.top.functionName = "executeRequest"
 end sub
@@ -29,7 +29,7 @@ end sub
 '-------------------------------------------------------------------------------
 function fetchAllLibraryItems(request as object) as object
 
-    log = Logger.CreateLogger("(API) fetchAllLibraryItems")
+    log = new Logger("(API) fetchAllLibraryItems")
 
     server = request.server
     token = request.token
@@ -63,7 +63,7 @@ function fetchAllLibraryItems(request as object) as object
         log.write(libraryUrl)
 
         libraryResult = HttpClient.Request(libraryUrl, "GET", token, invalid)
-        
+
         if libraryResult.ok <> true then
             libraryResult.action = "loadLibrary"
             libraryResult.cacheKey = request.cacheKey

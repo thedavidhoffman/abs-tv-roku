@@ -11,7 +11,7 @@ import "pkg:/source/store/SettingsStore.bs"
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = Logger.CreateLogger("Series")
+    m.log = new Logger("Series")
     m.log.write("init")
 
     m.seriesRowList = m.top.findNode("seriesRowList")
@@ -67,7 +67,8 @@ end sub
 '-------------------------------------------------------------------------------
 ' getGridColumnsSetting
 '-------------------------------------------------------------------------------
-function getGridColumnsSetting(settings as dynamic) as string    return SettingsStore.GetSettingValue(settings, SettingsStore.Keys.GridColumns)
+function getGridColumnsSetting(settings as dynamic) as string
+    return SettingsStore.GetSettingValue(settings, SettingsStore.Keys.GridColumns)
 end function
 
 '-------------------------------------------------------------------------------

@@ -88,7 +88,7 @@ end function
 ' onFocusVisualChanged
 '-------------------------------------------------------------------------------
 sub onFocusVisualChanged()
-    
+
     if m.bg <> invalid then
         if m.top.hasFocusVisual = true then
             m.bg.visible = true

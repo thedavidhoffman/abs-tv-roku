@@ -33,7 +33,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub showContent()
     if m.poster = invalid then return
-    
+
     ' RowList/Grid renderers are reused, so detach from the old content node
     ' before observing the new one. Otherwise stale focus changes can update
     ' a poster that no longer represents that item.

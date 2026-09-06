@@ -17,7 +17,7 @@ sub init()
         m.passwordInput
         m.loginButton
     ]
-   
+
     m.activeKeyboardField = invalid
     preloadSavedSession()
     syncFieldsFromState()

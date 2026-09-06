@@ -5,7 +5,7 @@ import "pkg:/source/Logger.bs"
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.log = Logger.CreateLogger("Starfield")
+    m.log = new Logger("Starfield")
     m.starLayer = m.top.findNode("starLayer")
     m.starTimer = m.top.findNode("starTimer")
 

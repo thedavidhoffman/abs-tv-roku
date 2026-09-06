@@ -7,7 +7,7 @@ import "pkg:/source/store/SettingsStore.bs"
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = Logger.CreateLogger("Library")
+    m.log = new Logger("Library")
     m.log.write("init")
 
     initReferences()
@@ -314,13 +314,15 @@ end sub
 '-------------------------------------------------------------------------------
 ' getItemDisplaySetting
 '-------------------------------------------------------------------------------
-function getItemDisplaySetting(settings as object) as string    return SettingsStore.GetSettingValue(settings, SettingsStore.Keys.ItemDisplay)
+function getItemDisplaySetting(settings as object) as string
+    return SettingsStore.GetSettingValue(settings, SettingsStore.Keys.ItemDisplay)
 end function
 
 '-------------------------------------------------------------------------------
 ' getGridColumnsSetting
 '-------------------------------------------------------------------------------
-function getGridColumnsSetting(settings as object) as string    return SettingsStore.GetSettingValue(settings, SettingsStore.Keys.GridColumns)
+function getGridColumnsSetting(settings as object) as string
+    return SettingsStore.GetSettingValue(settings, SettingsStore.Keys.GridColumns)
 end function
 
 '-------------------------------------------------------------------------------
@@ -591,7 +593,7 @@ end function
 ' focusLibraryList
 '-------------------------------------------------------------------------------
 sub focusLibraryList()
-    
+
     if hasStatusMessage() then
         m.top.setFocus(true)
         return

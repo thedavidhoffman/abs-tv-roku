@@ -11,7 +11,7 @@ import "pkg:/source/String.bs"
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.log = Logger.CreateLogger("PlaybackTask")
+    m.log = new Logger("PlaybackTask")
     m.log.write("init")
     m.top.functionName = "executeRequest"
 end sub
@@ -46,7 +46,7 @@ function createPlaybackLogger(suffix = "" as string) as object
     label = "Playback"
     if suffix <> invalid and suffix <> "" then label = label + "::" + suffix
 
-    return Logger.CreateLogger(label)
+    return new Logger(label)
 
 end function
 

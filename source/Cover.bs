@@ -7,7 +7,7 @@ namespace Cover
     '---------------------------------------------------------------------------
     function BuildUrl(server as dynamic, token as dynamic, itemId as dynamic, width as integer) as string
 
-        log = Logger.CreateLogger("Cover.BuildUrl")
+        log = new Logger("Cover.BuildUrl")
 
         placeholder = "pkg:/images/placeholder-cover.png"
 

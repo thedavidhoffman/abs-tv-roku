@@ -8,7 +8,7 @@ import "pkg:/source/store/AuthStore.bs"
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = Logger.CreateLogger("AuthController")
+    m.log = new Logger("AuthController")
     m.log.write("init")
 
     m.authApiTask = m.top.findNode("authApiTask")

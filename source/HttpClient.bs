@@ -9,7 +9,7 @@ namespace HttpClient
     '---------------------------------------------------------------------------
     function Request(url as String, method as String, token as Dynamic, body as Dynamic) as Object
 
-        log = Logger.CreateLogger("HttpClient.Request")
+        log = new Logger("HttpClient.Request")
 
         if url = invalid or url = "" then
             message = "Invalid http request: url is invalid."

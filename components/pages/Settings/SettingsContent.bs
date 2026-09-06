@@ -108,7 +108,8 @@ end sub
 '-------------------------------------------------------------------------------
 sub loadSettingsValues()
     settings = SettingsStore.Load()
-    if settings = invalid then return    if m.seriesOptions <> invalid then
+    if settings = invalid then return
+    if m.seriesOptions <> invalid then
         if settings[SettingsStore.Keys.SeriesDisplay] = "expand" then
             m.seriesOptions.checkedItem = 1
         else
@@ -280,7 +281,8 @@ end sub
 '-------------------------------------------------------------------------------
 ' getSettingsValues
 '-------------------------------------------------------------------------------
-function getSettingsValues() as object    if getCheckedItemIndex(m.seriesOptions) = 0 then
+function getSettingsValues() as object
+    if getCheckedItemIndex(m.seriesOptions) = 0 then
         seriesDisplay = "collapse"
     else
         seriesDisplay = "expand"

@@ -126,7 +126,7 @@ function descriptionNeedsFocus() as boolean
     for i = 1 to Len(text)
 
         char = Mid(text, i, 1)
-        
+
         if char = Chr(10) or char = Chr(13) then
             estimatedLines = estimatedLines + 1
             currentLineLength = 0

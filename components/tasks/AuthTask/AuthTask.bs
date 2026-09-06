@@ -6,7 +6,7 @@ import "pkg:/source/Logger.bs"
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.log = Logger.CreateLogger("AuthTask")
+    m.log = new Logger("AuthTask")
     m.log.write("init")
     m.top.functionName = "executeRequest"
 end sub
@@ -17,7 +17,7 @@ end sub
 sub executeRequest()
 
     request = m.top.request
-    
+
     if request = invalid then
         m.top.response = { ok: false, errorMessage: "Invalid auth request." }
         return
@@ -41,7 +41,7 @@ end sub
 ' login
 '-------------------------------------------------------------------------------
 function login(request as object) as object
-    
+
     body = Json.Object([
         Json.Pair("username", request.username)
         Json.Pair("password", request.password)
@@ -50,7 +50,7 @@ function login(request as object) as object
     loginUrl = request.server + "/login"
     m.log.write(loginUrl)
     result = HttpClient.Request(loginUrl, "POST", invalid, body)
-    
+
     if result.ok <> true then return result
     payload = result.data
 
@@ -75,7 +75,7 @@ function authorize(request as object) as object
     authorizeUrl = request.server + "/api/authorize"
     m.log.write(authorizeUrl)
     result = HttpClient.Request(authorizeUrl, "POST", request.token, "")
-    
+
     if result.ok <> true then return result
 
     return {
@@ -96,7 +96,7 @@ function logout(request as object) as object
     logoutUrl = request.server + "/logout"
     m.log.write(logoutUrl)
     result = HttpClient.Request(logoutUrl, "POST", request.token, "")
-    
+
     if result.ok <> true and result.status <> 401 then return result
     return { ok: true, action: "logout" }
 

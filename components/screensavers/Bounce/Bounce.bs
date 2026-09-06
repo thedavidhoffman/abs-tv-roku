@@ -9,7 +9,7 @@ import "pkg:/source/Logger.bs"
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.log = Logger.CreateLogger("Bounce")
+    m.log = new Logger("Bounce")
     m.poster = m.top.findNode("poster")
     m.bounceAnimation = m.top.findNode("bounceAnimation")
     m.bounceInterpolator = m.top.findNode("bounceInterpolator")

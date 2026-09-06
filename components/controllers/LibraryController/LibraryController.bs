@@ -10,7 +10,7 @@ import "pkg:/source/store/SettingsStore.bs"
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = Logger.CreateLogger("LibraryController")
+    m.log = new Logger("LibraryController")
 
     m.allItemsTask = m.top.findNode("allItemsTask")
     m.collapsedItemsTask = m.top.findNode("collapsedItemsTask")
@@ -88,7 +88,7 @@ end sub
 '-------------------------------------------------------------------------------
 sub publishSeriesRowsResponse(request as string)
     if request <> "loadSeriesRows" then return
-    
+
     m.top.seriesRowsResponse = {
         ok: true
         action: "loadSeriesRows"
@@ -251,7 +251,7 @@ end sub
 sub handleLibraryItemsResponse(response as dynamic)
 
     if response = invalid then return
-    
+
     ' Ignore stale task responses from a previous library reload.
     if response.requestGeneration <> m.requestGeneration then
         log.write("requestGeneration mismatch, ignoring response.")
@@ -367,7 +367,8 @@ end function
 '-------------------------------------------------------------------------------
 ' getSeriesDisplaySetting
 '-------------------------------------------------------------------------------
-function getSeriesDisplaySetting(settings as dynamic) as string    return SettingsStore.GetSettingValue(settings, SettingsStore.Keys.SeriesDisplay)
+function getSeriesDisplaySetting(settings as dynamic) as string
+    return SettingsStore.GetSettingValue(settings, SettingsStore.Keys.SeriesDisplay)
 end function
 
 '-------------------------------------------------------------------------------

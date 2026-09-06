@@ -8,10 +8,10 @@ namespace Array
     function GetCount(values as dynamic) as integer
 
         if values = invalid then return 0
-        
+
         valueType = Type(values)
         if valueType <> "roArray" and valueType <> "roAssociativeArray" then return 0
-        
+
         return values.Count()
 
     end function

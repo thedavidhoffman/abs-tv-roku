@@ -11,8 +11,8 @@ import "pkg:/source/PlaybackTrackTime.bs"
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    
-    m.log = Logger.CreateLogger("Player")
+
+    m.log = new Logger("Player")
     m.verboseLogging = false
     logPlayerVerbose("init")
 
@@ -250,7 +250,7 @@ end sub
 ' requestStartPlaybackSession
 '-------------------------------------------------------------------------------
 sub requestStartPlaybackSession(forceTranscode = false as boolean, startTimeOverride = invalid as dynamic)
-        
+
     logPlayerVerbose("requestStartPlaybackSession")
 
     request = m.top.playRequest
@@ -507,7 +507,7 @@ sub onPlaybackApiResponse()
     else if response.ok <> true then
         m.top.errorResponse = response
     end if
-    
+
 end sub
 
 '-------------------------------------------------------------------------------

@@ -137,7 +137,8 @@ end function
 '-------------------------------------------------------------------------------
 function getApplicationRegistryText() as object
     auth = AuthStore.Load()
-    settings = SettingsStore.Load()    return keyValueText([
+    settings = SettingsStore.Load()
+    return keyValueText([
         { key: "server", value: auth.server }
         { key: "username", value: auth.username }
         { key: "userId", value: auth.userId }

@@ -5,7 +5,7 @@ import "pkg:/source/Logger.bs"
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.log = Logger.CreateLogger("YourStatsTask")
+    m.log = new Logger("YourStatsTask")
     m.log.write("init")
     m.top.functionName = "executeRequest"
 end sub

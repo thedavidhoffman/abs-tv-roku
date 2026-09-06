@@ -9,7 +9,7 @@ import "pkg:/source/Logger.bs"
 ' init
 '-------------------------------------------------------------------------------
 sub init()
-    m.log = Logger.CreateLogger("PersonalizedTask")
+    m.log = new Logger("PersonalizedTask")
     m.log.write("init")
     m.top.functionName = "executeRequest"
 end sub
@@ -40,16 +40,16 @@ function fetchPersonalizedShelves(request as object) as object
     m.log.write(personalizedUrl)
 
     result = HttpClient.Request(personalizedUrl, "GET", request.token, invalid)
-    
+
     if result.ok <> true then return result
-    
+
     return {
         ok: true
         action: "fetchPersonalizedShelves"
         bookLibraryId: request.bookLibraryId
         shelves: result.data
     }
-    
+
 end function
 
 

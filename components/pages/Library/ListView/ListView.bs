@@ -8,7 +8,7 @@ import "pkg:/source/String.bs"
 '-------------------------------------------------------------------------------
 sub init()
 
-    m.log = Logger.CreateLogger("ListView")
+    m.log = new Logger("ListView")
     m.log.write("init")
 
     initReferences()
