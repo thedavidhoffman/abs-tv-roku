@@ -1,0 +1,137 @@
+import "pkg:/source/Format.bs"
+import "pkg:/source/Logger.bs"
+import "pkg:/source/String.bs"
+
+namespace HttpClient
+
+    '---------------------------------------------------------------------------
+    ' HttpClient.Request
+    '---------------------------------------------------------------------------
+    function Request(url as String, method as String, token as Dynamic, body as Dynamic) as Object
+
+        log = Logger.CreateLogger("HttpClient.Request")
+
+        if url = invalid or url = "" then
+            message = "Invalid http request: url is invalid."
+            log.error(message)
+            return { ok: false, errorMessage: message }
+        end if
+
+        if method = invalid or method = "" then
+            message = "Invalid http request: method is invalid."
+            log.error(message)
+            return { ok: false, errorMessage: message }
+        end if
+
+        ' IMPORTANT...
+        ' do NOT check for invalid token here login requests don't have
+        ' a token, so it's valid in that scenario for the token to be null
+
+        transfer = CreateObject("roUrlTransfer")
+        port = CreateObject("roMessagePort")
+
+        transfer.SetCertificatesFile("common:/certs/ca-bundle.crt")
+        transfer.InitClientCertificates()
+        transfer.EnableEncodings(true)
+        transfer.SetMessagePort(port)
+        transfer.SetUrl(url)
+        transfer.AddHeader("Accept", "application/json")
+
+        if token <> invalid and token <> "" then
+            transfer.AddHeader("Authorization", "Bearer " + token)
+        end if
+
+        responseText = ""
+        status = 0
+        if method = "POST" then
+            transfer.AddHeader("Content-Type", "application/json")
+            requestStarted = transfer.AsyncPostFromString(HttpClient.__InvalidToEmpty(body))
+        else
+            requestStarted = transfer.AsyncGetToString()
+        end if
+
+        if requestStarted <> true then
+            return { ok: false, status: 0, errorMessage: "Unable to start the request to the Audiobookshelf server." }
+        end if
+
+        msg = wait(30000, port)
+        if msg = invalid then
+            transfer.AsyncCancel()
+            return { ok: false, status: 0, errorMessage: "The Audiobookshelf server request timed out." }
+        end if
+
+        if type(msg) <> "roUrlEvent" then
+            return { ok: false, status: 0, errorMessage: "Unexpected response from the Audiobookshelf server." }
+        end if
+
+        status = msg.GetResponseCode()
+        responseText = msg.GetString()
+        responseHeaders = msg.GetResponseHeaders()
+        contentType = HttpClient.__GetResponseHeader(responseHeaders, "content-type")
+
+        if status = 0 then
+            return { ok: false, status: status, errorMessage: "Unable to reach the Audiobookshelf server." }
+        end if
+
+        if status = 401 and token <> invalid and token <> "" then
+            return { ok: false, status: status, authExpired: true, errorMessage: "Your session has expired. Please sign in again." }
+        end if
+
+        data = invalid
+        if HttpClient.__IsJsonContentType(contentType) and responseText <> invalid and responseText <> "" then
+            data = ParseJson(responseText)
+        end if
+
+        if status < 200 or status >= 300 then
+            message = "Request failed."
+            if data <> invalid then
+                if data.error <> invalid then message = Format.SafeString(data.error, message)
+                if data.message <> invalid then message = Format.SafeString(data.message, message)
+            else if responseText <> invalid and String.Trim(responseText) <> "" then
+                message = String.Trim(responseText)
+            else if msg.GetFailureReason() <> invalid and String.Trim(msg.GetFailureReason()) <> "" then
+                message = String.Trim(msg.GetFailureReason())
+            end if
+            return { ok: false, status: status, errorMessage: message }
+        end if
+
+        return { ok: true, status: status, data: data, responseText: responseText }
+    end function
+
+    '---------------------------------------------------------------------------
+    ' GetResponseHeader
+    '---------------------------------------------------------------------------
+    function __GetResponseHeader(headers as Dynamic, name as String) as String
+        if headers = invalid then return ""
+
+        value = headers[name]
+        if value <> invalid then return value.ToStr()
+
+        lowerName = LCase(name)
+        for each key in headers
+            if LCase(key.ToStr()) = lowerName then
+                value = headers[key]
+                if value <> invalid then return value.ToStr()
+            end if
+        end for
+
+        return ""
+    end function
+
+    '---------------------------------------------------------------------------
+    ' IsJsonContentType
+    '---------------------------------------------------------------------------
+    function __IsJsonContentType(contentType as Dynamic) as Boolean
+        normalized = LCase(Format.SafeString(contentType, ""))
+        return Instr(1, normalized, "application/json") > 0 or Instr(1, normalized, "+json") > 0
+    end function
+
+    '---------------------------------------------------------------------------
+    ' InvalidToEmpty
+    '---------------------------------------------------------------------------
+    function __InvalidToEmpty(value as Dynamic) as String
+        if value = invalid then return ""
+        return value
+    end function
+
+end namespace

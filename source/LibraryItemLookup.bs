@@ -1,0 +1,79 @@
+namespace LibraryItemLookup
+
+    '---------------------------------------------------------------------------
+    ' LibraryItemLookup.Build
+    '---------------------------------------------------------------------------
+    function Build(items as dynamic) as object
+        lookup = {}
+        if items = invalid then return lookup
+
+        for each item in items
+            if item <> invalid then
+                LibraryItemLookup.__AddCandidate(lookup, item, item.id)
+                LibraryItemLookup.__AddCandidate(lookup, item, item.libraryItemId)
+                LibraryItemLookup.__AddCandidate(lookup, item, item.mediaItemId)
+                if item.media <> invalid then
+                    LibraryItemLookup.__AddCandidate(lookup, item, item.media.id)
+                    LibraryItemLookup.__AddCandidate(lookup, item, item.media.libraryItemId)
+                end if
+            end if
+        end for
+
+        return lookup
+    end function
+
+    '---------------------------------------------------------------------------
+    ' LibraryItemLookup.GetItemsByIds
+    '---------------------------------------------------------------------------
+    function GetItemsByIds(libraryItemIds as dynamic, lookup as object) as object
+        items = []
+        if lookup = invalid then return items
+
+        ids = LibraryItemLookup.__GetIdList(libraryItemIds)
+        for each id in ids
+            item = lookup[id]
+            if item <> invalid then items.Push(item)
+        end for
+
+        return items
+    end function
+
+    '---------------------------------------------------------------------------
+    ' LibraryItemLookup.__AddCandidate
+    '---------------------------------------------------------------------------
+    sub __AddCandidate(lookup as object, item as dynamic, id as dynamic)
+        idText = LibraryItemLookup.__GetText(id)
+        if idText = "" then return
+        if lookup[idText] = invalid then lookup[idText] = item
+    end sub
+
+    '---------------------------------------------------------------------------
+    ' LibraryItemLookup.__GetIdList
+    '---------------------------------------------------------------------------
+    function __GetIdList(libraryItemIds as dynamic) as object
+        ids = []
+        if libraryItemIds = invalid then return ids
+
+        idsType = Type(libraryItemIds)
+        if idsType = "roArray" then
+            for each id in libraryItemIds
+                idText = LibraryItemLookup.__GetText(id)
+                if idText <> "" then ids.Push(idText)
+            end for
+        else
+            idText = LibraryItemLookup.__GetText(libraryItemIds)
+            if idText <> "" then ids.Push(idText)
+        end if
+
+        return ids
+    end function
+
+    '---------------------------------------------------------------------------
+    ' LibraryItemLookup.__GetText
+    '---------------------------------------------------------------------------
+    function __GetText(value as dynamic) as string
+        if value = invalid then return ""
+        return value.ToStr()
+    end function
+
+end namespace

@@ -1,0 +1,9 @@
+import "pkg:/source/Color.bs"
+
+'-------------------------------------------------------------------------------
+' init
+'-------------------------------------------------------------------------------
+sub init()
+    m.top.color = Color.GetTheme().text.primary
+    m.top.font = "font:LargeBoldSystemFont"
+end sub

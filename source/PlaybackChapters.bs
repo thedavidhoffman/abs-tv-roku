@@ -1,0 +1,85 @@
+import "pkg:/source/Format.bs"
+import "pkg:/source/Number.bs"
+import "pkg:/source/PlaybackTrackTime.bs"
+
+namespace PlaybackChapters
+
+    '---------------------------------------------------------------------------
+    ' PlaybackChapters.GetStartPositions
+    '---------------------------------------------------------------------------
+    function GetStartPositions(chapterItems as dynamic) as object
+        positions = []
+        if chapterItems = invalid then return positions
+
+        for each chapter in chapterItems
+            positions.Push(PlaybackChapters.GetStartPosition(chapter))
+        end for
+
+        return positions
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackChapters.GetMarkerPositions
+    '---------------------------------------------------------------------------
+    function GetMarkerPositions(chapterItems as dynamic, startPositions as dynamic, durationSeconds as integer) as object
+        positions = []
+        if chapterItems = invalid or chapterItems.Count() <= 1 then return positions
+
+        for i = 0 to chapterItems.Count() - 1
+            chapterPosition = PlaybackChapters.GetPositionAtIndex(startPositions, i)
+            if chapterPosition < 0 then chapterPosition = 0
+            if durationSeconds > 0 and chapterPosition > durationSeconds then chapterPosition = durationSeconds
+            positions.Push(chapterPosition)
+        end for
+
+        return positions
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackChapters.GetCurrentIndex
+    '---------------------------------------------------------------------------
+    function GetCurrentIndex(chapterItems as dynamic, startPositions as dynamic, currentTime as dynamic, durationSeconds as integer) as integer
+        if chapterItems = invalid or chapterItems.Count() = 0 then return 0
+
+        currentIndex = 0
+        currentTimeSeconds = PlaybackTrackTime.ClampGlobalTime(currentTime, durationSeconds)
+        for i = 0 to chapterItems.Count() - 1
+            if currentTimeSeconds >= PlaybackChapters.GetPositionAtIndex(startPositions, i) then currentIndex = i
+        end for
+
+        return currentIndex
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackChapters.GetCurrentTitle
+    '---------------------------------------------------------------------------
+    function GetCurrentTitle(chapterItems as dynamic, startPositions as dynamic, currentTime as dynamic, durationSeconds as integer) as string
+        if chapterItems = invalid or chapterItems.Count() <= 1 then return ""
+
+        index = PlaybackChapters.GetCurrentIndex(chapterItems, startPositions, currentTime, durationSeconds)
+        if index < 0 or index >= chapterItems.Count() then return ""
+
+        chapter = chapterItems[index]
+        if chapter = invalid then return ""
+        return Format.SafeString(chapter.title, "")
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackChapters.GetStartPosition
+    '---------------------------------------------------------------------------
+    function GetStartPosition(chapter as dynamic) as integer
+        if chapter = invalid then return 0
+        if chapter.startOffset <> invalid then return Number.ToInteger(chapter.startOffset)
+        return 0
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackChapters.GetPositionAtIndex
+    '---------------------------------------------------------------------------
+    function GetPositionAtIndex(startPositions as dynamic, index as integer) as integer
+        if startPositions = invalid then return 0
+        if index < 0 or index >= startPositions.Count() then return 0
+        return Number.ToInteger(startPositions[index])
+    end function
+
+end namespace

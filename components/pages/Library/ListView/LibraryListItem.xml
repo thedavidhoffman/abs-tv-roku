@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <component name="LibraryListItem" extends="Group">
-  <script type="text/brightscript" uri="pkg:/components/pages/Library/ListView/LibraryListItem.brs" />
   <interface>
     <field id="itemContent" type="node" onChange="showContent" />
     <field id="focusPercent" type="float" onChange="focusPercentChanged" />

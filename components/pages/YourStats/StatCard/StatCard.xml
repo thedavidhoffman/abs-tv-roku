@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="StatCard" extends="Group">
-  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
-  <script type="text/brightscript" uri="pkg:/components/pages/YourStats/StatCard/StatCard.brs" />
   <interface>
     <field id="valueText" type="string" onChange="onDataChanged" />
     <field id="labelText" type="string" onChange="onDataChanged" />

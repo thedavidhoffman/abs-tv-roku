@@ -1,0 +1,109 @@
+import "pkg:/source/Format.bs"
+
+'-------------------------------------------------------------------------------
+' init
+'-------------------------------------------------------------------------------
+sub init()
+    m.dialog = m.top.findNode("chapterDialog")
+    m.content = invalid
+
+    if m.dialog <> invalid then m.dialog.observeField("closeRequested", "onDialogCloseRequested")
+
+    updateTitle()
+    syncContent()
+end sub
+
+'-------------------------------------------------------------------------------
+' open
+'-------------------------------------------------------------------------------
+sub open()
+    m.top.visible = true
+    syncContent()
+
+    if m.dialog <> invalid then m.dialog.callFunc("openDialog")
+
+    content = getChapterContent()
+    if content <> invalid then content.callFunc("focusCurrentChapter")
+end sub
+
+'-------------------------------------------------------------------------------
+' close
+'-------------------------------------------------------------------------------
+sub close()
+    if m.dialog <> invalid then m.dialog.callFunc("closeDialog")
+end sub
+
+'-------------------------------------------------------------------------------
+' onTracksChanged
+'-------------------------------------------------------------------------------
+sub onTracksChanged()
+    syncContent()
+end sub
+
+'-------------------------------------------------------------------------------
+' onCurrentTrackIndexChanged
+'-------------------------------------------------------------------------------
+sub onCurrentTrackIndexChanged()
+    syncContent()
+end sub
+
+'-------------------------------------------------------------------------------
+' onAudiobookTitleChanged
+'-------------------------------------------------------------------------------
+sub onAudiobookTitleChanged()
+    updateTitle()
+end sub
+
+'-------------------------------------------------------------------------------
+' onDialogCloseRequested
+'-------------------------------------------------------------------------------
+sub onDialogCloseRequested()
+    m.top.visible = false
+    m.top.closed = true
+end sub
+
+'-------------------------------------------------------------------------------
+' onContentSelectedChapter
+'-------------------------------------------------------------------------------
+sub onContentSelectedChapter()
+    content = getChapterContent()
+    if content = invalid then return
+
+    selection = content.selectedChapter
+    if selection = invalid then return
+
+    close()
+    m.top.selectedChapter = selection
+end sub
+
+'-------------------------------------------------------------------------------
+' updateTitle
+'-------------------------------------------------------------------------------
+sub updateTitle()
+    if m.dialog = invalid then return
+    m.dialog.title = Format.SafeString(m.top.audiobookTitle, "Chapters")
+end sub
+
+'-------------------------------------------------------------------------------
+' syncContent
+'-------------------------------------------------------------------------------
+sub syncContent()
+    content = getChapterContent()
+    if content = invalid then return
+
+    if m.content = invalid then
+        m.content = content
+        m.content.observeField("selectedChapter", "onContentSelectedChapter")
+    end if
+
+    content.tracks = m.top.tracks
+    content.currentTrackIndex = m.top.currentTrackIndex
+end sub
+
+'-------------------------------------------------------------------------------
+' getChapterContent
+'-------------------------------------------------------------------------------
+function getChapterContent() as object
+    if m.dialog = invalid then return invalid
+    return m.dialog.callFunc("getContentComponent")
+end function

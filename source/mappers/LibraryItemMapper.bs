@@ -1,0 +1,150 @@
+namespace LibraryItemMapper
+
+    '---------------------------------------------------------------------------
+    ' LibraryItemMapper.Map
+    '---------------------------------------------------------------------------
+    function Map(value as dynamic) as object
+        mappedItems = []
+        items = LibraryItemMapper.__ToArray(value)
+        if items = invalid then return mappedItems
+
+        for each item in items
+            mappedItem = LibraryItemMapper.__MapItem(item)
+            mappedItems.Push(mappedItem)
+        end for
+
+        return mappedItems
+    end function
+
+    '---------------------------------------------------------------------------
+    ' LibraryItemMapper.__ToArray
+    '---------------------------------------------------------------------------
+    function __ToArray(value as dynamic) as dynamic
+        if value = invalid then return invalid
+
+        valueType = Type(value)
+        if valueType = "roArray" then return value
+        if valueType <> "roAssociativeArray" then return invalid
+
+        if value.results <> invalid then return value.results
+
+        return invalid
+    end function
+
+    '---------------------------------------------------------------------------
+    ' LibraryItemMapper.__MapItem
+    '---------------------------------------------------------------------------
+    function __MapItem(item as dynamic) as object
+        mappedItem = {
+            id: item.id
+            libraryItemId: item.libraryItemId
+            mediaItemId: item.mediaItemId
+            mediaType: item.mediaType
+            title: item.title
+            duration: item.duration
+            series: item.series
+            seriesId: item.seriesId
+            seriesSequence: item.seriesSequence
+            sequence: item.sequence
+            progress: item.progress
+            currentTime: item.currentTime
+            progressCurrentTime: item.progressCurrentTime
+            progressDuration: item.progressDuration
+            isFinished: item.isFinished
+            progressIsFinished: item.progressIsFinished
+        }
+
+        if item.media <> invalid then mappedItem.media = LibraryItemMapper.__MapMedia(item.media)
+        if item.userMediaProgress <> invalid then mappedItem.userMediaProgress = LibraryItemMapper.__MapProgress(item.userMediaProgress)
+        if item.mediaProgress <> invalid then mappedItem.mediaProgress = LibraryItemMapper.__MapProgress(item.mediaProgress)
+        if item.collapsedSeries <> invalid then mappedItem.collapsedSeries = LibraryItemMapper.__MapCollapsedSeries(item.collapsedSeries)
+
+        return mappedItem
+    end function
+
+    '---------------------------------------------------------------------------
+    ' LibraryItemMapper.__MapMedia
+    '---------------------------------------------------------------------------
+    function __MapMedia(media as dynamic) as object
+        mappedMedia = {
+            id: media.id
+            libraryItemId: media.libraryItemId
+            duration: media.duration
+        }
+
+        if media.metadata <> invalid then mappedMedia.metadata = LibraryItemMapper.__MapMetadata(media.metadata)
+
+        return mappedMedia
+    end function
+
+    '---------------------------------------------------------------------------
+    ' LibraryItemMapper.__MapMetadata
+    '---------------------------------------------------------------------------
+    function __MapMetadata(metadata as dynamic) as object
+        return {
+            title: metadata.title
+            authorName: metadata.authorName
+            author: metadata.author
+            authors: metadata.authors
+            narrators: metadata.narrators
+            narratorName: metadata.narratorName
+            narrator: metadata.narrator
+            description: metadata.description
+            subtitle: metadata.subtitle
+            publisher: metadata.publisher
+            publishedYear: metadata.publishedYear
+            publishedDate: metadata.publishedDate
+            releaseDate: metadata.releaseDate
+            genres: metadata.genres
+            categories: metadata.categories
+            genre: metadata.genre
+            category: metadata.category
+            tags: metadata.tags
+            tag: metadata.tag
+            keywords: metadata.keywords
+            series: metadata.series
+            seriesId: metadata.seriesId
+            seriesSequence: metadata.seriesSequence
+            sequence: metadata.sequence
+        }
+    end function
+
+    '---------------------------------------------------------------------------
+    ' LibraryItemMapper.__MapProgress
+    '---------------------------------------------------------------------------
+    function __MapProgress(progress as dynamic) as object
+        return {
+            progress: progress.progress
+            currentTime: progress.currentTime
+            duration: progress.duration
+            isFinished: progress.isFinished
+        }
+    end function
+
+    '---------------------------------------------------------------------------
+    ' LibraryItemMapper.__MapCollapsedSeries
+    '---------------------------------------------------------------------------
+    function __MapCollapsedSeries(collapsedSeries as dynamic) as object
+        return {
+            id: collapsedSeries.id
+            libraryItemId: collapsedSeries.libraryItemId
+            libraryItemIds: collapsedSeries.libraryItemIds
+            nameIgnorePrefix: collapsedSeries.nameIgnorePrefix
+            name: collapsedSeries.name
+            title: collapsedSeries.title
+            numBooks: LibraryItemMapper.__GetCollapsedSeriesBookCount(collapsedSeries)
+        }
+    end function
+
+    '---------------------------------------------------------------------------
+    ' LibraryItemMapper.__GetCollapsedSeriesBookCount
+    '---------------------------------------------------------------------------
+    function __GetCollapsedSeriesBookCount(collapsedSeries as dynamic) as dynamic
+        if collapsedSeries.numBooks <> invalid then return collapsedSeries.numBooks
+        if collapsedSeries.bookCount <> invalid then return collapsedSeries.bookCount
+        if collapsedSeries.count <> invalid then return collapsedSeries.count
+        if collapsedSeries.numItems <> invalid then return collapsedSeries.numItems
+        return invalid
+    end function
+
+end namespace

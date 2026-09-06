@@ -1,0 +1,97 @@
+import "pkg:/source/Format.bs"
+import "pkg:/source/Number.bs"
+import "pkg:/source/String.bs"
+
+'-------------------------------------------------------------------------------
+' init
+'-------------------------------------------------------------------------------
+sub init()
+    m.codecBadge = m.top.findNode("codecBadge")
+    m.codecBadgeLabel = m.top.findNode("codecBadgeLabel")
+    m.bitRateBadge = m.top.findNode("bitRateBadge")
+    m.bitRateBadgeLabel = m.top.findNode("bitRateBadgeLabel")
+    m.channelBadge = m.top.findNode("channelBadge")
+    m.channelBadgeLabel = m.top.findNode("channelBadgeLabel")
+
+    renderBadges(invalid)
+end sub
+
+'-------------------------------------------------------------------------------
+' onTrackChanged
+'-------------------------------------------------------------------------------
+sub onTrackChanged()
+    renderBadges(m.top.track)
+end sub
+
+'-------------------------------------------------------------------------------
+' renderBadges
+'-------------------------------------------------------------------------------
+sub renderBadges(track as dynamic)
+    codecText = formatCodec(track)
+    bitRateText = formatBitRate(track)
+    channelText = formatChannels(track)
+
+    setBadge(m.codecBadge, m.codecBadgeLabel, codecText)
+    setBadge(m.bitRateBadge, m.bitRateBadgeLabel, bitRateText)
+    setBadge(m.channelBadge, m.channelBadgeLabel, channelText)
+
+    m.top.visible = (codecText <> "" or bitRateText <> "" or channelText <> "")
+end sub
+
+'-------------------------------------------------------------------------------
+' setBadge
+'-------------------------------------------------------------------------------
+sub setBadge(badge as dynamic, label as dynamic, text as string)
+    isVisible = (text <> "")
+    if badge <> invalid then badge.visible = isVisible
+    if label <> invalid then label.text = text
+end sub
+
+'-------------------------------------------------------------------------------
+' formatCodec
+'-------------------------------------------------------------------------------
+function formatCodec(track as dynamic) as string
+    if track = invalid then return ""
+
+    codec = String.Trim(Format.SafeString(track.codec, ""))
+    if codec = "" then return ""
+
+    return UCase(codec)
+end function
+
+'-------------------------------------------------------------------------------
+' formatBitRate
+'-------------------------------------------------------------------------------
+function formatBitRate(track as dynamic) as string
+    bitRate = getInteger(track, "bitRate")
+    if bitRate <= 0 then return ""
+
+    kiloBits = int(bitRate / 1024)
+    if kiloBits <= 0 then return ""
+
+    return kiloBits.ToStr() + " KB"
+end function
+
+'-------------------------------------------------------------------------------
+' formatChannels
+'-------------------------------------------------------------------------------
+function formatChannels(track as dynamic) as string
+    channels = getInteger(track, "channels")
+    if channels <= 0 then return ""
+
+    channelLayout = String.Trim(Format.SafeString(track.channelLayout, ""))
+    if channelLayout = "" then return ""
+
+    return channels.ToStr() + " CHANNEL " + UCase(channelLayout)
+end function
+
+'-------------------------------------------------------------------------------
+' getInteger
+'-------------------------------------------------------------------------------
+function getInteger(track as dynamic, fieldName as string) as integer
+    if track = invalid then return 0
+    value = track[fieldName]
+    if value = invalid then return 0
+
+    return Number.ToInteger(value)
+end function

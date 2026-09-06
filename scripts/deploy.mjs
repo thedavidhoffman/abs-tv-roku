@@ -7,13 +7,7 @@ const configPath = path.join(rootDir, 'rokudeploy.json');
 const outDir = path.join(rootDir, 'out');
 const outFile = 'ABSTV';
 const stagingDir = path.join(rootDir, 'build', 'staging');
-
-const files = [
-  'components/**/*',
-  'images/**/*',
-  'source/**/*',
-  'manifest'
-];
+const packageStagingDir = path.join(rootDir, 'build', 'package-staging');
 
 let rawConfig;
 try {
@@ -30,13 +24,20 @@ if (!config.host || !config.password) {
   process.exit(1);
 }
 
-await rokuDeploy.deploy({
+const deployOptions = {
   ...config,
   rootDir,
   outDir,
   outFile,
-  stagingDir,
-  files
+  stagingDir: packageStagingDir
+};
+
+await rokuDeploy.prepublishToStaging({
+  rootDir: stagingDir,
+  stagingDir: packageStagingDir,
+  files: ['**/*', '!**/*.map']
 });
+await rokuDeploy.zipPackage(deployOptions);
+await rokuDeploy.publish(deployOptions);
 
 console.log(`Deployed ${outFile} to Roku device at ${config.host}`);

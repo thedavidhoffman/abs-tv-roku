@@ -1,0 +1,157 @@
+import "pkg:/source/Format.bs"
+import "pkg:/source/Number.bs"
+import "pkg:/source/String.bs"
+
+namespace ItemMetadataParser
+
+    '---------------------------------------------------------------------------
+    ' ItemMetadataParser.GetMetadata
+    '---------------------------------------------------------------------------
+    function GetMetadata(item as dynamic) as dynamic
+        if item <> invalid and item.media <> invalid and item.media.metadata <> invalid then
+            return item.media.metadata
+        end if
+
+        return {}
+    end function
+
+    '---------------------------------------------------------------------------
+    ' ItemMetadataParser.GetTitle
+    '---------------------------------------------------------------------------
+    function GetTitle(item as dynamic) as string
+        title = "Untitled"
+
+        if item <> invalid and item.media <> invalid and item.media.metadata <> invalid then
+            title = Format.FirstNonEmpty([item.media.metadata.title], title)
+        else if item <> invalid and item.title <> invalid then
+            title = Format.SafeString(item.title, title)
+        end if
+
+        return title
+    end function
+
+    '---------------------------------------------------------------------------
+    ' ItemMetadataParser.GetAuthor
+    '---------------------------------------------------------------------------
+    function GetAuthor(metadata as dynamic) as string
+        return Format.FirstNonEmpty([metadata.authorName, metadata.author], "Unknown")
+    end function
+
+    '---------------------------------------------------------------------------
+    ' ItemMetadataParser.GetNarrators
+    '---------------------------------------------------------------------------
+    function GetNarrators(metadata as dynamic) as string
+        narrators = String.GetJoinedText(metadata.narrators)
+        if narrators <> "" then return narrators
+        return Format.FirstNonEmpty([metadata.narratorName, metadata.narrator], "Unknown")
+    end function
+
+    '---------------------------------------------------------------------------
+    ' ItemMetadataParser.GetDescription
+    '---------------------------------------------------------------------------
+    function GetDescription(metadata as dynamic) as string
+        return String.StripHtmlMarkup(Format.FirstNonEmpty([metadata.description, metadata.subtitle], "No description available."))
+    end function
+
+    '---------------------------------------------------------------------------
+    ' ItemMetadataParser.GetPublishDate
+    '---------------------------------------------------------------------------
+    function GetPublishDate(metadata as dynamic) as string
+        return Format.FirstNonEmpty([metadata.publishedYear, metadata.publishedDate, metadata.releaseDate], "Unknown")
+    end function
+
+    '---------------------------------------------------------------------------
+    ' ItemMetadataParser.GetPublishYear
+    '---------------------------------------------------------------------------
+    function GetPublishYear(metadata as dynamic) as string
+        year = Format.FirstNonEmpty([metadata.publishedYear], "")
+        if year <> "" then return year
+
+        publishedDate = Format.FirstNonEmpty([metadata.publishedDate, metadata.releaseDate], "")
+        if Len(publishedDate) >= 4 then
+            possibleYear = Left(publishedDate, 4)
+            if String.IsYearText(possibleYear) then return possibleYear
+        end if
+
+        return "Unknown"
+    end function
+
+    '---------------------------------------------------------------------------
+    ' ItemMetadataParser.GetCategory
+    '---------------------------------------------------------------------------
+    function GetCategory(metadata as dynamic) as string
+        category = String.GetJoinedText(metadata.genres)
+        if category <> "" then return category
+
+        category = String.GetJoinedText(metadata.categories)
+        if category <> "" then return category
+
+        return Format.FirstNonEmpty([metadata.genre, metadata.category], "")
+    end function
+
+    '---------------------------------------------------------------------------
+    ' ItemMetadataParser.GetGenres
+    '---------------------------------------------------------------------------
+    function GetGenres(metadata as dynamic) as string
+        genres = String.GetJoinedText(metadata.genres)
+        if genres <> "" then return genres
+
+        categories = String.GetJoinedText(metadata.categories)
+        if categories <> "" then return categories
+
+        return Format.FirstNonEmpty([metadata.genre, metadata.category], "Unknown")
+    end function
+
+    '---------------------------------------------------------------------------
+    ' ItemMetadataParser.GetTags
+    '---------------------------------------------------------------------------
+    function GetTags(metadata as dynamic) as string
+        tags = String.GetJoinedText(metadata.tags)
+        if tags <> "" then return tags
+        return Format.FirstNonEmpty([metadata.tag, metadata.keywords], "None")
+    end function
+
+    '---------------------------------------------------------------------------
+    ' ItemMetadataParser.GetDuration
+    '---------------------------------------------------------------------------
+    function GetDuration(item as dynamic) as string
+        totalSeconds = ItemMetadataParser.GetDurationSeconds(item)
+        if totalSeconds <= 0 then return "Unknown"
+
+        hours = int(totalSeconds / 3600)
+        minutes = int((totalSeconds mod 3600) / 60)
+
+        if hours > 0 and minutes > 0 then return hours.ToStr() + " hr " + minutes.ToStr() + " min"
+        if hours > 0 then return hours.ToStr() + " hr"
+        if minutes > 0 then return minutes.ToStr() + " min"
+        return "Less than 1 min"
+    end function
+
+    '---------------------------------------------------------------------------
+    ' ItemMetadataParser.GetDurationSeconds
+    '---------------------------------------------------------------------------
+    function GetDurationSeconds(item as dynamic) as integer
+        duration = invalid
+        if item <> invalid and item.media <> invalid then duration = item.media.duration
+        if duration = invalid and item <> invalid then duration = item.duration
+        if duration = invalid then return 0
+
+        return Number.ToInteger(duration)
+    end function
+
+    '---------------------------------------------------------------------------
+    ' ItemMetadataParser.GetNameCount
+    '---------------------------------------------------------------------------
+    function GetNameCount(values as dynamic, fallbackText as string) as integer
+        if values <> invalid then
+            if Type(values) = "roArray" then return values.Count()
+            if Type(values) = "roAssociativeArray" then return values.Count()
+        end if
+
+        text = String.Trim(fallbackText)
+        if text = "" or text = "Unknown" then return 0
+        if Instr(1, text, ",") > 0 or Instr(1, text, " and ") > 0 or Instr(1, text, " & ") > 0 then return 2
+        return 1
+    end function
+
+end namespace

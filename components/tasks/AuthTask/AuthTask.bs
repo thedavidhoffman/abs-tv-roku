@@ -1,0 +1,105 @@
+import "pkg:/source/HttpClient.bs"
+import "pkg:/source/Json.bs"
+import "pkg:/source/Logger.bs"
+
+'-------------------------------------------------------------------------------
+' init
+'-------------------------------------------------------------------------------
+sub init()
+    m.log = Logger.CreateLogger("AuthTask")
+    m.log.write("init")
+    m.top.functionName = "executeRequest"
+end sub
+
+'-------------------------------------------------------------------------------
+' executeRequest
+'-------------------------------------------------------------------------------
+sub executeRequest()
+
+    request = m.top.request
+    
+    if request = invalid then
+        m.top.response = { ok: false, errorMessage: "Invalid auth request." }
+        return
+    end if
+
+    action = request.action
+
+    if action = "login" then
+        m.top.response = login(request)
+    else if action = "authorize" then
+        m.top.response = authorize(request)
+    else if action = "logout" then
+        m.top.response = logout(request)
+    else
+        m.top.response = { ok: false, errorMessage: "Unknown auth request action." }
+    end if
+
+end sub
+
+'-------------------------------------------------------------------------------
+' login
+'-------------------------------------------------------------------------------
+function login(request as object) as object
+    
+    body = Json.Object([
+        Json.Pair("username", request.username)
+        Json.Pair("password", request.password)
+    ])
+
+    loginUrl = request.server + "/login"
+    m.log.write(loginUrl)
+    result = HttpClient.Request(loginUrl, "POST", invalid, body)
+    
+    if result.ok <> true then return result
+    payload = result.data
+
+    if payload = invalid or payload.user = invalid or payload.user.token = invalid then
+        return { ok: false, errorMessage: "The server response did not include a token." }
+    end if
+
+    return {
+        ok: true
+        action: "login"
+        server: request.server
+        payload: payload
+    }
+
+end function
+
+'-------------------------------------------------------------------------------
+' authorize
+'-------------------------------------------------------------------------------
+function authorize(request as object) as object
+
+    authorizeUrl = request.server + "/api/authorize"
+    m.log.write(authorizeUrl)
+    result = HttpClient.Request(authorizeUrl, "POST", request.token, "")
+    
+    if result.ok <> true then return result
+
+    return {
+        ok: true
+        action: "authorize"
+        server: request.server
+        token: request.token
+        payload: result.data
+    }
+
+end function
+
+'-------------------------------------------------------------------------------
+' logout
+'-------------------------------------------------------------------------------
+function logout(request as object) as object
+
+    logoutUrl = request.server + "/logout"
+    m.log.write(logoutUrl)
+    result = HttpClient.Request(logoutUrl, "POST", request.token, "")
+    
+    if result.ok <> true and result.status <> 401 then return result
+    return { ok: true, action: "logout" }
+
+end function
+
+

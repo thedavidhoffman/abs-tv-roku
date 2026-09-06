@@ -1,0 +1,127 @@
+namespace SettingsStore
+
+    '---------------------------------------------------------------------------
+    ' Settings Registry Storage
+    '---------------------------------------------------------------------------
+    ' roRegistrySection is Roku's persistent key/value storage API. This app uses the
+    ' registry to remember display preferences and screensaver settings.
+    '
+    '---------------------------------------------------------------------------
+    ' SettingsStore.GetSettingsStore
+    '---------------------------------------------------------------------------
+    function GetSettingsStore() as object
+        return CreateObject("roRegistrySection", "ABSTV")
+    end function
+
+    '---------------------------------------------------------------------------
+    ' Keys
+    '---------------------------------------------------------------------------
+    enum Keys
+        SeriesDisplay = "series-display"
+        ItemDisplay = "item-display"
+        GridColumns = "grid-columns"
+        ScreensaverType = "screensaver-type"
+        ScreensaverDelay = "screensaver-delay"
+    end enum
+
+    '---------------------------------------------------------------------------
+    ' SettingsStore.Defaults
+    '---------------------------------------------------------------------------
+    function Defaults() as object
+        defaultSettings = {}
+        defaultSettings[SettingsStore.Keys.SeriesDisplay] = "collapse"
+        defaultSettings[SettingsStore.Keys.ItemDisplay] = "grid"
+        defaultSettings[SettingsStore.Keys.GridColumns] = "6"
+        defaultSettings[SettingsStore.Keys.ScreensaverType] = "off"
+        defaultSettings[SettingsStore.Keys.ScreensaverDelay] = "1"
+        return defaultSettings
+    end function
+
+    '---------------------------------------------------------------------------
+    ' SettingsStore.Save
+    '---------------------------------------------------------------------------
+    sub Save(seriesDisplay as string, itemDisplay as string, gridColumns as string, screensaverType as string, screensaverDelay as string)
+        registry = SettingsStore.GetSettingsStore()
+        registry.Write(SettingsStore.Keys.SeriesDisplay, seriesDisplay)
+        registry.Write(SettingsStore.Keys.ItemDisplay, itemDisplay)
+        registry.Write(SettingsStore.Keys.GridColumns, gridColumns)
+        registry.Write(SettingsStore.Keys.ScreensaverType, screensaverType)
+        registry.Write(SettingsStore.Keys.ScreensaverDelay, screensaverDelay)
+        registry.Flush()
+    end sub
+
+    '---------------------------------------------------------------------------
+    ' SettingsStore.Load
+    '---------------------------------------------------------------------------
+    function Load() as object
+        registry = SettingsStore.GetSettingsStore()
+        defaultSettings = SettingsStore.Defaults()
+        values = registry.ReadMulti([
+            SettingsStore.Keys.SeriesDisplay
+            SettingsStore.Keys.ItemDisplay
+            SettingsStore.Keys.GridColumns
+            SettingsStore.Keys.ScreensaverType
+            SettingsStore.Keys.ScreensaverDelay
+        ])
+        if values = invalid then values = {}
+
+        settings = {}
+        settings[SettingsStore.Keys.SeriesDisplay] = SettingsStore.GetValue(values, SettingsStore.Keys.SeriesDisplay, defaultSettings[SettingsStore.Keys.SeriesDisplay])
+        settings[SettingsStore.Keys.ItemDisplay] = SettingsStore.GetValue(values, SettingsStore.Keys.ItemDisplay, defaultSettings[SettingsStore.Keys.ItemDisplay])
+        settings[SettingsStore.Keys.GridColumns] = SettingsStore.GetValue(values, SettingsStore.Keys.GridColumns, defaultSettings[SettingsStore.Keys.GridColumns])
+        settings[SettingsStore.Keys.ScreensaverType] = SettingsStore.GetValue(values, SettingsStore.Keys.ScreensaverType, defaultSettings[SettingsStore.Keys.ScreensaverType])
+        settings[SettingsStore.Keys.ScreensaverDelay] = SettingsStore.GetValue(values, SettingsStore.Keys.ScreensaverDelay, defaultSettings[SettingsStore.Keys.ScreensaverDelay])
+        return settings
+    end function
+
+    '---------------------------------------------------------------------------
+    ' SettingsStore.Clear
+    '---------------------------------------------------------------------------
+    sub Clear()
+        registry = SettingsStore.GetSettingsStore()
+        registry.Delete(SettingsStore.Keys.SeriesDisplay)
+        registry.Delete(SettingsStore.Keys.ItemDisplay)
+        registry.Delete(SettingsStore.Keys.GridColumns)
+        registry.Delete(SettingsStore.Keys.ScreensaverType)
+        registry.Delete(SettingsStore.Keys.ScreensaverDelay)
+        registry.Flush()
+    end sub
+
+    '---------------------------------------------------------------------------
+    ' SettingsStore.GetValue
+    '---------------------------------------------------------------------------
+    function GetValue(values as object, key as string, defaultValue as string) as string
+        value = invalid
+        if values <> invalid then value = values[key]
+        if value = invalid or value = "" then return defaultValue
+        return value
+    end function
+
+    '---------------------------------------------------------------------------
+    ' SettingsStore.GetSettingValue
+    '---------------------------------------------------------------------------
+    function GetSettingValue(settings as dynamic, key as string) as string
+        defaultSettings = SettingsStore.Defaults()
+        defaultValue = ""
+        if defaultSettings[key] <> invalid then defaultValue = defaultSettings[key]
+
+        if settings = invalid then return defaultValue
+        if settings[key] = invalid or settings[key] = "" then return defaultValue
+        return settings[key].ToStr()
+    end function
+
+    '---------------------------------------------------------------------------
+    ' SettingsStore.AreEqual
+    '---------------------------------------------------------------------------
+    function AreEqual(left as dynamic, right as dynamic) as boolean
+        if left = invalid or right = invalid then return false
+        if SettingsStore.GetSettingValue(left, SettingsStore.Keys.SeriesDisplay) <> SettingsStore.GetSettingValue(right, SettingsStore.Keys.SeriesDisplay) then return false
+        if SettingsStore.GetSettingValue(left, SettingsStore.Keys.ItemDisplay) <> SettingsStore.GetSettingValue(right, SettingsStore.Keys.ItemDisplay) then return false
+        if SettingsStore.GetSettingValue(left, SettingsStore.Keys.GridColumns) <> SettingsStore.GetSettingValue(right, SettingsStore.Keys.GridColumns) then return false
+        if SettingsStore.GetSettingValue(left, SettingsStore.Keys.ScreensaverType) <> SettingsStore.GetSettingValue(right, SettingsStore.Keys.ScreensaverType) then return false
+        if SettingsStore.GetSettingValue(left, SettingsStore.Keys.ScreensaverDelay) <> SettingsStore.GetSettingValue(right, SettingsStore.Keys.ScreensaverDelay) then return false
+
+        return true
+    end function
+
+end namespace

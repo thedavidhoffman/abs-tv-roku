@@ -1,0 +1,96 @@
+import "pkg:/source/LibraryItemLookup.bs"
+import "pkg:/source/Number.bs"
+import "pkg:/source/ProgressData.bs"
+
+namespace SeriesProgress
+
+    '---------------------------------------------------------------------------
+    ' SeriesProgress.GetProgress
+    '---------------------------------------------------------------------------
+    function GetProgress(seriesItem as dynamic, allLibraryItemLookup as object, mediaProgress as dynamic) as object
+        totalCurrentTime = 0.0
+        totalDuration = 0.0
+
+        childItems = SeriesProgress.__GetChildItems(seriesItem, allLibraryItemLookup)
+        for each childItem in childItems
+            childProgress = ProgressData.GetItemProgress(childItem, mediaProgress)
+            childDuration = SeriesProgress.__GetChildDuration(childItem, childProgress)
+
+            if childDuration > 0 then
+                totalDuration = totalDuration + childDuration
+                totalCurrentTime = totalCurrentTime + SeriesProgress.__GetChildCurrentTime(childProgress, childDuration)
+            end if
+        end for
+
+        if totalDuration <= 0 then return SeriesProgress.__GetEmptyProgress()
+
+        if totalCurrentTime > totalDuration then totalCurrentTime = totalDuration
+        return {
+            progress: totalCurrentTime / totalDuration
+            currentTime: totalCurrentTime
+            duration: totalDuration
+            isFinished: totalCurrentTime >= totalDuration
+        }
+    end function
+
+    '---------------------------------------------------------------------------
+    ' SeriesProgress.__GetChildItems
+    '---------------------------------------------------------------------------
+    function __GetChildItems(seriesItem as dynamic, allLibraryItemLookup as object) as object
+        if seriesItem = invalid then return []
+        if seriesItem.collapsedSeries = invalid then return []
+        if seriesItem.collapsedSeries.libraryItemIds = invalid then return []
+
+        return LibraryItemLookup.GetItemsByIds(seriesItem.collapsedSeries.libraryItemIds, allLibraryItemLookup)
+    end function
+
+    '---------------------------------------------------------------------------
+    ' SeriesProgress.__GetChildDuration
+    '---------------------------------------------------------------------------
+    function __GetChildDuration(item as dynamic, progress as object) as float
+        duration = ProgressData.GetNumberFromFields(progress, ["duration"])
+        if duration > 0 then return duration
+
+        duration = invalid
+        if item <> invalid and item.media <> invalid then duration = item.media.duration
+        if duration = invalid and item <> invalid then duration = item.duration
+        if duration = invalid then return 0
+
+        return Number.ToFloat(duration)
+    end function
+
+    '---------------------------------------------------------------------------
+    ' SeriesProgress.__GetChildCurrentTime
+    '---------------------------------------------------------------------------
+    function __GetChildCurrentTime(progress as object, duration as float) as float
+        if progress = invalid or duration <= 0 then return 0
+        if progress.isFinished = true then return duration
+
+        currentTime = ProgressData.GetNumberFromFields(progress, ["currentTime"])
+        if currentTime > 0 then return SeriesProgress.__ClampSeconds(currentTime, duration)
+
+        return SeriesProgress.__ClampSeconds(ProgressData.GetDerivedCurrentTime(progress.progress, duration), duration)
+    end function
+
+    '---------------------------------------------------------------------------
+    ' SeriesProgress.__GetEmptyProgress
+    '---------------------------------------------------------------------------
+    function __GetEmptyProgress() as object
+        return {
+            progress: 0
+            currentTime: 0
+            duration: 0
+            isFinished: false
+        }
+    end function
+
+    '---------------------------------------------------------------------------
+    ' SeriesProgress.__ClampSeconds
+    '---------------------------------------------------------------------------
+    function __ClampSeconds(value as float, maxValue as float) as float
+        if value < 0 then return 0
+        if value > maxValue then return maxValue
+        return value
+    end function
+
+end namespace

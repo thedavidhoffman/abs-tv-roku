@@ -1,0 +1,68 @@
+import "pkg:/source/Number.bs"
+import "pkg:/source/store/SettingsStore.bs"
+
+namespace GridLayout
+
+    '---------------------------------------------------------------------------
+    ' GridLayout.GetColumnCount
+    '---------------------------------------------------------------------------
+    function GetColumnCount(settings as dynamic) as integer
+        columns = 6
+
+        if settings <> invalid then
+            value = invalid        if settings[SettingsStore.Keys.GridColumns] <> invalid then value = settings[SettingsStore.Keys.GridColumns]
+
+            if value <> invalid then columns = Number.ToInteger(value)
+        end if
+
+        if columns = 4 or columns = 5 or columns = 6 then return columns
+        return 6
+    end function
+
+    '---------------------------------------------------------------------------
+    ' GridLayout.GetPosterWidth
+    '---------------------------------------------------------------------------
+    function GetPosterWidth(columnCount as integer) as integer
+        if columnCount < 1 then columnCount = 6
+
+        contentWidth = 1792
+        gutter = GridLayout.GetHorizontalGutter()
+        posterWidth = int((contentWidth - ((columnCount - 1) * gutter)) / columnCount)
+
+        if posterWidth < 1 then return 280
+        return posterWidth
+    end function
+
+    '---------------------------------------------------------------------------
+    ' GridLayout.GetItemHeight
+    '---------------------------------------------------------------------------
+    function GetItemHeight(posterWidth as integer) as integer
+        if posterWidth < 1 then posterWidth = 280
+        scale = posterWidth / 280
+        return posterWidth + int((80 * scale) + 0.5)
+    end function
+
+    '---------------------------------------------------------------------------
+    ' GridLayout.GetRowHeight
+    '---------------------------------------------------------------------------
+    function GetRowHeight(itemHeight as integer) as integer
+        if itemHeight < 1 then itemHeight = 360
+        return itemHeight + 45
+    end function
+
+    '---------------------------------------------------------------------------
+    ' GridLayout.ShouldUseLargePosterText
+    '---------------------------------------------------------------------------
+    function ShouldUseLargePosterText(columnCount as dynamic) as boolean
+        if columnCount = invalid then return false
+        return columnCount.ToStr() = "4"
+    end function
+
+    '---------------------------------------------------------------------------
+    ' GridLayout.GetHorizontalGutter
+    '---------------------------------------------------------------------------
+    function GetHorizontalGutter() as integer
+        return 22
+    end function
+
+end namespace

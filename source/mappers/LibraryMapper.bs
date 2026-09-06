@@ -1,0 +1,39 @@
+namespace LibraryMapper
+
+    '---------------------------------------------------------------------------
+    ' LibraryMapper.Map
+    '---------------------------------------------------------------------------
+    function Map(value as dynamic) as object
+        mappedLibraries = []
+        libraries = LibraryMapper.__ToArray(value)
+        if libraries = invalid then return mappedLibraries
+
+        for each library in libraries
+            if library <> invalid and library.mediaType <> "podcast" then
+                mappedLibraries.Push({
+                    id: library.id
+                    name: library.name
+                    icon: library.icon
+                })
+            end if
+        end for
+
+        return mappedLibraries
+    end function
+
+    '---------------------------------------------------------------------------
+    ' LibraryMapper.__ToArray
+    '---------------------------------------------------------------------------
+    function __ToArray(value as dynamic) as dynamic
+        if value = invalid then return invalid
+
+        valueType = Type(value)
+        if valueType = "roArray" then return value
+        if valueType <> "roAssociativeArray" then return invalid
+
+        if value.libraries <> invalid then return value.libraries
+
+        return invalid
+    end function
+
+end namespace

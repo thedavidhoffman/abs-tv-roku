@@ -1,0 +1,34 @@
+import "pkg:/source/Format.bs"
+import "pkg:/source/String.bs"
+
+namespace SearchRules
+
+    '---------------------------------------------------------------------------
+    ' SearchRules.MinLength
+    '---------------------------------------------------------------------------
+    function MinLength() as integer
+        return 3
+    end function
+
+    '---------------------------------------------------------------------------
+    ' SearchRules.MaxLength
+    '---------------------------------------------------------------------------
+    function MaxLength() as integer
+        return 25
+    end function
+
+    '---------------------------------------------------------------------------
+    ' SearchRules.NormalizeTerm
+    '---------------------------------------------------------------------------
+    function NormalizeTerm(value as dynamic) as string
+        return String.CollapseWhitespace(Format.SafeString(value, ""))
+    end function
+
+    '---------------------------------------------------------------------------
+    ' SearchRules.BuildContextTitle
+    '---------------------------------------------------------------------------
+    function BuildContextTitle(searchTerm as dynamic) as string
+        return "Search results... " + Chr(34) + SearchRules.NormalizeTerm(searchTerm) + Chr(34)
+    end function
+
+end namespace

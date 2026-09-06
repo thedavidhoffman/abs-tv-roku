@@ -1,0 +1,20 @@
+namespace Encode
+
+    '---------------------------------------------------------------------------
+    ' Encode.Base64
+    '---------------------------------------------------------------------------
+    function Base64(value as String) as String
+        bytes = CreateObject("roByteArray")
+        bytes.FromAsciiString(value)
+        return bytes.ToBase64String()
+    end function
+
+    '---------------------------------------------------------------------------
+    ' Encode.Url
+    '---------------------------------------------------------------------------
+    function Url(value as String) as String
+        transfer = CreateObject("roUrlTransfer")
+        return transfer.Escape(value)
+    end function
+
+end namespace

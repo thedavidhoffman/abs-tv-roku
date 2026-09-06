@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="LibraryController" extends="Group">
-  <script type="text/brightscript" uri="pkg:/source/Format.brs" />
-  <script type="text/brightscript" uri="pkg:/source/Array.brs" />
-  <script type="text/brightscript" uri="pkg:/source/String.brs" />
-  <script type="text/brightscript" uri="pkg:/source/SearchRules.brs" />
-  <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
-  <script type="text/brightscript" uri="pkg:/source/store/SettingsStore.brs" />
-  <script type="text/brightscript" uri="pkg:/components/controllers/LibraryController/LibraryController.brs" />
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="displaySettings" type="assocarray" onChange="onDisplaySettingsChanged" />

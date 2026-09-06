@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="HeaderDropdownMenu" extends="Group">
-  <script type="text/brightscript" uri="pkg:/source/Format.brs" />
-  <script type="text/brightscript" uri="pkg:/source/String.brs" />
-  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
-  <script type="text/brightscript" uri="pkg:/components/pages/Header/HeaderDropdownMenu/HeaderDropdownMenu.brs" />
   <interface>
     <field id="items" type="array" onChange="onItemsChanged" />
     <field id="menuWidth" type="float" value="260" onChange="onDimensionsChanged" />

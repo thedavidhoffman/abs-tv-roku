@@ -1,0 +1,546 @@
+import "pkg:/source/Cover.bs"
+import "pkg:/source/Format.bs"
+import "pkg:/source/GridLayout.bs"
+import "pkg:/source/ItemMetadataParser.bs"
+import "pkg:/source/LibraryItemLookup.bs"
+import "pkg:/source/Logger.bs"
+import "pkg:/source/ProgressData.bs"
+import "pkg:/source/SeriesProgress.bs"
+import "pkg:/source/String.bs"
+import "pkg:/source/store/SettingsStore.bs"
+
+'-------------------------------------------------------------------------------
+' init
+'-------------------------------------------------------------------------------
+sub init()
+
+    m.log = Logger.CreateLogger("GridView")
+    m.log.write("init")
+
+    m.markupGrid = m.top.findNode("markupGrid")
+    m.contextTitleLabel = m.top.findNode("contextTitleLabel")
+    m.libraryItemsByIndex = []
+    m.focusedItemNode = invalid
+    m.allLibraryItemLookup = {}
+    m.server = invalid
+    m.token = invalid
+    m.posterWidth = 280
+    m.appliedGridColumns = invalid
+
+    if m.markupGrid <> invalid then
+        m.markupGrid.observeField("itemSelected", "onPosterSelected")
+        m.markupGrid.observeField("itemFocused", "onItemFocused")
+    end if
+
+    applyGridLayout(m.top.displaySettings)
+    onContextTitleChanged()
+end sub
+
+'-------------------------------------------------------------------------------
+' onDisplaySettingsChanged
+'-------------------------------------------------------------------------------
+sub onDisplaySettingsChanged()
+    gridColumns = getGridColumnsSetting(m.top.displaySettings)
+    if m.appliedGridColumns = gridColumns then return
+
+    applyGridLayout(m.top.displaySettings)
+    if hasLibraryItems() then onLibraryItemsChanged()
+end sub
+
+'-------------------------------------------------------------------------------
+' applyGridLayout
+'-------------------------------------------------------------------------------
+sub applyGridLayout(settings as dynamic)
+    if m.markupGrid = invalid then return
+
+    columnCount = GridLayout.GetColumnCount(settings)
+    posterWidth = GridLayout.GetPosterWidth(columnCount)
+    itemHeight = GridLayout.GetItemHeight(posterWidth)
+    rowSpacing = 34
+
+    ' In five-column mode, we add 5 to the row spacing to prevent
+    ' the third row appearing as a small sliver. This does not affect
+    ' 4 column or 6 column display.
+    if columnCount = 5 then rowSpacing = rowSpacing + 5
+
+    m.posterWidth = posterWidth
+    m.appliedGridColumns = getGridColumnsSetting(settings)
+    m.markupGrid.numColumns = columnCount
+    m.markupGrid.itemSize = [posterWidth, itemHeight]
+    m.markupGrid.itemSpacing = [GridLayout.GetHorizontalGutter(), rowSpacing]
+end sub
+
+'-------------------------------------------------------------------------------
+' getGridColumnsSetting
+'-------------------------------------------------------------------------------
+function getGridColumnsSetting(settings as dynamic) as string    return SettingsStore.GetSettingValue(settings, SettingsStore.Keys.GridColumns)
+end function
+
+'-------------------------------------------------------------------------------
+' onAllLibraryItemsChanged
+'-------------------------------------------------------------------------------
+sub onAllLibraryItemsChanged()
+
+    m.log.write("onAllLibraryItemsChanged")
+
+    m.allLibraryItemLookup = LibraryItemLookup.Build(m.top.allLibraryItems)
+    if hasLibraryItems() then onLibraryItemsChanged()
+end sub
+
+'-------------------------------------------------------------------------------
+' onMediaProgressChanged
+'-------------------------------------------------------------------------------
+sub onMediaProgressChanged()
+    if hasLibraryItems() then onLibraryItemsChanged()
+end sub
+
+'-------------------------------------------------------------------------------
+' onLoadingChanged
+'-------------------------------------------------------------------------------
+sub onLoadingChanged()
+    updateEmptyStatus()
+end sub
+
+'-------------------------------------------------------------------------------
+' onContextTypeChanged
+'-------------------------------------------------------------------------------
+sub onContextTypeChanged()
+    if hasLibraryItems() then onLibraryItemsChanged()
+end sub
+
+'-------------------------------------------------------------------------------
+' onLoadRequestChanged
+'-------------------------------------------------------------------------------
+sub onLoadRequestChanged()
+
+    m.log.write("onLoadRequestChanged")
+
+    request = m.top.loadRequest
+    if request = invalid then return
+
+    m.server = request.server
+    m.token = request.token
+    if hasLibraryItems() <> true then return
+    onLibraryItemsChanged()
+end sub
+
+'-------------------------------------------------------------------------------
+' onLibraryItemsChanged
+'-------------------------------------------------------------------------------
+sub onLibraryItemsChanged()
+
+    if m.markupGrid = invalid then return
+    if m.top.libraryItems = invalid then return
+
+    m.log.write("onLibraryItemsChanged")
+
+    previousFocusedItemId = getFocusedLibraryItemId()
+    shouldRestoreFocus = m.markupGrid.isInFocusChain()
+    root = CreateObject("roSGNode", "ContentNode")
+    items = m.top.libraryItems
+    m.libraryItemsByIndex = []
+    m.focusedItemNode = invalid
+
+    if items <> invalid then
+        for each item in items
+            if item.mediaType = invalid or item.mediaType = "book" then
+                metadata = ItemMetadataParser.GetMetadata(item)
+                node = CreateObject("roSGNode", "ContentNode")
+                node.title = ItemMetadataParser.GetTitle(item)
+                node.HDPosterUrl = Cover.BuildUrl(m.server, m.token, item.id, m.posterWidth)
+                node.SDPosterUrl = node.HDPosterUrl
+                progress = getPosterProgressData(item)
+                node.AddFields({
+                    author: ItemMetadataParser.GetAuthor(metadata)
+                    posterWidth: m.posterWidth
+                    useLargeText: GridLayout.ShouldUseLargePosterText(m.appliedGridColumns)
+                    isSeriesItem: isSeriesItem(item)
+                    collapsedSeries: item.collapsedSeries
+                    seriesSequence: getSeriesSequence(item)
+                    showSeriesSequence: shouldShowSeriesSequence()
+                    progressPercent: progress.progress
+                    progressCurrentTime: progress.currentTime
+                    progressDuration: progress.duration
+                    progressIsFinished: progress.isFinished
+                    focused: false
+                })
+                root.appendChild(node)
+                m.libraryItemsByIndex.Push(item)
+            end if
+        end for
+    end if
+
+    m.markupGrid.content = root
+    restoreFocusedLibraryItem(previousFocusedItemId, shouldRestoreFocus)
+    updateEmptyStatus()
+end sub
+
+'-------------------------------------------------------------------------------
+' hasLibraryItems
+'-------------------------------------------------------------------------------
+function hasLibraryItems() as boolean
+    return m.top.libraryItems <> invalid and m.top.libraryItems.Count() > 0
+end function
+
+'-------------------------------------------------------------------------------
+' updateEmptyStatus
+'-------------------------------------------------------------------------------
+sub updateEmptyStatus()
+    setStatus("")
+
+    if m.libraryItemsByIndex = invalid or m.libraryItemsByIndex.Count() = 0 then
+        if m.top.loading = true then
+            setStatus("Loading...")
+        else if m.top.libraryItems <> invalid then
+            setStatus("No titles found")
+        end if
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' shouldShowSeriesSequence
+'-------------------------------------------------------------------------------
+function shouldShowSeriesSequence() as boolean
+    return m.top.contextType = "series"
+end function
+
+'-------------------------------------------------------------------------------
+' onPosterSelected
+'-------------------------------------------------------------------------------
+sub onPosterSelected()
+    item = getSelectedLibraryItem(m.markupGrid.itemSelected)
+    if item = invalid then
+        setStatus("Select an audiobook to play.")
+        return
+    end if
+
+    seriesId = getCollapsedSeriesId(item)
+    if seriesId <> invalid then
+        m.top.seriesSelected = {
+            seriesId: seriesId
+            title: getCollapsedSeriesTitle(item)
+            libraryItemIds: getCollapsedSeriesLibraryItemIds(item)
+            itemIndex: m.markupGrid.itemSelected
+        }
+        return
+    end if
+
+    if item.id = invalid then
+        setStatus("Select an audiobook to play.")
+        return
+    end if
+
+    m.top.playSelected = {
+        id: item.id
+        title: ItemMetadataParser.GetTitle(item)
+        details: getPlaybackDetails(item)
+        startPositionSeconds: getPlaybackStartPosition(item)
+    }
+end sub
+
+'-------------------------------------------------------------------------------
+' onContextTitleChanged
+'-------------------------------------------------------------------------------
+sub onContextTitleChanged()
+    title = String.Trim(m.top.contextTitle)
+    hasTitle = (title <> "")
+
+    if m.contextTitleLabel <> invalid then
+        m.contextTitleLabel.text = title
+        m.contextTitleLabel.visible = hasTitle
+    end if
+
+    if m.markupGrid <> invalid then
+        if hasTitle then
+            m.markupGrid.translation = [64,200]
+        else
+            m.markupGrid.translation = [64,135]
+        end if
+    end if
+
+end sub
+
+'-------------------------------------------------------------------------------
+' onItemFocused
+'-------------------------------------------------------------------------------
+sub onItemFocused()
+    if m.focusedItemNode <> invalid then m.focusedItemNode.focused = false
+
+    m.focusedItemNode = getFocusedItemNode()
+    if m.focusedItemNode <> invalid then m.focusedItemNode.focused = true
+end sub
+
+'-------------------------------------------------------------------------------
+' getFocusedItemNode
+'-------------------------------------------------------------------------------
+function getFocusedItemNode() as dynamic
+    if m.markupGrid = invalid or m.markupGrid.content = invalid then return invalid
+
+    itemIndex = m.markupGrid.itemFocused
+    if itemIndex = invalid or itemIndex < 0 then return invalid
+    if itemIndex >= m.markupGrid.content.getChildCount() then return invalid
+
+    return m.markupGrid.content.getChild(itemIndex)
+end function
+
+'-------------------------------------------------------------------------------
+' getFocusedLibraryItemId
+'-------------------------------------------------------------------------------
+function getFocusedLibraryItemId() as dynamic
+    if m.markupGrid = invalid then return invalid
+
+    item = getSelectedLibraryItem(m.markupGrid.itemFocused)
+    if item = invalid then return invalid
+    return item.id
+end function
+
+'-------------------------------------------------------------------------------
+' restoreFocusedLibraryItem
+'-------------------------------------------------------------------------------
+sub restoreFocusedLibraryItem(itemId as dynamic, shouldRestoreFocus as boolean)
+    if shouldRestoreFocus <> true then return
+    if itemId = invalid then return
+
+    itemIndex = findLibraryItemIndexById(itemId)
+    if itemIndex < 0 then return
+
+    m.markupGrid.jumpToItem = itemIndex
+    m.markupGrid.setFocus(true)
+    onItemFocused()
+end sub
+
+'-------------------------------------------------------------------------------
+' findLibraryItemIndexById
+'-------------------------------------------------------------------------------
+function findLibraryItemIndexById(itemId as dynamic) as integer
+    if itemId = invalid then return -1
+    if m.libraryItemsByIndex = invalid then return -1
+
+    for i = 0 to m.libraryItemsByIndex.Count() - 1
+        item = m.libraryItemsByIndex[i]
+        if item <> invalid and item.id = itemId then return i
+    end for
+
+    return -1
+end function
+
+'-------------------------------------------------------------------------------
+' getSelectedLibraryItem
+'-------------------------------------------------------------------------------
+function getSelectedLibraryItem(index as dynamic) as dynamic
+    if index = invalid then return invalid
+    if m.libraryItemsByIndex = invalid then return invalid
+    if index < 0 or index >= m.libraryItemsByIndex.Count() then return invalid
+    return m.libraryItemsByIndex[index]
+end function
+
+'-------------------------------------------------------------------------------
+' isSeriesItem
+'-------------------------------------------------------------------------------
+function isSeriesItem(item as dynamic) as boolean
+    if item = invalid then return false
+    return item.collapsedSeries <> invalid
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesId
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesId(item as dynamic) as dynamic
+    if item = invalid then return invalid
+    if item.collapsedSeries = invalid then return invalid
+    if item.collapsedSeries.id = invalid then return invalid
+    return item.collapsedSeries.id
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesLibraryItemIds
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesLibraryItemIds(item as dynamic) as dynamic
+    if item = invalid then return invalid
+    if item.collapsedSeries = invalid then return invalid
+    if item.collapsedSeries.libraryItemIds = invalid then return invalid
+    return item.collapsedSeries.libraryItemIds
+end function
+
+'-------------------------------------------------------------------------------
+' getCollapsedSeriesTitle
+'-------------------------------------------------------------------------------
+function getCollapsedSeriesTitle(item as dynamic) as string
+    if item = invalid or item.collapsedSeries = invalid then return ItemMetadataParser.GetTitle(item)
+
+    collapsedSeries = item.collapsedSeries
+    return Format.FirstNonEmpty([
+        collapsedSeries.nameIgnorePrefix
+        collapsedSeries.name
+        collapsedSeries.title
+        ItemMetadataParser.GetTitle(item)
+    ], "Untitled")
+end function
+
+'-------------------------------------------------------------------------------
+' getSeriesSequence
+'-------------------------------------------------------------------------------
+function getSeriesSequence(item as dynamic) as string
+    if item = invalid then return ""
+
+    metadata = ItemMetadataParser.GetMetadata(item)
+    if metadata.seriesSequence <> invalid then return metadata.seriesSequence.ToStr()
+    if metadata.sequence <> invalid then return metadata.sequence.ToStr()
+    if metadata.series <> invalid then
+        sequence = getSequenceFromSeriesValue(metadata.series)
+        if sequence <> "" then return sequence
+    end if
+
+    if item.seriesSequence <> invalid then return item.seriesSequence.ToStr()
+    if item.sequence <> invalid then return item.sequence.ToStr()
+
+    return ""
+end function
+
+'-------------------------------------------------------------------------------
+' getSequenceFromSeriesValue
+'-------------------------------------------------------------------------------
+function getSequenceFromSeriesValue(series as dynamic) as string
+    if series = invalid then return ""
+
+    seriesType = Type(series)
+    if seriesType = "roArray" then
+        if series.Count() = 0 then return ""
+
+        firstSeries = series[0]
+        if firstSeries <> invalid then
+            if firstSeries.sequence <> invalid then return firstSeries.sequence.ToStr()
+            if firstSeries.seriesSequence <> invalid then return firstSeries.seriesSequence.ToStr()
+        end if
+    else if seriesType = "roAssociativeArray" then
+        if series.sequence <> invalid then return series.sequence.ToStr()
+        if series.seriesSequence <> invalid then return series.seriesSequence.ToStr()
+    end if
+
+    return ""
+end function
+
+'-------------------------------------------------------------------------------
+' getPosterProgressData
+'-------------------------------------------------------------------------------
+function getPosterProgressData(item as dynamic) as object
+    if isSeriesItem(item) then return SeriesProgress.GetProgress(item, m.allLibraryItemLookup, m.top.mediaProgress)
+    return ProgressData.GetItemProgress(item, m.top.mediaProgress)
+end function
+
+'-------------------------------------------------------------------------------
+' getPlaybackStartPosition
+'-------------------------------------------------------------------------------
+function getPlaybackStartPosition(item as dynamic) as integer
+    return ProgressData.GetPlaybackStartPosition(item, m.top.mediaProgress)
+end function
+
+'-------------------------------------------------------------------------------
+' focusLibraryList
+'-------------------------------------------------------------------------------
+sub focusLibraryList()
+    if Format.SafeString(m.top.statusMessage, "") <> "" then return
+    if m.markupGrid <> invalid then m.markupGrid.setFocus(true)
+end sub
+
+'-------------------------------------------------------------------------------
+' focusItemAtIndex
+'-------------------------------------------------------------------------------
+sub focusItemAtIndex(index as dynamic)
+    if m.markupGrid = invalid then return
+
+    itemIndex = getValidItemIndex(index)
+    m.markupGrid.jumpToItem = itemIndex
+    m.markupGrid.setFocus(true)
+end sub
+
+'-------------------------------------------------------------------------------
+' moveFocusToFirstItem
+'-------------------------------------------------------------------------------
+function moveFocusToFirstItem() as boolean
+    if m.markupGrid = invalid then return false
+    if m.markupGrid.isInFocusChain() = false then return false
+
+    currentIndex = getValidItemIndex(m.markupGrid.itemFocused)
+    if currentIndex <= 0 then return false
+
+    m.markupGrid.jumpToItem = 0
+    m.markupGrid.setFocus(true)
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' getValidItemIndex
+'-------------------------------------------------------------------------------
+function getValidItemIndex(index as dynamic) as integer
+    if index = invalid or index < 0 then return 0
+    if m.libraryItemsByIndex = invalid or m.libraryItemsByIndex.Count() = 0 then return 0
+    if index >= m.libraryItemsByIndex.Count() then return m.libraryItemsByIndex.Count() - 1
+    return index
+end function
+
+'-------------------------------------------------------------------------------
+' onKeyEvent
+'-------------------------------------------------------------------------------
+function onKeyEvent(key as string, press as boolean) as boolean
+    if press = false then return false
+    if key <> "up" and key <> "back" then return false
+    if m.markupGrid = invalid then return false
+    if m.markupGrid.isInFocusChain() = false then return false
+
+    itemIndex = getValidItemIndex(m.markupGrid.itemFocused)
+
+    if key = "back" then
+        if itemIndex > 0 then
+            m.markupGrid.jumpToItem = 0
+            m.markupGrid.setFocus(true)
+            return true
+        end if
+
+        m.top.backFromFirstItemSelected = true
+        return true
+    end if
+
+    if isIndexInFirstRow(itemIndex) = false then return false
+
+    m.top.upFromFirstItemSelected = true
+    return true
+end function
+
+'-------------------------------------------------------------------------------
+' isIndexInFirstRow
+'-------------------------------------------------------------------------------
+function isIndexInFirstRow(index as integer) as boolean
+    columnCount = 1
+    if m.markupGrid <> invalid and m.markupGrid.numColumns <> invalid and m.markupGrid.numColumns > 0 then
+        columnCount = m.markupGrid.numColumns
+    end if
+
+    return index >= 0 and index < columnCount
+end function
+
+'-------------------------------------------------------------------------------
+' setStatus
+'-------------------------------------------------------------------------------
+sub setStatus(message as dynamic)
+    m.top.statusMessage = Format.SafeString(message, "")
+end sub
+
+'-------------------------------------------------------------------------------
+' getPlaybackDetails
+'-------------------------------------------------------------------------------
+function getPlaybackDetails(item as dynamic) as object
+    metadata = ItemMetadataParser.GetMetadata(item)
+    return {
+        authors: ItemMetadataParser.GetAuthor(metadata)
+        authorCount: ItemMetadataParser.GetNameCount(metadata.authors, ItemMetadataParser.GetAuthor(metadata))
+        narrators: ItemMetadataParser.GetNarrators(metadata)
+        narratorCount: ItemMetadataParser.GetNameCount(metadata.narrators, ItemMetadataParser.GetNarrators(metadata))
+        description: ItemMetadataParser.GetDescription(metadata)
+        publisher: Format.FirstNonEmpty([metadata.publisher], "Unknown")
+        publishDate: ItemMetadataParser.GetPublishDate(metadata)
+        category: ItemMetadataParser.GetCategory(metadata)
+        duration: ItemMetadataParser.GetDuration(item)
+        durationSeconds: ItemMetadataParser.GetDurationSeconds(item)
+    }
+end function

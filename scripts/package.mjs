@@ -5,14 +5,8 @@ import rokuDeploy from 'roku-deploy';
 const rootDir = process.cwd();
 const outDir = path.join(rootDir, 'out');
 const stagingDir = path.join(rootDir, 'build', 'staging');
+const packageStagingDir = path.join(rootDir, 'build', 'package-staging');
 const manifestPath = path.join(rootDir, 'manifest');
-
-const files = [
-  'components/**/*',
-  'images/**/*',
-  'source/**/*',
-  'manifest'
-];
 
 function getManifestValue(manifest, key) {
   const match = manifest.match(new RegExp(`^${key}=(\\d+)$`, 'm'));
@@ -32,13 +26,13 @@ const outFile = `abstv.${majorVersion}.${minorVersion}.${buildVersion}`;
 await fs.mkdir(outDir, { recursive: true });
 
 await rokuDeploy.prepublishToStaging({
-  rootDir,
-  stagingDir,
-  files
+  rootDir: stagingDir,
+  stagingDir: packageStagingDir,
+  files: ['**/*', '!**/*.map']
 });
 
 await rokuDeploy.zipPackage({
-  stagingDir,
+  stagingDir: packageStagingDir,
   outDir,
   outFile
 });

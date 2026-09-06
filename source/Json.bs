@@ -1,0 +1,100 @@
+import "pkg:/source/Format.bs"
+import "pkg:/source/String.bs"
+
+namespace Json
+
+    ' JSON helpers for outbound API bodies.
+    '
+    ' Roku FormatJson() lowercases object keys during serialization. Audiobookshelf
+    ' API fields are case-sensitive, unlike many .NET JSON consumers where key
+    ' casing may be tolerated. These helpers preserve exact key casing by requiring
+    ' API field names as explicit string literals.
+
+    '---------------------------------------------------------------------------
+    ' Json.String
+    '---------------------------------------------------------------------------
+    function String(value as dynamic) as string
+        text = Format.SafeString(value, "")
+        text = String.Replace(text, "\", "\\")
+        text = String.Replace(text, Chr(34), "\" + Chr(34))
+        return Chr(34) + text + Chr(34)
+    end function
+
+    '---------------------------------------------------------------------------
+    ' Json.Pair
+    '---------------------------------------------------------------------------
+    function Pair(name as string, value as dynamic) as string
+        return Json.String(name) + ":" + Json.String(value)
+    end function
+
+    '---------------------------------------------------------------------------
+    ' Json.BooleanPair
+    '---------------------------------------------------------------------------
+    function BooleanPair(name as string, value as dynamic) as string
+        text = "false"
+        if value = true then text = "true"
+        return Json.String(name) + ":" + text
+    end function
+
+    '---------------------------------------------------------------------------
+    ' Json.NumberPair
+    '---------------------------------------------------------------------------
+    function NumberPair(name as string, value as dynamic) as string
+        return Json.String(name) + ":" + Json.Number(value)
+    end function
+
+    '---------------------------------------------------------------------------
+    ' Json.ArrayPair
+    '---------------------------------------------------------------------------
+    function ArrayPair(name as string, values as dynamic) as string
+        parts = []
+        if values <> invalid then
+            for each value in values
+                parts.Push(Json.String(value))
+            end for
+        end if
+
+        return Json.String(name) + ":[" + Json.JoinParts(parts) + "]"
+    end function
+
+    '---------------------------------------------------------------------------
+    ' Json.ObjectPair
+    '---------------------------------------------------------------------------
+    function ObjectPair(name as string, parts as object) as string
+        return Json.String(name) + ":" + Json.Object(parts)
+    end function
+
+    '---------------------------------------------------------------------------
+    ' Json.Object
+    '---------------------------------------------------------------------------
+    function Object(parts as object) as string
+        return "{" + Json.JoinParts(parts) + "}"
+    end function
+
+    '---------------------------------------------------------------------------
+    ' Json.JoinParts
+    '---------------------------------------------------------------------------
+    function JoinParts(parts as object) as string
+        if parts = invalid or parts.Count() = 0 then return ""
+
+        text = ""
+        for i = 0 to parts.Count() - 1
+            if i > 0 then text = text + ","
+            text = text + parts[i]
+        end for
+
+        return text
+    end function
+
+    '---------------------------------------------------------------------------
+    ' Json.Number
+    '---------------------------------------------------------------------------
+    function Number(value as dynamic) as string
+        if value = invalid then return "0"
+        numberValue = val(value.ToStr())
+        text = numberValue.ToStr()
+        if Instr(1, text, ",") > 0 then text = String.Replace(text, ",", "")
+        return text
+    end function
+
+end namespace

@@ -1,0 +1,61 @@
+import "pkg:/source/Format.bs"
+
+namespace AuthStore
+
+    '---------------------------------------------------------------------------
+    ' Auth Registry Storage
+    '---------------------------------------------------------------------------
+    ' roRegistrySection is Roku's persistent key/value storage API. A registry
+    ' section groups related values under an app-owned name, such as "ABSTV" here.
+    ' Values written with Write() can be read across app launches with Read().
+    ' Delete() removes saved values, and Flush() commits pending writes/deletes.
+    ' This app uses the registry to remember auth state: server, username, token,
+    ' and user id.
+    '
+    '---------------------------------------------------------------------------
+    ' AuthStore.GetAuthStore
+    '---------------------------------------------------------------------------
+    function GetAuthStore() as object
+        return CreateObject("roRegistrySection", "ABSTV")
+    end function
+
+    '---------------------------------------------------------------------------
+    ' AuthStore.Save
+    '---------------------------------------------------------------------------
+    sub Save(server as string, username as string, token as string, userId as dynamic)
+        registry = AuthStore.GetAuthStore()
+        registry.Write("server", Format.NormalizeServerUrl(server))
+        registry.Write("username", username)
+        registry.Write("token", token)
+        if userId <> invalid then registry.Write("userId", userId)
+        registry.Flush()
+    end sub
+
+    '---------------------------------------------------------------------------
+    ' AuthStore.Load
+    '---------------------------------------------------------------------------
+    function Load() as object
+        registry = AuthStore.GetAuthStore()
+        return {
+            server: registry.Read("server")
+            username: registry.Read("username")
+            token: registry.Read("token")
+            userId: registry.Read("userId")
+        }
+    end function
+
+    '---------------------------------------------------------------------------
+    ' AuthStore.Clear
+    '---------------------------------------------------------------------------
+    sub Clear(clearServer as boolean)
+        registry = AuthStore.GetAuthStore()
+        registry.Delete("token")
+        registry.Delete("userId")
+        if clearServer then
+            registry.Delete("server")
+            registry.Delete("username")
+        end if
+        registry.Flush()
+    end sub
+
+end namespace

@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="YourStats" extends="Group" focusable="true">
-  <script type="text/brightscript" uri="pkg:/source/Format.brs" />
-  <script type="text/brightscript" uri="pkg:/source/String.brs" />
-  <script type="text/brightscript" uri="pkg:/source/Color.brs" />
-  <script type="text/brightscript" uri="pkg:/source/Logger.brs" />
-  <script type="text/brightscript" uri="pkg:/components/pages/YourStats/YourStats.brs" />
   <interface>
     <field id="loadRequest" type="assocarray" onChange="onLoadRequestChanged" />
     <field id="stats" type="assocarray" />

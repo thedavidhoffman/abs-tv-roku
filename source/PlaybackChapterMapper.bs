@@ -1,0 +1,128 @@
+import "pkg:/source/Format.bs"
+import "pkg:/source/Number.bs"
+
+namespace PlaybackChapterMapper
+
+    '---------------------------------------------------------------------------
+    ' PlaybackChapterMapper.MapSessionChapters
+    '---------------------------------------------------------------------------
+    function MapSessionChapters(playbackSession as dynamic) as object
+        chapters = []
+        if playbackSession = invalid or playbackSession.chapters = invalid or playbackSession.chapters.Count() = 0 then return chapters
+
+        for i = 0 to playbackSession.chapters.Count() - 1
+            chapter = playbackSession.chapters[i]
+            if chapter <> invalid then
+                startTime = PlaybackChapterMapper.__GetSessionChapterStart(chapter)
+                endTime = PlaybackChapterMapper.__GetSessionChapterEnd(chapter, playbackSession, i)
+                duration = endTime - startTime
+                if duration < 0 then duration = 0
+                chapters.Push({
+                    index: i
+                    title: PlaybackChapterMapper.__GetSessionChapterTitle(chapter, i)
+                    startOffset: startTime
+                    durationSeconds: duration
+                    isChapter: true
+                })
+            end if
+        end for
+
+        return chapters
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackChapterMapper.ShouldUseTracks
+    '---------------------------------------------------------------------------
+    function ShouldUseTracks(chapters as dynamic, tracks as dynamic, playbackSession as dynamic) as boolean
+        if chapters = invalid or tracks = invalid then return false
+        if chapters.Count() = 0 or tracks.Count() = 0 then return false
+        if chapters.Count() >= tracks.Count() then return false
+
+        chapterCoverage = PlaybackChapterMapper.__GetChapterCoverageSeconds(chapters)
+        mediaDuration = PlaybackChapterMapper.__GetMediaDurationSeconds(playbackSession, tracks)
+        if mediaDuration <= 0 then return false
+
+        return chapterCoverage < (mediaDuration * 0.9)
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackChapterMapper.MapTracks
+    '---------------------------------------------------------------------------
+    function MapTracks(tracks as dynamic) as object
+        chapters = []
+        if tracks = invalid then return chapters
+
+        for i = 0 to tracks.Count() - 1
+            track = tracks[i]
+            if track <> invalid then
+                chapters.Push({
+                    index: i
+                    title: Format.SafeString(track.title, "Track " + (i + 1).ToStr())
+                    startOffset: Number.ToFloat(track.startOffset)
+                    durationSeconds: Number.ToFloat(track.durationSeconds)
+                    isChapter: true
+                    source: "track"
+                })
+            end if
+        end for
+
+        return chapters
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackChapterMapper.__GetSessionChapterStart
+    '---------------------------------------------------------------------------
+    function __GetSessionChapterStart(chapter as dynamic) as float
+        if chapter.start <> invalid then return Number.ToFloat(chapter.start)
+        if chapter.startTime <> invalid then return Number.ToFloat(chapter.startTime)
+        if chapter.startOffset <> invalid then return Number.ToFloat(chapter.startOffset)
+        return 0
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackChapterMapper.__GetSessionChapterEnd
+    '---------------------------------------------------------------------------
+    function __GetSessionChapterEnd(chapter as dynamic, playbackSession as dynamic, index as integer) as float
+        if chapter.end <> invalid then return Number.ToFloat(chapter.end)
+        if chapter.endTime <> invalid then return Number.ToFloat(chapter.endTime)
+        if chapter.duration <> invalid then return PlaybackChapterMapper.__GetSessionChapterStart(chapter) + Number.ToFloat(chapter.duration)
+        if playbackSession <> invalid and playbackSession.chapters <> invalid and index + 1 < playbackSession.chapters.Count() then return PlaybackChapterMapper.__GetSessionChapterStart(playbackSession.chapters[index + 1])
+        if playbackSession <> invalid and playbackSession.duration <> invalid then return Number.ToFloat(playbackSession.duration)
+        return PlaybackChapterMapper.__GetSessionChapterStart(chapter)
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackChapterMapper.__GetSessionChapterTitle
+    '---------------------------------------------------------------------------
+    function __GetSessionChapterTitle(chapter as dynamic, index as integer) as string
+        return Format.FirstNonEmpty([chapter.title, chapter.name], "Chapter " + (index + 1).ToStr())
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackChapterMapper.__GetChapterCoverageSeconds
+    '---------------------------------------------------------------------------
+    function __GetChapterCoverageSeconds(chapters as dynamic) as float
+        if chapters = invalid or chapters.Count() = 0 then return 0
+
+        lastChapter = chapters[chapters.Count() - 1]
+        if lastChapter = invalid then return 0
+
+        return Number.ToFloat(lastChapter.startOffset) + Number.ToFloat(lastChapter.durationSeconds)
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackChapterMapper.__GetMediaDurationSeconds
+    '---------------------------------------------------------------------------
+    function __GetMediaDurationSeconds(playbackSession as dynamic, tracks as dynamic) as float
+        if playbackSession <> invalid and playbackSession.duration <> invalid then return Number.ToFloat(playbackSession.duration)
+        if tracks = invalid then return 0
+
+        duration = 0.0
+        for each track in tracks
+            if track <> invalid then duration = duration + Number.ToFloat(track.durationSeconds)
+        end for
+
+        return duration
+    end function
+
+end namespace

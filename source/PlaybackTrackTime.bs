@@ -1,0 +1,183 @@
+import "pkg:/source/Format.bs"
+import "pkg:/source/Number.bs"
+
+namespace PlaybackTrackTime
+
+    '---------------------------------------------------------------------------
+    ' PlaybackTrackTime.GetChapterItems
+    '---------------------------------------------------------------------------
+    function GetChapterItems(chapters as dynamic, tracks as dynamic) as object
+        if chapters <> invalid and chapters.Count() > 0 then return chapters
+        if tracks <> invalid then return tracks
+        return []
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackTrackTime.ClampGlobalTime
+    '---------------------------------------------------------------------------
+    function ClampGlobalTime(timeSeconds as dynamic, durationSeconds as integer) as integer
+        if timeSeconds = invalid then timeSeconds = 0
+
+        result = Number.ToInteger(timeSeconds)
+        if result < 0 then result = 0
+        if durationSeconds > 0 and result > durationSeconds then result = durationSeconds
+
+        return result
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackTrackTime.GetTrackIndexForGlobalTime
+    '---------------------------------------------------------------------------
+    function GetTrackIndexForGlobalTime(tracks as dynamic, timeSeconds as dynamic, durationSeconds as integer, isHlsTranscode as boolean) as integer
+        if tracks = invalid or tracks.Count() = 0 then return 0
+        if isHlsTranscode = true then return 0
+
+        targetTime = PlaybackTrackTime.ClampGlobalTime(timeSeconds, durationSeconds)
+        lastIndex = tracks.Count() - 1
+        for i = 0 to lastIndex
+            track = tracks[i]
+            trackStart = PlaybackTrackTime.GetTrackStartPosition(track)
+            trackDuration = PlaybackTrackTime.GetTrackDurationSeconds(track)
+            trackEnd = trackStart + trackDuration
+
+            if targetTime >= trackStart and (trackDuration <= 0 or targetTime < trackEnd or i = lastIndex) then return i
+        end for
+
+        return 0
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackTrackTime.GetTrackSeekPosition
+    '---------------------------------------------------------------------------
+    function GetTrackSeekPosition(tracks as dynamic, trackIndex as integer, globalTime as dynamic, durationSeconds as integer, isHlsTranscode as boolean) as integer
+        seekTime = PlaybackTrackTime.ClampGlobalTime(globalTime, durationSeconds)
+        if isHlsTranscode = true then return seekTime
+        if tracks = invalid or trackIndex < 0 or trackIndex >= tracks.Count() then return seekTime
+
+        seekTime = seekTime - PlaybackTrackTime.GetTrackStartPosition(tracks[trackIndex])
+        if seekTime < 0 then seekTime = 0
+
+        trackDuration = PlaybackTrackTime.GetTrackDurationSeconds(tracks[trackIndex])
+        if trackDuration > 0 and seekTime > trackDuration then seekTime = trackDuration
+
+        return seekTime
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackTrackTime.GetSeekPlan
+    '---------------------------------------------------------------------------
+    function GetSeekPlan(tracks as dynamic, currentTrackIndex as integer, globalTime as dynamic, durationSeconds as integer, isHlsTranscode as boolean) as object
+        targetTime = PlaybackTrackTime.ClampGlobalTime(globalTime, durationSeconds)
+        targetTrackIndex = PlaybackTrackTime.GetTrackIndexForGlobalTime(tracks, targetTime, durationSeconds, isHlsTranscode)
+
+        return {
+            targetTime: targetTime
+            targetTrackIndex: targetTrackIndex
+            seekPosition: PlaybackTrackTime.GetTrackSeekPosition(tracks, targetTrackIndex, targetTime, durationSeconds, isHlsTranscode)
+            trackChanged: targetTrackIndex <> currentTrackIndex
+        }
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackTrackTime.GetVisualTargetResult
+    '---------------------------------------------------------------------------
+    function GetVisualTargetResult(visualTargetSeconds as dynamic, actualTimeSeconds as integer, hasStarted as boolean, durationSeconds as integer, toleranceSeconds as integer) as object
+        targetTime = PlaybackTrackTime.ClampGlobalTime(visualTargetSeconds, durationSeconds)
+
+        if hasStarted <> true then
+            return {
+                currentTime: targetTime
+                shouldClearVisualTarget: false
+            }
+        end if
+
+        shouldClear = Abs(actualTimeSeconds - targetTime) <= toleranceSeconds
+        if shouldClear then
+            return {
+                currentTime: actualTimeSeconds
+                shouldClearVisualTarget: true
+            }
+        end if
+
+        return {
+            currentTime: targetTime
+            shouldClearVisualTarget: false
+        }
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackTrackTime.GetHlsCurrentTimeResult
+    '---------------------------------------------------------------------------
+    function GetHlsCurrentTimeResult(currentPosition as integer, startupSeekTargetSeconds as dynamic, durationSeconds as integer) as object
+        currentTime = PlaybackTrackTime.ClampGlobalTime(currentPosition, durationSeconds)
+        if startupSeekTargetSeconds = invalid then
+            return {
+                currentTime: currentTime
+                shouldClearStartupSeekTarget: false
+            }
+        end if
+
+        targetTime = PlaybackTrackTime.ClampGlobalTime(startupSeekTargetSeconds, durationSeconds)
+        if currentTime >= targetTime + 3 then
+            return {
+                currentTime: currentTime
+                shouldClearStartupSeekTarget: true
+            }
+        end if
+
+        return {
+            currentTime: targetTime
+            shouldClearStartupSeekTarget: false
+        }
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackTrackTime.GetTrackDurationSeconds
+    '---------------------------------------------------------------------------
+    function GetTrackDurationSeconds(track as dynamic) as integer
+        if track = invalid then return 0
+        if track.durationSeconds = invalid then return 0
+        return Number.ToInteger(track.durationSeconds)
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackTrackTime.GetTrackStartPosition
+    '---------------------------------------------------------------------------
+    function GetTrackStartPosition(track as dynamic) as integer
+        if track = invalid then return 0
+        if track.startOffset <> invalid then return Number.ToInteger(track.startOffset)
+        return 0
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackTrackTime.GetPlaybackDurationSeconds
+    '---------------------------------------------------------------------------
+    function GetPlaybackDurationSeconds(tracks as dynamic, totalDurationSeconds as integer) as integer
+        if totalDurationSeconds > 0 then return totalDurationSeconds
+        if tracks = invalid or tracks.Count() = 0 then return 0
+
+        durationSeconds = 0
+        for each track in tracks
+            durationSeconds = durationSeconds + PlaybackTrackTime.GetTrackDurationSeconds(track)
+        end for
+
+        return durationSeconds
+    end function
+
+    '---------------------------------------------------------------------------
+    ' PlaybackTrackTime.GetStreamFormat
+    '---------------------------------------------------------------------------
+    function GetStreamFormat(mimeType as dynamic, url as dynamic) as string
+        streamUrl = LCase(Format.SafeString(url, ""))
+        if Instr(1, streamUrl, ".m3u8") > 0 or Instr(1, streamUrl, "/hls/") > 0 then return "hls"
+
+        mime = LCase(Format.SafeString(mimeType, "audio/mpeg"))
+        if Instr(1, mime, "mp4") > 0 then return "mp4"
+        if Instr(1, mime, "m4a") > 0 then return "mp4"
+        if Instr(1, mime, "m4b") > 0 then return "mp4"
+        if Instr(1, mime, "aac") > 0 then return "aac"
+
+        return "mp3"
+    end function
+
+end namespace

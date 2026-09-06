@@ -1,0 +1,188 @@
+import "pkg:/source/Number.bs"
+
+namespace MediaProgressMapper
+
+    '---------------------------------------------------------------------------
+    ' MediaProgressMapper.Map
+    '---------------------------------------------------------------------------
+    function Map(payload as dynamic) as object
+        mappedProgress = []
+        if payload = invalid or payload.user = invalid then return mappedProgress
+
+        rawProgress = payload.user.mediaProgress
+        if rawProgress = invalid then rawProgress = payload.user.oldMediaProgress
+        if rawProgress = invalid then return mappedProgress
+
+        progressItems = MediaProgressMapper.__ToArray(rawProgress)
+        if progressItems = invalid then return mappedProgress
+
+        for each progress in progressItems
+            if progress <> invalid then
+                mappedItem = MediaProgressMapper.__MapProgress(progress, invalid)
+                if mappedItem <> invalid then mappedProgress.Push(mappedItem)
+            end if
+        end for
+
+        return mappedProgress
+    end function
+
+    '---------------------------------------------------------------------------
+    ' MediaProgressMapper.MapProgressItem
+    '---------------------------------------------------------------------------
+    function MapProgressItem(progress as dynamic) as dynamic
+        return MediaProgressMapper.__MapProgress(progress, invalid)
+    end function
+
+    '---------------------------------------------------------------------------
+    ' MediaProgressMapper.MapInProgressItems
+    '---------------------------------------------------------------------------
+    function MapInProgressItems(libraryItems as dynamic) as object
+        mappedProgress = []
+        progressItems = MediaProgressMapper.__ToArray(libraryItems)
+        if progressItems = invalid then return mappedProgress
+
+        for each item in progressItems
+            if item <> invalid then
+                progress = invalid
+                if item.userMediaProgress <> invalid then
+                    progress = item.userMediaProgress
+                else if item.mediaProgress <> invalid then
+                    progress = item.mediaProgress
+                else if MediaProgressMapper.__HasProgressFields(item) then
+                    progress = item
+                end if
+
+                if progress <> invalid then
+                    mappedItem = MediaProgressMapper.__MapProgress(progress, item)
+                    if mappedItem <> invalid then mappedProgress.Push(mappedItem)
+                end if
+            end if
+        end for
+
+        return mappedProgress
+    end function
+
+    '---------------------------------------------------------------------------
+    ' MediaProgressMapper.__MapProgress
+    '---------------------------------------------------------------------------
+    function __MapProgress(progress as dynamic, item as dynamic) as dynamic
+        itemId = MediaProgressMapper.__GetItemId(progress)
+        if itemId = invalid or itemId = "" then itemId = MediaProgressMapper.__GetLegacyItemId(progress)
+        if itemId = invalid or itemId = "" then itemId = MediaProgressMapper.__GetItemId(item)
+        if itemId = invalid or itemId = "" then return invalid
+
+        duration = Number.ToFloat(progress.duration)
+        if duration <= 0 then duration = MediaProgressMapper.__GetItemDuration(item)
+
+        return {
+            itemId: itemId
+            duration: duration
+            progress: Number.ToFloat(progress.progress)
+            currentTime: Number.ToFloat(progress.currentTime)
+            isFinished: MediaProgressMapper.__GetBoolean(progress.isFinished)
+        }
+    end function
+
+    '---------------------------------------------------------------------------
+    ' MediaProgressMapper.__GetItemId
+    '---------------------------------------------------------------------------
+    function __GetItemId(progress as dynamic) as dynamic
+        if progress = invalid then return invalid
+        if progress.itemId <> invalid then return progress.itemId
+        if progress.libraryItemId <> invalid then return progress.libraryItemId
+        if progress.mediaItemId <> invalid then return progress.mediaItemId
+        if progress.id <> invalid then return progress.id
+
+        return invalid
+    end function
+
+    '---------------------------------------------------------------------------
+    ' MediaProgressMapper.__GetLegacyItemId
+    '---------------------------------------------------------------------------
+    function __GetLegacyItemId(progress as dynamic) as dynamic
+        if progress = invalid then return invalid
+        if progress.extraData <> invalid and progress.extraData.libraryItemId <> invalid then return progress.extraData.libraryItemId
+        return invalid
+    end function
+
+    '---------------------------------------------------------------------------
+    ' MediaProgressMapper.__ToArray
+    '---------------------------------------------------------------------------
+    function __ToArray(values as dynamic) as dynamic
+        if values = invalid then return invalid
+
+        valuesType = Type(values)
+        if valuesType = "roArray" then return values
+        if valuesType <> "roAssociativeArray" then return invalid
+
+        arrayValues = []
+        for each key in values
+            value = values[key]
+            valueType = Type(value)
+
+            if valueType = "roAssociativeArray" then
+                item = {}
+                for each fieldName in value
+                    item[fieldName] = value[fieldName]
+                end for
+
+                if MediaProgressMapper.__HasAnyId(item) = false then item.itemId = key
+                arrayValues.Push(item)
+            else
+                arrayValues.Push({
+                    itemId: key
+                    currentTime: value
+                })
+            end if
+        end for
+
+        return arrayValues
+    end function
+
+    '---------------------------------------------------------------------------
+    ' MediaProgressMapper.__HasAnyId
+    '---------------------------------------------------------------------------
+    function __HasAnyId(progress as dynamic) as boolean
+        if progress = invalid then return false
+        if progress.itemId <> invalid and progress.itemId <> "" then return true
+        if progress.libraryItemId <> invalid and progress.libraryItemId <> "" then return true
+        if progress.mediaItemId <> invalid and progress.mediaItemId <> "" then return true
+        if progress.id <> invalid and progress.id <> "" then return true
+        return false
+    end function
+
+    '---------------------------------------------------------------------------
+    ' MediaProgressMapper.__HasProgressFields
+    '---------------------------------------------------------------------------
+    function __HasProgressFields(progress as dynamic) as boolean
+        if progress = invalid then return false
+        if progress.currentTime <> invalid then return true
+        if progress.progress <> invalid then return true
+        if progress.isFinished <> invalid then return true
+        if progress.hideFromContinueListening <> invalid then return true
+        return false
+    end function
+
+    '---------------------------------------------------------------------------
+    ' MediaProgressMapper.__GetItemDuration
+    '---------------------------------------------------------------------------
+    function __GetItemDuration(item as dynamic) as float
+        if item = invalid then return 0
+        if item.duration <> invalid then return Number.ToFloat(item.duration)
+        if item.media <> invalid and item.media.duration <> invalid then return Number.ToFloat(item.media.duration)
+
+        return 0
+    end function
+
+    '---------------------------------------------------------------------------
+    ' MediaProgressMapper.__GetBoolean
+    '---------------------------------------------------------------------------
+    function __GetBoolean(value as dynamic) as boolean
+        if value = invalid then return false
+        if Type(value) = "Boolean" or Type(value) = "roBoolean" then return value
+
+        text = LCase(value.ToStr())
+        return text = "true" or text = "1"
+    end function
+
+end namespace

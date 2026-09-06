@@ -1,0 +1,1220 @@
+import "pkg:/source/Cover.bs"
+import "pkg:/source/Format.bs"
+import "pkg:/source/Logger.bs"
+import "pkg:/source/MediaProgressLookup.bs"
+import "pkg:/source/String.bs"
+import "pkg:/source/store/SettingsStore.bs"
+
+'-------------------------------------------------------------------------------
+' init
+'-------------------------------------------------------------------------------
+sub init()
+
+    initReferences()
+    initValues()
+    initHandlers()
+    initSettings()
+
+    authSyncSavedSessionToLogin()
+    authRequestResumeSession()
+
+end sub
+
+'-------------------------------------------------------------------------------
+' initReferences
+'-------------------------------------------------------------------------------
+sub initReferences()
+    m.authenticatedContent = m.top.findNode("authenticatedContent")
+    m.authController = m.top.findNode("authController")
+    m.header = m.top.findNode("header")
+    m.homePage = m.top.findNode("homePage")
+    m.inProgressApiTask = m.top.findNode("inProgressApiTask")
+    m.library = m.top.findNode("library")
+    m.libraryController = m.top.findNode("libraryController")
+    m.login = m.top.findNode("login")
+    m.overlayHost = m.top.findNode("overlayHost")
+    m.player = m.top.findNode("player")
+    m.search = m.top.findNode("search")
+    m.seriesPage = m.top.findNode("seriesPage")
+    m.statusLabel = m.top.findNode("statusLabel")
+    m.dynamicPageHost = m.top.findNode("dynamicPageHost")
+    m.yourStatsPage = invalid
+end sub
+
+'-------------------------------------------------------------------------------
+' initValues
+'-------------------------------------------------------------------------------
+sub initValues()
+    m.session = invalid
+    m.mediaProgress = []
+    m.navState = {
+        activePage: ""
+        pages: {
+            home: "home"
+            library: "library"
+            series: "series"
+            yourStats: "yourStats"
+        }
+    }
+    m.focusSettingsAfterLibraryReload = false
+    m.playerReturnTarget = ""
+    m.playbackItemId = ""
+end sub
+
+'-------------------------------------------------------------------------------
+' initHandlers
+'-------------------------------------------------------------------------------
+sub initHandlers()
+
+    m.authController.observeField("authenticatedSession", "authHandleAuthenticatedSession")
+    m.authController.observeField("loginFailed", "authHandleLoginFailed")
+    m.authController.observeField("loginRequired", "authHandleLoginRequired")
+    m.authController.observeField("savedSession", "authHandleSavedSessionChanged")
+    m.authController.observeField("sessionExpired", "authHandleSessionExpired")
+
+    m.header.observeField("backSelected", "headerHandleBackPressed")
+    m.header.observeField("currentLibrarySelected", "libraryHandleCurrentLibrarySelected")
+    m.header.observeField("downSelected", "headerHandleDownPressed")
+    m.header.observeField("homeSelected", "homeHandlePressed")
+    m.header.observeField("librarySelected", "libraryHandlePressed")
+    m.header.observeField("logoutSelected", "authHandleLogoutPressed")
+    m.header.observeField("overlayRequested", "overlayHandleRequested")
+    m.header.observeField("searchSelected", "searchHandlePressed")
+    m.header.observeField("seriesSelected", "seriesHandlePressed")
+    m.header.observeField("yourStatsSelected", "yourStatsHandlePressed")
+
+    m.homePage.observeField("backSelected", "homeHandleBackSelected")
+    m.homePage.observeField("errorResponse", "homeHandleError")
+    m.homePage.observeField("playSelected", "homeHandlePlaySelected")
+    m.homePage.observeField("statusMessage", "homeHandleStatusMessageChanged")
+    m.homePage.observeField("upFromFirstRowSelected", "homeHandleUpFromFirstRowSelected")
+    
+    m.inProgressApiTask.observeField("response", "playbackHandleInProgressResponse")
+
+    m.library.observeField("backFromFirstItemSelected", "libraryHandleBackFromFirstItemSelected")
+    m.library.observeField("controllerSearchRequest", "libraryHandleSearchRequest")
+    m.library.observeField("errorResponse", "libraryHandleError")
+    m.library.observeField("itemsReloaded", "libraryHandleItemsReloaded")
+    m.library.observeField("mainListRestored", "libraryHandleMainListRestored")
+    m.library.observeField("playSelected", "libraryHandlePlaySelected")
+    m.library.observeField("seriesItemsRequest", "libraryHandleSeriesItemsRequest")
+    m.library.observeField("statusMessage", "libraryHandleStatusMessageChanged")
+    m.library.observeField("upFromFirstItemSelected", "libraryHandleUpFromFirstItemSelected")
+
+    m.libraryController.observeField("errorResponse", "libraryControllerHandleError")
+    m.libraryController.observeField("libraryItemsChanged", "libraryControllerHandleItemsChanged")
+    m.libraryController.observeField("loading", "libraryControllerHandleLoadingChanged")
+    m.libraryController.observeField("searchResponse", "libraryControllerHandleSearchResponse")
+    m.libraryController.observeField("seriesItemsResponse", "libraryControllerHandleSeriesItemsResponse")
+    m.libraryController.observeField("seriesRowsResponse", "libraryControllerHandleSeriesRowsResponse")
+
+    m.login.observeField("loginRequested", "authHandleLoginRequested")
+
+    m.overlayHost.observeField("closed", "overlayHandleClosed")
+
+    m.player.observeField("closeRequested", "playbackHandlePlayerCloseRequested")
+    m.player.observeField("errorResponse", "playbackHandlePlayerError")
+
+    m.search.observeField("querySelected", "searchHandleQuerySelected")
+
+    m.seriesPage.observeField("backSelected", "seriesHandleBackSelected")
+    m.seriesPage.observeField("errorResponse", "seriesHandleError")
+    m.seriesPage.observeField("playSelected", "seriesHandlePlaySelected")
+    m.seriesPage.observeField("statusMessage", "seriesHandleStatusMessageChanged")
+    m.seriesPage.observeField("upFromFirstRowSelected", "seriesHandleUpFromFirstRowSelected")
+
+end sub
+
+'-------------------------------------------------------------------------------
+' initSettings
+'-------------------------------------------------------------------------------
+sub initSettings()
+    m.displaySettings = SettingsStore.Load()
+    syncDisplaySettingsToComponents()
+end sub
+
+'-------------------------------------------------------------------------------
+' reloadHomeShelvesAfterPlayback
+'-------------------------------------------------------------------------------
+sub reloadHomeShelvesAfterPlayback()
+    m.homePage.callFunc("loadPersonalizedShelves")
+end sub
+
+'-------------------------------------------------------------------------------
+' statusSetMessage
+'-------------------------------------------------------------------------------
+sub statusSetMessage(message as dynamic)
+    m.statusLabel.text = Format.SafeString(message, "")
+end sub
+
+'===============================================================================
+' Auth / Session
+'===============================================================================
+
+'-------------------------------------------------------------------------------
+' authSyncSavedSessionToLogin
+'-------------------------------------------------------------------------------
+sub authSyncSavedSessionToLogin()
+    m.login.savedSession = m.authController.savedSession
+end sub
+
+'-------------------------------------------------------------------------------
+' authRequestResumeSession
+'-------------------------------------------------------------------------------
+sub authRequestResumeSession()
+    m.login.visible = false
+    m.authenticatedContent.visible = false
+    m.authController.resumeRequested = true
+end sub
+
+'-------------------------------------------------------------------------------
+' authHandleLoginRequested
+'-------------------------------------------------------------------------------
+sub authHandleLoginRequested()
+    m.authController.loginRequest = m.login.loginRequested
+end sub
+
+'-------------------------------------------------------------------------------
+' authShowLogin
+'-------------------------------------------------------------------------------
+sub authShowLogin(message as string)
+    m.login.visible = true
+    m.authenticatedContent.visible = false
+    resetDynamicPages()
+    headerCloseMenu()
+    m.login.statusMessage = message
+    m.login.callFunc("activate")
+end sub
+
+'-------------------------------------------------------------------------------
+' authStoreMediaProgress
+'-------------------------------------------------------------------------------
+sub authStoreMediaProgress(mediaProgress as dynamic)
+    if mediaProgress = invalid then
+        m.mediaProgress = []
+    else
+        m.mediaProgress = mediaProgress
+    end if
+
+    m.homePage.mediaProgress = m.mediaProgress
+    m.library.mediaProgress = m.mediaProgress
+    m.seriesPage.mediaProgress = m.mediaProgress
+end sub
+
+'-------------------------------------------------------------------------------
+' authHandleExpiredSession
+'-------------------------------------------------------------------------------
+sub authHandleExpiredSession(message as string)
+    m.authController.callFunc("clearSavedSession")
+    if m.session <> invalid then m.session.token = ""
+    m.login.passwordValue = ""
+    authShowLogin(message)
+end sub
+
+'-------------------------------------------------------------------------------
+' handleComponentError
+'-------------------------------------------------------------------------------
+function handleComponentError(response as dynamic) as boolean
+    if response = invalid then return false
+
+    if response.authExpired = true then
+        authHandleExpiredSession(response.errorMessage)
+        return true
+    end if
+
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' authHandleLogoutPressed
+'-------------------------------------------------------------------------------
+sub authHandleLogoutPressed()
+    request = {
+        server: ""
+        token: ""
+    }
+    if m.session <> invalid then
+        if m.session.server <> invalid then request.server = m.session.server
+        if m.session.token <> invalid then request.token = m.session.token
+        m.session.token = ""
+    end if
+    if m.authController <> invalid then m.authController.logoutRequest = request
+
+    m.login.passwordValue = ""
+    headerCloseMenu()
+end sub
+
+'-------------------------------------------------------------------------------
+' authHandleAuthenticatedSession
+'-------------------------------------------------------------------------------
+sub authHandleAuthenticatedSession()
+    session = m.authController.authenticatedSession
+    if session = invalid then return
+
+    m.session = session
+    authStoreMediaProgress(m.session.mediaProgress)
+    navShowApp()
+end sub
+
+'-------------------------------------------------------------------------------
+' authHandleLoginRequired
+'-------------------------------------------------------------------------------
+sub authHandleLoginRequired()
+    request = m.authController.loginRequired
+    if request = invalid then return
+
+    authShowLogin(request.message)
+end sub
+
+'-------------------------------------------------------------------------------
+' authHandleLoginFailed
+'-------------------------------------------------------------------------------
+sub authHandleLoginFailed()
+    response = m.authController.loginFailed
+    if response = invalid then return
+
+    m.login.statusMessage = response.message
+end sub
+
+'-------------------------------------------------------------------------------
+' authHandleSavedSessionChanged
+'-------------------------------------------------------------------------------
+sub authHandleSavedSessionChanged()
+    authSyncSavedSessionToLogin()
+end sub
+
+'-------------------------------------------------------------------------------
+' authHandleSessionExpired
+'-------------------------------------------------------------------------------
+sub authHandleSessionExpired()
+    response = m.authController.sessionExpired
+    if response = invalid then return
+
+    authHandleExpiredSession(response.message)
+end sub
+
+'===============================================================================
+' Navigation / Header / Search
+'===============================================================================
+
+'-------------------------------------------------------------------------------
+' navShowApp
+'-------------------------------------------------------------------------------
+sub navShowApp()
+    
+    m.login.visible = false
+    m.authenticatedContent.visible = true
+    resetDynamicPages()
+    headerCloseMenu()
+
+    loadRequest = buildSessionLoadRequest()
+
+    m.header.visible = true
+    m.header.username = m.session.username
+    m.header.libraries = m.session.libraries
+    m.header.currentLibraryId = m.session.bookLibraryId
+
+    m.libraryController.loadRequest = loadRequest
+    m.homePage.loadRequest = loadRequest
+    m.library.loadRequest = loadRequest
+    m.seriesPage.loadRequest = loadRequest
+    
+    navShowHomePage()
+    focusHomePage()
+
+end sub
+
+'-------------------------------------------------------------------------------
+' resetDynamicPages
+'-------------------------------------------------------------------------------
+sub resetDynamicPages()
+    m.yourStatsPage = invalid
+    m.navState.activePage = ""
+    childCount = m.dynamicPageHost.getChildCount()
+    if childCount > 0 then m.dynamicPageHost.removeChildrenIndex(childCount, 0)
+end sub
+
+'-------------------------------------------------------------------------------
+' buildSessionLoadRequest
+'-------------------------------------------------------------------------------
+function buildSessionLoadRequest() as object
+    
+    if m.session = invalid then THROW("[MainScene.buildSessionLoadRequest()] session is invalid.")
+    if m.session.server = invalid then THROW("[MainScene.buildSessionLoadRequest()] session.server is invalid.")
+    if m.session.token = invalid then THROW("[MainScene.buildSessionLoadRequest()] session.token is invalid.")
+    if m.session.bookLibraryId = invalid then THROW("[MainScene.buildSessionLoadRequest()] session.bookLibraryId is invalid.")
+
+    return {
+        server: m.session.server
+        token: m.session.token
+        bookLibraryId: m.session.bookLibraryId
+    }
+
+end function
+
+'-------------------------------------------------------------------------------
+' navShowHomePage
+'-------------------------------------------------------------------------------
+sub navShowHomePage()
+    showPage(m.navState.pages.home)
+end sub
+
+'-------------------------------------------------------------------------------
+' navShowLibraryPage
+'-------------------------------------------------------------------------------
+sub navShowLibraryPage()
+    showPage(m.navState.pages.library)
+end sub
+
+'-------------------------------------------------------------------------------
+' navShowSeriesPage
+'-------------------------------------------------------------------------------
+sub navShowSeriesPage()
+    showPage(m.navState.pages.series)
+end sub
+
+'-------------------------------------------------------------------------------
+' navShowYourStatsPage
+'-------------------------------------------------------------------------------
+sub navShowYourStatsPage()
+    showPage(m.navState.pages.yourStats)
+end sub
+
+'-------------------------------------------------------------------------------
+' showPage
+'-------------------------------------------------------------------------------
+sub showPage(pageId as string)
+    if pageId = m.navState.pages.yourStats then ensureYourStatsPage()
+
+    m.navState.activePage = pageId
+
+    if m.homePage <> invalid then m.homePage.visible = (pageId = m.navState.pages.home)
+    if m.library <> invalid then m.library.visible = (pageId = m.navState.pages.library)
+    if m.seriesPage <> invalid then m.seriesPage.visible = (pageId = m.navState.pages.series)
+    if m.yourStatsPage <> invalid then m.yourStatsPage.visible = (pageId = m.navState.pages.yourStats)
+
+    if pageId <> m.navState.pages.library and m.library <> invalid then m.library.callFunc("resetDrilldown")
+
+    updatePageStatus(pageId)
+end sub
+
+'-------------------------------------------------------------------------------
+' updatePageStatus
+'-------------------------------------------------------------------------------
+sub updatePageStatus(pageId as string)
+    if pageId = m.navState.pages.home and m.homePage <> invalid then
+        statusSetMessage(m.homePage.statusMessage)
+    else if pageId = m.navState.pages.library and m.library <> invalid then
+        statusSetMessage(m.library.statusMessage)
+    else if pageId = m.navState.pages.series and m.seriesPage <> invalid then
+        statusSetMessage(m.seriesPage.statusMessage)
+    else
+        statusSetMessage("")
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' ensureYourStatsPage
+'-------------------------------------------------------------------------------
+sub ensureYourStatsPage()
+    if m.yourStatsPage <> invalid then return
+
+    m.yourStatsPage = CreateObject("roSGNode", "YourStats")
+    m.yourStatsPage.id = "yourStatsPage"
+    m.yourStatsPage.visible = false
+    m.yourStatsPage.observeField("backSelected", "yourStatsHandleBackSelected")
+    m.yourStatsPage.observeField("errorResponse", "yourStatsHandleError")
+    m.yourStatsPage.observeField("statusMessage", "yourStatsHandleStatusMessageChanged")
+    m.yourStatsPage.loadRequest = buildSessionLoadRequest()
+    m.dynamicPageHost.appendChild(m.yourStatsPage)
+end sub
+
+'-------------------------------------------------------------------------------
+' headerHandleDownPressed
+'-------------------------------------------------------------------------------
+sub headerHandleDownPressed()
+    if m.homePage <> invalid and m.homePage.visible then
+        focusHomePage()
+        return
+    end if
+
+    if m.library <> invalid and m.library.visible then
+        focusLibraryList()
+        return
+    end if
+
+    if m.seriesPage <> invalid and m.seriesPage.visible then
+        focusSeriesPage()
+        return
+    end if
+
+    if m.yourStatsPage <> invalid and m.yourStatsPage.visible then
+        focusYourStatsPage()
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' headerHandleBackPressed
+'-------------------------------------------------------------------------------
+sub headerHandleBackPressed()
+    overlayOpenExitDialog()
+end sub
+
+'-------------------------------------------------------------------------------
+' headerCloseMenu
+'-------------------------------------------------------------------------------
+sub headerCloseMenu()
+    if m.header = invalid then return
+
+    m.header.closeMenuRequested = true
+end sub
+
+'-------------------------------------------------------------------------------
+' headerIsHomeButtonFocused
+'-------------------------------------------------------------------------------
+function headerIsHomeButtonFocused() as boolean
+    if m.header = invalid then return false
+
+    isFocused = m.header.callFunc("isHomeButtonFocused")
+    return isFocused = true
+end function
+
+'-------------------------------------------------------------------------------
+' focusHeader
+'-------------------------------------------------------------------------------
+sub focusHeader()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusHeader")
+end sub
+
+'-------------------------------------------------------------------------------
+' focusHomePage
+'-------------------------------------------------------------------------------
+sub focusHomePage()
+    if m.homePage <> invalid then m.homePage.callFunc("focusHomePage")
+end sub
+
+'-------------------------------------------------------------------------------
+' focusLibraryList
+'-------------------------------------------------------------------------------
+sub focusLibraryList()
+    if m.library <> invalid then m.library.callFunc("focusLibraryList")
+end sub
+
+'-------------------------------------------------------------------------------
+' focusSeriesPage
+'-------------------------------------------------------------------------------
+sub focusSeriesPage()
+    if m.seriesPage <> invalid then m.seriesPage.callFunc("focusSeriesPage")
+end sub
+
+'-------------------------------------------------------------------------------
+' focusYourStatsPage
+'-------------------------------------------------------------------------------
+sub focusYourStatsPage()
+    if m.yourStatsPage <> invalid then m.yourStatsPage.callFunc("focusYourStats")
+end sub
+
+'-------------------------------------------------------------------------------
+' focusSettingsButton
+'-------------------------------------------------------------------------------
+sub focusSettingsButton()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusSettingsButton")
+end sub
+
+'-------------------------------------------------------------------------------
+' focusUserMenuButton
+'-------------------------------------------------------------------------------
+sub focusUserMenuButton()
+    if m.header <> invalid and m.header.visible then m.header.callFunc("focusUserMenuButton")
+end sub
+
+'-------------------------------------------------------------------------------
+' searchHandlePressed
+'-------------------------------------------------------------------------------
+sub searchHandlePressed()
+    headerCloseMenu()
+    if m.search <> invalid then m.search.callFunc("openSearch")
+end sub
+
+'-------------------------------------------------------------------------------
+' searchHandleQuerySelected
+'-------------------------------------------------------------------------------
+sub searchHandleQuerySelected()
+    if m.search = invalid then return
+
+    selectedQuery = m.search.querySelected
+    if selectedQuery = invalid then return
+
+    searchTerm = String.Trim(selectedQuery.query)
+    if m.session = invalid then return
+
+    if m.header <> invalid then m.header.callFunc("activateSearchButton")
+    navShowLibraryPage()
+    if m.library <> invalid then
+        m.library.searchRequest = {
+            searchTerm: searchTerm
+        }
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' yourStatsHandlePressed
+'-------------------------------------------------------------------------------
+sub yourStatsHandlePressed()
+    headerCloseMenu()
+    if m.library <> invalid then m.library.callFunc("resetSearchResults")
+    if m.header <> invalid then m.header.callFunc("activateUserMenuButton")
+    navShowYourStatsPage()
+    if m.yourStatsPage <> invalid then m.yourStatsPage.callFunc("loadStats")
+    focusYourStatsPage()
+end sub
+
+'-------------------------------------------------------------------------------
+' yourStatsHandleBackSelected
+'-------------------------------------------------------------------------------
+sub yourStatsHandleBackSelected()
+    focusHeader()
+end sub
+
+'-------------------------------------------------------------------------------
+' yourStatsHandleError
+'-------------------------------------------------------------------------------
+sub yourStatsHandleError()
+    handleComponentError(m.yourStatsPage.errorResponse)
+end sub
+
+'-------------------------------------------------------------------------------
+' yourStatsHandleStatusMessageChanged
+'-------------------------------------------------------------------------------
+sub yourStatsHandleStatusMessageChanged()
+    if m.yourStatsPage = invalid then return
+    if m.yourStatsPage.visible <> true then return
+
+    statusSetMessage(m.yourStatsPage.statusMessage)
+end sub
+
+'===============================================================================
+' Home
+'===============================================================================
+
+'-------------------------------------------------------------------------------
+' homeHandlePressed
+'-------------------------------------------------------------------------------
+sub homeHandlePressed()
+    headerCloseMenu()
+    if m.library <> invalid then m.library.callFunc("resetSearchResults")
+    navShowHomePage()
+    focusHomePage()
+    if m.homePage <> invalid then m.homePage.callFunc("loadPersonalizedShelves")
+end sub
+
+'-------------------------------------------------------------------------------
+' homeHandleBackSelected
+'-------------------------------------------------------------------------------
+sub homeHandleBackSelected()
+    focusHeader()
+end sub
+
+'-------------------------------------------------------------------------------
+' homeHandleUpFromFirstRowSelected
+'-------------------------------------------------------------------------------
+sub homeHandleUpFromFirstRowSelected()
+    focusHeader()
+end sub
+
+'-------------------------------------------------------------------------------
+' homeHandlePlaySelected
+'-------------------------------------------------------------------------------
+sub homeHandlePlaySelected()
+    selectedItem = m.homePage.playSelected
+    m.playerReturnTarget = "home"
+    playbackPlayItem(selectedItem)
+end sub
+
+'-------------------------------------------------------------------------------
+' homeHandleError
+'-------------------------------------------------------------------------------
+sub homeHandleError()
+    handleComponentError(m.homePage.errorResponse)
+end sub
+
+'-------------------------------------------------------------------------------
+' homeHandleStatusMessageChanged
+'-------------------------------------------------------------------------------
+sub homeHandleStatusMessageChanged()
+    if m.homePage = invalid then return
+    if m.homePage.visible <> true then return
+
+    statusSetMessage(m.homePage.statusMessage)
+end sub
+
+'===============================================================================
+' Library
+'===============================================================================
+
+'-------------------------------------------------------------------------------
+' libraryHandlePressed
+'-------------------------------------------------------------------------------
+sub libraryHandlePressed()
+    headerCloseMenu()
+    if m.library <> invalid then m.library.callFunc("resetSearchResults")
+    navShowLibraryPage()
+    focusLibraryList()
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleCurrentLibrarySelected
+'-------------------------------------------------------------------------------
+sub libraryHandleCurrentLibrarySelected()
+    if m.header = invalid then return
+    if m.session = invalid then return
+
+    selectedLibrary = m.header.currentLibrarySelected
+    if selectedLibrary = invalid or selectedLibrary.id = invalid then return
+    if selectedLibrary.id = m.session.bookLibraryId then return
+
+    m.session.bookLibraryId = selectedLibrary.id
+    m.header.currentLibraryId = m.session.bookLibraryId
+    if m.header.callFunc("isSearchButtonActive") then m.header.callFunc("activateLibraryButton")
+
+    loadRequest = buildSessionLoadRequest()
+    if m.library <> invalid then
+        m.library.callFunc("resetNavigationState")
+        m.library.loadRequest = loadRequest
+    end if
+    if m.homePage <> invalid then m.homePage.loadRequest = loadRequest
+    if m.seriesPage <> invalid then
+        m.seriesPage.callFunc("resetSeriesRows")
+        m.seriesPage.loadRequest = loadRequest
+    end if
+    if m.yourStatsPage <> invalid then m.yourStatsPage.loadRequest = loadRequest
+    if m.libraryController <> invalid then m.libraryController.loadRequest = loadRequest
+    if m.seriesPage <> invalid and m.seriesPage.visible = true then requestSeriesRows()
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleSearchRequest
+'-------------------------------------------------------------------------------
+sub libraryHandleSearchRequest()
+    if m.library = invalid then return
+    if m.libraryController = invalid then return
+
+    m.libraryController.searchRequest = m.library.controllerSearchRequest
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleSeriesItemsRequest
+'-------------------------------------------------------------------------------
+sub libraryHandleSeriesItemsRequest()
+    if m.library = invalid then return
+    if m.libraryController = invalid then return
+
+    m.libraryController.seriesItemsRequest = m.library.seriesItemsRequest
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryControllerHandleItemsChanged
+'-------------------------------------------------------------------------------
+sub libraryControllerHandleItemsChanged()
+    if m.libraryController = invalid then return
+    if m.library <> invalid then
+        m.library.allLibraryItems = m.libraryController.allLibraryItems
+        m.library.rootLibraryItems = m.libraryController.libraryItems
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryControllerHandleLoadingChanged
+'-------------------------------------------------------------------------------
+sub libraryControllerHandleLoadingChanged()
+    if m.libraryController = invalid then return
+    if m.library <> invalid then m.library.loading = m.libraryController.loading
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryControllerHandleSearchResponse
+'-------------------------------------------------------------------------------
+sub libraryControllerHandleSearchResponse()
+    if m.libraryController = invalid then return
+    if m.library <> invalid then m.library.searchResponse = m.libraryController.searchResponse
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryControllerHandleSeriesItemsResponse
+'-------------------------------------------------------------------------------
+sub libraryControllerHandleSeriesItemsResponse()
+    if m.libraryController = invalid then return
+    if m.library <> invalid then m.library.seriesItemsResponse = m.libraryController.seriesItemsResponse
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryControllerHandleSeriesRowsResponse
+'-------------------------------------------------------------------------------
+sub libraryControllerHandleSeriesRowsResponse()
+    if m.libraryController = invalid then return
+    if m.seriesPage <> invalid then m.seriesPage.seriesRowsResponse = m.libraryController.seriesRowsResponse
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryControllerHandleError
+'-------------------------------------------------------------------------------
+sub libraryControllerHandleError()
+    if m.libraryController = invalid then return
+
+    response = m.libraryController.errorResponse
+    if response = invalid then return
+    if handleComponentError(response) then return
+    if m.library <> invalid and m.library.visible = true then m.library.errorResponse = response
+    if m.seriesPage <> invalid and m.seriesPage.visible = true then m.seriesPage.errorResponse = response
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleError
+'-------------------------------------------------------------------------------
+sub libraryHandleError()
+    handleComponentError(m.library.errorResponse)
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleStatusMessageChanged
+'-------------------------------------------------------------------------------
+sub libraryHandleStatusMessageChanged()
+    if m.library = invalid then return
+    if m.library.visible <> true then return
+
+    statusSetMessage(m.library.statusMessage)
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandlePlaySelected
+'-------------------------------------------------------------------------------
+sub libraryHandlePlaySelected()
+    selectedItem = m.library.playSelected
+    m.playerReturnTarget = "library"
+    playbackPlayItem(selectedItem)
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleUpFromFirstItemSelected
+'-------------------------------------------------------------------------------
+sub libraryHandleUpFromFirstItemSelected()
+    focusHeader()
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleBackFromFirstItemSelected
+'-------------------------------------------------------------------------------
+sub libraryHandleBackFromFirstItemSelected()
+    focusHeader()
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleItemsReloaded
+'-------------------------------------------------------------------------------
+sub libraryHandleItemsReloaded()
+    if m.focusSettingsAfterLibraryReload = true then
+        m.focusSettingsAfterLibraryReload = false
+        focusSettingsButton()
+    end if
+end sub
+
+'-------------------------------------------------------------------------------
+' libraryHandleMainListRestored
+'-------------------------------------------------------------------------------
+sub libraryHandleMainListRestored()
+    if m.header <> invalid then m.header.callFunc("activateLibraryButton")
+end sub
+
+'===============================================================================
+' Series
+'===============================================================================
+
+'-------------------------------------------------------------------------------
+' seriesHandlePressed
+'-------------------------------------------------------------------------------
+sub seriesHandlePressed()
+    headerCloseMenu()
+    if m.library <> invalid then m.library.callFunc("resetSearchResults")
+    navShowSeriesPage()
+    requestSeriesRows()
+    focusSeriesPage()
+end sub
+
+'-------------------------------------------------------------------------------
+' requestSeriesRows
+'-------------------------------------------------------------------------------
+sub requestSeriesRows()
+    if m.libraryController = invalid then return
+
+    m.libraryController.seriesRowsRequest = "loadSeriesRows"
+end sub
+
+'-------------------------------------------------------------------------------
+' seriesHandlePlaySelected
+'-------------------------------------------------------------------------------
+sub seriesHandlePlaySelected()
+    selectedItem = m.seriesPage.playSelected
+    m.playerReturnTarget = "series"
+    playbackPlayItem(selectedItem)
+end sub
+
+'-------------------------------------------------------------------------------
+' seriesHandleBackSelected
+'-------------------------------------------------------------------------------
+sub seriesHandleBackSelected()
+    focusHeader()
+end sub
+
+'-------------------------------------------------------------------------------
+' seriesHandleUpFromFirstRowSelected
+'-------------------------------------------------------------------------------
+sub seriesHandleUpFromFirstRowSelected()
+    focusHeader()
+end sub
+
+'-------------------------------------------------------------------------------
+' seriesHandleError
+'-------------------------------------------------------------------------------
+sub seriesHandleError()
+    handleComponentError(m.seriesPage.errorResponse)
+end sub
+
+'-------------------------------------------------------------------------------
+' seriesHandleStatusMessageChanged
+'-------------------------------------------------------------------------------
+sub seriesHandleStatusMessageChanged()
+    if m.seriesPage = invalid then return
+    if m.seriesPage.visible <> true then return
+
+    statusSetMessage(m.seriesPage.statusMessage)
+end sub
+
+'===============================================================================
+' Playback
+'===============================================================================
+
+'-------------------------------------------------------------------------------
+' playbackPlayItem
+'-------------------------------------------------------------------------------
+sub playbackPlayItem(selectedItem as dynamic)
+    if selectedItem = invalid or selectedItem.id = invalid then return
+    if m.session = invalid then return
+
+    coverUrl = Cover.BuildUrl(m.session.server, m.session.token, selectedItem.id, 400)
+    m.authenticatedContent.visible = false
+    m.player.visible = true
+    m.player.setFocus(true)
+    m.playbackItemId = selectedItem.id
+    m.player.playRequest = {
+        server: m.session.server
+        token: m.session.token
+        itemId: selectedItem.id
+        title: selectedItem.title
+        coverUrl: coverUrl
+        details: selectedItem.details
+        startPositionSeconds: MediaProgressLookup.GetStartPosition(selectedItem, m.mediaProgress)
+    }
+end sub
+
+'-------------------------------------------------------------------------------
+' playbackHandlePlayerCloseRequested
+'-------------------------------------------------------------------------------
+sub playbackHandlePlayerCloseRequested()
+    
+    m.player.visible = false
+    m.authenticatedContent.visible = true
+    reloadHomeShelvesAfterPlayback()
+    playbackRefreshMediaProgress()
+
+    if m.playerReturnTarget = "home" and m.homePage <> invalid and m.homePage.visible then
+        focusHomePage()
+        return
+    end if
+
+    if m.playerReturnTarget = "series" and m.seriesPage <> invalid and m.seriesPage.visible then
+        focusSeriesPage()
+        return
+    end if
+
+    if m.library <> invalid and m.library.visible then
+        focusLibraryList()
+    end if
+
+end sub
+
+'-------------------------------------------------------------------------------
+' playbackRefreshMediaProgress
+'-------------------------------------------------------------------------------
+sub playbackRefreshMediaProgress()
+    if m.inProgressApiTask = invalid then return
+    if m.session = invalid then return
+    if m.session.server = invalid or m.session.server = "" then return
+    if m.session.token = invalid or m.session.token = "" then return
+    if m.playbackItemId = invalid or m.playbackItemId = "" then return
+
+    m.inProgressApiTask.request = {
+        action: "loadInProgress"
+        server: m.session.server
+        token: m.session.token
+        sourceItemId: m.playbackItemId
+    }
+    m.inProgressApiTask.control = "run"
+end sub
+
+'-------------------------------------------------------------------------------
+' playbackHandleInProgressResponse
+'-------------------------------------------------------------------------------
+sub playbackHandleInProgressResponse()
+    response = m.inProgressApiTask.response
+    if response = invalid then return
+    if Format.SafeString(response.sourceItemId, "") <> Format.SafeString(m.playbackItemId, "") then return
+
+    log = Logger.CreateBufferedLogger("MainScene playback progress refresh")
+
+    if response.ok <> true then
+        log.write("status = " + Format.SafeString(response.status, ""))
+        log.write("error = " + Format.SafeString(response.errorMessage, "Unable to refresh media progress."))
+        log.flush()
+        handleComponentError(response)
+        return
+    end if
+
+    updatedCount = mergeMediaProgress(response.mediaProgress)
+    authStoreMediaProgress(copyMediaProgress(m.mediaProgress))
+
+    libraryItemCount = 0
+    if response.libraryItems <> invalid then libraryItemCount = response.libraryItems.Count()
+
+    log.write("status = " + Format.SafeString(response.status, ""))
+    log.write("items returned = " + libraryItemCount.ToStr())
+    log.write("progress updated = " + updatedCount.ToStr())
+    log.write("played item found = " + mediaProgressContainsItem(response.mediaProgress, response.sourceItemId).ToStr())
+    log.flush()
+end sub
+
+'-------------------------------------------------------------------------------
+' mergeMediaProgress
+'-------------------------------------------------------------------------------
+function mergeMediaProgress(progressItems as dynamic) as integer
+    if progressItems = invalid then return 0
+    if m.mediaProgress = invalid then m.mediaProgress = []
+
+    updatedCount = 0
+    for each progress in progressItems
+        if progress <> invalid and progress.itemId <> invalid and progress.itemId <> "" then
+            upsertMediaProgress(progress)
+            updatedCount = updatedCount + 1
+        end if
+    end for
+
+    return updatedCount
+end function
+
+'-------------------------------------------------------------------------------
+' copyMediaProgress
+'-------------------------------------------------------------------------------
+function copyMediaProgress(progressItems as dynamic) as object
+    copiedItems = []
+    if progressItems = invalid then return copiedItems
+
+    for each progress in progressItems
+        if progress <> invalid then copiedItems.Push(progress)
+    end for
+
+    return copiedItems
+end function
+
+'-------------------------------------------------------------------------------
+' upsertMediaProgress
+'-------------------------------------------------------------------------------
+sub upsertMediaProgress(progress as object)
+    itemId = progress.itemId.ToStr()
+
+    for i = 0 to m.mediaProgress.Count() - 1
+        existingProgress = m.mediaProgress[i]
+        if existingProgress <> invalid and existingProgress.itemId <> invalid and existingProgress.itemId.ToStr() = itemId then
+            m.mediaProgress[i] = progress
+            return
+        end if
+    end for
+
+    m.mediaProgress.Push(progress)
+end sub
+
+'-------------------------------------------------------------------------------
+' mediaProgressContainsItem
+'-------------------------------------------------------------------------------
+function mediaProgressContainsItem(progressItems as dynamic, itemId as dynamic) as boolean
+    if progressItems = invalid then return false
+    if itemId = invalid or itemId = "" then return false
+
+    itemIdText = itemId.ToStr()
+    for each progress in progressItems
+        if progress <> invalid and progress.itemId <> invalid and progress.itemId.ToStr() = itemIdText then return true
+    end for
+
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' playbackHandlePlayerError
+'-------------------------------------------------------------------------------
+sub playbackHandlePlayerError()
+    response = m.player.errorResponse
+    if response <> invalid and response.authExpired = true then
+        playbackHandlePlayerCloseRequested()
+    end if
+
+    handleComponentError(response)
+end sub
+
+'===============================================================================
+' Overlays
+'===============================================================================
+
+'-------------------------------------------------------------------------------
+' overlayHandleRequested
+'-------------------------------------------------------------------------------
+sub overlayHandleRequested()
+    headerCloseMenu()
+    if m.overlayHost = invalid then return
+
+    request = m.header.overlayRequested
+    if request = invalid then return
+
+    ' if we're displaying the diagnostics dialog then we need to get the
+    ' cache information from the LibraryController and pass it over
+    if request.id = "diagnostics" and m.libraryController <> invalid then
+        request.cacheInfo = m.libraryController.callFunc("getCacheInfo")
+        request.openFunction = invalid
+        overlay = m.overlayHost.callFunc("openOverlay", request)
+        if overlay <> invalid then
+            overlay.cacheInfo = request.cacheInfo
+            overlay.callFunc("openDiagnostics")
+        end if
+        return
+    end if
+
+    m.overlayHost.callFunc("openOverlay", request)
+end sub
+
+'-------------------------------------------------------------------------------
+' overlayHandleClosed
+'-------------------------------------------------------------------------------
+sub overlayHandleClosed()
+    closed = m.overlayHost.closed
+    if closed <> invalid and closed.request <> invalid and closed.request.id = "settings" and closed.overlay <> invalid then
+        overlayHandleSettingsSaved(closed.overlay.savedSettings)
+        focusSettingsButton()
+        return
+    end if
+
+    if closed <> invalid and closed.request <> invalid and closed.request.id = "exit" and closed.overlay <> invalid then
+        if closed.overlay.confirmed = true then
+            m.top.closeRequested = true
+            return
+        end if
+
+        focusHeader()
+        return
+    end if
+
+    focusUserMenuButton()
+end sub
+
+'-------------------------------------------------------------------------------
+' overlayHandleSettingsSaved
+'-------------------------------------------------------------------------------
+sub overlayHandleSettingsSaved(savedSettings as dynamic)
+    if savedSettings = invalid then return
+
+    m.displaySettings = savedSettings
+    syncDisplaySettingsToComponents()
+    m.focusSettingsAfterLibraryReload = true
+end sub
+
+'-------------------------------------------------------------------------------
+' syncDisplaySettingsToComponents
+'-------------------------------------------------------------------------------
+sub syncDisplaySettingsToComponents()
+    m.homePage.displaySettings = m.displaySettings
+    m.library.displaySettings = m.displaySettings
+    m.libraryController.displaySettings = m.displaySettings
+    m.seriesPage.displaySettings = m.displaySettings
+    m.player.displaySettings = m.displaySettings
+end sub
+
+'-------------------------------------------------------------------------------
+' overlayOpenExitDialog
+'-------------------------------------------------------------------------------
+sub overlayOpenExitDialog()
+    if m.overlayHost = invalid then return
+
+    m.overlayHost.callFunc("openOverlay", {
+        id: "exit"
+        componentName: "ExitDialog"
+        closeFields: ["confirmed", "canceled"]
+        openFunction: "openConfirmation"
+    })
+end sub
+
+'===============================================================================
+' Input
+'===============================================================================
+
+'-------------------------------------------------------------------------------
+' onKeyEvent
+'-------------------------------------------------------------------------------
+function onKeyEvent(key as string, press as boolean) as boolean
+    if press = false then return false
+
+    if m.player <> invalid and m.player.visible then
+        return false
+    end if
+
+    if isHomeStatusVisible() and (key = "up" or key = "back") then
+        focusHeader()
+        return true
+    end if
+
+    if isLibraryStatusVisible() and (key = "up" or key = "back") then
+        focusHeader()
+        return true
+    end if
+
+    if m.header <> invalid and m.header.menuOpen and key = "back" then
+        headerCloseMenu()
+        return true
+    end if
+
+    if key = "back" and headerIsHomeButtonFocused() then
+        overlayOpenExitDialog()
+        return true
+    end if
+
+    if not m.login.visible and key = "back" then
+        if m.library <> invalid and m.library.callFunc("handleBackNavigation") then return true
+    end if
+
+    return false
+end function
+
+'-------------------------------------------------------------------------------
+' isHomeStatusVisible
+'-------------------------------------------------------------------------------
+function isHomeStatusVisible() as boolean
+    if m.homePage = invalid then return false
+    if m.homePage.visible <> true then return false
+
+    return Format.SafeString(m.homePage.statusMessage, "") <> ""
+end function
+
+'-------------------------------------------------------------------------------
+' isLibraryStatusVisible
+'-------------------------------------------------------------------------------
+function isLibraryStatusVisible() as boolean
+    if m.library = invalid then return false
+    if m.library.visible <> true then return false
+
+    return Format.SafeString(m.library.statusMessage, "") <> ""
+end function

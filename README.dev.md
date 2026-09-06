@@ -45,7 +45,7 @@ works reliably on Windows.
 npm run validate
 ```
 
-Runs the BrightScript compiler validation step. This checks the Roku app from the repo root and stages compiler output under `build/staging`.
+Runs BrighterScript validation and transpilation from the repo root, staging Roku-compatible output under `build/staging`. The VS Code debugger runs this task automatically and deploys from that staging directory; do not configure it to package the repository root because Roku cannot execute authored `.bs` files directly.
 
 ```
 npm run increment-build-version

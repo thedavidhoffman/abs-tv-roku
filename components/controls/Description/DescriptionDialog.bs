@@ -1,0 +1,16 @@
+import "pkg:/source/Format.bs"
+
+'-------------------------------------------------------------------------------
+' onTextChanged
+'-------------------------------------------------------------------------------
+sub onTextChanged()
+    syncContent()
+end sub
+
+'-------------------------------------------------------------------------------
+' syncContent
+'-------------------------------------------------------------------------------
+sub syncContent()
+    content = m.top.callFunc("getContentComponent")
+    if content <> invalid then content.text = Format.SafeString(m.top.text)
+end sub

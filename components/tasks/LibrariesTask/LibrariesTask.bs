@@ -1,0 +1,47 @@
+import "pkg:/source/HttpClient.bs"
+import "pkg:/source/Logger.bs"
+import "pkg:/source/mappers/LibraryMapper.bs"
+
+'-------------------------------------------------------------------------------
+' init
+'-------------------------------------------------------------------------------
+sub init()
+    m.log = Logger.CreateLogger("LibrariesTask")
+    m.log.write("init")
+    m.top.functionName = "executeRequest"
+end sub
+
+'-------------------------------------------------------------------------------
+' executeRequest
+'-------------------------------------------------------------------------------
+sub executeRequest()
+    request = m.top.request
+    if request = invalid then
+        m.top.response = { ok: false, errorMessage: "Invalid libraries request." }
+        return
+    end if
+
+    if request.action <> "loadLibraries" then
+        m.top.response = { ok: false, errorMessage: "Unknown libraries request action." }
+        return
+    end if
+
+    m.top.response = fetchLibraries(request)
+end sub
+
+'-------------------------------------------------------------------------------
+' fetchLibraries
+'-------------------------------------------------------------------------------
+function fetchLibraries(request as object) as object
+    librariesUrl = request.server + "/api/libraries"
+    m.log.write(librariesUrl)
+
+    result = HttpClient.Request(librariesUrl, "GET", request.token, invalid)
+    if result.ok <> true then return result
+
+    return {
+        ok: true
+        action: "loadLibraries"
+        libraries: LibraryMapper.Map(result.data)
+    }
+end function

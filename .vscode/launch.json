@@ -5,7 +5,8 @@
             "type": "brightscript",
             "request": "launch",
             "name": "ABSTV",
-            "rootDir": "${workspaceFolder}",
+            "rootDir": "${workspaceFolder}/build/staging",
+            "preLaunchTask": "validate",
             "stopOnEntry": false,
             // To enable RALE:
             // set "brightscript.debug.raleTrackerTaskFileLocation": "/absolute/path/to/rale/TrackerTask.xml" in your vscode user settings

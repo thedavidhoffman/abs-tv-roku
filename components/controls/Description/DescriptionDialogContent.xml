@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component name="DescriptionDialogContent" extends="Group" focusable="true">
-  <script type="text/brightscript" uri="pkg:/components/controls/Description/DescriptionDialogContent.brs" />
   <interface>
     <field id="text" type="string" onChange="onTextChanged" />
     <function name="focusFirstField" />
